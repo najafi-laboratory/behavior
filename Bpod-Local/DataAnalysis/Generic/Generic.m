@@ -1,0 +1,57 @@
+disp('----------------------------------------------------------');
+
+
+Trial_num = 11;
+
+Port1In_x = SessionData.RawEvents.Trial{1, Trial_num}.Events.Port1In;
+Port1In_y = ones(1, length(Port1In_x));
+
+Port1Out_x = SessionData.RawEvents.Trial{1, Trial_num}.Events.Port1Out;
+Port1Out_y = ones(1, length(Port1Out_x));
+
+Port2In_x = SessionData.RawEvents.Trial{1, Trial_num}.Events.Port2In;
+Port2In_y = ones(1, length(Port2In_x))*2;
+
+Port2Out_x = SessionData.RawEvents.Trial{1, Trial_num}.Events.Port2Out;
+Port2Out_y = ones(1, length(Port2Out_x))*2;
+
+Port3In_x = SessionData.RawEvents.Trial{1, Trial_num}.Events.Port3In;
+Port3In_y = ones(1, length(Port3In_x))*3;
+
+Port3Out_x = SessionData.RawEvents.Trial{1, Trial_num}.Events.Port3Out;
+Port3Out_y = ones(1, length(Port3Out_x))*3;
+ 
+FigHandle = figure();
+
+%hold on;
+
+hAx = axes(FigHandle);
+
+hold on;
+
+plot(hAx, Port1In_x, Port1In_y, 'O');
+plot(hAx, Port1Out_x, Port1Out_y, 'X');
+
+plot(hAx, Port2In_x, Port2In_y, 'O');
+plot(hAx, Port2Out_x, Port2Out_y, 'X');
+
+plot(hAx, Port3In_x, Port3In_y, 'O');
+plot(hAx, Port3Out_x, Port3Out_y, 'X');
+
+legend('Port1In','Port1Out','Port2In','Port2Out','Port3In','Port3Out');
+%legend('Port1In','Port1Out','Port2In','Port2Out');
+%legend('Port2In','Port2Out');
+
+nTicks = 3;
+
+set(hAx, ...
+    'YTick',      1:nTicks, ...
+    'YTickLabel', {'Port1In(o)|Port1Out(x)', 'Port2In(o)|Port2Out(x)', 'Port3In(o)|Port3Out(x)'}, ...
+    'YLim',       [.5 nTicks+.5]);
+% 
+% set(hAx, ...
+%     'YTick',      1:nTicks, ...
+%     'YTickLabel', {'Port2In(o)|Port2Out(x)'}, ...
+%     'YLim',       [.5 nTicks+.5]);
+
+disp('----------------------------------------------------------');   
