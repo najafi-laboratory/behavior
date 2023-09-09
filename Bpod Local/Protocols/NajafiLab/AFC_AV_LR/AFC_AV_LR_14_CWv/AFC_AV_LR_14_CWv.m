@@ -1317,7 +1317,14 @@ for currentTrial = 1:MaxTrials
             FullAudioStimData = FullAudioStimData + ShiftedGoCue; % update with mixed signal
             %FullAudioStimData = [PrePerturbAudioData repmat(AudioPerturbBasePattern, 1, NumPerturbVisRep)];
         case 3
-            % nothing
+            % nothing 
+            VideoStartToGoCueDur_s = VideoStartToGoCueFrames * (1/FramesPerSecond);
+            % VideoStartToGoCueDur_NumAudioSamples = SF * VideoStartToGoCueDur_s;
+            
+            % ShiftedGoCue = [zeros(1, VideoStartToGoCueDur_NumAudioSamples) GoCueSound zeros(1, length(FullAudioStimData) - VideoStartToGoCueDur_NumAudioSamples - length(GoCueSound))];
+            FullAudioStimData = [FullAudioStimData GoCueSound]; % concat go cue to end of audio stim for mid 2 training level
+            % figure()
+            % plot(FullAudioStimData)
         case 4
             % nothing 
     end
@@ -1339,7 +1346,7 @@ for currentTrial = 1:MaxTrials
     %H.load(4, FullAudioStimData);
 
     % Query duration of one monitor refresh interval:
-    ifi=Screen('GetFlipInterval', BpodSystem.PluginObjects.V.Window)
+    ifi=Screen('GetFlipInterval', BpodSystem.PluginObjects.V.Window);
     
     % VideoPerturbBasePattern = [GrayPerturbVideo GratingVideo]; % perturbation video pattern for second segment repetitions of random ISI gray->grating
     % 
@@ -1490,7 +1497,7 @@ for currentTrial = 1:MaxTrials
         OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
         OutputActionAudioVisStim = {};
     end
-    OutputActionsCenterLick = {'HiFi1', 'X'}; % stop audio stim
+    %OutputActionsCenterLick = {'HiFi1', 'X'}; % stop audio stim
     %OutputActionsPreGoCueDelay = {'HiFi1', 'X'}; % stop audio stim
     OutputActionsPreGoCueDelay = {}; % 
     OutputActionsEarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'}; % stop audio stim, stop vis stim
@@ -1507,14 +1514,17 @@ for currentTrial = 1:MaxTrials
             %DidNotChoose_Tup_NextState = 'Reward';
             DidNotChoose_Tup_NextState = 'ITI';
         
-            VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
     
             %PreGoCueDelay_OutputActions = {}; % no output action in PreGoCueDelay for naive
             CenterReward_OutputActions = {'Valve2', 1};
 
             GoCue_Tup_NextState = 'RewardNaive';  % naive
-            OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            %OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {};
+            OutputActionsWindowChoice = {};
             Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'PunishNaive'; % Naive
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'}
@@ -1530,14 +1540,19 @@ for currentTrial = 1:MaxTrials
     
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
-            VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
                 
             % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
-            CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
+            %CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
+            CenterReward_OutputActions = {'Valve2', 1}; % moved video stop code earlier to center reward
 
             GoCue_Tup_NextState = 'WindowChoice';  % trained
-            OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            %OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {CorrectLick, 'RewardDelay', 'Condition1', 'RewardDelay', IncorrectLick, 'PunishSetup', 'Condition2', 'PunishSetup', 'Tup', 'DidNotChoose'};
+            OutputActionsWindowChoice = {};
+            %OutputActionsWindowChoice = {'HiFi1', 'X'};
             Reward_Tup_NextState = 'ExtraStimDurPostRew_Naive';
             PunishSetup_Tup_NextState = 'Punish'; % trained
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'}
@@ -1553,15 +1568,18 @@ for currentTrial = 1:MaxTrials
     
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
-            VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
-                
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};                
+
             % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
             CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
 
             GoCue_Tup_NextState = 'WindowChoice';  % trained
-            OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            %OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {CorrectLick, 'RewardDelay', 'Condition1', 'RewardDelay', IncorrectLick, 'PunishSetup', 'Condition2', 'PunishSetup', 'Tup', 'DidNotChoose'};
-            Reward_Tup_NextState = 'ExtraStimDurPostRew_Naive';
+            OutputActionsWindowChoice = {'HiFi1', 'X'};
+            Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'Punish'; % trained
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'}
 
@@ -1576,14 +1594,17 @@ for currentTrial = 1:MaxTrials
     
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
-            VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
                 
             % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
             CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
 
             GoCue_Tup_NextState = 'WindowChoice';  % trained
             OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {CorrectLick, 'CorrectLickInterval', IncorrectLick, 'IncorrectLickInterval', 'Tup', 'DidNotChoose'};
+            OutputActionsWindowChoice = {'HiFi1', 'X'};
             Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'Punish'; % trained
             ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
@@ -1714,10 +1735,10 @@ for currentTrial = 1:MaxTrials
       %'Timer', VisStimDuration,...
 
     % Well trained: after the stimulus ends, mouse center licks, then center reward happens.  
-    sma = AddState(sma, 'Name', 'CenterLick', ...
-        'Timer', S.GUI.WindCenterLick_s,...
-        'StateChangeConditions', WindCenterEvents,...
-        'OutputActions', OutputActionsCenterLick); 
+    % sma = AddState(sma, 'Name', 'CenterLick', ...
+    %     'Timer', S.GUI.WindCenterLick_s,...
+    %     'StateChangeConditions', WindCenterEvents,...
+    %     'OutputActions', {}); 
 
     sma = AddState(sma, 'Name', 'CenterReward', ...
         'Timer', CenterValveTime,...
@@ -1787,7 +1808,8 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'WindowChoice', ...
         'Timer', S.GUI.ChoiceWindow_s,...
         'StateChangeConditions', WindowChoice_StateChangeConditions,...
-        'OutputActions', {});        
+        'OutputActions', OutputActionsWindowChoice);        
+        %'OutputActions', {}); 
 
         % 'StateChangeConditions', {'Port1In', LeftLickAction, 'Port3In', RightLickAction, 'Tup', 'ITI'},...
         % 'OutputActions', {'HiFi1', SoundOffBytes});
@@ -1969,9 +1991,9 @@ if isfield(Data, 'nTrials')
                 disp(['Outcome: EarlyChoice']);
             end
             Outcomes(x) = 3;    % draws clear circle on outcome plot
-        elseif ~isnan(Data.RawEvents.Trial{x}.States.EarlyChoiceDurWindCent(1))
+        elseif ~isnan(Data.RawEvents.Trial{x}.States.EarlyChoiceDurCenterLick(1))
             if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured
-                disp(['Outcome: EarlyChoiceDurWindCent']);
+                disp(['Outcome: EarlyChoiceDurCenterLick']);
             end
             Outcomes(x) = 3;    % draws clear circle on outcome plot
         elseif ~isnan(Data.RawEvents.Trial{x}.States.DidNotChoose(1))

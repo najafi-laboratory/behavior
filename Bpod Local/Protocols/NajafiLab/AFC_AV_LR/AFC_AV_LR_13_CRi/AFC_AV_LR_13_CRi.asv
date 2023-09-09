@@ -116,7 +116,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.RewardDelay_s = 0; % How long the mouse must wait in the goal port for reward to be delivered
     S.GUI.EnableCenterLick_Trained = 0; % override to disable/enable center lick for well trained
     S.GUIMeta.EnableCenterLick_Trained.Style = 'checkbox';
-    S.GUI.CenterLickWindow_Trained_s = 2;   
+    S.GUI.CenterLickWindow_Trained_s = 0.5;   
     S.GUIPanels.Reward = {'LeftValveTime_s', 'RightValveTime_s', 'CenterValveTime_s', 'WindowRewardGrabDuration_Naive_s', 'RewardDelay_s', 'EnableCenterLick_Trained', 'CenterLickWindow_Trained_s'};
 
     %% punish params
@@ -1495,11 +1495,13 @@ for currentTrial = 1:MaxTrials
     %% training level specific state matrix values
 
     switch S.GUI.TrainingLevel
-        case 1 % naive        
+        case 1 % naive       
+
             if ShowDebugOutput
                 disp('Training Stage - Naive');
             end
-            InitCue_Tup_NextState = 'InitReward'; % change to fn_lic_poiss_3              
+           
+            InitCue_Tup_NextState = 'InitWindow'; % on 8/30/2023 Farzaneh removed initiReward because mouse may get an inconsistent message in naive vs the rest of the stages.
             %DidNotChoose_Tup_NextState = 'Reward';
             DidNotChoose_Tup_NextState = 'ITI';
     
@@ -1511,18 +1513,21 @@ for currentTrial = 1:MaxTrials
             GoCue_Tup_NextState = 'RewardNaive';  % naive
             WindowChoice_StateChangeConditions = {};
             Reward_Tup_NextState = 'ITI';
-            PunishSetup_Tup_NextState = 'PunishNaive'; % Naive
+            PunishSetup_Tup_NextState = 'Punish'; % Naive
         
             ExperimenterTrialInfo.TrainingLevel = 'Naive';
-        case 2 % Mid Trained
+
+        case 2 % Mid Trained 1
+
             if ShowDebugOutput
                 disp('Training Stage - Mid Trained');
             end
+            
+            % mid 1: mouse receives water for having initiated the trial
+            
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
     
-            %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
-            %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
             switch S.GUI.EnableCenterLick_Trained
                 case 0  % center lick after vis stim disabled
                     %VisualStimulusStateChangeConditions = {'Tup', 'PreGoCueDelay', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
@@ -1541,15 +1546,47 @@ for currentTrial = 1:MaxTrials
             PunishSetup_Tup_NextState = 'Punish'; % trained
 
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained';
-        case 3 % well trained
+
+
+        case 3 % Mid Trained 2
+            
             if ShowDebugOutput
-                disp('Training Stage - Trained');
+                disp('Training Stage - Mid Trained');
             end
+            
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
     
-            %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
-            %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+            switch S.GUI.EnableCenterLick_Trained
+                case 0  % center lick after vis stim disabled
+                    %VisualStimulusStateChangeConditions = {'Tup', 'PreGoCueDelay', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+                    VisualStimulusStateChangeConditions = {'Tup', 'PreGoCueDelay'};
+                case 1  % center lick after vis stim enabled
+                    %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+                    VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
+            end
+                
+           % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
+            CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
+
+            GoCue_Tup_NextState = 'WindowChoice';  % trained
+            WindowChoice_StateChangeConditions = {CorrectLick, 'RewardDelay', 'Condition1', 'RewardDelay', IncorrectLick, 'PunishSetup', 'Condition2', 'PunishSetup', 'Tup', 'DidNotChoose'};
+            Reward_Tup_NextState = 'ExtraStimDurPostRew_Naive';
+            PunishSetup_Tup_NextState = 'Punish'; % trained
+
+            ExperimenterTrialInfo.TrainingLevel = 'Mid Trained';
+
+
+
+        case 4 % well trained
+
+            if ShowDebugOutput
+                disp('Training Stage - Trained');
+            end
+            
+            InitCue_Tup_NextState = 'InitWindow';
+            DidNotChoose_Tup_NextState = 'ITI';
+    
             switch S.GUI.EnableCenterLick_Trained
                 case 0  % center lick after vis stim disabled
                     VisualStimulusStateChangeConditions = {'Tup', 'PreGoCueDelay', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
@@ -1646,10 +1683,15 @@ for currentTrial = 1:MaxTrials
 
     % naive - center spout reward to condition init licking
     % maybe give this it's own unique valve time?
-    sma = AddState(sma, 'Name', 'InitReward', ...
-        'Timer', CenterValveTime,...
-        'StateChangeConditions', {'Tup', 'InitWindow'},...
-        'OutputActions', {'Valve2', 1});
+    % sma = AddState(sma, 'Name', 'InitReward', ...
+    %     'Timer', CenterValveTime,...
+    %     'StateChangeConditions', {'Tup', 'InitWindow'},...
+    %     'OutputActions', {'Valve2', 1});
+
+
+
+
+
 
     % outdated comment, update
     % naive - auto go to vis stimulus after playing go cue sound (we still
@@ -1657,9 +1699,10 @@ for currentTrial = 1:MaxTrials
     % trained - wait for lick after playing go cue sound
     sma = AddState(sma, 'Name', 'InitWindow', ...
         'Timer', S.GUI.InitWindowTimeout_s,...
-        'StateChangeConditions', {'Tup', 'InitCueAgain', 'Port2In', 'PreVisStimDelay', 'Port1In', 'WrongInitiation', 'Port3In', 'WrongInitiation'},...         
+        'StateChangeConditions', {'Tup', 'InitCueAgain', 'Port2In', 'CenterRewardPostInit', 'Port1In', 'WrongInitiation', 'Port3In', 'WrongInitiation'},...         
         'OutputActions', {});    
-        
+    
+
     sma = AddState(sma, 'Name', 'InitCueAgain', ...
         'Timer', 0,...
         'StateChangeConditions', {'Tup', 'InitCue'},...         
@@ -1690,27 +1733,28 @@ for currentTrial = 1:MaxTrials
         'Timer', VisStimDuration,...
         'StateChangeConditions', VisualStimulusStateChangeConditions,...
         'OutputActions', OutputActionAudioVisStim);
-      %'Timer', VisStimDuration,...
 
     % Well trained: after the stimulus ends, mouse center licks, then center reward happens.  
-    sma = AddState(sma, 'Name', 'CenterLick', ...
+    sma = AddState(sma, 'Name', 'WindowCenterLick', ...
         'Timer', S.GUI.CenterLickWindow_Trained_s,...
-        'StateChangeConditions', {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward', 'Port1In', 'EarlyChoice_1', 'Port3In', 'EarlyChoice_1'},...
+        'StateChangeConditions', {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterRewardPostVisStim', 'Condition5', 'CenterRewardPostVisStim', 'Port1In', 'EarlyChoiceDuringWindCenter', 'Port3In', 'EarlyChoiceDuringWindCenter'},...
         'OutputActions', OutputActionsCenterLick); 
 
-    sma = AddState(sma, 'Name', 'CenterReward', ...
+    sma = AddState(sma, 'Name', 'CenterRewardPostInit', ...
+        'Timer', CenterValveTime,...
+        'StateChangeConditions', {'Tup', 'PreVisStimDelay'},...
+        'OutputActions', CenterReward_OutputActions);
+
+
+    sma = AddState(sma, 'Name', 'CenterRewardPostVisStim', ...
         'Timer', CenterValveTime,...
         'StateChangeConditions', {'Tup', 'PreGoCueDelay'},...
         'OutputActions', CenterReward_OutputActions);    
-    %'OutputActions', {'Valve2', 1});
-    %{'SoftCode', 255} % in case needed to stop video if this is used
-    %outside of naive
-
     
     % placeholder - not in  use
     sma = AddState(sma, 'Name', 'PreGoCueDelay', ...
         'Timer', S.GUI.PreGoCueDelay_s,...
-        'StateChangeConditions', {'Tup', 'GoCue', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...         
+        'StateChangeConditions', {'Tup', 'GoCue', 'Port1In', 'EarlyChoiceDuringGoCueDelay', 'Port3In', 'EarlyChoiceDuringGoCueDelay'},...         
         'OutputActions', OutputActionsPreGoCueDelay);
    
     %'OutputActions', PreGoCueDelay_OutputActions);
@@ -1723,7 +1767,7 @@ for currentTrial = 1:MaxTrials
         'OutputActions', OutputActionsEarlyChoice);
 
     % well trained - mouse didn't lick center after vis stim during S.GUI.CenterLickWindow_Trained_s
-    sma = AddState(sma, 'Name', 'EarlyChoice_1', ...
+    sma = AddState(sma, 'Name', 'EarlyChoiceDuringWindCenter', ...
         'Timer', 0,...
         'StateChangeConditions', {'Tup', 'ITI'},...
         'OutputActions', {});
@@ -1838,7 +1882,9 @@ for currentTrial = 1:MaxTrials
         'StateChangeConditions', {'Tup', 'ITI'},...
         'OutputActions', {});
 
-    sma = AddState(sma, 'Name', 'RewardDelay', ...
+    % Notes for later: perhaps we want to make sure during RewardDelay they
+    % don't lick the wrong side.
+    sma = AddState(sma, 'Name', 'RewardDelay', ... 
         'Timer', S.GUI.RewardDelay_s,...
         'StateChangeConditions', {'Tup', 'Reward'},...
         'OutputActions', {});
@@ -1859,7 +1905,6 @@ for currentTrial = 1:MaxTrials
         'Timer', S.GUI.PunishSoundDuration_s,...
         'StateChangeConditions', {'Tup', 'ITI'},...
         'OutputActions', OutputActionArgIncorrect);
-    %'Timer', S.GUI.WindowRewardGrabDuration_Naive_s,...
 
     sma = AddState(sma, 'Name', 'Punish', ...
         'Timer', S.GUI.PunishSoundDuration_s,...
@@ -1948,9 +1993,9 @@ if isfield(Data, 'nTrials')
                 disp(['Outcome: EarlyChoice']);
             end
             Outcomes(x) = 3;    % draws clear circle on outcome plot
-        elseif ~isnan(Data.RawEvents.Trial{x}.States.EarlyChoice_1(1))
+        elseif ~isnan(Data.RawEvents.Trial{x}.States.EarlyChoiceDuringWindCenter(1))
             if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured
-                disp(['Outcome: EarlyChoice_1']);
+                disp(['Outcome: EarlyChoiceDuringWindCenter']);
             end
             Outcomes(x) = 3;    % draws clear circle on outcome plot
         elseif ~isnan(Data.RawEvents.Trial{x}.States.DidNotChoose(1))
