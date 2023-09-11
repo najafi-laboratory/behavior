@@ -20,7 +20,7 @@ Open Matlab as administrative user (right-click the Matlab shortcut and “Run A
 >> DownloadPsychtoolbox('C:\toolbox') 
 The second command will take a bit of time (a few minutes in some cases) and may generate a lot of output. Please be patient (and make sure your computer is not going to go onto standby while installing). You may get the command line reappear before the installation is finished - so don’t assume the command line reappearing means that installation has hung. The installer will tell you when it is finished.
 %}
-
+MonitorID = 2;
 
 % Define the timing parameters
 gratingDuration = .25; % Duration of grating stimulus in seconds
@@ -35,15 +35,15 @@ Randomdurationmax = 3000; % Time in ms
 
 
 % Define the parameters of the grating
-gratingSize = [500, 500]; % Size of grating in pixels
-spatialFreq = .01; % Spatial frequency of grating in cycles per pixel
+gratingSize = [1920, 1920]; % Size of grating in pixels
+spatialFreq = .005; % Spatial frequency of grating in cycles per pixel
 orientation = 0; % Orientation of grating in degrees
 contrast = 1; % Contrast of grating (0 to 1)
 phase = 0.5;
 % temporalFreq = 0; % Temporal frequency of grating in Hz
 
 FullScreen = true; % Choosing screen size
-circle = false; % If true grating will be in circular shape
+circle = true; % If true grating will be in circular shape
 
 if FullScreen == true
     circle = false ;
@@ -82,7 +82,8 @@ Screen('Preference', 'SkipSyncTests', 1); % Skip sync tests for now
 
 % Open a window
 % [win, winRect] = PsychImaging('OpenWindow', 0, 0);
-[win, winRect] = PsychImaging('OpenWindow', 2, 0); % second argument is Monitor ID
+
+[win, winRect] = PsychImaging('OpenWindow', MonitorID, 0); % second argument is Monitor ID
 % if above line returns incorrect screen index, can check detected monitors with Screen('Screens')
 
 gratingTexture = Screen('MakeTexture', win, sinGrating);

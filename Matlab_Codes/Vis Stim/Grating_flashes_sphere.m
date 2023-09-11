@@ -141,7 +141,7 @@ Randomdurationmax = 3000; % Time in ms
 
 % Define the parameters of the grating
 %gratingSize = [1920, 1920]; % Size of grating in pixels
-spatialFreq = .01; % Spatial frequency of grating in cycles per pixel
+spatialFreq = .001; % Spatial frequency of grating in cycles per pixel
 orientation = 0; % Orientation of grating in degrees
 contrast = 1; % Contrast of grating (0 to 1)
 phase = 0.5;
@@ -195,10 +195,16 @@ I = sinGrating;
 ZI = interp2(cart_pointsX.*fx,cart_pointsY.*fy,I,sphr_pointsTh,sphr_pointsPh);
 
 h=figure;
-subplot(1,2,1)
-imshow(I)
-subplot(1,2,2)
+% subplot(1,2,1)
+% imshow(I)
+% subplot(1,2,2)
 imshow(ZI)
+
+% h=figure;
+% subplot(1,2,1)
+% imshow(I)
+% subplot(1,2,2)
+% imshow(ZI)
 
 
 % Initialize Psychtoolbox

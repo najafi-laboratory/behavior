@@ -1,0 +1,23 @@
+rng default;  % for reproducibility
+MaxTrials = 1000;
+TrialTypes = unidrnd(2,1,MaxTrials);
+
+CurrentTrial = 3;
+MaxSameConsecutiveTrials = 3;
+SameAsPrevMax = true;
+for i = CurrentTrial:MaxTrials
+    DrawTrialType = unidrnd(2,1,1);
+    
+    if i > MaxSameConsecutiveTrials
+        while SameAsPrevMax
+            if all(TrialTypes(1:2) == TrialTypes(4))
+                DrawTrialType
+        end
+        
+        SameAsPrevMax = false;
+        
+    end
+    
+
+end
+

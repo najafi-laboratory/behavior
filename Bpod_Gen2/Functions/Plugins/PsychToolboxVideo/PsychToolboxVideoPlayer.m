@@ -47,6 +47,8 @@ classdef PsychToolboxVideoPlayer < handle
         SyncPatchIntensity = 128; % In range 0, 255
         SyncPatchActiveArea = 0.8; % Fraction of sync patch dimensions set to white when drawing a white patch. 
                                    % Permanently dark pixels surrounding the sensor helps to hide the sync patch from the test subject
+        
+        tic1 % stopwatch start time for calculating how many frames to drop on-the-fly
     end
     properties (Access = private)
         nVideosLoaded = 0;
@@ -68,9 +70,18 @@ classdef PsychToolboxVideoPlayer < handle
         FontName  % Font to use when displaying text objects. Run listfonts; to see installed font names.
         AllFonts % List of all fonts installed on the system
         StimulusType % Vector of 0 = video, 1 = frame with centred text
+
+        ifi % inter-frame-interval
+        FrameDropTimer1 % Timer objects for controlling dynamic callbacks to drop frames during playback
+        FrameDropTimer2
+        toc1    % stopwatch end time for calculating how many frames to drop on-the-fly
     end
     methods
         function obj = PsychToolboxVideoPlayer(MonitorID, ViewPortSize, ViewPortOffset, SyncPatchSize, SyncPatchYOffset)
+            % Use realtime priority for better timing precision:
+            priorityLevel=MaxPriority(obj.Window);
+            Priority(priorityLevel);
+            
             % Destroy any orphaned timers from previous instances
             T = timerfindall;
             for i = 1:length(T)
@@ -83,7 +94,7 @@ classdef PsychToolboxVideoPlayer < handle
                 end
             end
             obj.AllFonts = listfonts;
-            Screen('Preference','SkipSyncTests', 1);
+            Screen('Preference','SkipSyncTests', 0);
             obj.Videos = cell(1,obj.MaxVideos);
             obj.TextStrings = cell(1,obj.MaxVideos);
             obj.TextStringStartPos = cell(1,obj.MaxVideos);
@@ -104,7 +115,7 @@ classdef PsychToolboxVideoPlayer < handle
             MonitorSize(3) MonitorSize(4)];
             obj.DetectedFrameRate = Screen('FrameRate', obj.Window);
             obj.TimerFPS = obj.DetectedFrameRate;
-            Frame = zeros(WindowSize(2), WindowSize(1));
+            %Frame = ones(WindowSize(2), WindowSize(1))*128; % changed default background to gray           
             yEnd = WindowSize(2);
             xEnd = WindowSize(1);
             patchStartY = yEnd-obj.SyncPatchSizeY - SyncPatchYOffset;
@@ -114,14 +125,37 @@ classdef PsychToolboxVideoPlayer < handle
             if obj.ViewPortDimensions == 0
                 obj.ViewPortDimensions = obj.WindowDimensions(3:4);
             end
+
+            % set default background to grey with a black sync patch
+            SignalOn = 0; % black sync patch for gray background (keeps BNC low so first white sync patch indicates video start)
+            bgFrame = ones(WindowSize(2), WindowSize(1))*128; % changed default background to gray
+            Frame = zeros(obj.WindowDimensions(4)-obj.WindowDimensions(2), obj.WindowDimensions(3)-obj.WindowDimensions(1)); % Use actual window width
+            Frame(1+obj.ViewPortOffset(2):obj.ViewPortDimensions(2)+obj.ViewPortOffset(2), 1+obj.ViewPortOffset(1):obj.ViewPortDimensions(1)+obj.ViewPortOffset(1)) = bgFrame;
+            Frame(obj.SyncPatchDimensions(1):obj.SyncPatchDimensions(2),obj.SyncPatchDimensions(3):obj.SyncPatchDimensions(4)) = 0;
+            Frame(obj.SyncPatchActiveDimensions(1):obj.SyncPatchActiveDimensions(2),obj.SyncPatchActiveDimensions(3):obj.SyncPatchActiveDimensions(4)) = SignalOn*obj.SyncPatchIntensity;
+            
             if obj.ShowViewportBorder
                 Frame = obj.addShowViewportBorder(Frame);
-            end
+            end            
             obj.Timer = timer('TimerFcn','', 'Period', round(1/obj.TimerFPS*1000)/1000, 'ExecutionMode', 'fixedRate', 'Tag', 'PTV');
             obj.BlankScreen = Screen('MakeTexture', obj.Window, Frame);
             Screen('DrawTexture', obj.Window, obj.BlankScreen);
             Screen('Flip', obj.Window);
+
+            % Query duration of one monitor refresh interval:
+            obj.ifi = Screen('GetFlipInterval', obj.Window);
+            % create 'leapfrog' timers for dynamic frame dropping control
+            obj.FrameDropTimer1 = timer('TimerFcn','', 'ExecutionMode', 'singleShot', 'Tag', 'PTV', 'BusyMode', 'drop');
+            obj.FrameDropTimer2 = timer('TimerFcn','', 'ExecutionMode', 'singleShot', 'Tag', 'PTV', 'BusyMode', 'drop');
         end
+
+        % function to set the start time of frame dropping clock
+        % (accessible outside of this file to SoftCodeHandler_playVideo to
+        % capture overhead from prior to calling play)
+        function set.tic1(obj, Value)            
+            obj.tic1 = Value;            
+        end 
+
         function set.SyncPatchIntensity(obj, Value)
             if Value > 255 || Value < 0
                 error('Error: Sync Patch Intensity must be an integer in range [0, 255]')
@@ -217,7 +251,8 @@ classdef PsychToolboxVideoPlayer < handle
                 end
             end
             % Add final blank frame
-            frame = zeros(obj.WindowDimensions(4)-obj.WindowDimensions(2), obj.WindowDimensions(3)-obj.WindowDimensions(1)); % Use actual window width
+            %frame = zeros(obj.WindowDimensions(4)-obj.WindowDimensions(2), obj.WindowDimensions(3)-obj.WindowDimensions(1)); % Use actual window width
+            frame = ones(obj.WindowDimensions(4)-obj.WindowDimensions(2), obj.WindowDimensions(3)-obj.WindowDimensions(1)) * 128; % Use actual window width, modified to gray
             if obj.ShowViewportBorder
                     frame = obj.addShowViewportBorder(frame);
             end
@@ -277,6 +312,15 @@ classdef PsychToolboxVideoPlayer < handle
                             if obj.TimerMode == 1
                                 set(obj.Timer, 'TimerFcn', @(x,y)obj.playNextFrame());
                                 start(obj.Timer);
+                            elseif obj.TimerMode == 2
+                                % setup alternating timers to allow for
+                                % updating the their start delay to account
+                                % for time-to-next frame after dropping
+                                % frames based on delay from previous
+                                % callback
+                                set(obj.FrameDropTimer1, 'TimerFcn', @(x,y)obj.playNextFrameMode2(true, obj.FrameDropTimer1, obj.FrameDropTimer2));
+                                set(obj.FrameDropTimer2, 'TimerFcn', @(x,y)obj.playNextFrameMode2(false, obj.FrameDropTimer1, obj.FrameDropTimer2));
+                                start(obj.FrameDropTimer1);
                             else
                                 for iFrame = 1:obj.Videos{StimulusIndex}.nFrames
                                     Screen('DrawTexture', obj.Window, obj.Videos{obj.StimulusIndex}.Data(iFrame));
@@ -313,8 +357,15 @@ classdef PsychToolboxVideoPlayer < handle
             end
         end
         function stop(obj)
-            stop(obj.Timer);
-            set(obj.Timer, 'TimerFcn', '');
+            if obj.TimerMode == 1
+                stop(obj.Timer);                
+                set(obj.Timer, 'TimerFcn', '');
+            elseif obj.TimerMode == 2
+                stop(obj.FrameDropTimer1);
+                set(obj.FrameDropTimer1, 'TimerFcn', '');
+                stop(obj.FrameDropTimer2);
+                set(obj.FrameDropTimer2, 'TimerFcn', '');
+            end
             Screen('DrawTexture', obj.Window, obj.BlankScreen);
             Screen('Flip', obj.Window);
         end
@@ -342,12 +393,26 @@ classdef PsychToolboxVideoPlayer < handle
                 delete(obj.Timer);
                 obj.Timer = [];
             end
+            if ~isempty(obj.FrameDropTimer1)
+                stop(obj.FrameDropTimer1);
+                delete(obj.FrameDropTimer1);
+                obj.FrameDropTimer1 = [];
+            end
+            if ~isempty(obj.FrameDropTimer2)
+                stop(obj.FrameDropTimer2);
+                delete(obj.FrameDropTimer2);
+                obj.FrameDropTimer2 = [];
+            end            
             for i = 1:obj.MaxVideos
                 if ~isempty(obj.Videos{i})
                     Screen('Close', obj.Videos{i}.Data);
                 end
             end
             Screen('CloseAll');
+
+            % Restore normal priority scheduling in case something else was set
+            % before:
+            Priority(0);
         end
         function playNextFrame(obj, e)
             thisFrame = obj.CurrentFrame;
@@ -360,5 +425,51 @@ classdef PsychToolboxVideoPlayer < handle
             end
             obj.CurrentFrame = nextFrame;
         end
+        function playNextFrameMode2(obj, isTimer1, timer1, timer2)
+            if isTimer1
+                nextTimer = timer2;
+            else
+                nextTimer = timer1;
+            end
+            
+            thisFrame = obj.CurrentFrame;
+            Screen('DrawTexture', obj.Window, obj.Videos{obj.StimulusIndex}.Data(thisFrame));
+            Screen('Flip', obj.Window);
+                    
+            obj.toc1 = toc; % stop stopwatch to capture processing time from previous frame drawing function
+            obj.tic1 = tic; % start stopwatch to capture processing time till next frame drawing function
+
+            timeToNextFrame = obj.ifi - obj.toc1;
+            if timeToNextFrame < 0    % need to drop one or more frames
+                framesToDrop = floor(abs(obj.ifi/timeToNextFrame));
+                nextFrame = thisFrame+1+framesToDrop;
+                remainder = rem(abs(timeToNextFrame), obj.ifi);
+                timeToNextFrame = obj.ifi - remainder;
+            else                
+                nextFrame = thisFrame+1;
+            end
+            
+            % can't set sub-millisecond delay for timer, set to zero if
+            % less than 1 ms
+            if timeToNextFrame < 0.001    
+                timeToNextFrame = 0;                
+            end
+                        
+            if nextFrame > obj.Videos{obj.StimulusIndex}.nFrames
+                stop(obj.FrameDropTimer1);
+                set(obj.FrameDropTimer1, 'TimerFcn', '');
+                stop(obj.FrameDropTimer2);
+                set(obj.FrameDropTimer2, 'TimerFcn', '');
+                % reset to blankscreen since sometimes last frame is
+                % dropped
+                Screen('DrawTexture', obj.Window, obj.BlankScreen);
+                Screen('Flip', obj.Window);
+            else
+                obj.CurrentFrame = nextFrame;
+             
+                set(nextTimer,'StartDelay', round(timeToNextFrame, 3));
+                start(nextTimer);
+            end
+        end        
     end
 end

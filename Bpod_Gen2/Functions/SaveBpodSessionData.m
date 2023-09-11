@@ -20,4 +20,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 function SaveBpodSessionData
 global BpodSystem
 SessionData = BpodSystem.Data;
-save(BpodSystem.Path.CurrentDataFile, 'SessionData');
+save(BpodSystem.Path.CurrentDataFile, 'SessionData');  % store in orginal file path
+
+% get pre-set file path BpodSystem.Path.CurrentDataFile
+%disp(['BpodSystem.Path.CurrentDataFile:', BpodSystem.Path.CurrentDataFile]);
+% split file path into primary parts
+[Filepath, Name, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
+% split directory path
+Filepathologyparts = strsplit(Filepath, filesep);
+
+% remove protocol folder from path
+AlternateFilePath = [Filepathologyparts(1:(end-2)) Filepathologyparts(end)];
+
+% reconstruct file path
+AlternateCurrentDataFileDir = '';
+AlternateCurrentDataFileDir = [AlternateFilePath{1, 1}]; % add drive
+for i = 2:length(AlternateFilePath)
+    AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, i}];
+end
+
+% make session data folder for current test subject if it doesn't already
+% exist
+[status, msg, msgID] = mkdir(AlternateCurrentDataFileDir);
+
+% add filename and extension to path
+AlternateCurrentDataFile = fullfile(AlternateCurrentDataFileDir, [Name, Ext]);
+
+% save session file
+save(AlternateCurrentDataFile, 'SessionData');
+
+

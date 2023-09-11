@@ -117,6 +117,9 @@ classdef BpodHiFi < handle
                     error(['Error: digital attenuation must fall between 0 and ' num2str(minimumAttenuation) ' dB']);
                 end
                 attenuationBits = attenuation*-2;
+                % disp(['minimumAttenuation:', num2str(minimumAttenuation)]);
+                % disp(['attenuation:', num2str(attenuation)]);
+                % disp(['attenuationBits = attenuation*-2;:', num2str(attenuationBits)]);
                 obj.Port.write(['A' attenuationBits], 'uint8');
                 Confirmed = obj.Port.read(1, 'uint8');
                 if Confirmed ~= 1
