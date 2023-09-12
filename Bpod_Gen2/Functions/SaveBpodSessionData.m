@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 function SaveBpodSessionData
 global BpodSystem
 SessionData = BpodSystem.Data;
-save(BpodSystem.Path.CurrentDataFile, 'SessionData');  % store in orginal file path
+%save(BpodSystem.Path.CurrentDataFile, 'SessionData');  % store in orginal file path
 
 % get pre-set file path BpodSystem.Path.CurrentDataFile
 %disp(['BpodSystem.Path.CurrentDataFile:', BpodSystem.Path.CurrentDataFile]);
