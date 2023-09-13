@@ -35,7 +35,7 @@ AlternateFilePath = [Filepathologyparts(1:(end-2)) Filepathologyparts(end)];
 % reconstruct file path
 AlternateCurrentDataFileDir = '';
 AlternateCurrentDataFileDir = [AlternateFilePath{1, 1}]; % add drive
-for i = 2:length(AlternateFilePath)
+for i = 2:(length(AlternateFilePath)-1) % exclude 'Session Data' folder
     AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, i}];
 end
 
