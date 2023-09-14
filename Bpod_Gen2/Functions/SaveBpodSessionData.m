@@ -35,11 +35,16 @@ AlternateFilePath = [Filepathologyparts(1:(end-2)) Filepathologyparts(end)];
 % reconstruct file path
 AlternateCurrentDataFileDir = '';
 AlternateCurrentDataFileDir = [AlternateFilePath{1, 1}]; % add drive
-for i = 2:(length(AlternateFilePath)-1) % exclude 'Session Data' folder
-    AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, i}];
-end
+%for i = 2:(length(AlternateFilePath)-1) % exclude 'Session Data' folder
+% for i = 2:3 % exclude 'Session Data' folder
+%     AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, i}];
+% end
 
-% make session data folder for current test subject if it doesn't already
+AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2}];    % behavior dir
+AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
+AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 6}];    % subject name
+
+% make data folder for current test subject if it doesn't already
 % exist
 [status, msg, msgID] = mkdir(AlternateCurrentDataFileDir);
 
