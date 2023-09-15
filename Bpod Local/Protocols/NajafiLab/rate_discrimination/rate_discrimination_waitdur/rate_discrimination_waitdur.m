@@ -28,6 +28,11 @@ H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1); % The argument is the name of the HiFi
 %% Define parameters
 S = BpodSystem.ProtocolSettings; % Load settings chosen in launch manager into current workspace as a struct called S
 if isempty(fieldnames(S))  % If settings file was an empty struct, populate struct with default settings
+    S.GUI.GratingDur_s = 0.1; % Duration of grating stimulus in seconds - UPDATE
+    S.GUI.ISIOrig_s = 0.5; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
+    S.GUI.NumISIOrigRep = 5; % number of grating/gray repetitions for vis stim first segment prior to perturbation
+    
+
     %% ITI params
     S.GUI.ITImin_s = 1;    % Minimum ITI (in seconds)
     S.GUI.ITImax_s = 5;    % Maximum ITI (in seconds)
@@ -62,7 +67,10 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUIMeta.TrainingLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
     S.GUIMeta.TrainingLevel.String = {'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
     S.GUI.NumEasyWarmupTrials = 20;
-    S.GUIPanels.Training = {'TrainingLevel', 'NumEasyWarmupTrials'};
+    S.GUI.WaitDurOrig_s = (S.GUI.GratingDur_s + S.GUI.ISIOrig_s) * S.GUI.NumISIOrigRep + S.GUI.GratingDur_s; % gui shows PrePertubDur as the default value for wait_dur_orig, because if mouse side licks before this time, it must be all chance, so we want wait_dur to be at least PrePerturbDur
+    S.GUI.WaitDurStep_s = 0.010; % per non early-choice trial, add this much to the original waitDur (ie the dur during the vis stim that the mouse is not allowed to sidelick)
+    
+    S.GUIPanels.Training = {'TrainingLevel', 'NumEasyWarmupTrials', 'WaitDurOrig_s', 'WaitDurStep_s'};
 
     %% difficulty params
     % percentage of full perturbation range as boundaries for difficulty levels
@@ -75,7 +83,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     %% audio stim
     S.GUI.AudioStimEnable = 1;
     S.GUIMeta.AudioStimEnable.Style = 'checkbox';
-    S.GUI.AudioStimVolume_percent = 0.5;  % volume control
+    S.GUI.AudioStimVolume_percent = 1;  % volume control
     %S.GUI.AudioStimFreq_Hz = 15000; % Frequency of audio stim
     S.GUI.AudioStimFreq_Hz = 14700; % Frequency of audio stim, even multiple of SF = 44100
     S.GUIPanels.AudioStim = {'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz'};
@@ -83,12 +91,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     %% vis stim params
     S.GUI.VisStimEnable = 1;
     S.GUIMeta.VisStimEnable.Style = 'checkbox';
-    %S.GUI.GratingDur_s = 0.25; % Duration of grating stimulus in seconds - ORIGINAL
-    S.GUI.GratingDur_s = 0.1; % Duration of grating stimulus in seconds - UPDATE
-    %S.GUI.ISIOrig_s = 0.75; % Duration of *fixed* gray screen stimulus in seconds - ORIGINAL
-    S.GUI.ISIOrig_s = 0.5; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
     S.GUI.ExtraStimDurPostRew_Naive_s = 5; % naive mouse sees stimulus for this time (sec) after correct lick    
-    S.GUI.NumISIOrigRep = 5; % number of grating/gray repetitions for vis stim first segment prior to perturbation
     S.GUI.PostPerturbDurMultiplier = 1.5; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)    
     S.GUI.MinISIPerturb_ms = 100; % min time in ms for perturbation range from grating
     S.GUI.PreVisStimDelay_s = 0; % How long the mouse must poke in the center to activate the goal port
@@ -508,6 +511,16 @@ end
 % 
 % DifficultyArr = [EasyArr MediumArr HardArr];
 % RandDifficultyArr = DifficultyArr(randperm(length(DifficultyArr)));
+
+%% Define wait_dur
+% with every non early-choice trial, increase it by wait_dur_step : a
+% gui parameter defaulted to 10ms
+
+LastWaitDurOrig_s = S.GUI.WaitDurOrig_s;
+LastWaitDurStep_s = S.GUI.WaitDurStep_s;
+% LastWaitDurOrig_s = PrePerturbDur;
+wait_dur = LastWaitDurOrig_s;
+
 
 %% Main trial loop
 for currentTrial = 1:MaxTrials
@@ -1514,6 +1527,7 @@ for currentTrial = 1:MaxTrials
             PunishSetup_Tup_NextState = 'PunishNaive'; % Naive
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'};
 
+            PreVisStimDelayStateChangeConditions = 'VisualStimulus';
 
             ExperimenterTrialInfo.TrainingLevel = 'Naive';
 
@@ -1543,6 +1557,7 @@ for currentTrial = 1:MaxTrials
             PunishSetup_Tup_NextState = 'Punish'; % trained
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'};
 
+            PreVisStimDelayStateChangeConditions = 'VisualStimulus';
 
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 1';
 
@@ -1570,6 +1585,7 @@ for currentTrial = 1:MaxTrials
             PunishSetup_Tup_NextState = 'Punish'; % trained
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'};
 
+            PreVisStimDelayStateChangeConditions = 'VisualStimulus';
 
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 2';
 
@@ -1580,9 +1596,10 @@ for currentTrial = 1:MaxTrials
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
     
-            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+            % VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
             % VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
+            VisualStimulusStateChangeConditions = {};
                 
             % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
             CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
@@ -1594,9 +1611,23 @@ for currentTrial = 1:MaxTrials
             OutputActionsWindowChoice = {'HiFi1', 'X'};
             Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'Punish'; % trained
-            ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
             WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward', 'Port1In', 'EarlyChoiceDurCenterLick', 'Port3In', 'EarlyChoiceDurCenterLick'};
+
+            PreVisStimDelayStateChangeConditions = 'VisualStim_NotAllowedSideLick';
+
+            ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
     end
+
+    %% reset wait_dur: with every non early-choice trial, increase it by wait_dur_step
+
+    if currentTrial > 1 %max(1, WarmupTrialsCounter)
+        if isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.EarlyChoice(1)) % check previous trial outcome, if not early choice (ie if mouse waited long enough) then add to wait_dur
+            disp('Increasing wait_dur')
+            wait_dur = min(wait_dur + LastWaitDurStep_s, VisStimDuration);
+        end
+    end
+    
+    ExperimenterTrialInfo.WaitDuration = wait_dur;
 
     %% add console print for experimenter trial information
     %disp(['currentTrial: ', num2str(currentTrial)]);
@@ -1707,19 +1738,45 @@ for currentTrial = 1:MaxTrials
     %     'StateChangeConditions', {'Tup', DidNotInitiate_Tup_NextState},...         
     %     'OutputActions', {});    
     
+    %{
     % delay after init before visual stimulus
     % placeholder - not in  use
     sma = AddState(sma, 'Name', 'PreVisStimDelay', ...
         'Timer', S.GUI.PreVisStimDelay_s,...
         'StateChangeConditions', {'Tup', 'VisualStimulus'},...
         'OutputActions', {});    
+    %}
 
+    % delay after init before visual stimulus
+    % placeholder - not in  use
+    sma = AddState(sma, 'Name', 'PreVisStimDelay', ...
+        'Timer', S.GUI.PreVisStimDelay_s,...
+        'StateChangeConditions', {'Tup', PreVisStimDelayStateChangeConditions},...
+        'OutputActions', {});    
+    
 
-    % VisualStimulus
+    % VisualStimulus : naive and mid-trained
     sma = AddState(sma, 'Name', 'VisualStimulus', ...
         'Timer', VisStimDuration,...
         'StateChangeConditions', VisualStimulusStateChangeConditions,...
         'OutputActions', OutputActionAudioVisStim);
+
+
+    %%% Well-trained:
+    % VisualStimulus; they can't side lick 
+    sma = AddState(sma, 'Name', 'VisualStim_NotAllowedSideLick', ...
+        'Timer', wait_dur,...
+        'StateChangeConditions', {'Tup', 'VisualStim_AllowedSideLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...
+        'OutputActions', OutputActionAudioVisStim);
+
+
+    % VisualStimulus; they can side lick (though they wont get reward bc
+    % it's before go cue)
+    sma = AddState(sma, 'Name', 'VisualStim_AllowedSideLick', ...
+        'Timer', VisStimDuration - wait_dur,...
+        'StateChangeConditions', {'Tup', 'CenterReward'},...
+        'OutputActions', {});
+
 
     % Well trained: after the stimulus ends, mouse center licks, then center reward happens.  
     % sma = AddState(sma, 'Name', 'CenterLick', ...

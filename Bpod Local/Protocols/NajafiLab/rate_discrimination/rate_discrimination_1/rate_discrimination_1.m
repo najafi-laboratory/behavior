@@ -5,7 +5,7 @@ Description
 
 ----------------------------------------------------------------------------
 %}
-function rate_discrimination
+function rate_discrimination_1
 
 
 global BpodSystem
@@ -1318,7 +1318,13 @@ for currentTrial = 1:MaxTrials
             %FullAudioStimData = [PrePerturbAudioData repmat(AudioPerturbBasePattern, 1, NumPerturbVisRep)];
         case 3
             % nothing 
-
+            VideoStartToGoCueDur_s = VideoStartToGoCueFrames * (1/FramesPerSecond);
+            % VideoStartToGoCueDur_NumAudioSamples = SF * VideoStartToGoCueDur_s;
+            
+            % ShiftedGoCue = [zeros(1, VideoStartToGoCueDur_NumAudioSamples) GoCueSound zeros(1, length(FullAudioStimData) - VideoStartToGoCueDur_NumAudioSamples - length(GoCueSound))];
+            FullAudioStimData = [FullAudioStimData GoCueSound]; % concat go cue to end of audio stim for mid 2 training level
+            % figure()
+            % plot(FullAudioStimData)
         case 4
             % nothing 
     end
@@ -1403,7 +1409,16 @@ for currentTrial = 1:MaxTrials
         LastGoCueDuration = S.GUI.GoCueDuration_s;
         LastGoCueVolume = S.GUI.GoCueVolume_percent;
     end
-
+    % if (S.GUI.InitCueDuration_s ~= LastInitCueDuration)
+    %     InitCueSound = GenerateSineWave(SF, S.GUI.InitCueFreq_Hz, S.GUI.InitCueDuration_s); % Sampling freq (hz), Sine frequency (hz), duration (s)        
+    %     H.load(1, InitCueSound);
+    %     LastInitCueDuration = S.GUI.InitCueDuration_s;
+    % end
+    % if S.GUI.GoCueDuration_s ~= LastGoCueDuration        
+    %     GoCueSound = GenerateSineWave(SF, S.GUI.GoCueFreq_Hz, S.GUI.GoCueDuration_s); % Sampling freq (hz), Sine frequency (hz), duration (s)
+    %     H.load(2, GoCueSound);
+    %     LastGoCueDuration = S.GUI.GoCueDuration_s;
+    % end
     if (S.GUI.PunishSoundDuration_s ~= LastPunishSoundDuration) || ...
         (S.GUI.IncorrectSoundVolume_percent ~= LastIncorrectSoundVolume)
         IncorrectSound = GenerateWhiteNoise(SF, S.GUI.PunishSoundDuration_s, 1, 2)*S.GUI.IncorrectSoundVolume_percent; % white noise punish sound
@@ -1516,7 +1531,6 @@ for currentTrial = 1:MaxTrials
 
 
             ExperimenterTrialInfo.TrainingLevel = 'Naive';
-
         case 2 % Mid 1 Trained
             if ShowDebugOutput
                 disp('Training Stage - Mid Trained 1');
@@ -1545,7 +1559,6 @@ for currentTrial = 1:MaxTrials
 
 
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 1';
-
         case 3 % Mid 2 Trained
             if ShowDebugOutput
                 disp('Training Stage - Mid Trained 2');
@@ -1572,7 +1585,6 @@ for currentTrial = 1:MaxTrials
 
 
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 2';
-
         case 4 % well trained
             if ShowDebugOutput
                 disp('Training Stage - Trained');
@@ -1580,9 +1592,10 @@ for currentTrial = 1:MaxTrials
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
     
-            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
             %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
-            % VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
+            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
                 
             % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
             CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
@@ -1711,15 +1724,20 @@ for currentTrial = 1:MaxTrials
     % placeholder - not in  use
     sma = AddState(sma, 'Name', 'PreVisStimDelay', ...
         'Timer', S.GUI.PreVisStimDelay_s,...
-        'StateChangeConditions', {'Tup', 'VisualStimulus'},...
+        'StateChangeConditions', {'Tup', 'VisStimTrigger'},...
         'OutputActions', {});    
-
-
+    
+    sma = AddState(sma, 'Name', 'VisStimTrigger', ...
+        'Timer', 0,... 
+        'StateChangeConditions', {'BNC1High', 'VisualStimulus'},...
+        'OutputActions', {'SoftCode', 5});
+    
     % VisualStimulus
     sma = AddState(sma, 'Name', 'VisualStimulus', ...
         'Timer', VisStimDuration,...
         'StateChangeConditions', VisualStimulusStateChangeConditions,...
-        'OutputActions', OutputActionAudioVisStim);
+        'OutputActions', {'HiFi1', ['P', 4], 'BNCState', 1});
+      %'Timer', VisStimDuration,...
 
     % Well trained: after the stimulus ends, mouse center licks, then center reward happens.  
     % sma = AddState(sma, 'Name', 'CenterLick', ...
