@@ -41,7 +41,7 @@ delete(ch(1:end-1)); % Clear the previous patches. Last item is always the xline
 % some variables
 
 % numTrials = 2;
-Trial_num = 1;
+Trial_num = 3;
 
 trials  = SessionData.RawEvents.Trial{1, Trial_num};  % trial structure
 timingStates = struct2cell(trials.States);  % the most recent state timings
