@@ -66,3 +66,6 @@
 ## 2023.09.29
 - Change psychometric of licking events during post-perturbation for binned trials.
 - Turn to plot VM1, VM4, VM5, and VM6.
+
+## 2023.10.04
+- Plot psychometric curves for each subjects.

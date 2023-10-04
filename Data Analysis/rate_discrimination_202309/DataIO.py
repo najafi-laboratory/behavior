@@ -50,6 +50,7 @@ def read_trials(subject):
     session_choice = []
     session_dates = []
     session_outcomes = []
+    session_reaction = []
     session_isi = []
     session_avsync = []
     LR12_start = 0
@@ -70,6 +71,7 @@ def read_trials(subject):
         # loop over one session for extracting data
         trial_post_lick = []
         trial_outcomes = []
+        trial_reaction = []
         trial_isi = []
         trial_avsync = []
         trial_choice = []

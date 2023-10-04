@@ -15,7 +15,7 @@ def plot_scatter(axs, session_data):
             np.zeros_like(duration) + i + 1, duration,
             color='dodgerblue',
             alpha=0.2,
-            s=10)
+            s=5)
     axs.tick_params(tick1On=False)
     axs.spines['left'].set_visible(False)
     axs.spines['right'].set_visible(False)
