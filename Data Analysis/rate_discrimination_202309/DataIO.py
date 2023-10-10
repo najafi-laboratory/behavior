@@ -51,6 +51,7 @@ def read_trials(subject):
     session_dates = []
     session_outcomes = []
     session_reaction = []
+    session_iti = []
     session_isi = []
     session_avsync = []
     LR12_start = 0
@@ -72,6 +73,7 @@ def read_trials(subject):
         trial_post_lick = []
         trial_outcomes = []
         trial_reaction = []
+        trial_iti = []
         trial_isi = []
         trial_avsync = []
         trial_choice = []
@@ -83,11 +85,36 @@ def read_trials(subject):
             else:
                 trial_states = raw_data['RawEvents']['Trial']['States']
                 trial_events = raw_data['RawEvents']['Trial']['Events']
+            event_keys = trial_events.keys()
             # outcome
             outcome = states_labeling(trial_states)
             trial_outcomes.append(outcome)
+            # iti duration
+            iti = trial_states['ITI']
+            trial_iti.append(iti[1]-iti[0])
+            # all licking events
+            licking_events = []
+            correctness = []
+            if 'Port1In' in event_keys:
+                lick_left = np.array(trial_events['Port1In']).reshape(-1)
+                licking_events.append(lick_left)
+                if TrialTypes[i] == 1:
+                    correctness.append(np.ones_like(lick_left))
+                else:
+                    correctness.append(np.zeros_like(lick_left))
+            if 'Port3In' in event_keys:
+                lick_right = np.array(trial_events['Port3In']).reshape(-1)
+                licking_events.append(lick_right)
+                if TrialTypes[i] == 2:
+                    correctness.append(np.ones_like(lick_right))
+                else:
+                    correctness.append(np.zeros_like(lick_right))
+            if len(licking_events) > 0:
+                licking_events = np.concatenate(licking_events).reshape(1,-1)
+                correctness = np.concatenate(correctness).reshape(1,-1)
+                trial_reaction.append(
+                    np.concatenate([licking_events, correctness]))
             # stim isi
-            event_keys = trial_events.keys()
             if ('BNC1High' in event_keys) and ('BNC1Low' in event_keys):
                 BNC1High = trial_events['BNC1High']
                 BNC1High = np.array(BNC1High).reshape(-1)
@@ -153,6 +180,8 @@ def read_trials(subject):
         session_choice.append(trial_choice)
         session_post_lick.append(trial_post_lick)
         session_outcomes.append(trial_outcomes)
+        session_iti.append(trial_iti)
+        session_reaction.append(trial_reaction)
         session_isi.append(trial_isi)
         session_avsync.append(trial_avsync)
     # merge all session data
@@ -164,6 +193,8 @@ def read_trials(subject):
         'raw' : session_raw_data,
         'dates' : session_dates,
     	'outcomes' : session_outcomes,
+        'iti' : session_iti,
+        'reaction' : session_reaction,
         'choice' : session_choice,
         'post_lick' : session_post_lick,
         'isi' : session_isi,
