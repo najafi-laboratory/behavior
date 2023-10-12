@@ -67,5 +67,6 @@ def plot_fig7(
     plot_curves(axs[1,1], session_data_4)
     fig.suptitle('reaction time vs probability of correctness')
     fig.tight_layout()
+    print('Plot fig7 completed.')
     fig.savefig('./figures/fig7_reaction.pdf', dpi=300)
     fig.savefig('./figures/fig7_reaction.png', dpi=300)

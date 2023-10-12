@@ -40,5 +40,6 @@ def plot_fig6(
     plot_scatter(axs[1,1], session_data_4)
     fig.suptitle('vis to audio start across sessions')
     fig.tight_layout()
+    print('Plot fig6 completed.')
     fig.savefig('./figures/fig6_av_sync.pdf', dpi=300)
     fig.savefig('./figures/fig6_av_sync.png', dpi=300)

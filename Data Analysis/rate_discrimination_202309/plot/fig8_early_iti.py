@@ -72,5 +72,6 @@ def plot_fig8(
     plot_curves(axs[1,1], session_data_4)
     fig.suptitle('iti and probability of early choice')
     fig.tight_layout()
+    print('Plot fig8 completed.')
     fig.savefig('./figures/fig8_early_iti.pdf', dpi=300)
     fig.savefig('./figures/fig8_early_iti.png', dpi=300)

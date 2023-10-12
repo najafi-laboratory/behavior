@@ -2,6 +2,7 @@ import os
 import scipy.io as sio
 import numpy as np
 
+session_data_path = 'C:\\behavior\\session_data'
 
 # read .mat to dict
 def load_mat(fname):
@@ -43,7 +44,7 @@ def load_mat(fname):
 
 def read_trials(subject):
 
-    file_names = os.listdir(os.path.join('data', subject))
+    file_names = os.listdir(os.path.join(session_data_path, subject))
     file_names.sort(key=lambda x: x[-19:])
     session_raw_data = []
     session_post_lick = []
@@ -61,7 +62,7 @@ def read_trials(subject):
         if LR12_start==0 and fname[14:16]=='12':
             LR12_start = f
         # one session data
-        raw_data = load_mat(os.path.join('data', subject, fname))
+        raw_data = load_mat(os.path.join(session_data_path, subject, fname))
         session_raw_data.append(raw_data)
         # number of trials
         nTrials = raw_data['nTrials']

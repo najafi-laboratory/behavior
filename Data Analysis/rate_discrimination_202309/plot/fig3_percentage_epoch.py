@@ -77,6 +77,7 @@ def plot_fig3(
     axs[0,1].legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('reward/punish percentage for completed trials across epoches')
     fig.tight_layout()
+    print('Plot fig3 completed.')
     fig.savefig('./figures/fig3_percentage_epoch.pdf', dpi=300)
     fig.savefig('./figures/fig3_percentage_epoch.png', dpi=300)
 

@@ -69,6 +69,7 @@ def plot_fig1(
     axs[0,1].legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('reward/punish percentage for completed trials across sessions')
     fig.tight_layout()
+    print('Plot fig1 completed.')
     fig.savefig('./figures/fig1_complete_trials_percentage.pdf', dpi=300)
     fig.savefig('./figures/fig1_complete_trials_percentage.png', dpi=300)
 

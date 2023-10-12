@@ -44,5 +44,6 @@ def plot_fig5(
     plot_scatter(axs[1,1], session_data_4)
     fig.suptitle('stimulus isi across sessions')
     fig.tight_layout()
+    print('Plot fig5 completed.')
     fig.savefig('./figures/fig5_stim_isi.pdf', dpi=300)
     fig.savefig('./figures/fig5_stim_isi.png', dpi=300)

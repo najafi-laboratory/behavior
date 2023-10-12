@@ -20,21 +20,22 @@ def bin_trials(trial_choice, bin_size=100, least_trials=3):
 def plot_curves(axs, subject, dates, choice):
     cmap = plt.cm.RdBu(np.arange(len(choice))/len(choice))
     for i in range(len(choice)):
-        trial_choice = np.concatenate(choice[i]).reshape(-1,2)
-        bin_stat = bin_trials(trial_choice)
-        axs.plot(
-            bin_stat[:,0], bin_stat[:,1],
-            color=cmap[i],
-            label=dates[i])
-        axs.scatter(
-            bin_stat[:,0], bin_stat[:,1],
-            color=cmap[i], lw=0.2)
-        axs.hlines(
-            0.5, 0.0, 1.0,
-            linestyle=':', color='grey')
-        axs.vlines(
-            0.5, 0.0, 1.0,
-            linestyle=':', color='grey')
+        if len(choice[i]) > 0:
+            trial_choice = np.concatenate(choice[i]).reshape(-1,2)
+            bin_stat = bin_trials(trial_choice)
+            axs.plot(
+                bin_stat[:,0], bin_stat[:,1],
+                color=cmap[i],
+                label=dates[i])
+            axs.scatter(
+                bin_stat[:,0], bin_stat[:,1],
+                color=cmap[i], lw=0.2)
+            axs.hlines(
+                0.5, 0.0, 1.0,
+                linestyle=':', color='grey')
+            axs.vlines(
+                0.5, 0.0, 1.0,
+                linestyle=':', color='grey')
     axs.tick_params(tick1On=False)
     axs.spines['right'].set_visible(False)
     axs.spines['top'].set_visible(False)
@@ -75,6 +76,7 @@ def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=7):
             choice)
     fig.suptitle('psychometric functions for '+subject)
     fig.tight_layout()
+    print('Plot fig4 completed.')
     fig.savefig('./figures/fig4_'+subject+'_psychometric_epoch.pdf', dpi=300)
     fig.savefig('./figures/fig4_'+subject+'_psychometric_epoch.png', dpi=300)
 

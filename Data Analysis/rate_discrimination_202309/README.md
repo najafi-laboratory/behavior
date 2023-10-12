@@ -10,19 +10,6 @@
 	- plot
 		- figX.py code for each figure
 
-
-# current features
-
-###
-- read behavioral data from .mat as dict.
-- fig1 shows the change of state percentage for completed trials across sessions. Green/light green are reward/naive reward, and red/light red are punish/naive punish. The x-axis is the seesion day and y-axis is the percentage. Four subplots correspond to four subjects.
-- fig 2 is like fig 1 but gives the percentages of all outcomes.
-- fig 3 shows the outcome percentages changing within a session. Trial outcomes are binned with some size and we compute the percentage for the trials within a bin. Each line gives one outcome.
-- fig 4 is the psychometric plot. The xaxis is the stimulus interval and yaxis is the proability of right choice. Trials within a session have been binned and we calculate the mean for each bin. Different colors show different sessions.
-- fig 5 is a sanity check for the stimulus interval. Each dot represents one isi, and all isi from one session has been merge. Dots are transparent, so when there are multiple dots in one position the color will be deeper.
-- fig 6 checks the time difference between visual and auditory signal to make sure they are synchronized.
-
-
 # update note
 
 ## 2023.09.04
@@ -56,7 +43,7 @@
 - Add a figure to check the percentage of completed trials with bins.
 - Add subject name to read dictionaries.
 - Change the figure title naming.
-- Change isi reading structure from a list to a list of array.
+- Change ISI reading structure from a list to a list of array.
 - Delete trial duration.
 
 ## 2023.09.28
@@ -69,3 +56,13 @@
 
 ## 2023.10.04
 - Plot psychometric curves for each subjects.
+
+## 2023.10.07
+- Add a figure for reaction time vs correctness.
+- Add a figure for early choice vs ITI.
+
+## 2023.10.08
+- Change data reading structure.
+
+## 2023.10.11
+- The data folder should be specified in DataIO.
