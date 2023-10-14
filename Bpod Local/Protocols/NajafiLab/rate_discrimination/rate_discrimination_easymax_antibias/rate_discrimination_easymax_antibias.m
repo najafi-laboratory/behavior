@@ -1,27 +1,4 @@
-%{
-----------------------------------------------------------------------------
-
-Description
-changed:
-updated rate_discrimination_waitdur_AVsync to include fractional
-repititions of post perturb vis pattern reps, VisStimDuration now always
-has number of frames to give exact same duration for short or long ISI
-
-was:    S.GUI.PostPerturbDurMultiplier = 1.5; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)
-is:     S.GUI.PostPerturbDurMultiplier = 1; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)
-
-was:    S.GUI.NumISIOrigRep = 5; % number of grating/gray repetitions for vis stim first segment prior to perturbation
-is:     S.GUI.NumISIOrigRep = 3; % number of grating/gray repetitions for vis stim first segment prior to perturbation
-
-updated wait_dur to increase only on early choice, not for wrong init ->
-(i.e. looks for center reward)
-
-fixed audio generation that crashed for difficulty levels other than easy
-----------------------------------------------------------------------------
-%}
-
-function rate_discrimination_waitdur_AVsync_visTiming_mid2
-
+function rate_discrimination_easymax_antibias
 
 global BpodSystem
 
@@ -57,14 +34,9 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.ITImin_s = 1;    % Minimum ITI (in seconds)
     S.GUI.ITImax_s = 5;    % Maximum ITI (in seconds)
     S.GUI.ITIlambda = 0.3;  % ITIlambda parameter of the exponential distribution
-    S.GUIPanels.ITI_Dist = {'ITImin_s', 'ITImax_s', 'ITIlambda'};
+    S.GUI.EarlyChoice_ITI = 2;
+    S.GUIPanels.ITI_Dist = {'ITImin_s', 'ITImax_s', 'ITIlambda', 'EarlyChoice_ITI'};
 
-
-    %% sound params
-
-    % S.GUI.DigitalAttenuation_dB = -30; % volume control: H.DigitalAttenuation_dB = -40;
-    % S.GUI.MasterVolume_percent = 0.5;    % volume control
-    % S.GUIPanels.Sound = {'DigitalAttenuation_dB', 'MasterVolume_percent'};
 
     %% init cue params
 
@@ -94,7 +66,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUIMeta.TrainingLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
     S.GUIMeta.TrainingLevel.String = {'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
     S.GUI.NumEasyWarmupTrials = 20;
-    S.GUI.WaitDurOrig_s = (S.GUI.GratingDur_s + S.GUI.ISIOrig_s) * S.GUI.NumISIOrigRep + S.GUI.GratingDur_s; % gui shows PrePertubDur as the default value for wait_dur_orig, because if mouse side licks before this time, it must be all chance, so we want wait_dur to be at least PrePerturbDur
+    S.GUI.WaitDurOrig_s = 0.05; % gui shows PrePertubDur as the default value for wait_dur_orig, because if mouse side licks before this time, it must be all chance, so we want wait_dur to be at least PrePerturbDur
     S.GUI.WaitDurStep_s = 0.010; % per non early-choice trial, add this much to the original waitDur (ie the dur during the vis stim that the mouse is not allowed to sidelick)
     
     S.GUIPanels.Training = {'TrainingLevel', 'NumEasyWarmupTrials', 'WaitDurOrig_s', 'WaitDurStep_s'};
@@ -129,7 +101,10 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.MinISIPerturb_ms = 100; % min time in ms for perturbation range from grating
     S.GUI.PreVisStimDelay_s = 0; % How long the mouse must poke in the center to activate the goal port
     S.GUI.PreGoCueDelay_s = 0;
-    S.GUIPanels.VisStim = {'VisStimEnable', 'GratingDur_s', 'ISIOrig_s', 'NumISIOrigRep', 'PostPerturbDurMultiplier', 'ExtraStimDurPostRew_Naive_s', 'MinISIPerturb_ms', 'PreVisStimDelay_s', 'PreGoCueDelay_s'}; 
+    S.GUI.EasyMax = 1;
+    S.GUIMeta.EasyMax.Style = 'popupmenu';
+    S.GUIMeta.EasyMax.String = {'Default', 'Activated', 'Deactivated'};
+    S.GUIPanels.VisStim = {'EasyMax', 'VisStimEnable', 'GratingDur_s', 'ISIOrig_s', 'NumISIOrigRep', 'PostPerturbDurMultiplier', 'ExtraStimDurPostRew_Naive_s', 'MinISIPerturb_ms', 'PreVisStimDelay_s', 'PreGoCueDelay_s'}; 
  
 
     %% contingency and bias params
@@ -139,12 +114,10 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUIMeta.Short_Fast_ISIChoice.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
     S.GUIMeta.Short_Fast_ISIChoice.String = {'Left', 'Right'};
     S.GUI.ShortISIFraction = 0.5;   % set fraction of trials that are short ISI (long ISI fraction = (1 - short))                                
-    S.GUI.ManualSideSelect = 0;   % override to disable/enable manual selection of left/right for next trial
-    S.GUIMeta.ManualSideSelect.Style = 'checkbox';
-    S.GUI.ManualSide = 1;   % manual selection of left/right for next trial
-    S.GUIMeta.ManualSide.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
-    S.GUIMeta.ManualSide.String = {'Left', 'Right'};
-    S.GUIPanels.Contingency_Bias = {'Short_Fast_ISIChoice', 'ShortISIFraction', 'ManualSideSelect', 'ManualSide'};
+    S.GUI.AutoBiasEnable = 1;
+    S.GUIMeta.AutoBiasEnable.Style = 'checkbox';
+    S.GUI.ConsecutiveSideTrials = 5;
+    S.GUIPanels.Contingency_Bias = {'Short_Fast_ISIChoice', 'ShortISIFraction'};
 
 
     %% reward params
@@ -177,13 +150,6 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUIPanels.Choice = {'ChoiceWindow_s', 'ConfirmLickInterval_s', 'ChoiceConfirmWindow_s'};
 
 
-    %% temp debugging params
-    % S.GUI.WindowRewardGrabDuration_Naive_s = 5;  % naive mouse has up to x seconds to grab reward
-    % S.GUI.ChoiceWindow_s = 2; % How long after go cue until the mouse must make a choice
-    % S.GUI.NumEasyWarmupTrials = 0;
-    
-    % S.GUI.ITImin_s = 0;    % Minimum ITI (in seconds)
-    % S.GUI.ITImax_s = 0;    % Maximum ITI (in seconds)
 end
 
 
@@ -202,19 +168,6 @@ TrialTypes = ceil(rand(1,MaxTrials)*2);
 % adjust warmup trials to have no more than 'max' number of consecutive
 % same-side trials
 TrialTypes = AdjustMaxConsecutiveSameSideWarmupTrials(TrialTypes, S.GUI.NumEasyWarmupTrials);
-
-% in case manual mode is enabled by hard-coded default, set first trial
-% type accordingly
-% if S.GUI.ManualSideSelect
-%     switch S.GUI.ManualSide
-%         case 1 % select left trial
-%             % TrialTypes = ones(1, MaxTrials);
-%             TrialTypes(1) = 1;
-%         case 2 % select right trial
-%             % TrialTypes = 2 * ones(1, MaxTrials);
-%             TrialTypes(1) = 2;
-%     end
-% end
    
 BpodSystem.Data.TrialTypes = []; % The trial type of each trial completed will be added here.
 
@@ -234,20 +187,6 @@ if ~verLessThan('matlab','9.5') % StateTiming plot requires MATLAB r2018b or new
     useStateTiming = true;
     StateTiming();
 end
-
-
-%% initial distribution of difficulty levels across trials
-
-% if (S.GUI.TrainingLevel == 1)
-%     S.GUI.PercentTrialsEasy = 100;
-%     S.GUI.PercentTrialsMedium = 0;
-%     S.GUI.PercentTrialsHard = 0;
-% 
-% elseif (S.GUI.TrainingLevel == 2)
-%     S.GUI.PercentTrialsEasy = 50;
-%     S.GUI.PercentTrialsMedium = 30;
-%     S.GUI.PercentTrialsHard = 20;
-% end
 
 
 %% Define stimuli and send to analog module
@@ -383,14 +322,6 @@ BpodSystem.PluginObjects.V.Videos{3} = struct;
 BpodSystem.PluginObjects.V.Videos{3}.nFrames = GratingFrames + 1; % + 1 for final frame
 BpodSystem.PluginObjects.V.Videos{3}.Data = [GratingVideo GratingBlank];
 
-% debug to check individual frames by loading them as a video to play on
-% vis stim monitor
-% BpodSystem.PluginObjects.V.Videos{6} = struct;
-% BpodSystem.PluginObjects.V.Videos{6}.nFrames = 1; % + 1 for final frame
-% BpodSystem.PluginObjects.V.Videos{6}.Data = GratingFrame_SyncW;
-% BpodSystem.PluginObjects.V.play(6);
-% BpodSystem.PluginObjects.V.stop;
-
 % compose gray video, fixed ISI
 GrayFrame_SyncW = BpodSystem.PluginObjects.V.Videos{2}.Data(1);
 GrayFrame_SyncBlk = BpodSystem.PluginObjects.V.Videos{2}.Data(2);
@@ -456,25 +387,6 @@ DifficultyLevels = [1, 2, 3, 4];  % 1 - Easy, 2 - MediumEasy, 3 - MediumHard, 4 
 WarmupTrialsCounter = S.GUI.NumEasyWarmupTrials;
 LastNumEasyWarmupTrials = S.GUI.NumEasyWarmupTrials; % store GUI value to determine if user has changed this param to reset counter
 
-% check that difficulty level distribution percentages sum to 100%
-%PercentDifficultySum = S.GUI.PercentTrialsEasy + S.GUI.PercentTrialsMedium + S.GUI.PercentTrialsHard;
-PercentDifficultySum = S.GUI.PercentTrialsEasy + S.GUI.PercentTrialsMediumEasy + S.GUI.PercentTrialsMediumHard + S.GUI.PercentTrialsHard;
-
-if ShowDebugOutput
-    disp(['PercentDifficultySum:', num2str(PercentDifficultySum)]);
-end
-
-% require operator to set difficulty level distribution percentages that sum to 100%
-%while PercentDifficultySum ~= 1
-DifficultyPercentageSumTolerance = 0.1;
-while (PercentDifficultySum < (100-DifficultyPercentageSumTolerance)) || (PercentDifficultySum > (100+DifficultyPercentageSumTolerance))
-    input('Sum of difficulty level percentages must be 100%, after setting press enter to continue >', 's'); 
-    S = BpodParameterGUI('sync', S);
-    %PercentDifficultySum = S.GUI.PercentTrialsEasy + S.GUI.PercentTrialsMedium + S.GUI.PercentTrialsHard;
-    PercentDifficultySum = S.GUI.PercentTrialsEasy + S.GUI.PercentTrialsMediumEasy + S.GUI.PercentTrialsMediumHard + S.GUI.PercentTrialsHard;
-    disp(['PercentDifficultySum:', num2str(PercentDifficultySum)]);
-end
-
 
 %% 
 LastWaitDurOrig_s = S.GUI.WaitDurOrig_s;
@@ -492,38 +404,29 @@ for currentTrial = 1:MaxTrials
 
     S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin    
 
+    
     %% account for contingency settings
 
-    switch S.GUI.ManualSideSelect
-        case 0 % manual selection disabled, use ShortISIFraction if it is ~= 0.5
-            if (S.GUI.ShortISIFraction ~= 0.5)
-                switch S.GUI.Short_Fast_ISIChoice
-                    case 1  % left is short ISI
-                        % define discrete side values in distribution
-                        Sides = [1, 2];                    
-                    case 2  % right is short ISI
-                        % define discrete side values in distribution
-                        Sides = [2, 1]; 
-                end
-                % assigned probability weights for sampling from distribution
-                SideProbabilities = [S.GUI.ShortISIFraction, 1-S.GUI.ShortISIFraction];
-            
-                cp = [0, cumsum(SideProbabilities)]; % cumulative probability -> use as interval to pick Left or Right
+    if (S.GUI.ShortISIFraction ~= 0.5)
+        switch S.GUI.Short_Fast_ISIChoice
+            case 1  % left is short ISI
+                % define discrete side values in distribution
+                Sides = [1, 2];                    
+            case 2  % right is short ISI
+                % define discrete side values in distribution
+                Sides = [2, 1]; 
+        end
+        % assigned probability weights for sampling from distribution
+        SideProbabilities = [S.GUI.ShortISIFraction, 1-S.GUI.ShortISIFraction];
+    
+        cp = [0, cumsum(SideProbabilities)]; % cumulative probability -> use as interval to pick Left or Right
 
-                r = rand; % get random scalar drawn from the uniform distribution in the interval (0,1).
-                ind = find(r>cp, 1, 'last');  % get discrete index (1 or 2 for left or right)
-                TrialTypes(currentTrial) = Sides(ind); % get discrete value at the randomly (according to probability weights) selected index, 
-                                                       % in this case of 1 = Left, 2 = Right, it will be the same as the index.  This step is 
-                                                       % here in case more or fewer cases are added in the future, this gets used as example for drawing 
-                                                       % from weighted distribution later, or any other unforseen reason
-            end
-        case 1 % manual selection enabled, use selected side, project future trials as if current setting stays selected
-            switch S.GUI.ManualSide
-                case 1 % set trial as 'Left'
-                    TrialTypes(currentTrial) = 1;
-                case 2 % set trial as 'Right'
-                    TrialTypes(currentTrial) = 2;
-            end
+        r = rand; % get random scalar drawn from the uniform distribution in the interval (0,1).
+        ind = find(r>cp, 1, 'last');  % get discrete index (1 or 2 for left or right)
+        TrialTypes(currentTrial) = Sides(ind); % get discrete value at the randomly (according to probability weights) selected index, 
+                                               % in this case of 1 = Left, 2 = Right, it will be the same as the index.  This step is 
+                                               % here in case more or fewer cases are added in the future, this gets used as example for drawing 
+                                               % from weighted distribution later, or any other unforseen reason
     end
 
 
@@ -591,50 +494,18 @@ for currentTrial = 1:MaxTrials
         PercentTrialsMediumHard = S.GUI.PercentTrialsMediumHard;
         PercentTrialsHard = S.GUI.PercentTrialsHard;
 
-        FractionEasy = PercentTrialsEasy/100;
-        FractionMediumEasy = PercentTrialsMediumEasy/100;
-        FractionMediumHard = PercentTrialsMediumHard/100;
-        FractionHard = PercentTrialsHard/100;
+        sum = PercentTrialsEasy + PercentTrialsMediumEasy + PercentTrialsMediumHard + PercentTrialsHard;
+
+        FractionEasy = PercentTrialsEasy / sum;
+        FractionMediumEasy = PercentTrialsMediumEasy / sum;
+        FractionMediumHard = PercentTrialsMediumHard / sum;
+        FractionHard = PercentTrialsHard / sum;
         
         % assigned probability weights for sampling from distribution
         %DifficultyProbabilities = [FractionEasy, FractionMedium, FractionHard];
         DifficultyProbabilities = [FractionEasy, FractionMediumEasy, FractionMediumHard, FractionHard];
         
-        % check that difficulty probability weights sum to 1.0
-        % maybe change this to message using disp() so it doesn't look like program
-        % error/crash
-        ProbabilitySum1 = (sum(DifficultyProbabilities) == 1);
-        
-        % don't move forward with trials until the entered easy/medium/hard
-        % fractions sum to 100%
-        while ~ProbabilitySum1
-            % AssertErrMsg = ['Sum of difficulty percentages must equal 100'];
-            % assert(ProbabilitySum1, AssertErrMsg);
-            disp('Sum of difficulty percentages must equal 100');
-            input('Press enter after setting difficulty percentage sum equal to 100 to continue >', 's'); 
-            S = BpodParameterGUI('sync', S);
-    
-            % update difficulty percentages from gui params
-            PercentTrialsEasy = S.GUI.PercentTrialsEasy;
-            %PercentTrialsMedium = S.GUI.PercentTrialsMedium;
-            PercentTrialsMediumEasy = S.GUI.PercentTrialsMediumEasy;
-            PercentTrialsMediumHard = S.GUI.PercentTrialsMediumHard;
-            PercentTrialsHard = S.GUI.PercentTrialsHard;
 
-            FractionEasy = PercentTrialsEasy/100;
-            %FractionMedium = PercentTrialsMedium/100;
-            FractionMediumEasy = PercentTrialsMediumEasy/100;
-            FractionMediumHard = PercentTrialsMediumHard/100;
-            FractionHard = PercentTrialsHard/100;
-        
-            DifficultyProbabilities = [FractionEasy, FractionMediumEasy, FractionMediumHard, FractionHard];
-            
-            % check that difficulty probability weights sum to 1.0
-            % maybe change this to message using disp() so it doesn't look like program
-            % error/crash
-            ProbabilitySum1 = (sum(DifficultyProbabilities) == 1);
-        end
-    
         % if we've reached here, then the weights sum to a probability of 1.0,
         % now draw random sample according to probability weights
         cp = [0, cumsum(DifficultyProbabilities)]; % cumulative probability -> use as interval to pick Easy OR Medium OR Hard (one occurs every draw)
@@ -658,20 +529,6 @@ for currentTrial = 1:MaxTrials
             ExperimenterTrialInfo.Difficulty = 'Medium-Hard';   % capture variable states as field/value struct for experimenter info
         case 4
             ExperimenterTrialInfo.Difficulty = 'Hard';   % capture variable states as field/value struct for experimenter info
-    end
-
-    % print difficulty drawn from prob dist
-    if ShowDebugOutput
-        switch TrialDifficulty
-            case 1
-                disp('Easy Picked');
-            case 2
-                disp('Medium-Easy Picked');
-            case 3
-                disp('Medium-Hard Picked');                
-            case 4
-                disp('Hard Picked');
-        end
     end
 
 
@@ -742,17 +599,6 @@ for currentTrial = 1:MaxTrials
     end
 
 
-    %% Generate Audio Stim again if freq changed or if grating dur changed
-
-    if S.GUI.AudioStimFreq_Hz ~= LastAudioStimFrequency
-        % generate audio stim of 15s (longer than vis stim to go cue would
-        % be) then turn sound off at beginning of next state after vis stim
-        %AudioStimSound = GenerateSineWave(SF, S.GUI.AudioStimFreq_Hz, GratingDur); % Sampling freq (hz), Sine frequency (hz), duration (s)
-        %H.load(4, [AudioStimSound;AudioStimSound]);
-        %LastAudioStimFrequency = S.GUI.AudioStimFreq_Hz;
-    end 
-
-
     %% update video& audio and change tracking variables for audio and vis stim
 
     % if vis stim dur, audio stim freq, or volume changed then update sound wave
@@ -796,7 +642,6 @@ for currentTrial = 1:MaxTrials
    
     % calculate category boundary to use as base timing reference for
     % perturbation length
-    %CatBound = S.GUI.ISIOrig_s;   % updated category boundary to be ISI_perturb * 1.5
     CatBound = S.GUI.ISIOrig_s;   % updated category boundary to be ISI_perturb * 1.5
 
     ExperimenterTrialInfo.CategoryBoundary = CatBound;   % capture variable states as field/value struct for experimenter info
@@ -804,8 +649,7 @@ for currentTrial = 1:MaxTrials
     % full range of perturbation is calculated as the category boundary time
     % minus the selected minimum time separation from the category boundary and the grating
     %PerturbDurFullRange = S.GUI.ISIOrig_s * 1000 - S.GUI.PerturbMinFromCB_ms - S.GUI.MinISIPerturb_ms;  
-    
-    %PerturbDurFullRange = S.GUI.ISIOrig_s * 1000 - S.GUI.MinISIPerturb_ms; 
+
     PerturbDurFullRange = CatBound * 1000 - S.GUI.MinISIPerturb_ms; 
                                                                                                      
     switch TrialDifficulty % Determine trial-specific visual stimulus
@@ -815,7 +659,6 @@ for currentTrial = 1:MaxTrials
             end
             PerturbDurMin = EasyMinPercent*PerturbDurFullRange;
             PerturbDurMax = EasyMaxPercent*PerturbDurFullRange;
-
         case 2
             if ShowDebugOutput
                 disp('Difficulty - Medium-Easy');
@@ -845,7 +688,6 @@ for currentTrial = 1:MaxTrials
 
     debugDiffRanges = 1;
     if debugDiffRanges
-
         EasyMin = (EasyMinPercent*PerturbDurFullRange)/1000;
         EasyMax = (EasyMaxPercent*PerturbDurFullRange)/1000;
         MediumEasyMin = (MediumEasyMinPercent*PerturbDurFullRange)/1000;
@@ -864,18 +706,26 @@ for currentTrial = 1:MaxTrials
         end
     end
     
-    if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3)
-        RandomPerturbationDur = EasyMax;
-        if ShowDebugOutput
-            disp(['Naive -> EasyMax:']);        
-        end
-    else
-        RandomPerturbationDur = unifrnd(PerturbDurMin, PerturbDurMax, 1, 1)/1000; % get random duration from calculated range, convert to seconds
+    % EasyMax activation.
+    % default: naive/mid1 is activated. mid2/well is deactivated.
+    switch S.GUI.EasyMax
+        case 1 % default
+            if (S.GUI.TrainingLevel == 1 | S.GUI.TrainingLevel == 2)
+                RandomPerturbationDur = EasyMax;
+                ExperimenterTrialInfo.EasyMax = 'Activated';
+            else
+                RandomPerturbationDur = unifrnd(PerturbDurMin, PerturbDurMax, 1, 1)/1000; % get random duration from calculated range, convert to seconds
+                ExperimenterTrialInfo.EasyMax = 'Deactivated';
+            end
+        case 2 % manually activated
+            RandomPerturbationDur = EasyMax;
+            ExperimenterTrialInfo.EasyMax = 'Activated';
+        case 3 % manually deactivated
+            RandomPerturbationDur = unifrnd(PerturbDurMin, PerturbDurMax, 1, 1)/1000;
+            ExperimenterTrialInfo.EasyMax = 'Deactivated';
     end
-    
-    % % explicit random duration for debugging video
-    %RandomPerturbationDur = 1;
-    %RandomPerturbationDur = S.GUI.ISIOrig_s;    
+    % record trial unadjusted ISI random dur 
+    BpodSystem.Data.TrialVars.Trial{currentTrial}.RandomPerturbationDur = RandomPerturbationDur;
 
     ExperimenterTrialInfo.DistanceFromCategoryBoundary = RandomPerturbationDur;   % capture variable states as field/value struct for experimenter info
 
@@ -1004,12 +854,6 @@ for currentTrial = 1:MaxTrials
 
     NumPerturbReps = NumPerturbVisRep + NumExtraPerturbVisRep;
 
-    % TotalFramesNeeded = 2*(S.GUI.NumISIOrigRep * NumInitialBaseFrames) + ...
-    %     GratingFrames; % number of frames needed is 
-    % TotalFramesNeeded = (S.GUI.NumISIOrigRep * NumInitialBaseFrames) + ...
-    %     (S.GUI.NumISIOrigRep * NumInitialBaseFrames) * S.GUI.PostPerturbDurMultiplier + ...
-    %     GratingFrames + ...
-    %     NumPerturbVisRep_frame_remainder; % number of frames needed is 
     TotalFramesNeeded = (S.GUI.NumISIOrigRep * NumInitialBaseFrames) + ...
         (S.GUI.NumISIOrigRep * NumInitialBaseFrames) * S.GUI.PostPerturbDurMultiplier + ...
         GratingFrames; % number of frames needed is     
@@ -1052,14 +896,6 @@ for currentTrial = 1:MaxTrials
             FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoGrayFiller]; % construct full video from initial and perturbation segments
                                                                                     %  and add final frame of grayscreen at the end of video
     end
-
-
-
-
-    % for j = 1:(NumPerturbVisRep + NumExtraPerturbVisRep)
-    %     FullVideo = [FullVideo GrayPerturbVideo GratingVideo];
-    % end    
-    % FullVideo = [FullVideo GrayBlank]; % add final frame of grayscreen at the end of video   
 
     
     if GrayFillerFramesNeeded < 0
@@ -1184,24 +1020,11 @@ for currentTrial = 1:MaxTrials
             % nothing 
     end
 
-
     H.load(5, FullAudioStimData);
 
     % Query duration of one monitor refresh interval:
     ifi=Screen('GetFlipInterval', BpodSystem.PluginObjects.V.Window);
     
-    % % debug 
-    % pause(1);
-    % 
-    % global NumPosMissed;
-    % NumPosMissed = 0;
-    % BpodSystem.PluginObjects.V.play(5);
-    % BpodSystem.PluginObjects.V.stop;
-    % disp('NumPosMissed:');
-    
-    % disp(NumPosMissed);
-    % PerceptualVBLSyncTest([screen=1][, stereomode=0][, fullscreen=1][, doublebuffer=1][, maxduration=10][, vblSync=1][, testdualheadsync=0][, useVulkan=0])
-
 
     %% update trial-specific Audio
 
@@ -1211,7 +1034,6 @@ for currentTrial = 1:MaxTrials
     else
         OutputActionArgIncorrect = {};
     end
-
 
     if (S.GUI.InitCueFreq_Hz ~= LastInitCueFrequency) || ...
         (S.GUI.InitCueDuration_s ~= LastInitCueDuration) || ...
@@ -1275,14 +1097,6 @@ for currentTrial = 1:MaxTrials
             ExperimenterTrialInfo.CorrectChoice = 'Right';   % capture variable states as field/value struct for experimenter info
     end
 
-    %% set variables for trial-specific training level   
-    % if S.GUI.TrainingLevel == 1 % Reward both sides (overriding switch/case above)
-    %     RightActionState = 'Reward'; LeftActionState = 'Reward';
-    % elseif S.GUI.TrainingLevel == 2
-    %     disp('Medium');
-    % elseif S.GUI.TrainingLevel == 3
-    %     disp('Hard');
-    % end
     
     %% trial-specific output actions
     % maybe move this to state-matrix section for consistency
@@ -1462,23 +1276,6 @@ for currentTrial = 1:MaxTrials
         'StateChangeConditions', {'Tup', 'ITI'},...         
         'OutputActions', {});     
 
-    % note: stay in trial until init
-    % naive - log DidNotInitiate, and go to vis stim 
-    % trained - log DidNotInitiate, go to ITI
-    % sma = AddState(sma, 'Name', 'DidNotInitiate', ...
-    %     'Timer', 0,...
-    %     'StateChangeConditions', {'Tup', DidNotInitiate_Tup_NextState},...         
-    %     'OutputActions', {});    
-    
-    %{
-    % delay after init before visual stimulus
-    % placeholder - not in  use
-    sma = AddState(sma, 'Name', 'PreVisStimDelay', ...
-        'Timer', S.GUI.PreVisStimDelay_s,...
-        'StateChangeConditions', {'Tup', 'VisualStimulus'},...
-        'OutputActions', {});    
-    %}
-
     % delay after init before visual stimulus
     % placeholder - not in  use
     sma = AddState(sma, 'Name', 'PreVisStimDelay', ...
@@ -1497,14 +1294,6 @@ for currentTrial = 1:MaxTrials
         'StateChangeConditions', VisualStimulusStateChangeConditions,...
         'OutputActions', audStim);
 
-    %%% Well-trained:
-    % VisualStimulus; they can't side lick
-    % sma = AddState(sma, 'Name', 'VisualStim_NotAllowedSideLick', ...
-    %     'Timer', wait_dur,...
-    %     'StateChangeConditions', {'Tup', 'VisualStim_AllowedSideLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...
-    %     'OutputActions', OutputActionAudioVisStim);
-
-
     % VisualStimulus; they can side lick (though they wont get reward bc
     % it's before go cue)
     sma = AddState(sma, 'Name', 'VisualStim_AllowedSideLick', ...
@@ -1512,21 +1301,11 @@ for currentTrial = 1:MaxTrials
         'StateChangeConditions', {'Tup', 'CenterReward'},...
         'OutputActions', {});
 
-
     % Well trained: after the stimulus ends, mouse center licks, then center reward happens.  
-    % sma = AddState(sma, 'Name', 'CenterLick', ...
-    %     'Timer', S.GUI.WindCenterLick_s,...
-    %     'StateChangeConditions', WindCenterEvents,...
-    %     'OutputActions', {}); 
-
     sma = AddState(sma, 'Name', 'CenterReward', ...
         'Timer', CenterValveTime,...
         'StateChangeConditions', {'Tup', 'PreGoCueDelay'},...
         'OutputActions', CenterReward_OutputActions);    
-    %'OutputActions', {'Valve2', 1});
-    %{'SoftCode', 255} % in case needed to stop video if this is used
-    %outside of naive
-
     
     % placeholder - not in  use
     sma = AddState(sma, 'Name', 'PreGoCueDelay', ...
@@ -1540,8 +1319,13 @@ for currentTrial = 1:MaxTrials
     % when waiting to ITI
     sma = AddState(sma, 'Name', 'EarlyChoice', ...
         'Timer', 0,...
-        'StateChangeConditions', {'Tup', 'ITI'},...
+        'StateChangeConditions', {'Tup', 'EarlyChoice_ITI'},...
         'OutputActions', OutputActionsEarlyChoice);
+    
+    sma = AddState(sma, 'Name', 'EarlyChoice_ITI', ...
+        'Timer', S.GUI.EarlyChoice_ITI,...
+        'StateChangeConditions', {'Tup', 'ITI'},...
+        'OutputActions', {});
 
     % well trained - mouse didn't lick center after vis stim during S.GUI.CenterLickWindow_Trained_s
     sma = AddState(sma, 'Name', 'EarlyChoiceDurCenterLick', ...
@@ -1562,9 +1346,7 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'RewardNaive', ...
         'Timer', CenterValveTime,...
         'StateChangeConditions', {'Tup', 'WindowRewardGrab_Naive'},...
-        'OutputActions', {Valve, 1});
-%'Timer', ValveTime,...
-    
+        'OutputActions', {Valve, 1});    
     
     % keep valve open here? no
     sma = AddState(sma, 'Name', 'WindowRewardGrab_Naive', ...
@@ -1588,18 +1370,12 @@ for currentTrial = 1:MaxTrials
         'Timer', S.GUI.ChoiceWindow_s,...
         'StateChangeConditions', WindowChoice_StateChangeConditions,...
         'OutputActions', OutputActionsWindowChoice);        
-        %'OutputActions', {}); 
-
-        % 'StateChangeConditions', {'Port1In', LeftLickAction, 'Port3In', RightLickAction, 'Tup', 'ITI'},...
-        % 'OutputActions', {'HiFi1', SoundOffBytes});
-        %'OutputActions', {'SoftCode', 255, 'HiFi1', SoundOffBytes});
     
     % trained - did not lick center after vis stim for center reward
     sma = AddState(sma, 'Name', 'DidNotLickCenter', ...
         'Timer', 0,...
         'StateChangeConditions', {'Tup', 'ITI'},...
         'OutputActions', {});
-
 
     % naive - log DidNotChoose, skip confirm/choose again loop, go to
     %         reward correct spout
@@ -1672,12 +1448,6 @@ for currentTrial = 1:MaxTrials
         'StateChangeConditions', {'Tup', 'ITI'},...
         'OutputActions', OutputActionArgIncorrect);
 
-    %'Timer', S.GUI.PunishDelay,... % call it punish or incorrect?
-
-    % sma = AddState(sma, 'Name', 'CorrectEarlyWithdrawal', ...
-    %     'Timer', 0,...
-    %     'StateChangeConditions', {'Tup', 'ITI'},...
-    %     'OutputActions', {});
     sma = AddState(sma, 'Name', 'ITI', ...
         'Timer', ITI,...
         'StateChangeConditions', {'Tup', '>exit'},...
@@ -1691,8 +1461,6 @@ for currentTrial = 1:MaxTrials
         BpodSystem.Data.TrialSettings(currentTrial) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
         BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial); % Adds the trial type of the current trial to data
         UpdateSideOutcomePlot(TrialTypes, BpodSystem.Data, 1);
-        %UpdateTotalRewardDisplay(S.GUI.RewardAmount, currentTrial);
-        %UpdateTotalRewardDisplay(S.GUI.RewardAmount, currentTrial); % how to change this for the way we're doing it?
         if useStateTiming
             StateTiming();
         end

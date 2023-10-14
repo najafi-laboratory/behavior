@@ -2,25 +2,11 @@
 ----------------------------------------------------------------------------
 
 Description
-changed:
-updated rate_discrimination_waitdur_AVsync to include fractional
-repititions of post perturb vis pattern reps, VisStimDuration now always
-has number of frames to give exact same duration for short or long ISI
 
-was:    S.GUI.PostPerturbDurMultiplier = 1.5; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)
-is:     S.GUI.PostPerturbDurMultiplier = 1; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)
-
-was:    S.GUI.NumISIOrigRep = 5; % number of grating/gray repetitions for vis stim first segment prior to perturbation
-is:     S.GUI.NumISIOrigRep = 3; % number of grating/gray repetitions for vis stim first segment prior to perturbation
-
-updated wait_dur to increase only on early choice, not for wrong init ->
-(i.e. looks for center reward)
-
-fixed audio generation that crashed for difficulty levels other than easy
 ----------------------------------------------------------------------------
 %}
 
-function rate_discrimination_waitdur_AVsync_visTiming_mid2
+function rate_discrimination
 
 
 global BpodSystem
@@ -49,7 +35,7 @@ S = BpodSystem.ProtocolSettings; % Load settings chosen in launch manager into c
 if isempty(fieldnames(S))  % If settings file was an empty struct, populate struct with default settings
     S.GUI.GratingDur_s = 0.1; % Duration of grating stimulus in seconds - UPDATE
     S.GUI.ISIOrig_s = 0.5; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
-    S.GUI.NumISIOrigRep = 3; % number of grating/gray repetitions for vis stim first segment prior to perturbation
+    S.GUI.NumISIOrigRep = 5; % number of grating/gray repetitions for vis stim first segment prior to perturbation
     
 
     %% ITI params
@@ -125,7 +111,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.VisStimEnable = 1;
     S.GUIMeta.VisStimEnable.Style = 'checkbox';
     S.GUI.ExtraStimDurPostRew_Naive_s = 5; % naive mouse sees stimulus for this time (sec) after correct lick    
-    S.GUI.PostPerturbDurMultiplier = 1; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)    
+    S.GUI.PostPerturbDurMultiplier = 1.5; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)    
     S.GUI.MinISIPerturb_ms = 100; % min time in ms for perturbation range from grating
     S.GUI.PreVisStimDelay_s = 0; % How long the mouse must poke in the center to activate the goal port
     S.GUI.PreGoCueDelay_s = 0;
@@ -373,10 +359,7 @@ GratingFrame_SyncW = BpodSystem.PluginObjects.V.Videos{1}.Data(1);
 GratingFrame_SyncBlk = BpodSystem.PluginObjects.V.Videos{1}.Data(2);
 GratingBlank = BpodSystem.PluginObjects.V.Videos{1}.Data(3);
 
-%GratingPattern = [GratingFrame_SyncW GratingFrame_SyncBlk];
 GratingPattern = [GratingFrame_SyncW GratingFrame_SyncW];
-
-%GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2) GratingBlank];
 GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2)];
 
 BpodSystem.PluginObjects.V.Videos{3} = struct;
@@ -396,10 +379,7 @@ GrayFrame_SyncW = BpodSystem.PluginObjects.V.Videos{2}.Data(1);
 GrayFrame_SyncBlk = BpodSystem.PluginObjects.V.Videos{2}.Data(2);
 GrayBlank = BpodSystem.PluginObjects.V.Videos{2}.Data(3);
 
-%GrayPattern = [GrayFrame_SyncW GrayFrame_SyncBlk];
 GrayPattern = [GrayFrame_SyncBlk GrayFrame_SyncBlk];
-
-%GrayVideo = [repmat(GrayPattern, 1, GrayFixedFrames/2) GrayBlank];
 GrayVideo = [repmat(GrayPattern, 1, GrayFixedFrames/2)];
 
 % update durations based on number of frames generated
@@ -418,8 +398,6 @@ GrayInitBNCSync = [repmat(GrayFrame_SyncW, 1, 120) GrayFrame_SyncBlk];
 BpodSystem.PluginObjects.V.Videos{6} = struct;
 BpodSystem.PluginObjects.V.Videos{6}.nFrames = 121; % + 1 for final frame
 BpodSystem.PluginObjects.V.Videos{6}.Data = GrayInitBNCSync;
-
-%NumISIOrigRep = S.GUI.NumISIOrigRep;
 
 VideoData = [repmat(VideoPrePerturbPattern, 1, S.GUI.NumISIOrigRep) GratingVideo]; % add one more grating video after initial repetitions
 
@@ -479,8 +457,7 @@ end
 %% 
 LastWaitDurOrig_s = S.GUI.WaitDurOrig_s;
 LastWaitDurStep_s = S.GUI.WaitDurStep_s;
-% init wait dur
-wait_dur = 0;
+
 
 %% Main trial loop
 
@@ -543,12 +520,8 @@ for currentTrial = 1:MaxTrials
             CorrectPort = 'Port1';
             IncorrectLick = 'Port3In';
             IncorrectPort = 'Port3';
-            %StimulusOutput = {'SoftCode', 3};
-            %RewardPortOut = 'Port1Out'; 
             ValveTime = LeftValveTime; 
             Valve = 'Valve1';
-            %CorrectWithdrawalEvent = 'Port1Out';
-            %VisualGratingDuration = S.GUI.LDuration; % length of time to play visual stimulus when Left TrialType
     
             %ExperimenterTrialInfo.RewardedSide = 'Left';   % capture variable states as field/value struct for experimenter info
         case 2  % right side is rewarded 
@@ -753,7 +726,7 @@ for currentTrial = 1:MaxTrials
     end 
 
 
-    %% update video& audio and change tracking variables for audio and vis stim
+    %% update video& audio and change tracking variables for adio and vis stim
 
     % if vis stim dur, audio stim freq, or volume changed then update sound wave
     if (S.GUI.GratingDur_s ~= LastGratingDuration) || ...
@@ -864,7 +837,7 @@ for currentTrial = 1:MaxTrials
         end
     end
     
-    if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3)
+    if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2)
         RandomPerturbationDur = EasyMax;
         if ShowDebugOutput
             disp(['Naive -> EasyMax:']);        
@@ -965,17 +938,8 @@ for currentTrial = 1:MaxTrials
     % find the nearest whole number duration of perturbation gray->grating that fits
     % within the scaled duration of the pre-preturbation segment
     PerturbBasePatternDuration = GrayPerturbDuration + GratingDuration;
-    % ScaledPrePerturbDuration = (length(VideoData) / FramesPerSecond) * S.GUI.PostPerturbDurMultiplier;
-    ScaledPrePerturbDuration = ((length(VideoData)-GratingFrames) / FramesPerSecond) * S.GUI.PostPerturbDurMultiplier;
+    ScaledPrePerturbDuration = (length(VideoData) / FramesPerSecond) * S.GUI.PostPerturbDurMultiplier;
     NumPerturbVisRep = floor(ScaledPrePerturbDuration/PerturbBasePatternDuration);
-   
-    %NumPerturbVisRep_frame_remainder = floor((ScaledPrePerturbDuration/PerturbBasePatternDuration - fix(ScaledPrePerturbDuration/PerturbBasePatternDuration))*FramesPerSecond);
-    NumPerturbVisRep_frame_remainder = floor((ScaledPrePerturbDuration/PerturbBasePatternDuration - fix(ScaledPrePerturbDuration/PerturbBasePatternDuration))* length(VideoPerturbBasePattern));
-    if NumPerturbVisRep_frame_remainder > 0
-        VideoPerturbBasePattern_remaining_frames = VideoPerturbBasePattern(1:NumPerturbVisRep_frame_remainder);
-    else
-        VideoPerturbBasePattern_remaining_frames = [];
-    end
 
     if ShowDebugOutput
         disp(['PerturbBasePatternDuration: ', num2str(PerturbBasePatternDuration)]);
@@ -993,7 +957,7 @@ for currentTrial = 1:MaxTrials
         case 2 % Mid Trained 1
             NumExtraPerturbVisRep = 90;
         case 3 % Mid Trained 2
-            NumExtraPerturbVisRep = 90;
+            NumExtraPerturbVisRep = 0;
         case 4 % Trained
             %disp('No Extra Vis Stim Repititions for Training Stage - Trained');
             NumExtraPerturbVisRep = 0;
@@ -1006,13 +970,9 @@ for currentTrial = 1:MaxTrials
 
     % TotalFramesNeeded = 2*(S.GUI.NumISIOrigRep * NumInitialBaseFrames) + ...
     %     GratingFrames; % number of frames needed is 
-    % TotalFramesNeeded = (S.GUI.NumISIOrigRep * NumInitialBaseFrames) + ...
-    %     (S.GUI.NumISIOrigRep * NumInitialBaseFrames) * S.GUI.PostPerturbDurMultiplier + ...
-    %     GratingFrames + ...
-    %     NumPerturbVisRep_frame_remainder; % number of frames needed is 
     TotalFramesNeeded = (S.GUI.NumISIOrigRep * NumInitialBaseFrames) + ...
         (S.GUI.NumISIOrigRep * NumInitialBaseFrames) * S.GUI.PostPerturbDurMultiplier + ...
-        GratingFrames; % number of frames needed is     
+        GratingFrames; % number of frames needed is 
     GrayFillerFramesNeeded = TotalFramesNeeded - (length(VideoData) + (length(VideoPerturbBasePattern)*NumPerturbReps));
     
     GrayFillerFramesNeeded = round(GrayFillerFramesNeeded); % get integer number of frames
@@ -1031,31 +991,8 @@ for currentTrial = 1:MaxTrials
     end
     
     %NumPerturbReps = NumPerturbVisRep + 50;
-    % FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoGrayFiller GrayBlank]; % construct full video from initial and perturbation segments
+    FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoGrayFiller GrayBlank]; % construct full video from initial and perturbation segments
                                                                                     %  and add final frame of grayscreen at the end of video
-    switch S.GUI.TrainingLevel
-        case 1 % Naive       
-            %disp('Extra Vis Stim Repititions for Training Stage - Naive');
-            %NumExtraPerturbVisRep = 90;   
-            FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoPerturbBasePattern_remaining_frames GrayBlank]; % construct full video from initial and perturbation segments
-                                                                                    %  and add final frame of grayscreen at the end of video
-        case 2 % Mid Trained 1
-            % NumExtraPerturbVisRep = 90;
-            FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoPerturbBasePattern_remaining_frames GrayBlank]; % construct full video from initial and perturbation segments
-                                                                                    %  and add final frame of grayscreen at the end of video            
-        case 3 % Mid Trained 2
-            FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoPerturbBasePattern_remaining_frames GrayBlank]; % construct full video from initial and perturbation segments
-                                                                                    %  and add final frame of grayscreen at the end of video
-        case 4 % Trained
-            %disp('No Extra Vis Stim Repititions for Training Stage - Trained');
-            %FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoGrayFiller GrayBlank]; % construct full video from initial and perturbation segments
-            FullVideo = [VideoData repmat(VideoPerturbBasePattern, 1, NumPerturbReps) VideoGrayFiller]; % construct full video from initial and perturbation segments
-                                                                                    %  and add final frame of grayscreen at the end of video
-    end
-
-
-
-
     % for j = 1:(NumPerturbVisRep + NumExtraPerturbVisRep)
     %     FullVideo = [FullVideo GrayPerturbVideo GratingVideo];
     % end    
@@ -1066,19 +1003,12 @@ for currentTrial = 1:MaxTrials
         GrayFillerFramesNeeded = 0;
     end
 
-    if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3)
-        FullVideoFrames = S.GUI.NumISIOrigRep * NumInitialBaseFrames + ...
-            GratingFrames + ...
-            NumPerturbVisRep * NumPerturbBaseFrames + ...
-            NumExtraPerturbVisRep * NumPerturbBaseFrames + ...
-            NumPerturbVisRep_frame_remainder; % + GratingFrame for the grating between base and variable segments of video and + 1 for final frame
-    else
-        FullVideoFrames = S.GUI.NumISIOrigRep * NumInitialBaseFrames + ...
-            GratingFrames + ...
-            NumPerturbVisRep * NumPerturbBaseFrames + ...
-            NumExtraPerturbVisRep * NumPerturbBaseFrames + ...
-            GrayFillerFramesNeeded; % + GratingFrame for the grating between base and variable segments of video and + 1 for final frame
-    end
+    FullVideoFrames = S.GUI.NumISIOrigRep * NumInitialBaseFrames + ...
+        GratingFrames + ...
+        NumPerturbVisRep * NumPerturbBaseFrames + ...
+        NumExtraPerturbVisRep * NumPerturbBaseFrames + ...
+        GrayFillerFramesNeeded + ...
+        1; % + GratingFrame for the grating between base and variable segments of video and + 1 for final frame
 
     if ShowDebugOutput
         disp(['FullVideoFrames: (calculated): ', num2str(FullVideoFrames)]);
@@ -1090,24 +1020,12 @@ for currentTrial = 1:MaxTrials
         disp(['FullVideoFrames: length(FullVideo): ', num2str(length(FullVideo))]);
     end
 
-    % this can be updated to merge grayfiller and remainder, they're the
-    % same thing (are strictly unique though)
-    % naive and mid 1 and mid 2: remainder perturb frames are used for fraction
-    % of repitition remaining till go cue
-    % well: gray filler frames are used till go cue to
-    % prevent partial grating during go cue
-    if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3)
-        VideoStartToGoCueFrames = S.GUI.NumISIOrigRep * NumInitialBaseFrames + ...
-            NumPerturbVisRep * NumPerturbBaseFrames + ...
-            GratingFrames + ...
-            NumPerturbVisRep_frame_remainder;
-            % 2*NumISIOrigRep for the repeated grating-gray pattern until go cue, + GratingFrame for the grating between base and variable segments of video and + 1 for final frame    
-    else
-        VideoStartToGoCueFrames = S.GUI.NumISIOrigRep * NumInitialBaseFrames + ...
-            NumPerturbVisRep * NumPerturbBaseFrames + ...
-            GratingFrames + ...
-            GrayFillerFramesNeeded; % 2*NumISIOrigRep for the repeated grating-gray pattern until go cue, + GratingFrame for the grating between base and variable segments of video and + 1 for final frame            
-    end
+    VideoStartToGoCueFrames = S.GUI.NumISIOrigRep * NumInitialBaseFrames + ...
+        NumPerturbVisRep * NumPerturbBaseFrames + ...
+        GratingFrames + ...
+        GrayFillerFramesNeeded + ...
+        1; % 2*NumISIOrigRep for the repeated grating-gray pattern until go cue, + GratingFrame for the grating between base and variable segments of video and + 1 for final frame    
+
 
     if ShowDebugOutput
         disp(['VideoStartToGoCueFrames: ', num2str(VideoStartToGoCueFrames)]);
@@ -1155,7 +1073,7 @@ for currentTrial = 1:MaxTrials
     PrePerturbAudioData = [repmat(AudioPrePerturbPattern, 1, S.GUI.NumISIOrigRep) AudioStimSound]; % construct preperturb audio
     
     GrayPerturbDur = length(GrayPerturbVideo) * (1/FramesPerSecond);  % get duration of gray perturb
-    GrayPerturbNumSamples = floor(GrayPerturbDur * SF);    % get duration of gray perturb in number of audio samples for period of grating
+    GrayPerturbNumSamples = GrayPerturbDur * SF;    % get duration of gray perturb in number of audio samples for period of grating
     NoSoundPerturb = zeros(1, GrayPerturbNumSamples+PostPerturbNoSoundOffset);
 
     AudioPerturbBasePattern = [NoSoundPerturb AudioStimSound];
@@ -1175,10 +1093,7 @@ for currentTrial = 1:MaxTrials
             ShiftedGoCue = [zeros(1, VideoStartToGoCueDur_NumAudioSamples) GoCueSound zeros(1, length(FullAudioStimData) - VideoStartToGoCueDur_NumAudioSamples - length(GoCueSound))];
             FullAudioStimData = FullAudioStimData + ShiftedGoCue; % update with mixed signal
         case 3
-            VideoStartToGoCueDur_s = VideoStartToGoCueFrames * (1/FramesPerSecond);
-            VideoStartToGoCueDur_NumAudioSamples = SF * VideoStartToGoCueDur_s;
-            ShiftedGoCue = [zeros(1, VideoStartToGoCueDur_NumAudioSamples) GoCueSound zeros(1, length(FullAudioStimData) - VideoStartToGoCueDur_NumAudioSamples - length(GoCueSound))];
-            FullAudioStimData = FullAudioStimData + ShiftedGoCue; % update with mixed signal
+            % nothing 
 
         case 4
             % nothing 
@@ -1300,12 +1215,10 @@ for currentTrial = 1:MaxTrials
         OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
         OutputActionAudioVisStim = {};
     end
-
+    
     OutputActionsPreGoCueDelay = {}; % 
     OutputActionsEarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'}; % stop audio stim, stop vis stim
     OutputActionsPunishSetup = {'SoftCode', 255, 'HiFi1', 'X'};
-    visStim = {'SoftCode', 5};
-    audStim = {'HiFi1', ['P', 4], 'BNCState', 1};
 
 
     %% training level specific state matrix values
@@ -1316,15 +1229,26 @@ for currentTrial = 1:MaxTrials
                 disp('Training Stage - Naive');
             end
             InitCue_Tup_NextState = 'InitWindow'; % change to fn_lic_poiss_3              
-            DidNotChoose_Tup_NextState = 'ITI';  
+            %DidNotChoose_Tup_NextState = 'Reward';
+            DidNotChoose_Tup_NextState = 'ITI';
+        
+            %VisualStimulusStateChangeConditions = {'Tup', 'CenterLick'};
             VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
+    
+            %PreGoCueDelay_OutputActions = {}; % no output action in PreGoCueDelay for naive
             CenterReward_OutputActions = {'Valve2', 1};
+
             GoCue_Tup_NextState = 'RewardNaive';  % naive
+            %OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {};
             OutputActionsWindowChoice = {};
             Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'PunishNaive'; % Naive
-            stimDuration = VisStimDuration;
+            WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'};
+
+            PreVisStimDelayStateChangeConditions = 'VisualStimulus';
+
             ExperimenterTrialInfo.TrainingLevel = 'Naive';
 
         case 2 % Mid 1 Trained
@@ -1333,14 +1257,25 @@ for currentTrial = 1:MaxTrials
             end
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
+
             VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};
+                
+            % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
+            %CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
             CenterReward_OutputActions = {'Valve2', 1}; % moved video stop code earlier to center reward
+
             GoCue_Tup_NextState = 'WindowChoice';  % trained
+            %OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {CorrectLick, 'RewardDelay', 'Condition1', 'RewardDelay', IncorrectLick, 'PunishSetup', 'Condition2', 'PunishSetup', 'Tup', 'DidNotChoose'};
             OutputActionsWindowChoice = {};
+            %OutputActionsWindowChoice = {'HiFi1', 'X'};
             Reward_Tup_NextState = 'ExtraStimDurPostRew_Naive';
             PunishSetup_Tup_NextState = 'Punish'; % trained
-            stimDuration = VisStimDuration;
+            WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'};
+
+            PreVisStimDelayStateChangeConditions = 'VisualStimulus';
+
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 1';
 
         case 3 % Mid 2 Trained
@@ -1349,14 +1284,23 @@ for currentTrial = 1:MaxTrials
             end
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
-            VisualStimulusStateChangeConditions = {'Tup', 'VisualStim_AllowedSideLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
-            CenterReward_OutputActions = {'Valve2', 1}; % moved video stop code earlier to center reward
+
+            VisualStimulusStateChangeConditions = {'Tup', 'CenterReward'};                
+
+            % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
+            CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
+
             GoCue_Tup_NextState = 'WindowChoice';  % trained
+            %OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
             WindowChoice_StateChangeConditions = {CorrectLick, 'RewardDelay', 'Condition1', 'RewardDelay', IncorrectLick, 'PunishSetup', 'Condition2', 'PunishSetup', 'Tup', 'DidNotChoose'};
-            OutputActionsWindowChoice = {};
-            Reward_Tup_NextState = 'ExtraStimDurPostRew_Naive';
+            OutputActionsWindowChoice = {'HiFi1', 'X'};
+            Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'Punish'; % trained
-            stimDuration = wait_dur;
+            WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward'};
+
+            PreVisStimDelayStateChangeConditions = 'VisualStimulus';
+
             ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 2';
 
         case 4 % well trained
@@ -1365,16 +1309,25 @@ for currentTrial = 1:MaxTrials
             end
             InitCue_Tup_NextState = 'InitWindow';
             DidNotChoose_Tup_NextState = 'ITI';
-            VisualStimulusStateChangeConditions = {'Tup', 'VisualStim_AllowedSideLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+    
+            % VisualStimulusStateChangeConditions = {'Tup', 'CenterReward', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'};
+            VisualStimulusStateChangeConditions = {};
+                
+            % PreGoCueDelay_OutputActions = {'SoftCode', 255}; % stop vis stim in PreGoCueDelay so its init and perturb segment durations are equal for well trained
             CenterReward_OutputActions = {'Valve2', 1, 'SoftCode', 255}; % moved video stop code earlier to center reward
+
             GoCue_Tup_NextState = 'WindowChoice';  % trained
             OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
-            WindowChoice_StateChangeConditions = {CorrectLick, 'CorrectLickInterval', 'Condition1', 'CorrectLickInterval', IncorrectLick, 'IncorrectLickInterval', 'Condition2', 'IncorrectLickInterval', 'Tup', 'DidNotChoose'};
+            OutputActionAudioVisStim = {'SoftCode', 5, 'HiFi1', ['P' 4], 'BNCState', 1};
+            WindowChoice_StateChangeConditions = {CorrectLick, 'CorrectLickInterval', IncorrectLick, 'IncorrectLickInterval', 'Tup', 'DidNotChoose'};
             OutputActionsWindowChoice = {'HiFi1', 'X'};
             Reward_Tup_NextState = 'ITI';
             PunishSetup_Tup_NextState = 'Punish'; % trained
-            stimDuration = wait_dur;
-          ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
+            WindCenterEvents = {'Tup', 'DidNotLickCenter', 'Port2In', 'CenterReward', 'Condition5', 'CenterReward', 'Port1In', 'EarlyChoiceDurCenterLick', 'Port3In', 'EarlyChoiceDurCenterLick'};
+
+            PreVisStimDelayStateChangeConditions = 'VisualStim_NotAllowedSideLick';
+
+            ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
     end
 
     %%
@@ -1391,8 +1344,7 @@ for currentTrial = 1:MaxTrials
         wait_dur = LastWaitDurOrig_s;
 
     else
-        %if currentTrial>1 && isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.EarlyChoice(1)) % check previous trial outcome, if not early choice (ie if mouse waited long enough) then add to wait_dur
-        if currentTrial>1 && ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.CenterReward(1))        
+        if currentTrial>1 && isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.EarlyChoice(1)) % check previous trial outcome, if not early choice (ie if mouse waited long enough) then add to wait_dur
             disp('Increasing wait_dur')
             wait_dur = min(wait_dur + LastWaitDurStep_s, VisStimDuration);
         end
@@ -1483,26 +1435,23 @@ for currentTrial = 1:MaxTrials
     % placeholder - not in  use
     sma = AddState(sma, 'Name', 'PreVisStimDelay', ...
         'Timer', S.GUI.PreVisStimDelay_s,...
-        'StateChangeConditions', {'Tup', 'VisStimTrigger'},...
+        'StateChangeConditions', {'Tup', PreVisStimDelayStateChangeConditions},...
         'OutputActions', {});    
-
-    sma = AddState(sma, 'Name', 'VisStimTrigger', ...
-        'Timer', 0,...
-        'StateChangeConditions', {'BNC1High', 'AudStimTrigger'},...
-        'OutputActions', visStim);
+    
 
     % VisualStimulus : naive and mid-trained
-    sma = AddState(sma, 'Name', 'AudStimTrigger', ...
-        'Timer', stimDuration,...
+    sma = AddState(sma, 'Name', 'VisualStimulus', ...
+        'Timer', VisStimDuration,...
         'StateChangeConditions', VisualStimulusStateChangeConditions,...
-        'OutputActions', audStim);
+        'OutputActions', OutputActionAudioVisStim);
+
 
     %%% Well-trained:
-    % VisualStimulus; they can't side lick
-    % sma = AddState(sma, 'Name', 'VisualStim_NotAllowedSideLick', ...
-    %     'Timer', wait_dur,...
-    %     'StateChangeConditions', {'Tup', 'VisualStim_AllowedSideLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...
-    %     'OutputActions', OutputActionAudioVisStim);
+    % VisualStimulus; they can't side lick 
+    sma = AddState(sma, 'Name', 'VisualStim_NotAllowedSideLick', ...
+        'Timer', wait_dur,...
+        'StateChangeConditions', {'Tup', 'VisualStim_AllowedSideLick', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...
+        'OutputActions', OutputActionAudioVisStim);
 
 
     % VisualStimulus; they can side lick (though they wont get reward bc
@@ -1569,7 +1518,7 @@ for currentTrial = 1:MaxTrials
     % keep valve open here? no
     sma = AddState(sma, 'Name', 'WindowRewardGrab_Naive', ...
         'Timer', S.GUI.WindowRewardGrabDuration_Naive_s,...
-        'StateChangeConditions', {'Tup', 'DidNotChoose', CorrectLick, 'ExtraStimDurPostRew_Naive', 'Condition1', 'ExtraStimDurPostRew_Naive', IncorrectLick, 'PunishSetup', 'Condition2', 'PunishSetup'},...
+        'StateChangeConditions', {'Tup', 'DidNotChoose', CorrectLick, 'ExtraStimDurPostRew_Naive', IncorrectLick, 'PunishSetup'},...
         'OutputActions', {});
     
     % additional time to associate stimulus with reward
@@ -1691,8 +1640,7 @@ for currentTrial = 1:MaxTrials
         BpodSystem.Data.TrialSettings(currentTrial) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
         BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial); % Adds the trial type of the current trial to data
         UpdateSideOutcomePlot(TrialTypes, BpodSystem.Data, 1);
-        %UpdateTotalRewardDisplay(S.GUI.RewardAmount, currentTrial);
-        %UpdateTotalRewardDisplay(S.GUI.RewardAmount, currentTrial); % how to change this for the way we're doing it?
+
         if useStateTiming
             StateTiming();
         end
