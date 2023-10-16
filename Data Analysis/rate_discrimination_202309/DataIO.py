@@ -2,7 +2,7 @@ import os
 import scipy.io as sio
 import numpy as np
 
-session_data_path = 'C:\\behavior\\session_data'
+session_data_path = '.\\session_data'
 
 # read .mat to dict
 def load_mat(fname):
@@ -86,37 +86,42 @@ def read_trials(subject):
             else:
                 trial_states = raw_data['RawEvents']['Trial']['States']
                 trial_events = raw_data['RawEvents']['Trial']['Events']
-            event_keys = trial_events.keys()
             # outcome
             outcome = states_labeling(trial_states)
             trial_outcomes.append(outcome)
             # iti duration
             iti = trial_states['ITI']
             trial_iti.append(iti[1]-iti[0])
-            # all licking events
-            licking_events = []
-            correctness = []
-            if 'Port1In' in event_keys:
-                lick_left = np.array(trial_events['Port1In']).reshape(-1)
-                licking_events.append(lick_left)
-                if TrialTypes[i] == 1:
-                    correctness.append(np.ones_like(lick_left))
-                else:
-                    correctness.append(np.zeros_like(lick_left))
-            if 'Port3In' in event_keys:
-                lick_right = np.array(trial_events['Port3In']).reshape(-1)
-                licking_events.append(lick_right)
-                if TrialTypes[i] == 2:
-                    correctness.append(np.ones_like(lick_right))
-                else:
-                    correctness.append(np.zeros_like(lick_right))
-            if len(licking_events) > 0:
-                licking_events = np.concatenate(licking_events).reshape(1,-1)
-                correctness = np.concatenate(correctness).reshape(1,-1)
-                trial_reaction.append(
-                    np.concatenate([licking_events, correctness]))
+            # licking events after stim onset
+            if 'VisStimTrigger' in trial_states.keys() and not np.isnan(trial_states['VisStimTrigger'][1]):
+                stim_start = trial_states['VisStimTrigger'][1]
+                licking_events = []
+                direction = []
+                correctness = []
+                if 'Port1In' in trial_events.keys():
+                    lick_left = np.array(trial_events['Port1In']).reshape(-1)
+                    licking_events.append(lick_left)
+                    direction.append(np.zeros_like(lick_left))
+                    if TrialTypes[i] == 1:
+                        correctness.append(np.ones_like(lick_left))
+                    else:
+                        correctness.append(np.zeros_like(lick_left))
+                if 'Port3In' in trial_events.keys():
+                    lick_right = np.array(trial_events['Port3In']).reshape(-1)
+                    licking_events.append(lick_right)
+                    direction.append(np.ones_like(lick_right))
+                    if TrialTypes[i] == 2:
+                        correctness.append(np.ones_like(lick_right))
+                    else:
+                        correctness.append(np.zeros_like(lick_right))
+                if len(licking_events) > 0:
+                    licking_events = np.concatenate(licking_events).reshape(1,-1) - stim_start
+                    correctness = np.concatenate(correctness).reshape(1,-1)
+                    direction = np.concatenate(direction).reshape(1,-1)
+                    trial_reaction.append(
+                        np.concatenate([licking_events, correctness, direction]))
             # stim isi
-            if ('BNC1High' in event_keys) and ('BNC1Low' in event_keys):
+            if ('BNC1High' in trial_events.keys()) and ('BNC1Low' in trial_events.keys()):
                 BNC1High = trial_events['BNC1High']
                 BNC1High = np.array(BNC1High).reshape(-1)
                 BNC1Low = trial_events['BNC1Low']
@@ -154,18 +159,18 @@ def read_trials(subject):
                             post_start_idx = post_start_idx[0]
                             lick_left = np.array([])
                             lick_right = np.array([])
-                            if 'Port1In' in event_keys:
+                            if 'Port1In' in trial_events.keys():
                                 lick_left = np.array(trial_events['Port1In']).reshape(-1)
                                 if len(lick_left) > 0:
                                     lick_left = lick_left[post_start_idx:]
-                            if 'Port3In' in event_keys:
+                            if 'Port3In' in trial_events.keys():
                                 lick_right = np.array(trial_events['Port3In']).reshape(-1)
                                 if len(lick_left) > 0:
                                     lick_right = lick_right[post_start_idx:]
                             right_pc = len(lick_right)/(len(lick_left)+len(lick_right)+1e-5)
                             trial_post_lick.append(np.array([BNC1HighLow[-1], right_pc]))
             # av sync
-            if ('BNC1High' in event_keys) and ('BNC2High' in event_keys):
+            if ('BNC1High' in trial_events.keys()) and ('BNC2High' in trial_events.keys()):
                 BNC1High = trial_events['BNC1High']
                 BNC1High = np.array(BNC1High).reshape(-1)
                 BNC2High = trial_events['BNC2High']

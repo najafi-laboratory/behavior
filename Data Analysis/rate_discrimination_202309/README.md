@@ -66,3 +66,9 @@
 
 ## 2023.10.11
 - The data folder should be specified in DataIO.
+
+## 2023.10.15
+- Corrected licking events start times.
+
+## 2023.10.16
+- Change fig4 and fig7 layouts.
