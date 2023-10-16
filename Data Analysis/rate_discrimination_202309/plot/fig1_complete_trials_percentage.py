@@ -24,10 +24,15 @@ def count_label(outcomes, states):
     return counts
 
 
-def plot_bar(axs, session_data):
+def plot_bar(axs, session_data, max_sessions=25):
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']
+    start_idx = 0
+    if max_sessions != -1 and len(dates) > max_sessions:
+        start_idx = len(dates) - max_sessions
+    outcomes = outcomes[start_idx:]
+    dates = dates[start_idx:]
     counts = count_label(outcomes, states)
     session_id = np.arange(len(outcomes)) + 1
     bottom = np.cumsum(counts, axis=1)

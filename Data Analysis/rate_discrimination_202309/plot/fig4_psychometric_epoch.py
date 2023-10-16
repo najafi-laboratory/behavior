@@ -26,7 +26,7 @@ def plot_curves(axs, subject, dates, choice):
             axs.plot(
                 bin_stat[:,0], bin_stat[:,1],
                 color=cmap[i],
-                label=dates[i])
+                label=dates[i][4:])
             axs.scatter(
                 bin_stat[:,0], bin_stat[:,1],
                 color=cmap[i], lw=0.2)
@@ -41,7 +41,7 @@ def plot_curves(axs, subject, dates, choice):
     axs.spines['top'].set_visible(False)
     axs.set_xlim([-0.05,1.05])
     axs.set_ylim([-0.05,1.05])
-    axs.set_xticks(np.arange(11)*0.1)
+    axs.set_xticks(np.arange(6)*0.2)
     axs.set_yticks(np.arange(5)*0.25)
     axs.set_xlabel('isi')
     axs.set_ylabel('right fraction')
@@ -60,7 +60,7 @@ def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=7):
         start_idx = len(dates) - max_subplots * max_sessions
     dates = dates[start_idx:]
     choice = choice[start_idx:]
-    fig, axs = plt.subplots(max_subplots, 1, figsize=(6, max_subplots*4))
+    fig, axs = plt.subplots(max_subplots, 1, figsize=(4, max_subplots*2))
     plt.subplots_adjust(hspace=0.4)
     plt.subplots_adjust(wspace=0.4)
     if max_subplots > 1:
