@@ -72,3 +72,7 @@
 
 ## 2023.10.16
 - Change fig4 and fig7 layouts.
+
+## 2023.10.18
+- Exchange fig1 and fig2.
+- Separate licking events and first licking reactions.

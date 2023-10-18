@@ -2,7 +2,7 @@ import os
 import scipy.io as sio
 import numpy as np
 
-session_data_path = '.\\session_data'
+session_data_path = 'C:\\behavior\\session_data'
 
 # read .mat to dict
 def load_mat(fname):
@@ -51,6 +51,7 @@ def read_trials(subject):
     session_choice = []
     session_dates = []
     session_outcomes = []
+    session_licking = []
     session_reaction = []
     session_iti = []
     session_isi = []
@@ -73,6 +74,7 @@ def read_trials(subject):
         # loop over one session for extracting data
         trial_post_lick = []
         trial_outcomes = []
+        trial_licking = []
         trial_reaction = []
         trial_iti = []
         trial_isi = []
@@ -92,6 +94,9 @@ def read_trials(subject):
             # iti duration
             iti = trial_states['ITI']
             trial_iti.append(iti[1]-iti[0])
+            # first reaction
+            if 'WindowChoice' in trial_states.keys() and not np.isnan(trial_states['WindowChoice'][1]):
+                trial_reaction.append(trial_states['WindowChoice'][1])
             # licking events after stim onset
             if 'VisStimTrigger' in trial_states.keys() and not np.isnan(trial_states['VisStimTrigger'][1]):
                 stim_start = trial_states['VisStimTrigger'][1]
@@ -118,7 +123,7 @@ def read_trials(subject):
                     licking_events = np.concatenate(licking_events).reshape(1,-1) - stim_start
                     correctness = np.concatenate(correctness).reshape(1,-1)
                     direction = np.concatenate(direction).reshape(1,-1)
-                    trial_reaction.append(
+                    trial_licking.append(
                         np.concatenate([licking_events, correctness, direction]))
             # stim isi
             if ('BNC1High' in trial_events.keys()) and ('BNC1Low' in trial_events.keys()):
@@ -186,8 +191,9 @@ def read_trials(subject):
         session_choice.append(trial_choice)
         session_post_lick.append(trial_post_lick)
         session_outcomes.append(trial_outcomes)
-        session_iti.append(trial_iti)
         session_reaction.append(trial_reaction)
+        session_iti.append(trial_iti)
+        session_licking.append(trial_licking)
         session_isi.append(trial_isi)
         session_avsync.append(trial_avsync)
     # merge all session data
@@ -201,6 +207,7 @@ def read_trials(subject):
     	'outcomes' : session_outcomes,
         'iti' : session_iti,
         'reaction' : session_reaction,
+        'licking' : session_licking,
         'choice' : session_choice,
         'post_lick' : session_post_lick,
         'isi' : session_isi,

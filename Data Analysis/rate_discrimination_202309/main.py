@@ -1,6 +1,6 @@
 import DataIO
-from plot.fig1_complete_trials_percentage import plot_fig1
-from plot.fig2_outcome import plot_fig2
+from plot.fig1_outcome import plot_fig1
+from plot.fig2_complete_trials_percentage import plot_fig2
 from plot.fig3_percentage_epoch import plot_fig3
 from plot.fig4_psychometric_epoch import plot_fig4
 from plot.fig5_stim_isi import plot_fig5
