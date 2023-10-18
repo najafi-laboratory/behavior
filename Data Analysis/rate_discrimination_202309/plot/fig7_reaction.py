@@ -7,10 +7,10 @@ def bin_trials(trial_reaction, max_time, bin_size=0.2, least_trials=3):
     bin_stat = []
     for i in range(num_bins):
         center = i*bin_size
-        idx = np.where(np.abs(trial_reaction[0,:]-center)<bin_size/2)[0]
+        idx = np.where(np.abs(trial_reaction-center)<bin_size/2)[0]
         if len(idx) > least_trials:
             bin_stat.append([
-                center, np.sum(trial_reaction[1,idx])/len(idx)])
+                center, np.sum(trial_reaction[idx])/len(idx)])
     bin_stat = np.array(bin_stat).reshape(-1, 2)
     return bin_stat
 
@@ -26,17 +26,16 @@ def plot_curves(axs, session_data, max_time=10, max_sessions=10):
     dates = dates[start_idx:]
     cmap = plt.cm.RdBu(np.arange(len(reaction))/len(reaction))
     for i in range(len(reaction)):
-        if len(reaction[i]) > 1:
-            trial_reaction = np.concatenate(reaction[i], axis=1)
-            bin_stat = bin_trials(trial_reaction, max_time)
-            axs.plot(
-                bin_stat[:,0], bin_stat[:,1],
-                color=cmap[i],
-                label=dates[i])
-            axs.scatter(
-                bin_stat[:,0], bin_stat[:,1],
-                color=cmap[i],
-                s=5)
+        trial_reaction = np.concatenate(reaction)
+        bin_stat = bin_trials(trial_reaction, max_time)
+        axs.plot(
+            bin_stat[:,0], bin_stat[:,1],
+            color=cmap[i],
+            label=dates[i])
+        axs.scatter(
+            bin_stat[:,0], bin_stat[:,1],
+            color=cmap[i],
+            s=5)
     axs.tick_params(tick1On=False)
     axs.spines['left'].set_visible(False)
     axs.spines['right'].set_visible(False)
