@@ -18,7 +18,7 @@ def bin_trials(trial_choice, bin_size=100, least_trials=3):
 
 
 def plot_curves(axs, subject, dates, choice):
-    cmap = plt.cm.RdBu(np.arange(len(choice))/len(choice))
+    cmap = plt.cm.plasma_r(np.arange(len(choice))/len(choice))
     for i in range(len(choice)):
         if len(choice[i]) > 0:
             trial_choice = np.concatenate(choice[i]).reshape(-1,2)
@@ -48,7 +48,7 @@ def plot_curves(axs, subject, dates, choice):
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
 
 
-def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=7):
+def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=10):
     subject = session_data['subject']
     dates = session_data['dates'][session_data['LR12_start']:]
     choice = session_data['choice'][session_data['LR12_start']:]

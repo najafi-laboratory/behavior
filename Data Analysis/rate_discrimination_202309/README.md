@@ -76,3 +76,8 @@
 ## 2023.10.18
 - Exchange fig1 and fig2.
 - Separate licking events and first licking reactions.
+- Add first reaction time vs probability of correctness.
+
+## 2023.10.21
+- Delete wrong reaction figure.
+- Fix reaction time.

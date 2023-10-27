@@ -2,7 +2,7 @@ import os
 import scipy.io as sio
 import numpy as np
 
-session_data_path = 'C:\\behavior\\session_data'
+session_data_path = '.\\session_data'
 
 # read .mat to dict
 def load_mat(fname):
@@ -94,17 +94,15 @@ def read_trials(subject):
             # iti duration
             iti = trial_states['ITI']
             trial_iti.append(iti[1]-iti[0])
-            # first reaction
-            if 'WindowChoice' in trial_states.keys() and not np.isnan(trial_states['WindowChoice'][1]):
-                trial_reaction.append(trial_states['WindowChoice'][1])
             # licking events after stim onset
-            if 'VisStimTrigger' in trial_states.keys() and not np.isnan(trial_states['VisStimTrigger'][1]):
+            if ('VisStimTrigger' in trial_states.keys() and
+                not np.isnan(trial_states['VisStimTrigger'][1])):
                 stim_start = trial_states['VisStimTrigger'][1]
                 licking_events = []
                 direction = []
                 correctness = []
                 if 'Port1In' in trial_events.keys():
-                    lick_left = np.array(trial_events['Port1In']).reshape(-1)
+                    lick_left = np.array(trial_events['Port1In']).reshape(-1) - stim_start
                     licking_events.append(lick_left)
                     direction.append(np.zeros_like(lick_left))
                     if TrialTypes[i] == 1:
@@ -112,7 +110,7 @@ def read_trials(subject):
                     else:
                         correctness.append(np.zeros_like(lick_left))
                 if 'Port3In' in trial_events.keys():
-                    lick_right = np.array(trial_events['Port3In']).reshape(-1)
+                    lick_right = np.array(trial_events['Port3In']).reshape(-1) - stim_start
                     licking_events.append(lick_right)
                     direction.append(np.ones_like(lick_right))
                     if TrialTypes[i] == 2:
@@ -120,13 +118,19 @@ def read_trials(subject):
                     else:
                         correctness.append(np.zeros_like(lick_right))
                 if len(licking_events) > 0:
-                    licking_events = np.concatenate(licking_events).reshape(1,-1) - stim_start
+                    licking_events = np.concatenate(licking_events).reshape(1,-1)
                     correctness = np.concatenate(correctness).reshape(1,-1)
                     direction = np.concatenate(direction).reshape(1,-1)
-                    trial_licking.append(
-                        np.concatenate([licking_events, correctness, direction]))
+                    lick = np.concatenate([licking_events, correctness, direction])
+                    trial_licking.append(lick)
+            # reaction time
+                    lick = lick[:,lick[0,:]>0]
+                    if lick.shape[1] > 0:
+                        reaction_idx = np.argmin(lick[0,:])
+                        trial_reaction.append(lick[:,reaction_idx].reshape(1,-1))
             # stim isi
-            if ('BNC1High' in trial_events.keys()) and ('BNC1Low' in trial_events.keys()):
+            if ('BNC1High' in trial_events.keys() and
+                'BNC1Low' in trial_events.keys()):
                 BNC1High = trial_events['BNC1High']
                 BNC1High = np.array(BNC1High).reshape(-1)
                 BNC1Low = trial_events['BNC1Low']

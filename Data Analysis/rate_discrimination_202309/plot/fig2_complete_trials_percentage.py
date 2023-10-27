@@ -55,6 +55,7 @@ def plot_bar(axs, session_data, max_sessions=25):
     axs.set_xlabel('training session')
     axs.set_ylabel('number of trials')
     axs.set_xticks(np.arange(len(outcomes))+1)
+    axs.set_yticks(np.arange(6)*0.2)
     axs.set_xticklabels(dates, rotation='vertical')
     axs.set_title(subject)
 
