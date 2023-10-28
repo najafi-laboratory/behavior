@@ -795,7 +795,7 @@ for currentTrial = 1:MaxTrials
         OutputActionAudioVisStim = {};
     end
 
-    OutputActionsPreGoCueDelay = {'SoftCode', 9}; % softcode 9 -> spouts move in
+    OutputActionsPreGoCueDelay = {'SoftCode', 9}; % move spouts in
     OutputActionsEarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'}; % stop audio stim, stop vis stim
     OutputActionsPunishSetup = {'SoftCode', 255, 'HiFi1', 'X'};
     visStim = {'SoftCode', 5};
