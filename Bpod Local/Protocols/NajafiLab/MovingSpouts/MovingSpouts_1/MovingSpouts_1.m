@@ -21,7 +21,7 @@ BpodSystem.assertModule('HiFi', 1); % The second argument (1) indicates that the
 H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1); % The argument is the name of the HiFi module's USB serial port (e.g. COM3)
 
 %% Connect Maestro
-M = PololuMaestro('COM15'); % Where COM3 is the Maestro USB serial command port
+M = PololuMaestro('COM13'); % Where COM3 is the Maestro USB serial command port
 
 %% Define parameters
 global S;
@@ -33,10 +33,10 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.NumISIOrigRep = 3; % number of grating/gray repetitions for vis stim first segment prior to perturbation
     
     %% Servos - spouts
-    S.GUI.RightServoInPos = 1256.00;    % servo position coordinates as per Maestro GUI
-    S.GUI.LeftServoInPos = 1613.25;
+    S.GUI.RightServoInPos = 1198.00;    % servo position coordinates as per Maestro GUI
+    S.GUI.LeftServoInPos = 1818.00;
     S.GUI.ServoDeflection = 122.5;
-    S.GUIPanels.Servos = {'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'}
+    S.GUIPanels.Servos = {'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
     %% ITI params
 
@@ -60,7 +60,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
 
     %% go cue params
 
-    S.GUI.GoCueVolume_percent = 0.5;  % volume control
+    S.GUI.GoCueVolume_percent = 0.0;  % volume control
     S.GUI.GoCueDuration_s = 0.05; % Duration of go sound
     %S.GUI.GoCueFreq_Hz = 2000; % Frequency of go cue
     %S.GUI.GoCueFreq_Hz = 2100; % Frequency of go cue, even multiple of 44100 SF
@@ -248,7 +248,7 @@ LastIncorrectSoundVolume = S.GUI.IncorrectSoundVolume_percent;
 if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
     BpodSystem.PluginObjects.V = [];
 end
-MonitorID = 1;
+MonitorID = 2;
 BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
 
 BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
