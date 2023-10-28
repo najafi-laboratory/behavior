@@ -1,4 +1,4 @@
-function rate_discrimination_antibias
+function MovingSpouts_2
 
 global BpodSystem
 global M
@@ -795,7 +795,7 @@ for currentTrial = 1:MaxTrials
         OutputActionAudioVisStim = {};
     end
 
-    OutputActionsPreGoCueDelay = {'SoftCode', 9}; % move spouts in
+    OutputActionsPreGoCueDelay = {'SoftCode', 9}; % softcode 9 -> spouts move in
     OutputActionsEarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'}; % stop audio stim, stop vis stim
     OutputActionsPunishSetup = {'SoftCode', 255, 'HiFi1', 'X'};
     visStim = {'SoftCode', 5};
@@ -977,8 +977,9 @@ for currentTrial = 1:MaxTrials
     % placeholder - not in use
     sma = AddState(sma, 'Name', 'PreGoCueDelay', ...
         'Timer', S.GUI.PreGoCueDelay_s,...
-        'StateChangeConditions', {'Tup', 'GoCue', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...         
+        'StateChangeConditions', {'Tup', 'GoCue'},...         
         'OutputActions', OutputActionsPreGoCueDelay);
+    %'StateChangeConditions', {'Tup', 'GoCue', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...         
 
     % also stop video here, there can be small delay even with zero timer
     % when waiting to ITI
@@ -1121,8 +1122,9 @@ for currentTrial = 1:MaxTrials
     end
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
     if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
+        clear global M; % disconnect maestro
         BpodSystem.PluginObjects.V = [];
-        BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
+        BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session?
         return
     end
 
@@ -1135,8 +1137,9 @@ for currentTrial = 1:MaxTrials
 
 end
 
+clear global M; % disconnect maestro
 BpodSystem.PluginObjects.V = [];
-BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
+BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session?
 
 
 % generate full envelope for sound given the sound and front part of

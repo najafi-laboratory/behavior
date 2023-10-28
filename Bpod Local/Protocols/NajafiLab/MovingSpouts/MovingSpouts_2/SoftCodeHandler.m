@@ -8,12 +8,16 @@ global M
 %S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin
 
 switch true
-    case code == 255
+    case code == 255 % stop video
         BpodSystem.PluginObjects.V.stop;
-    case code >= 0 && code <=6
+    case code == 254 % stop video and move spouts out
+        BpodSystem.PluginObjects.V.stop;
+        M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + S.GUI.ServoDeflection));
+        M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos - S.GUI.ServoDeflection));        
+    case code >= 0 && code <= 6
         %BpodSystem.PluginObjects.V.tic1 = tic; %% need to factor in processing overhead from whence play is called
         BpodSystem.PluginObjects.V.play(code);
-    case code == 8
+    case code == 8 % move spouts out
         % M.setMotor(0, -0.225);
         % M.setMotor(1, 0);
         
@@ -23,7 +27,7 @@ switch true
 
         M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + S.GUI.ServoDeflection));
         M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos - S.GUI.ServoDeflection));
-    case code == 9
+    case code == 9 % move spouts in
         % M.setMotor(0, -0.455);
         % M.setMotor(1, 0.23);
 

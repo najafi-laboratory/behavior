@@ -1,4 +1,4 @@
-function rate_discrimination_antibias
+function MovingSpouts_2
 
 global BpodSystem
 global M
@@ -908,7 +908,7 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'Start', ...
         'Timer', 0,...
         'StateChangeConditions', {'Tup', 'InitCue'},...
-        'OutputActions', {'SoftCode', 8, 'HiFi1','*'}); % Code to push newly uploaded waves to front (playback) buffers
+        'OutputActions', {'HiFi1','*'}); % Code to push newly uploaded waves to front (playback) buffers
                                                         % softcode 8 ->
                                                         % spouts move out
     % play init cue sound
@@ -977,8 +977,9 @@ for currentTrial = 1:MaxTrials
     % placeholder - not in use
     sma = AddState(sma, 'Name', 'PreGoCueDelay', ...
         'Timer', S.GUI.PreGoCueDelay_s,...
-        'StateChangeConditions', {'Tup', 'GoCue', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...         
+        'StateChangeConditions', {'Tup', 'GoCue'},...         
         'OutputActions', OutputActionsPreGoCueDelay);
+    %'StateChangeConditions', {'Tup', 'GoCue', 'Port1In', 'EarlyChoice', 'Port3In', 'EarlyChoice'},...         
 
     % also stop video here, there can be small delay even with zero timer
     % when waiting to ITI
@@ -1099,12 +1100,12 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'HabituationExtendWindow', ...
         'Timer', 6,...
         'StateChangeConditions', {'Tup', 'ITI'},...
-        'OutputActions', {});
+        'OutputActions', {'SoftCode', 9}); % move spouts in
 
     sma = AddState(sma, 'Name', 'ITI', ...
         'Timer', ITI,...
         'StateChangeConditions', {'Tup', '>exit'},...
-        'OutputActions', {'SoftCode', 255, 'HiFi1', 'X'});   
+        'OutputActions', {'SoftCode', 254, 'HiFi1', 'X'});   
    
     SendStateMachine(sma); % Send the state matrix to the Bpod device        
     RawEvents = RunStateMachine; % Run the trial and return events
@@ -1121,8 +1122,9 @@ for currentTrial = 1:MaxTrials
     end
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
     if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
+        clear global M; % disconnect maestro
         BpodSystem.PluginObjects.V = [];
-        BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
+        BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session?
         return
     end
 
@@ -1135,8 +1137,9 @@ for currentTrial = 1:MaxTrials
 
 end
 
+clear global M; % disconnect maestro
 BpodSystem.PluginObjects.V = [];
-BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
+BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session?
 
 
 % generate full envelope for sound given the sound and front part of

@@ -40,7 +40,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.InitCue = {'InitCueVolume_percent', 'InitCueDuration_s', 'InitWindowTimeout_s', 'InitCueFreq_Hz'};
     
         % go cue params
-        S.GUI.GoCueVolume_percent = 0.5;  % volume control
+        S.GUI.GoCueVolume_percent = 0.0;  % volume control
         S.GUI.GoCueDuration_s = 0.05; % Duration of go sound
         S.GUI.GoCueFreq_Hz = 11025; % Frequency of go cue, even multiple of 44100 SF
         S.GUIPanels.GoCue = {'GoCueVolume_percent', 'GoCueDuration_s', 'GoCueFreq_Hz'};
