@@ -48,7 +48,7 @@ def plot_curves(axs, subject, dates, choice):
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
 
 
-def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=10):
+def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=6):
     subject = session_data['subject']
     dates = session_data['dates'][session_data['LR12_start']:]
     choice = session_data['choice'][session_data['LR12_start']:]

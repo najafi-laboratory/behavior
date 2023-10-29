@@ -81,3 +81,6 @@
 ## 2023.10.21
 - Delete wrong reaction figure.
 - Fix reaction time.
+
+## 2023.10.29
+- Add maximum showing session for AV checks.

@@ -2,10 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_scatter(axs, session_data):
+def plot_scatter(axs, session_data, max_sessions=25):
     subject = session_data['subject']
     duration = session_data['avsync'][session_data['LR12_start']:]
     dates = session_data['dates'][session_data['LR12_start']:]
+    start_idx = 0
+    if max_sessions != -1 and len(dates) > max_sessions:
+        start_idx = len(dates) - max_sessions
+    duration = duration[start_idx:]
+    dates = dates[start_idx:]
     for i in range(len(duration)):
         axs.scatter(
             np.zeros_like(duration[i]) + i + 1, duration[i],

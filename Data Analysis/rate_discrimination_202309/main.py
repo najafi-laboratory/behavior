@@ -16,7 +16,7 @@ if __name__ == "__main__":
     session_data_2 = DataIO.read_trials('VM4')
     session_data_3 = DataIO.read_trials('VM5')
     session_data_4 = DataIO.read_trials('VM6')
-    '''
+
     for plotter in [
             plot_fig1,
             plot_fig2,
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     '''
     plot_p1(session_data_1, session_data_2)
     plot_p2(session_data_1, session_data_2)
-    
+    '''
     
     
     

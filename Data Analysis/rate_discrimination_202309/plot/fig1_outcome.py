@@ -13,8 +13,8 @@ states = [
     'DidNotConfirm',
     'DidNotLickCenter']
 colors = [
-    'springgreen',
     'limegreen',
+    'springgreen',
     'coral',
     'lightcoral',
     'orange',
