@@ -50,15 +50,15 @@ function [AntiBiasVar, LeftValveTime, RightValveTime, TrialTypes] = AntiBiasValv
             % left bias
             if (sum(AntiBiasVar.CompletedHist.left(end-S.GUI.AdjustValveThres+1:end)) >= S.GUI.AdjustValveThres && ...
                 sum(AntiBiasVar.CompletedHist.right(end-S.GUI.AdjustValveThres+1:end)) <= -S.GUI.AdjustValveThres)
-                AntiBiasVar.ValveFlag = -1;
+                AntiBiasVar.ValveFlag = 'LeftBias';
             % right bias
             elseif (sum(AntiBiasVar.CompletedHist.right(end-S.GUI.AdjustValveThres+1:end)) >= S.GUI.AdjustValveThres && ...
                     sum(AntiBiasVar.CompletedHist.left(end-S.GUI.AdjustValveThres+1:end)) <= -S.GUI.AdjustValveThres)
-                AntiBiasVar.ValveFlag = 1;
+                AntiBiasVar.ValveFlag = 'RightBias';
             % no bias
             elseif (sum(AntiBiasVar.CompletedHist.right(end-S.GUI.AdjustValveThres+1:end)) >= S.GUI.AdjustValveThres && ...
                     sum(AntiBiasVar.CompletedHist.left(end-S.GUI.AdjustValveThres+1:end)) >= S.GUI.AdjustValveThres)
-                AntiBiasVar.ValveFlag = 0;
+                AntiBiasVar.ValveFlag = 'NoBias';
             % keep
             else
                 AntiBiasVar.ValveFlag = AntiBiasVar.ValveFlag;
@@ -69,15 +69,15 @@ function [AntiBiasVar, LeftValveTime, RightValveTime, TrialTypes] = AntiBiasValv
     function [LeftValveTime, RightValveTime] = UpdateValveTime( ...
             S, AntiBiasVar)
         switch AntiBiasVar.ValveFlag
-            case 0 % no bias
+            case 'NoBias' % no bias
                 LeftValveTime = S.GUI.LeftValveTime_s;
                 RightValveTime = S.GUI.RightValveTime_s;
-            case -1 % left bias
-                LeftValveTime = S.GUI.AdjustValveTime;
+            case 'LeftBias' % left bias
+                LeftValveTime = S.GUI.LeftValveTime_s * S.GUI.AdjustValvePercent;
                 RightValveTime = S.GUI.RightValveTime_s;
-            case 1 % right bias
+            case 'RightBias' % right bias
                 LeftValveTime = S.GUI.LeftValveTime_s;
-                RightValveTime = S.GUI.AdjustValveTime;
+                RightValveTime = S.GUI.RightValveTime_s * S.GUI.AdjustValvePercent;
 
         end
     end
@@ -161,7 +161,8 @@ function [TrialTypes] = ManuallFraction( ...
 end
 
 
-%%
+%% trial adjustment
+
 
 % sample a trial type from given side probability
 function [TrialSide] = SampleSide( ...
@@ -196,6 +197,9 @@ function [TrialTypes] = AdjustWarmupTrials( ...
 end
 
 
+%% easymax
+
+
 function [RandomPerturbationDur, EasyMaxInfo] = GetPerturbationDur( ...
         obj, S, EasyMax, PerturbDurMin, PerturbDurMax)
     switch S.GUI.EasyMax
@@ -217,6 +221,9 @@ function [RandomPerturbationDur, EasyMaxInfo] = GetPerturbationDur( ...
 end
 
 
+%% wait duration
+
+
 function [wait_dur] = GetWaitDur( ...
         obj, BpodSystem, S, wait_dur, currentTrial, LastNumEasyWarmupTrials, VisStimDuration)
     if currentTrial < LastNumEasyWarmupTrials+1
@@ -229,6 +236,9 @@ function [wait_dur] = GetWaitDur( ...
         end
     end
 end
+
+
+%% ITI and timeout ITI
 
 
 function [ITI] = GetITI( ...
@@ -281,7 +291,14 @@ function [TimeOutPunish] = GetTimeOutPunish( ...
 end
 
 
+%% moving spouts
 
+
+function SetMotorPos = ConvertMaestroPos(obj, MaestroPosition)
+    m = 0.002;
+    b = -3;
+    SetMotorPos = MaestroPosition * m + b;
+end
 
 
 

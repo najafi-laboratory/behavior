@@ -3,11 +3,15 @@ function MovingSpouts_2
 global BpodSystem
 global M
 
+EnableMovingSpouts = 0;
+
+
 %% Import scripts
 
 m_Plotter = Plotter;
 m_InitGUI = InitGUI;
 m_TrialConfig = TrialConfig;
+m_AVstimConfig = AVstimConfig;
 
 
 %% Turn off Bpod LEDs
@@ -21,16 +25,22 @@ BpodSystem.assertModule('HiFi', 1); % The second argument (1) indicates that the
 % Create an instance of the HiFi module
 H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1); % The argument is the name of the HiFi module's USB serial port (e.g. COM3)
 
-%% Connect Maestro
-M = PololuMaestro('COM13'); % Where COM3 is the Maestro USB serial command port
 
 %% Define parameters
-
+global S
 [S] = m_InitGUI.SetParams(BpodSystem);
+[S] = m_InitGUI.UpdateMovingSpouts(S, EnableMovingSpouts);
 
-%% move servos to out position for start
-M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + S.GUI.ServoDeflection));
-M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos - S.GUI.ServoDeflection));
+
+%% Connect Maestro
+if (EnableMovingSpouts == 1)
+    % Where COM3 is the Maestro USB serial command port
+    M = PololuMaestro('COM13');
+    % move servos to out position for start
+    M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos + S.GUI.ServoDeflection));
+    M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos - S.GUI.ServoDeflection));
+end
+
 
 %% Define trials
 
@@ -42,7 +52,7 @@ AntiBiasVar.IncorrectFlag = 0;
 AntiBiasVar.IncorrectType = 1;
 AntiBiasVar.CompletedHist.left = [];
 AntiBiasVar.CompletedHist.right = [];
-AntiBiasVar.ValveFlag = 0;
+AntiBiasVar.ValveFlag = 'NoBias';
 
 % get uniform distribution of 2 trial types
 TrialTypes = ceil(rand(1,MaxTrials)*2); 
@@ -287,6 +297,7 @@ for currentTrial = 1:MaxTrials
     %% update trial-specific valve times according to set reward amount
 
     CenterValveTime = S.GUI.CenterValveTime_s;
+    ExperimenterTrialInfo.Bias = AntiBiasVar.ValveFlag;
     ExperimenterTrialInfo.LeftValveTime = LeftValveTime;
     ExperimenterTrialInfo.RightValveTime = RightValveTime;
 
@@ -672,8 +683,6 @@ for currentTrial = 1:MaxTrials
     NoSoundPerturb = zeros(1, GrayPerturbNumSamples+PostPerturbNoSoundOffset);
 
     AudioPerturbBasePattern = [NoSoundPerturb AudioStimSound];
-    % GrayFillerDur = length(GrayFiller) * (1/FramesPerSecond);  % get duration of gray filler
-    % GrayFillerNumSamples = GrayFillerDur * SF;  % get duration of gray filler in number of audio samples
     FullAudioStimData = [PrePerturbAudioData repmat(AudioPerturbBasePattern, 1, NumPerturbReps)];
 
     switch S.GUI.TrainingLevel
@@ -794,8 +803,14 @@ for currentTrial = 1:MaxTrials
         OutputActionArgGoCue = {'HiFi1', ['P' 1], 'BNCState', 1};
         OutputActionAudioVisStim = {};
     end
-
-    OutputActionsPreGoCueDelay = {'SoftCode', 9}; % softcode 9 -> spouts move in
+    
+    if (EnableMovingSpouts == 1)
+        OutputActionsPreGoCueDelay = {'SoftCode', 9};
+        HabituationEnd = {'SoftCode', 9};
+    else
+        OutputActionsPreGoCueDelay = {};
+        HabituationEnd = {};
+    end
     OutputActionsEarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'}; % stop audio stim, stop vis stim
     OutputActionsPunishSetup = {'SoftCode', 255, 'HiFi1', 'X'};
     visStim = {'SoftCode', 5};
@@ -1100,7 +1115,7 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'HabituationExtendWindow', ...
         'Timer', 6,...
         'StateChangeConditions', {'Tup', 'ITI'},...
-        'OutputActions', {'SoftCode', 9}); % move spouts in
+        'OutputActions', HabituationEnd); % move spouts in
 
     sma = AddState(sma, 'Name', 'ITI', ...
         'Timer', ITI,...
@@ -1150,7 +1165,3 @@ function [SoundWithEnvelope] = ApplySoundEnvelope(Sound, Envelope)
     FullEnvelope = [Envelope ones(1, IdxsBetweenTheEnvelope) BackOfTheEnvelope];  % full envelope
     SoundWithEnvelope = Sound .* FullEnvelope;    % apply envelope element-wise
 
-function SetMotorPos = ConvertMaestroPos(MaestroPosition)
-    m = 0.002;
-    b = -3;
-    SetMotorPos = MaestroPosition * m + b;

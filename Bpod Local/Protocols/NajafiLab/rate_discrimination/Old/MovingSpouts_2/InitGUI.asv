@@ -11,10 +11,12 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumISIOrigRep = 2; % number of grating/gray repetitions for vis stim first segment prior to perturbation
         
         %% Servos - spouts
-        S.GUI.RightServoInPos = 1198.00;    % servo position coordinates as per Maestro GUI
-        S.GUI.LeftServoInPos = 1818.00;
+        S.GUI.EnableMovingSpouts = 1;
+        S.GUIMeta.EnableMovingSpouts.Style = 'checkbox';
+        S.GUI.RightServoInPos = 1180.00;    % servo position coordinates as per Maestro GUI
+        S.GUI.LeftServoInPos = 1829.00;
         S.GUI.ServoDeflection = 122.5;
-        S.GUIPanels.Servos = {'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
+        S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
 
         % ITI params
@@ -40,7 +42,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.InitCue = {'InitCueVolume_percent', 'InitCueDuration_s', 'InitWindowTimeout_s', 'InitCueFreq_Hz'};
     
         % go cue params
-        S.GUI.GoCueVolume_percent = 0.0;  % volume control
+        S.GUI.GoCueVolume_percent = 100;  % volume control
         S.GUI.GoCueDuration_s = 0.05; % Duration of go sound
         S.GUI.GoCueFreq_Hz = 11025; % Frequency of go cue, even multiple of 44100 SF
         S.GUIPanels.GoCue = {'GoCueVolume_percent', 'GoCueDuration_s', 'GoCueFreq_Hz'};
@@ -65,7 +67,6 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.AudioStimEnable = 1;
         S.GUIMeta.AudioStimEnable.Style = 'checkbox';
         S.GUI.AudioStimVolume_percent = 1;  % volume control
-        %S.GUI.AudioStimFreq_Hz = 15000; % Frequency of audio stim
         S.GUI.AudioStimFreq_Hz = 14700; % Frequency of audio stim, even multiple of SF = 44100
         S.GUIPanels.AudioStim = {'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz'};
     
@@ -89,10 +90,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.RepeatedProb = 1.0;
         S.GUI.AdjustValve = 1;
         S.GUIMeta.AdjustValve.Style = 'checkbox';
-        S.GUI.AdjustValveThres = 3;
-        S.GUI.AdjustValveTime = 0.02;
+        S.GUI.AdjustValveThres = 2;
+        S.GUI.AdjustValvePercent = 0.12;
         S.GUI.AdjustFraction = 0.65;
-        S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'AdjustValveThres', 'AdjustValveTime', 'AdjustFraction'};
+        S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'AdjustValveThres', 'AdjustValvePercent', 'AdjustFraction'};
     
         % reward params
         S.GUI.LeftValveTime_s = 0.15;
@@ -121,10 +122,14 @@ function [S] = SetParams(obj, BpodSystem)
 end
 
 
-
-
-
-
+function [S] = UpdateMovingSpouts(obj, S, EnableMovingSpouts)
+    S.GUI.EnableMovingSpouts = EnableMovingSpouts;
+    if (EnableMovingSpouts == 1)
+        S.GUI.GoCueVolume_percent = 0;
+    else
+        S.GUI.GoCueVolume_percent = 100;
+    end
+end
 
 
 
