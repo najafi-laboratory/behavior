@@ -6,6 +6,7 @@ from plot.fig4_psychometric_epoch import plot_fig4
 from plot.fig5_stim_isi import plot_fig5
 from plot.fig6_av_sync import plot_fig6
 from plot.fig7_early_iti import plot_fig7
+from plot.fig8_reaction import plot_fig8
 from plot.p1_psychometric import plot_p1
 from plot.p2_reaction import plot_p2
 
@@ -25,6 +26,7 @@ if __name__ == "__main__":
             plot_fig5,
             plot_fig6,
             plot_fig7,
+            plot_fig8,
             ]:
         plotter(
          	session_data_1,
