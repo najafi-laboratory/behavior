@@ -1,9 +1,15 @@
+#!/usr/bin/env python3
+
 import os
 from suite2p.registration import register
 from suite2p.io import BinaryFile
 
 
-def create_file_to_reg(ops, r_ch_data, g_ch_data):
+def create_file_to_reg(
+        ops,
+        r_ch_data,
+        g_ch_data
+        ):
     f_reg_ch1 = BinaryFile(
         Ly=512,
         Lx=512,

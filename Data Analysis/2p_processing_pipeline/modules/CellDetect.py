@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from cellpose import models
 from cellpose import plot
 from cellpose import io
+#!/usr/bin/env python3
+
 from suite2p.detection import roi_stats
 
 
@@ -29,7 +31,12 @@ def cellpose_eval(
     return masks
 
 
-def get_mask(ops, reg_ref, mean_ch1, mean_ch2):
+def get_mask(
+        ops,
+        reg_ref,
+        mean_ch1,
+        mean_ch2
+        ):
     masks_ref = cellpose_eval(
         reg_ref,
         os.path.join(ops['save_path0'], 'mask_reg_ref'))
@@ -42,7 +49,10 @@ def get_mask(ops, reg_ref, mean_ch1, mean_ch2):
     return masks_ref, masks_r_ch, masks_g_ch
 
 
-def get_stat(ops, masks):
+def get_stat(
+        ops,
+        masks
+        ):
     stat = []
     for u_ix, u in enumerate(np.unique(masks)[1:]):
         ypix, xpix = np.nonzero(masks==u)

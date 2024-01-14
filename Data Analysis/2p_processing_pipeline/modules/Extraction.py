@@ -1,11 +1,19 @@
+#!/usr/bin/env python3
+
 import os
+import h5py
 import numpy as np
 from suite2p import extraction_wrapper
 from suite2p.extraction import preprocess
 from suite2p.extraction import oasis
 
 
-def get_fluorescence(ops, stat, f_reg_ch1, f_reg_ch2):
+def get_fluorescence(
+        ops,
+        stat,
+        f_reg_ch1,
+        f_reg_ch2
+        ):
     stat, F_ch1, Fneu_ch1, F_ch2, Fneu_ch2 = extraction_wrapper(
         stat = stat,
         f_reg = f_reg_ch1,
@@ -14,7 +22,11 @@ def get_fluorescence(ops, stat, f_reg_ch1, f_reg_ch2):
     return [stat, F_ch1, Fneu_ch1, F_ch2, Fneu_ch2]
 
 
-def normalization(ops, F, Fneu):
+def normalization(
+        ops,
+        F,
+        Fneu
+        ):
     fluo = F.copy() - ops['neucoeff']*Fneu
     fluo = (fluo - np.min(fluo, axis=1).reshape(-1,1)) / (
         np.max(fluo, axis=1).reshape(-1,1) - np.min(fluo, axis=1).reshape(-1,1))
@@ -29,13 +41,19 @@ def normalization(ops, F, Fneu):
     return fluo
 
 
-def moving_average(fluo, win):
+def moving_average(
+        fluo,
+        win
+        ):
     conv = lambda x: np.convolve(x, np.ones(win)/win, mode='same')
     mean_fluo = np.apply_along_axis(conv, axis=1, arr=fluo)
     return mean_fluo
 
 
-def spike_detect(ops, fluo):
+def spike_detect(
+        ops,
+        fluo
+        ):
     spikes = oasis(
         F=fluo,
         batch_size=ops['batch_size'],
@@ -43,6 +61,23 @@ def spike_detect(ops, fluo):
         fs=ops['fs'])
     return spikes
 
+
+def save_traces(
+        ops,
+        fluo_ch1, mean_fluo_ch1, spikes_ch1,
+        fluo_ch2, mean_fluo_ch2, spikes_ch2
+        ):
+    hf = h5py.File(os.path.join(
+        ops['save_path0'], 'traces.h5'), 'w')
+    dict_group = hf.create_group('traces')
+    dict_group['fluo_ch1'] = fluo_ch1
+    dict_group['fluo_ch2'] = fluo_ch2
+    dict_group['mean_fluo_ch1'] = mean_fluo_ch1
+    dict_group['mean_fluo_ch2'] = mean_fluo_ch2
+    dict_group['spikes_ch1'] = spikes_ch1
+    dict_group['spikes_ch2'] = spikes_ch2
+    hf.close()
+    
 
 def run(ops, stat, f_reg_ch1, f_reg_ch2):
     print('===============================================')
@@ -64,21 +99,10 @@ def run(ops, stat, f_reg_ch1, f_reg_ch2):
     spikes_ch1 = spike_detect(ops, mean_fluo_ch1)
     spikes_ch2 = spike_detect(ops, mean_fluo_ch2)
     print('Spike deconvolution completed')
+    save_traces(ops,
+        fluo_ch1, mean_fluo_ch1, spikes_ch1,
+        fluo_ch2, mean_fluo_ch2, spikes_ch2)
+    print('Traces data saved')
     return [fluo_ch1, mean_fluo_ch1, spikes_ch1,
             fluo_ch2, mean_fluo_ch2, spikes_ch2]
-
-
-[fluo_ch1, mean_fluo_ch1, spikes_ch1,
- fluo_ch2, mean_fluo_ch2, spikes_ch2] = run(ops, stat, f_reg_ch1, f_reg_ch2)
-
-amp = 5
-idx = 15
-offset = 0.5
-start = 1000
-end = 2000
-for i in range(10):
-    #plt.plot(fluo_ch2[i+idx, start:end]+i*offset, alpha=0.5)
-    plt.plot(mean_fluo_ch2[i+idx, start:end]+i*offset)
-    #plt.plot(spikes[i+idx, start:end]*amp+i*offset, color='black')
-
 
