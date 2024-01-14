@@ -20,7 +20,12 @@ def bin_trials(trial_early, iti, max_time, bin_size=0.5, least_trials=3):
     return bin_stat
 
 
-def plot_curves(axs, session_data, max_time=6, max_sessions=10):
+def plot_fig7(
+    session_data,
+    max_time=6,
+    max_sessions=10
+    ):
+    fig, axs = plt.subplots(1, figsize=(10, 4))
     subject = session_data['subject']
     iti = session_data['iti'][session_data['LR12_start']:]
     outcomes = session_data['outcomes'][session_data['LR12_start']:]
@@ -56,22 +61,13 @@ def plot_curves(axs, session_data, max_time=6, max_sessions=10):
     axs.set_ylabel('probability of early choice')
     axs.set_title(subject)
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-
-
-def plot_fig7(
-    session_data_1,
-    session_data_2,
-    session_data_3,
-    session_data_4
-    ):
-    fig, axs = plt.subplots(2, 2, figsize=(20, 8))
-    plt.subplots_adjust(hspace=0.7)
-    plot_curves(axs[0,0], session_data_1)
-    plot_curves(axs[0,1], session_data_2)
-    plot_curves(axs[1,0], session_data_3)
-    plot_curves(axs[1,1], session_data_4)
     fig.suptitle('iti and probability of early choice')
     fig.tight_layout()
-    print('Plot fig7 completed.')
-    fig.savefig('./figures/fig7_early_iti.pdf', dpi=300)
-    fig.savefig('./figures/fig7_early_iti.png', dpi=300)
+    print('Completed fig7 for ' + subject)
+    fig.savefig('./figures/fig7_'+subject+'_early_iti.pdf', dpi=300)
+    fig.savefig('./figures/fig7_'+subject+'_early_iti.png', dpi=300)
+    plt.close()
+    
+    
+    
+    

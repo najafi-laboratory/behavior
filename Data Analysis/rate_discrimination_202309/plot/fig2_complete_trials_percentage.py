@@ -26,7 +26,11 @@ def count_label(outcomes, states):
     return counts
 
 
-def plot_bar(axs, session_data, max_sessions=25):
+def plot_fig2(
+    session_data,
+    max_sessions=25
+    ):
+    fig, axs = plt.subplots(1, figsize=(10, 4))
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']
@@ -60,23 +64,10 @@ def plot_bar(axs, session_data, max_sessions=25):
     axs.set_yticks(np.arange(6)*0.2)
     axs.set_xticklabels(dates, rotation='vertical')
     axs.set_title(subject)
-
-
-def plot_fig2(
-    session_data_1,
-    session_data_2,
-    session_data_3,
-    session_data_4
-    ):
-    fig, axs = plt.subplots(2, 2, figsize=(20, 8))
-    plt.subplots_adjust(hspace=0.7)
-    plot_bar(axs[0,0], session_data_1)
-    plot_bar(axs[0,1], session_data_2)
-    plot_bar(axs[1,0], session_data_3)
-    plot_bar(axs[1,1], session_data_4)
-    axs[0,1].legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
+    axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('reward/punish percentage for completed trials across sessions')
     fig.tight_layout()
-    print('Plot fig2 completed.')
-    fig.savefig('./figures/fig2_complete_trials_percentage.pdf', dpi=300)
-    fig.savefig('./figures/fig2_complete_trials_percentage.png', dpi=300)
+    print('Completed fig2 for ' + subject)
+    fig.savefig('./figures/fig2_'+subject+'_complete_trials_percentage.pdf', dpi=300)
+    fig.savefig('./figures/fig2_'+subject+'_complete_trials_percentage.png', dpi=300)
+    plt.close()

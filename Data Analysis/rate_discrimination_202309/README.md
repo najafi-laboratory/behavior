@@ -88,3 +88,6 @@
 ## 2023.12.28
 - Add reaction time across sessions.
 - Add change of mind percentage.
+
+## 2024.01.14
+- Seperate figures for each subject.

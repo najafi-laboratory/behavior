@@ -47,7 +47,13 @@ def count_label(outcomes, states):
     return counts
 
 
-def plot_line(axs, session_data, session_id=-1, bin_size=10):
+def plot_fig3(
+    session_data,
+    session_id=-1,
+    bin_size=10
+    ):
+    fig, axs = plt.subplots(1, figsize=(10,4))
+    plt.subplots_adjust(hspace=0.7)
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']
@@ -68,24 +74,10 @@ def plot_line(axs, session_data, session_id=-1, bin_size=10):
     axs.set_xlabel('bins with size {}'.format(bin_size))
     axs.set_ylabel('percentage')
     axs.set_title(subject + ' ' + dates[session_id])
-
-
-def plot_fig3(
-    session_data_1,
-    session_data_2,
-    session_data_3,
-    session_data_4
-    ):
-    fig, axs = plt.subplots(2, 2, figsize=(20,8))
-    plt.subplots_adjust(hspace=0.7)
-    plot_line(axs[0,0], session_data_1)
-    plot_line(axs[0,1], session_data_2)
-    plot_line(axs[1,0], session_data_3)
-    plot_line(axs[1,1], session_data_4)
-    axs[0,1].legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
+    axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('reward/punish percentage for completed trials across epoches')
     fig.tight_layout()
-    print('Plot fig3 completed.')
-    fig.savefig('./figures/fig3_percentage_epoch.pdf', dpi=300)
-    fig.savefig('./figures/fig3_percentage_epoch.png', dpi=300)
-
+    print('Completed fig3 for ' + subject)
+    fig.savefig('./figures/fig3_'+subject+'_percentage_epoch.pdf', dpi=300)
+    fig.savefig('./figures/fig3_'+subject+'_opercentage_epoch.png', dpi=300)
+    plt.close()

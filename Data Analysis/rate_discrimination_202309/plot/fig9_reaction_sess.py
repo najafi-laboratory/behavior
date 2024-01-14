@@ -15,7 +15,11 @@ def bin_trials(trial_reaction, max_time, bin_size=0.5, least_trials=2):
     return bin_stat
 
 
-def plot_curves(axs, session_data, max_sessions=20):
+def plot_fig9(
+    session_data,
+    max_sessions=20
+    ):
+    fig, axs = plt.subplots(1, figsize=(10, 4))
     subject = session_data['subject']
     dates = session_data['dates']
     reaction = session_data['reaction']
@@ -61,22 +65,9 @@ def plot_curves(axs, session_data, max_sessions=20):
     axs.set_xticklabels(dates, rotation='vertical')
     axs.set_title(subject + ' ')
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-
-
-def plot_fig9(
-    session_data_1,
-    session_data_2,
-    session_data_3,
-    session_data_4,
-    ):
-    fig, axs = plt.subplots(2, 2, figsize=(15, 9))
-    plt.subplots_adjust(hspace=0.7)
-    plot_curves(axs[0,0], session_data_1)
-    plot_curves(axs[0,1], session_data_2)
-    plot_curves(axs[1,0], session_data_3)
-    plot_curves(axs[1,1], session_data_4)
     fig.suptitle('Reaction time (the 1st side lick since stim onset) mean/std across sessions')
     fig.tight_layout()
-    print('Plot fig8 completed.')
-    fig.savefig('./figures/fig9_reaction_sess.pdf', dpi=300)
-    fig.savefig('./figures/fig9_reaction_sess.png', dpi=300)
+    print('Completed fig8 for ' + subject)
+    fig.savefig('./figures/fig8_'+subject+'_reaction_sess.pdf', dpi=300)
+    fig.savefig('./figures/fig8_'+subject+'_reaction_sess.png', dpi=300)
+    plt.close()

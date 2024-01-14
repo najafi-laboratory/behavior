@@ -48,7 +48,11 @@ def plot_curves(axs, subject, dates, choice):
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
 
 
-def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=6):
+def plot_fig4(
+        session_data,
+        max_subplots=5,
+        max_sessions=6
+        ):
     subject = session_data['subject']
     dates = session_data['dates'][session_data['LR12_start']:]
     choice = session_data['choice'][session_data['LR12_start']:]
@@ -76,18 +80,7 @@ def plot_subject_psychometric(session_data, max_subplots=5, max_sessions=6):
             choice)
     fig.suptitle('psychometric functions for '+subject)
     fig.tight_layout()
-    print('Plot fig4 completed.')
+    print('Completed fig4 for ' + subject)
     fig.savefig('./figures/fig4_'+subject+'_psychometric_epoch.pdf', dpi=300)
     fig.savefig('./figures/fig4_'+subject+'_psychometric_epoch.png', dpi=300)
-
-
-def plot_fig4(
-    session_data_1,
-    session_data_2,
-    session_data_3,
-    session_data_4,
-    ):
-    plot_subject_psychometric(session_data_1)
-    plot_subject_psychometric(session_data_2)
-    plot_subject_psychometric(session_data_3)
-    plot_subject_psychometric(session_data_4)
+    plt.close()

@@ -9,16 +9,17 @@ from plot.fig7_early_iti import plot_fig7
 from plot.fig8_reaction_trial import plot_fig8
 from plot.fig9_reaction_sess import plot_fig9
 from plot.fig10_com import plot_fig10
-from plot.p1_psychometric import plot_p1
-from plot.p2_reaction import plot_p2
 
 
 if __name__ == "__main__":
 
     session_data_1 = DataIO.read_trials('VM1')
-    session_data_2 = DataIO.read_trials('FN1')
-    session_data_3 = DataIO.read_trials('YH1')
-    session_data_4 = DataIO.read_trials('YH2')
+    session_data_2 = DataIO.read_trials('VM4')
+    session_data_3 = DataIO.read_trials('VM5')
+    session_data_4 = DataIO.read_trials('VM6')
+    session_data_5 = DataIO.read_trials('YH1')
+    session_data_6 = DataIO.read_trials('YH2')
+
 
     for plotter in [
             plot_fig1,
@@ -32,18 +33,13 @@ if __name__ == "__main__":
             plot_fig9,
             plot_fig10,
             ]:
-        plotter(
-         	session_data_1,
-         	session_data_2,
-         	session_data_3,
-         	session_data_4)
-    '''
-    plot_p1(session_data_1, session_data_2)
-    plot_p2(session_data_1, session_data_2)
-    '''
-    
-    
-    
-    
-    
-    
+        for session_data in [
+                session_data_1,
+                session_data_2,
+                session_data_3,
+                session_data_4,
+                session_data_5,
+                session_data_6
+                ]:
+            plotter(session_data)
+ 

@@ -18,7 +18,10 @@ def get_com_percentage(com_list):
     return right2left, left2right
 
 
-def plot_curves(axs, session_data):
+def plot_fig10(
+    session_data
+    ):
+    fig, axs = plt.subplots(1, figsize=(4, 6))
     subject = session_data['subject']
     dates = session_data['dates']
     com = session_data['com']
@@ -51,22 +54,12 @@ def plot_curves(axs, session_data):
     axs.set_yticklabels(dates_list)
     axs.set_title(subject + ' ')
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-
-
-def plot_fig10(
-    session_data_1,
-    session_data_2,
-    session_data_3,
-    session_data_4,
-    ):
-    fig, axs = plt.subplots(2, 2, figsize=(9, 15))
-    plt.subplots_adjust(hspace=0.7)
-    plot_curves(axs[0,0], session_data_1)
-    plot_curves(axs[0,1], session_data_2)
-    plot_curves(axs[1,0], session_data_3)
-    plot_curves(axs[1,1], session_data_4)
     fig.suptitle('Change of mind percentage across sessions')
     fig.tight_layout()
-    print('Plot fig10 completed.')
-    fig.savefig('./figures/fig10_com.pdf', dpi=300)
-    fig.savefig('./figures/fig10_com.png', dpi=300)
+    print('Completed fig10 for ' + subject)
+    fig.savefig('./figures/fig10_'+subject+'_com.pdf', dpi=300)
+    fig.savefig('./figures/fig10_'+subject+'_com.png', dpi=300)
+    plt.close()
+    
+    
+    
