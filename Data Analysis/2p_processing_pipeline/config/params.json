@@ -23,7 +23,7 @@
 	},
 
 	"FileInput" : {
-		"data_path": "./testdata",
+		"data_path": "/storage/coda1/p-fnajafi3/0/shared/2P_Imaging/FN8/12192023/Tseries FN8_PPC_121923_76_186_181-241",
 		"fast_disk": [],
 		"delete_bin": false,
 		"mesoscan": false,
@@ -34,7 +34,7 @@
 		"nwb_file": "",
 		"nwb_driver": "",
 		"nwb_series": "",
-		"save_path0": "./results",
+		"save_path0": "./results/FN8_PPC_121923",
 		"save_folder": [],
 		"look_one_level_down": false,
 		"subfolders": [],

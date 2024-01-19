@@ -3,6 +3,7 @@
 import os
 import h5py
 import numpy as np
+from datetime import datetime
 from suite2p import extraction_wrapper
 from suite2p.extraction import preprocess
 from suite2p.extraction import oasis
@@ -67,27 +68,28 @@ def save_traces(
         fluo_ch1, mean_fluo_ch1, spikes_ch1,
         fluo_ch2, mean_fluo_ch2, spikes_ch2
         ):
-    hf = h5py.File(os.path.join(
-        ops['save_path0'], 'traces.h5'), 'w')
-    dict_group = hf.create_group('traces')
+    f = h5py.File(os.path.join(
+        ops['save_path0'], 'temp', 'traces.h5'), 'w')
+    dict_group = f.create_group('traces')
     dict_group['fluo_ch1'] = fluo_ch1
     dict_group['fluo_ch2'] = fluo_ch2
     dict_group['mean_fluo_ch1'] = mean_fluo_ch1
     dict_group['mean_fluo_ch2'] = mean_fluo_ch2
     dict_group['spikes_ch1'] = spikes_ch1
     dict_group['spikes_ch2'] = spikes_ch2
-    hf.close()
-    
+    f.close()
 
-def run(ops, stat, f_reg_ch1, f_reg_ch2):
+
+def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
     print('===============================================')
     print('======= extracting fluorescence signals =======')
     print('===============================================')
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     [stat,
      F_ch1, Fneu_ch1,
      F_ch2, Fneu_ch2] = get_fluorescence(
          ops,
-         stat,
+         stat_ref,
          f_reg_ch1,
          f_reg_ch2)
     print('Fluorescence extraction completed')
@@ -103,6 +105,5 @@ def run(ops, stat, f_reg_ch1, f_reg_ch2):
         fluo_ch1, mean_fluo_ch1, spikes_ch1,
         fluo_ch2, mean_fluo_ch2, spikes_ch2)
     print('Traces data saved')
-    return [fluo_ch1, mean_fluo_ch1, spikes_ch1,
-            fluo_ch2, mean_fluo_ch2, spikes_ch2]
+    return []
 

@@ -3,6 +3,20 @@
 import os
 import h5py
 import numpy as np
+from datetime import datetime
+
+
+def read_traces(
+        ops
+        ):
+    f = h5py.File(
+        os.path.join(ops['save_path0'], 'temp', 'traces.h5'),
+        'r')
+    traces = dict()
+    for k in f['traces'].keys():
+        traces[k] = np.array(f['traces'][k])
+    f.close()
+    return traces
 
 
 def thres_binary(
@@ -57,52 +71,47 @@ def get_trial_start_end(
 
 
 def trial_split(
-        data,
-        start,
-        end
+        traces,
+        stim,
+        time_img,
+        start, end
         ):
-    trial_data = []
+    neural_trial = dict()
     for i in range(len(start)):
-        if len(data.shape) == 1:
-            trial_data.append(data[start[i]:end[i]].astype('float64'))
-        if len(data.shape) == 2:
-            trial_data.append(data[:,start[i]:end[i]].astype('float64'))
-    return trial_data
+        start_idx = np.where(time_img > start[i])[0][0]
+        end_idx = np.where(time_img < end[i])[0][-1] if end[i] != -1 else -1
+        neural_trial[str(i)] = dict()
+        neural_trial[str(i)]['time'] = time_img[start_idx:end_idx]
+        neural_trial[str(i)]['stim'] = stim[start_idx:end_idx]
+        for k in traces.keys():
+            neural_trial[str(i)][k] = traces[k][:,start_idx:end_idx]
+    return neural_trial
 
 
 def save_trials(
         ops,
-        trial_stim,
-        trial_fluo_ch1,
-        trial_fluo_ch2,
-        trial_mean_fluo_ch1,
-        trial_mean_fluo_ch2,
-        trial_spikes_ch1,
-        trial_spikes_ch2
+        neural_trial
         ):
-    hf = h5py.File(os.path.join(
+    f = h5py.File(os.path.join(
         ops['save_path0'], 'neural_trial.h5'), 'w')
-    for i in range(len(trial_stim)):
-        trial_group = hf.create_group(str(i))
-        trial_group['stim'] = trial_stim[i]
-        trial_group['fluo_ch1'] = trial_fluo_ch1[i]
-        trial_group['fluo_ch2'] = trial_fluo_ch2[i]
-        trial_group['mean_fluo_ch1'] = trial_mean_fluo_ch1[i]
-        trial_group['mean_fluo_ch2'] = trial_mean_fluo_ch2[i]
-        trial_group['spikes_ch1'] = trial_spikes_ch1[i]
-        trial_group['spikes_ch2'] = trial_spikes_ch2[i]
-    hf.close()
+    for trial in range(len(neural_trial)):
+        trial_group = f.create_group(str(trial))
+        for k in neural_trial[str(trial)].keys():
+            trial_group[k] = neural_trial[str(trial)][k]
+    f.close()
 
 
 def run(
         ops,
-        time, vol_start, vol_stim, vol_img,
-        fluo_ch1, mean_fluo_ch1, spikes_ch1,
-        fluo_ch2, mean_fluo_ch2, spikes_ch2
+        time,
+        vol_start, vol_stim, vol_img,
         ):
     print('===============================================')
     print('===== reconstructing synchronized signals =====')
     print('===============================================')
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print('Loading traces data')
+    traces = read_traces(ops)
     print('Comnputing signal trigger time stamps')
     vol_start, vol_stim, vol_img = vol_to_binary(
         vol_start, vol_stim, vol_img)
@@ -112,31 +121,10 @@ def run(
     stim = align_stim(time_img, vol_stim)
     print('Spliting trial data')
     start, end = get_trial_start_end(time_start)
-    trial_stim = trial_split(stim, start, end)
-    trial_fluo_ch1 = trial_split(fluo_ch1, start, end)
-    trial_fluo_ch2 = trial_split(fluo_ch2, start, end)
-    trial_mean_fluo_ch1 = trial_split(mean_fluo_ch1, start, end)
-    trial_mean_fluo_ch2 = trial_split(mean_fluo_ch2, start, end)
-    trial_spikes_ch1 = trial_split(spikes_ch1, start, end)
-    trial_spikes_ch2 = trial_split(spikes_ch2, start, end)
+    neural_trial = trial_split(traces, stim, time_img, start, end)
     print('Merging obtained trial data')
-    save_trials(
-        ops, trial_stim,
-        trial_fluo_ch1,
-        trial_fluo_ch2,
-        trial_mean_fluo_ch1,
-        trial_mean_fluo_ch2,
-        trial_spikes_ch1,
-        trial_spikes_ch2
-        )
+    save_trials(ops, neural_trial)
     print('Trial data saved')
-    return [time_img,
-            trial_stim,
-            trial_fluo_ch1,
-            trial_fluo_ch2,
-            trial_mean_fluo_ch1,
-            trial_mean_fluo_ch2,
-            trial_spikes_ch1,
-            trial_spikes_ch2]
+    return [neural_trial]
 
 

@@ -8,56 +8,37 @@ from modules import Extraction
 from modules import SyncSignal
 
 
+def run_pipeline(
+        run_Registration = True,
+        run_CellDetect = True,
+        run_Extraction = True,
+        run_SyncSignal = True,
+        ):
+    ops = Params.run()
+    if run_Registration:
+        [ch1_data, ch2_data,
+         time,
+         vol_start, vol_stim, vol_img] = DataIO.run(
+             ops)
+        [f_reg_ch1, f_reg_ch2] = Registration.run(
+             ops,
+             ch1_data, ch2_data)
+    if run_CellDetect:
+        [stat_ref, stat_ch1, stat_ch2] = CellDetect.run(
+             ops)
+    if run_Extraction:
+        [] = Extraction.run(
+             ops,
+             stat_ref,
+             f_reg_ch1,
+             f_reg_ch2)
+    if run_SyncSignal:
+        [neural_trial] = SyncSignal.run(
+            ops,
+            time,
+            vol_start, vol_stim, vol_img)
+
+
 if __name__ == "__main__":
 
-    ops = Params.run()
-
-    [r_ch_data,
-     g_ch_data,
-     time,
-     vol_start,
-     vol_stim,
-     vol_img] = DataIO.run(
-         ops)
-
-    [f_reg_ch1,
-     f_reg_ch2,
-     reg_ref,
-     mean_ch1,
-     mean_ch2] = Registration.run(
-         ops,
-         r_ch_data,
-         g_ch_data)
-
-    [stat_ref,
-     stat_r_ch,
-     stat_g_ch] = CellDetect.run(
-         ops,
-         reg_ref,
-         mean_ch1,
-         mean_ch2)
-
-    [fluo_ch1,
-     mean_fluo_ch1,
-     spikes_ch1,
-     fluo_ch2,
-     mean_fluo_ch2,
-     spikes_ch2] = Extraction.run(
-         ops,
-         stat_ref,
-         f_reg_ch1,
-         f_reg_ch2)
-
-    [time_img,
-     trial_stim,
-     trial_fluo_ch1,
-     trial_fluo_ch2,
-     trial_mean_fluo_ch1,
-     trial_mean_fluo_ch2,
-     trial_spikes_ch1,
-     trial_spikes_ch2] = SyncSignal.run(
-             ops,
-             time, vol_start, vol_stim, vol_img,
-             fluo_ch1, mean_fluo_ch1, spikes_ch1,
-             fluo_ch2, mean_fluo_ch2, spikes_ch2
-             )
+    run_pipeline()
