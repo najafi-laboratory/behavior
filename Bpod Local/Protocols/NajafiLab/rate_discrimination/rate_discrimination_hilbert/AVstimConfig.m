@@ -104,19 +104,26 @@ function [VisStim] = GetVideoDataPre( ...
                 VisStim.GrayPre.Frames      = GetFrames(obj, FPS, ISI);
                 VisStim.GrayPre.Video       = GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.GrayPre.Frames);
                 VisStim.GrayPre.Dur         = GetVideoDur(obj, FPS, VisStim.GrayPre.Video);
-                VisStim.Data.PreUnit.Video  = VisStim.GrayPre.Video;
+                VisStim.Data.PreUnit.Video  = [VisStim.Grating.Video, VisStim.GrayPre.Video];
+                Seq = [ones(1, length(VisStim.Grating.Video)), zeros(1, length(VisStim.GrayPre.Video))];
+                Seq(length(VisStim.Grating.Video)+ceil(length(VisStim.GrayPre.Video)/2)) = -1;
             case 'False'
                 VisStim.GrayPre.Frames      = GetFrames(obj, FPS, ISI);
                 VisStim.GrayPre.Video       = GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.GrayPre.Frames);
                 VisStim.GrayPre.Dur         = GetVideoDur(obj, FPS, VisStim.GrayPre.Video);
                 VisStim.Data.PreUnit.Video  = [VisStim.Grating.Video, VisStim.GrayPre.Video];
+                Seq = [ones(1, length(VisStim.Grating.Video)), zeros(1, length(VisStim.GrayPre.Video))];
         end
         VisStim.Data.PreUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.PreUnit.Video);
         VisStim.Data.PreUnit.Frames = GetFrames(obj, FPS, VisStim.Data.PreUnit.Dur);
         VideoSeq = [VideoSeq, VisStim.Data.PreUnit.Video];
         PreISIinfo = [PreISIinfo, ISI];
+        VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, Seq];
+        VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, zeros(1, length(VisStim.Data.PreUnit.Video))];
     end
     VideoSeq = [VideoSeq, VisStim.Grating.Video];
+    VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, ones(1, length(VisStim.Grating.Video))];
+    VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, zeros(1, length(VisStim.Grating.Video))];
     VisStim.Data.Pre.Video  = VideoSeq;
     VisStim.Data.Pre.Dur    = GetVideoDur(obj, FPS, VisStim.Data.Pre.Video);
     VisStim.Data.Pre.Frames = GetFrames(obj, FPS, VisStim.Data.Pre.Dur);
@@ -142,6 +149,9 @@ function [VisStim] = GetVideoDataPost( ...
         VisStim.Data.PostUnit.Video  = [VisStim.GrayPost.Video VisStim.Grating.Video];
         VisStim.Data.PostUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.PostUnit.Video);
         VisStim.Data.PostUnit.Frames = GetFrames(obj, FPS, VisStim.Data.PostUnit.Dur);
+        Seq = [zeros(1, length(VisStim.GrayPost.Video)) ones(1, length(VisStim.Grating.Video))];
+        VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, Seq];
+        VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, ones(1, length(VisStim.Data.PostUnit.Video))];
         VideoSeq = [VideoSeq, VisStim.Data.PostUnit.Video];
     end
     TotalFrames = GetFrames(obj, FPS, S.GUI.PostPertDur);
@@ -171,6 +181,9 @@ function [VisStim] = GetVideoDataExtra( ...
             VisStim.Data.ExtraUnit.Video  = [VisStim.GrayExtra.Video VisStim.Grating.Video];
             VisStim.Data.ExtraUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.ExtraUnit.Video);
             VisStim.Data.ExtraUnit.Frames = GetFrames(obj, FPS, VisStim.Data.ExtraUnit.Dur);
+            Seq = [zeros(1, length(VisStim.GrayExtra.Video)) ones(1, length(VisStim.Grating.Video))];
+            VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, Seq];
+            VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, 2*ones(1, length(VisStim.Data.ExtraUnit.Video))];
             VideoSeq = [VideoSeq, VisStim.Data.ExtraUnit.Video];
         end
         TotalFrames = GetFrames(obj, FPS, VisStim.Data.Extra.Dur);

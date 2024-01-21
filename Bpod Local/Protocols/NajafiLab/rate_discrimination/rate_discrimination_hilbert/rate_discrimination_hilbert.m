@@ -5,7 +5,7 @@ global M
 
 EnableMovingSpouts = 0;
 EnablePassive      = 0;
-PassiveSessMode    = 2;
+PassiveSessMode    = 1;
 MonitorID          = 2;
 
 
@@ -15,6 +15,7 @@ m_Plotter      = Plotter;
 m_InitGUI      = InitGUI;
 m_TrialConfig  = TrialConfig;
 m_AVstimConfig = AVstimConfig;
+m_PostProcess  = PostProcess;
 
 
 %% Turn off Bpod LEDs
@@ -51,6 +52,7 @@ end
 % set max number of trials
 
 BpodSystem.Data.TrialTypes = [];
+BpodSystem.Data.ProcessedSessionData = {};
 
 % initialize anti-bias variables
 AntiBiasVar.IncorrectFlag       = 0;
@@ -234,6 +236,8 @@ for currentTrial = 1:S.GUI.MaxTrials
         S, TrialTypes, currentTrial, EnablePassive);
 
     % generate video
+    VisStim.ProcessedData.Seq = [];
+    VisStim.ProcessedData.PrePost = [];
     switch JitterFlag
         case 'False'
             VisStim = m_AVstimConfig.GetVideoDataPre(S, FPS, VisStim, 0);
@@ -384,6 +388,7 @@ for currentTrial = 1:S.GUI.MaxTrials
         BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents);
         BpodSystem.Data.TrialSettings(currentTrial) = S;
         BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
+        m_PostProcess.SaveProcessedSessionData(BpodSystem, VisStim, GrayPerturbISI);
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 1);
         StateTiming();
         SaveBpodSessionData;
