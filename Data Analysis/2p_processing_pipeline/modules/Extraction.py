@@ -9,6 +9,7 @@ from suite2p.extraction import preprocess
 from suite2p.extraction import oasis
 
 
+# extract fluorescence signals from masks given as stat file.
 def get_fluorescence(
         ops,
         stat,
@@ -23,14 +24,18 @@ def get_fluorescence(
     return [stat, F_ch1, Fneu_ch1, F_ch2, Fneu_ch2]
 
 
+# process the fluorescence signals.
 def normalization(
         ops,
         F,
         Fneu
         ):
+    # correct with neuropil signals.
     fluo = F.copy() - ops['neucoeff']*Fneu
+    # normalize into 0-1.
     fluo = (fluo - np.min(fluo, axis=1).reshape(-1,1)) / (
         np.max(fluo, axis=1).reshape(-1,1) - np.min(fluo, axis=1).reshape(-1,1))
+    # baseline subtraction with window to compute df/f.
     fluo = preprocess(
             F=fluo,
             baseline=ops['baseline'],
@@ -42,6 +47,7 @@ def normalization(
     return fluo
 
 
+# compute moving average to reduce noise.
 def moving_average(
         fluo,
         win
@@ -51,6 +57,7 @@ def moving_average(
     return mean_fluo
 
 
+# run spike detection on fluorescence signals.
 def spike_detect(
         ops,
         fluo
@@ -58,16 +65,26 @@ def spike_detect(
     spikes = oasis(
         F=fluo,
         batch_size=ops['batch_size'],
-        tau=0.5,
+        tau=ops['tau'],
         fs=ops['fs'])
     return spikes
 
 
+# save the trace data.
 def save_traces(
         ops,
         fluo_ch1, mean_fluo_ch1, spikes_ch1,
         fluo_ch2, mean_fluo_ch2, spikes_ch2
         ):
+    # file structure:
+    # ops['save_path0'] / temp / traces.h5
+    # -- traces
+    # ---- fluo_ch1
+    # ---- fluo_ch2
+    # ---- mean_fluo_ch1
+    # ---- mean_fluo_ch2
+    # ---- spikes_ch1
+    # ---- spikes_ch2
     f = h5py.File(os.path.join(
         ops['save_path0'], 'temp', 'traces.h5'), 'w')
     dict_group = f.create_group('traces')
@@ -80,6 +97,7 @@ def save_traces(
     f.close()
 
 
+# main function for fluorescence signal extraction from ROIs.
 def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
     print('===============================================')
     print('======= extracting fluorescence signals =======')

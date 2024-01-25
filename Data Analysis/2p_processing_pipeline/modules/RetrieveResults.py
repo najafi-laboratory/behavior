@@ -3,7 +3,6 @@
 import os
 import h5py
 import numpy as np
-from datetime import datetime
 
 
 def read_ops(save_folder):
@@ -46,3 +45,4 @@ def run(save_folder):
     mask = read_mask(ops)
     return [ops, neural_trial, mask]
 
+save_folder = 'FN8_PPC_121923'

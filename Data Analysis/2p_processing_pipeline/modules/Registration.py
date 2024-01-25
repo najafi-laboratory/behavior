@@ -8,18 +8,22 @@ from suite2p.registration import register
 from suite2p.io import BinaryFile
 
 
+# make new file to save registered data.
 def create_file_to_reg(
         ops,
         ch1_data,
         ch2_data
         ):
+    # create the temp folder if not exist.
     if not os.path.exists(os.path.join(ops['save_path0'], 'temp')):
         os.makedirs(os.path.join(ops['save_path0'], 'temp'))
+    # ch1 binary file.
     f_reg_ch1 = BinaryFile(
         Ly=ops['Ly'],
         Lx=ops['Lx'],
         filename=os.path.join(ops['save_path0'], 'temp', 'reg_ch1.bin'),
         n_frames=ch1_data.shape[0])
+    # ch2 binary file.
     f_reg_ch2 = BinaryFile(
         Ly=ops['Ly'],
         Lx=ops['Lx'],
@@ -28,6 +32,7 @@ def create_file_to_reg(
     return f_reg_ch1, f_reg_ch2
 
 
+# compute mean and max proj image.
 def get_proj_img(
         ch1_data,
         ch2_data
@@ -39,12 +44,21 @@ def get_proj_img(
     return mean_ch1, mean_ch2, max_ch1, max_ch2
 
 
+# save the mean and max image to h5 file in temp.
 def save_proj_img(
         ops,
         reg_ref,
         mean_ch1, mean_ch2,
         max_ch1,  max_ch2
         ):
+    # file structure:
+    # ops['save_path0'] / temp / proj_img.h5
+    # -- proj_img
+    # ---- reg_ref
+    # ---- mean_ch1
+    # ---- mean_ch2
+    # ---- max_ch1
+    # ---- max_ch2
     f = h5py.File(os.path.join(
         ops['save_path0'], 'temp', 'proj_img.h5'), 'w')
     grp = f.create_group('proj_img')
@@ -56,25 +70,33 @@ def save_proj_img(
     f.close()
 
 
+# main function for registration.
 def run(ops, ch1_data, ch2_data):
     print('===============================================')
     print('============= registering imaging =============')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    # compute mean and max projection image.
     mean_ch1, mean_ch2, max_ch1, max_ch2 = get_proj_img(ch1_data, ch2_data)
+    # create registration files.
     f_reg_ch1, f_reg_ch2 = create_file_to_reg(ops, ch1_data, ch2_data)
-    print('Registered channel files created in {}'.format(ops['save_path0']))
+    print('Registered channel files created in {}.'.format(ops['save_path0']))
+    # suite2p registration.
+    # reference image computation included.
+    # motion correction included.
     reg_ref, _, _, _, _, _, _, _, _, _, _ = register.registration_wrapper(
         f_reg=f_reg_ch1,
         f_raw=ch1_data,
         f_reg_chan2=f_reg_ch2,
         f_raw_chan2=ch2_data,
         ops=ops)
+    print('Registration completed.')
+    # save projection and reference images.
     save_proj_img(
         ops,
         reg_ref,
         mean_ch1, mean_ch2,
         max_ch1,  max_ch2)
-    print('Projected images saved')
+    print('Projected images saved.')
     return [f_reg_ch1, f_reg_ch2]
 

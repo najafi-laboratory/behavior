@@ -10,6 +10,7 @@ from cellpose.utils import masks_to_outlines
 from suite2p.detection import roi_stats
 
 
+# read the projection images.
 def read_proj_img(
         ops
         ):
@@ -23,19 +24,24 @@ def read_proj_img(
     return proj_img
 
 
+# run cellpose on one image for cell detection and save the results.
 def cellpose_eval(
         mean_img,
         file_names,
         model_type='cyto',
         diameter=None,
         ):
+    # initialize cellpose pretrained model.
     model = models.Cellpose(model_type=model_type)
+    # run cellpose on the given image with the shape of Lx*Ly.
     masks, flows, styles, diams = model.eval(
         mean_img,
         diameter=diameter,
         channels=[[0,0]],
         channel_axis=0)
+    # extract cell outlines.
     outlines = masks_to_outlines(masks)
+    # save cell segmentation to file XXX_seg.npy.
     io.masks_flows_to_seg(mean_img, masks, flows, diams, file_names, [[0,0]])
     restuls = dict(
         mean_img = mean_img,
@@ -46,22 +52,28 @@ def cellpose_eval(
     return restuls
 
 
+# run cellpose on mean channel image and reference image.
 def get_mask(
         ops,
         proj_img
         ):
+    # reference image.
     restuls_ref = cellpose_eval(
         proj_img['reg_ref'],
         os.path.join(ops['save_path0'], 'temp', 'mask_ref'))
+    # ch1 mean image.
     restuls_ch1 = cellpose_eval(
         proj_img['mean_ch1'],
         os.path.join(ops['save_path0'], 'temp', 'mask_ch1'))
+    # ch2 mean image.
     restuls_ch2 = cellpose_eval(
         proj_img['mean_ch2'],
         os.path.join(ops['save_path0'], 'temp', 'mask_ch2'))
     return restuls_ref, restuls_ch1, restuls_ch2
 
 
+# reconstruct stat file for suite2p from mask.
+# https://github.com/MouseLand/suite2p/issues/292.
 def get_stat(
         ops,
         masks
@@ -82,11 +94,32 @@ def get_stat(
     return stat
 
 
+# save the mask results.
 def save_mask(
         ops,
         proj_img,
         restuls_ref, restuls_ch1, restuls_ch2
         ):
+    # file structure:
+    # ops['save_path0'] / mask.h5
+    # -- mask
+    # ---- ch1
+    # ------ mean_img
+    # ------ masks
+    # ------ outlines
+    # ------ diams
+    # ------ max_img
+    # ---- ch2
+    # ------ mean_img
+    # ------ masks
+    # ------ outlines
+    # ------ diams
+    # ------ max_img
+    # ---- ref
+    # ------ mean_img
+    # ------ masks
+    # ------ outlines
+    # ------ diams
     f = h5py.File(os.path.join(
         ops['save_path0'], 'mask.h5'), 'w')
     grp = f.create_group('mask')
@@ -102,6 +135,7 @@ def save_mask(
     f.close()
 
 
+# main function for cell detection as ROIs.
 def run(ops):
     print('===============================================')
     print('============== detecting neurons ==============')

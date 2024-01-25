@@ -10,7 +10,7 @@ save_folder = 'FN8_PPC_011724'
 
 
 def plot_fig2(
-        ch = 'mean_fluo_ch1',
+        ch = 'fluo_ch2',
         trial = 1,
         num = 20,
         idx = 0,
@@ -44,3 +44,6 @@ def plot_fig2(
     fig.tight_layout()
     fig.savefig('./figures/fig2_traces.pdf', dpi=300)
     fig.savefig('./figures/fig2_traces.png', dpi=300)
+
+
+plot_fig2()

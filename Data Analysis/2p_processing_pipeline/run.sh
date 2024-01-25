@@ -2,10 +2,10 @@
 #SBATCH --job-name=ImgProcess
 #SBATCH --account=gts-fnajafi3
 #SBATCH --nodes=1
-#SBATCH --ntasks=8
-#SBATCH --ntasks-per-node=8
-#SBATCH --mem-per-cpu=64G
-#SBATCH --time=1:00:00
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem-per-cpu=384G
+#SBATCH --time=4:00:00
 #SBATCH --output=Report_%A-%a.out
 #SBATCH --mail-user=hilberthuang05@gatech.edu
 

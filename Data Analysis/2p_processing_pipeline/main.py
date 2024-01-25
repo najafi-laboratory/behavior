@@ -10,9 +10,9 @@ from modules import SyncSignal
 
 def run_pipeline(
         run_Registration = True,
-        run_CellDetect = True,
-        run_Extraction = True,
-        run_SyncSignal = True,
+        run_CellDetect = False,
+        run_Extraction = False,
+        run_SyncSignal = False,
         ):
     ops = Params.run()
     if run_Registration:
@@ -41,4 +41,5 @@ def run_pipeline(
 
 if __name__ == "__main__":
 
-    run_pipeline()
+    #run_pipeline()
+    

@@ -61,11 +61,10 @@ def plot_fig4(
         rows = 4,
         l_frames = 30,
         r_frames = 50,
-        amp = 4,
         ):
     [_, neural_trial, _] = RetrieveResults.run(save_folder)
-    fix_idx = [0, 2]
-    jitter_idx = [1, 3]
+    jitter_idx = [0, 2]
+    fix_idx = [1, 3]
     response_fix = get_omi_response(
         neural_trial, ch, fix_idx, l_frames, r_frames)
     response_jitter = get_omi_response(
@@ -76,6 +75,8 @@ def plot_fig4(
     for i in range(rows):
         for j in range(num_neuron):
             idx = i*num_neuron + j
+            mean_jitter = np.mean(response_jitter[:,idx,:], axis=0)
+            mean_fix = np.mean(response_fix[:,idx,:], axis=0)
             axs[i,j].axvline(
                 0,
                 color='grey',
@@ -84,12 +85,12 @@ def plot_fig4(
                 linestyle='--')
             axs[i,j].plot(
                 np.arange(-l_frames, r_frames),
-                np.mean(response_jitter[:,idx,:], axis=0) * amp,
-                color='springgreen',
+                mean_jitter,
+                color='coral',
                 label='mean traces on jitter')
             axs[i,j].plot(
                 np.arange(-l_frames, r_frames),
-                np.mean(response_fix[:,idx,:], axis=0) * amp,
+                mean_fix,
                 color='dodgerblue',
                 label='mean traces on fix')
     for i in range(rows):
@@ -100,12 +101,15 @@ def plot_fig4(
             axs[i,j].set_xlabel('frames since stimulus')
             axs[i,j].set_ylabel('response')
             axs[i,j].set_xlim([-l_frames, r_frames])
-            axs[i,j].set_ylim([0, 0.5])
+            axs[i,j].set_ylim([0.02, 0.12])
             axs[i,j].set_title('neuron # {}'.format(i*num_neuron + j))
     handles, labels = axs[i,j].get_legend_handles_labels()
     fig.legend(handles[-3:], labels[-3:], loc='upper right')
-    fig.suptitle('Omission aligned traces for {} neurons'.format(
-        int(rows*num_neuron)))
+    fig.suptitle('Omission aligned traces for {} neurons for '.format(
+        int(rows*num_neuron)) + ch)
     fig.tight_layout()
     fig.savefig('./figures/fig4_align_omission.pdf', dpi=300)
     fig.savefig('./figures/fig4_align_omission.png', dpi=300)
+    
+    
+plot_fig4()
