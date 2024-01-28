@@ -5,6 +5,7 @@ import h5py
 import numpy as np
 
 
+# read saved ops.npy given a folder in ./results.
 def read_ops(save_folder):
     ops = np.load(
         os.path.join('./results', save_folder, 'ops.npy'),
@@ -13,6 +14,7 @@ def read_ops(save_folder):
     return ops
 
 
+# read neural_trial.h5.
 def read_neural_trial(ops):
     f = h5py.File(
         os.path.join(ops['save_path0'], 'neural_trial.h5'),
@@ -26,6 +28,7 @@ def read_neural_trial(ops):
     return neural_trial
 
 
+# read mask.h5.
 def read_mask(ops):
     f = h5py.File(
         os.path.join(ops['save_path0'], 'mask.h5'),
@@ -39,10 +42,13 @@ def read_mask(ops):
     return mask
 
 
-def run(save_folder):
-    ops = read_ops(save_folder)
+# main function to read completed results.
+def run(ops):
+    print('===============================================')
+    print('======= read saved trial data and masks =======')
+    print('===============================================')
+    # ops = read_ops('FN8_PPC_121923')
     neural_trial = read_neural_trial(ops)
     mask = read_mask(ops)
-    return [ops, neural_trial, mask]
+    return [neural_trial, mask]
 
-save_folder = 'FN8_PPC_121923'

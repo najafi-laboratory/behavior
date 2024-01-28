@@ -11,4 +11,4 @@
 
 cd /storage/coda1/p-fnajafi3/0/yhuang887/Projects/2p_processing_pipeline_202401
 source activate suite2p
-python main.py
+python main.py -data './testdata' -save './results/testdata'

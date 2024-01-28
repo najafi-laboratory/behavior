@@ -32,16 +32,14 @@ def create_file_to_reg(
     return f_reg_ch1, f_reg_ch2
 
 
-# compute mean and max proj image.
+# compute max proj image.
 def get_proj_img(
-        ch1_data,
-        ch2_data
+        f_reg_ch1,
+        f_reg_ch2
         ):
-    mean_ch1 = np.mean(ch1_data, axis=0)
-    mean_ch2 = np.mean(ch2_data, axis=0)
-    max_ch1 = np.max(ch1_data, axis=0)
-    max_ch2 = np.max(ch2_data, axis=0)
-    return mean_ch1, mean_ch2, max_ch1, max_ch2
+    max_ch1 = np.max(f_reg_ch1.data, axis=0)
+    max_ch2 = np.max(f_reg_ch2.data, axis=0)
+    return max_ch1, max_ch2
 
 
 # save the mean and max image to h5 file in temp.
@@ -76,21 +74,22 @@ def run(ops, ch1_data, ch2_data):
     print('============= registering imaging =============')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    # compute mean and max projection image.
-    mean_ch1, mean_ch2, max_ch1, max_ch2 = get_proj_img(ch1_data, ch2_data)
     # create registration files.
     f_reg_ch1, f_reg_ch2 = create_file_to_reg(ops, ch1_data, ch2_data)
     print('Registered channel files created in {}.'.format(ops['save_path0']))
     # suite2p registration.
     # reference image computation included.
     # motion correction included.
-    reg_ref, _, _, _, _, _, _, _, _, _, _ = register.registration_wrapper(
+    reg_ref, _, _, mean_ch1, _, _, _, mean_ch2, _, _, _ = register.registration_wrapper(
         f_reg=f_reg_ch1,
         f_raw=ch1_data,
         f_reg_chan2=f_reg_ch2,
         f_raw_chan2=ch2_data,
         ops=ops)
     print('Registration completed.')
+    # compute mean and max projection image.
+    print('Computing max projection images.')
+    max_ch1, max_ch2 = get_proj_img(f_reg_ch1, f_reg_ch2)
     # save projection and reference images.
     save_proj_img(
         ops,

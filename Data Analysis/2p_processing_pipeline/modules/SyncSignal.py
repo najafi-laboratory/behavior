@@ -212,6 +212,6 @@ def run(
         vol_start_bin, vol_stim_bin, vol_img_bin,
         neural_trial)
     print('Trial data saved')
-    return [neural_trial]
+    return []
 
 

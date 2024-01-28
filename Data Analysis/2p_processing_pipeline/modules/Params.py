@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 # main function for setting the ops.npy for suite2p.
-def run():
+def run(args):
     print('===============================================')
     print('============ configuring parameters ===========')
     print('===============================================')
@@ -19,6 +19,11 @@ def run():
     ops = dict()
     for key in params.keys():
         ops.update(params[key])
+    # set data path and save path specified by command line.
+    ops['data_path'] = args.data_path
+    ops['save_path0'] = args.save_path0
+    print('Search data files in {}.'.format(ops['data_path']))
+    print('Will save processed data in {}'.format(ops['save_path0']))
     # create the path for saving data.
     if not os.path.exists(os.path.join(ops['save_path0'])):
         os.makedirs(os.path.join(ops['save_path0']))
