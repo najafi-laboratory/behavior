@@ -47,7 +47,7 @@ def run(ops):
     print('===============================================')
     print('======= read saved trial data and masks =======')
     print('===============================================')
-    # ops = read_ops('FN8_PPC_121923')
+    # ops = read_ops('FN8_PPC_011824')
     neural_trial = read_neural_trial(ops)
     mask = read_mask(ops)
     return [neural_trial, mask]

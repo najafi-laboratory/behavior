@@ -54,7 +54,7 @@ def get_stim_response(
 
 def plot_fig3(
         ops,
-        ch = 'fluo_ch2',
+        ch = 'fluo_ch1',
         cols = 5,
         rows = 4,
         l_frames = 30,
@@ -62,8 +62,14 @@ def plot_fig3(
         ):
     [neural_trial, _] = RetrieveResults.run(ops)
     # set trial id for jitter and fix.
-    jitter_idx = [0, 2]
-    fix_idx = [1, 3]
+    #fix_idx = np.concatenate((np.arange(0,60),np.arange(120,180)))
+    #jitter_idx = np.concatenate((np.arange(60,120),np.arange(180,240)))
+    jitter_idx = np.concatenate((np.arange(0,60),np.arange(120,180)))
+    fix_idx = np.concatenate((np.arange(60,120),np.arange(180,240)))
+    #jitter_idx = np.array([0, 2], dtype='int32')
+    #fix_idx = np.array([1, 3], dtype='int32')
+    #jitter_idx = np.array([1, 3], dtype='int32')
+    #fix_idx = np.array([0, 2], dtype='int32')
     # find grating response.
     response_fix, grating_fix = get_stim_response(
         neural_trial, ch, fix_idx, l_frames, r_frames)
@@ -84,7 +90,7 @@ def plot_fig3(
                 mean_fix = np.mean(response_fix[:,idx,:], axis=0)
                 for k in range(len(grating_fix)-1):
                     axs[i,j].fill_between(
-                        [t[k], t[k+1]], 0.02, 0.06,
+                        [t[k], t[k+1]], 0.0, 0.1,
                         color='lightgrey' if grating_fix[k] == 1 else 'white',
                         label='fixed grating')
                 axs[i,j].plot(
@@ -103,7 +109,7 @@ def plot_fig3(
                 axs[i,j].set_xlabel('frames since stimulus')
                 axs[i,j].set_ylabel('response')
                 axs[i,j].set_xlim([-l_frames, r_frames])
-                axs[i,j].set_ylim([0.02, 0.06])
+                axs[i,j].set_ylim([0.0, 0.1])
                 axs[i,j].set_title('neuron # {}'.format(idx))
         handles, labels = axs[i,j].get_legend_handles_labels()
         fig.legend(handles[-3:], labels[-3:], loc='upper right')

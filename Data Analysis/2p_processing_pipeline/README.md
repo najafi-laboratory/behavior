@@ -20,3 +20,6 @@
 - Plot grand average across stimulus and neurons completed.
 - Rewrite code for getting mean images after registration.
 - Add argparse support for specifying paths.
+
+## 2024.01.28
+- Plot omission alignment and trial average completed.

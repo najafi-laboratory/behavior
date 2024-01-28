@@ -10,13 +10,15 @@ from modules import RetrieveResults
 def plot_fig2(
         ops,
         ch = 'fluo_ch2',
-        trial = 1,
+        trial = 3,
         num = 20,
-        start = 1000,
+        start = 0,
         length = 1000,
         ):
     # read channel signal.
     [neural_trial, _] = RetrieveResults.run(ops)
+    if len(neural_trial[str(trial)]['time']) < length:
+        length = -1
     fluo = neural_trial[str(trial)][ch][0:num, start:start+length]
     time = neural_trial[str(trial)]['time'][start:start+length]
     stim = neural_trial[str(trial)]['stim'][start:start+length]

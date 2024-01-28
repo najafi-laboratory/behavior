@@ -15,6 +15,7 @@ from plot.fig1_mask import plot_fig1
 from plot.fig2_traces import plot_fig2
 from plot.fig3_align_grating import plot_fig3
 from plot.fig4_mean_jitter_fixed import plot_fig4
+from plot.fig5_align_task import plot_fig5
 
 
 if __name__ == "__main__":
@@ -74,6 +75,7 @@ if __name__ == "__main__":
         plot_fig2(ops)
         plot_fig3(ops)
         plot_fig4(ops)
+        plot_fig5(ops)
         
         
         
