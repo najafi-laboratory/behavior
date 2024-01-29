@@ -9,6 +9,7 @@ from suite2p.io import BinaryFile
 
 
 # make new file to save registered data.
+
 def create_file_to_reg(
         ops,
         ch1_data,
@@ -33,6 +34,7 @@ def create_file_to_reg(
 
 
 # compute max proj image.
+
 def get_proj_img(
         f_reg_ch1,
         f_reg_ch2
@@ -43,6 +45,7 @@ def get_proj_img(
 
 
 # save the mean and max image to h5 file in temp.
+
 def save_proj_img(
         ops,
         reg_ref,
@@ -69,14 +72,18 @@ def save_proj_img(
 
 
 # main function for registration.
+
 def run(ops, ch1_data, ch2_data):
+    
     print('===============================================')
     print('============= registering imaging =============')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
     # create registration files.
     f_reg_ch1, f_reg_ch2 = create_file_to_reg(ops, ch1_data, ch2_data)
     print('Registered channel files created in {}.'.format(ops['save_path0']))
+    
     # suite2p registration.
     # reference image computation included.
     # motion correction included.
@@ -87,9 +94,11 @@ def run(ops, ch1_data, ch2_data):
         f_raw_chan2=ch2_data,
         ops=ops)
     print('Registration completed.')
+    
     # compute mean and max projection image.
     print('Computing max projection images.')
     max_ch1, max_ch2 = get_proj_img(f_reg_ch1, f_reg_ch2)
+    
     # save projection and reference images.
     save_proj_img(
         ops,
@@ -97,5 +106,6 @@ def run(ops, ch1_data, ch2_data):
         mean_ch1, mean_ch2,
         max_ch1,  max_ch2)
     print('Projected images saved.')
+    
     return [f_reg_ch1, f_reg_ch2]
 

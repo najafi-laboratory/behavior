@@ -10,6 +10,7 @@ from suite2p.extraction import oasis
 
 
 # extract fluorescence signals from masks given as stat file.
+
 def get_fluorescence(
         ops,
         stat,
@@ -25,6 +26,7 @@ def get_fluorescence(
 
 
 # process the fluorescence signals.
+
 def normalization(
         ops,
         F,
@@ -33,8 +35,8 @@ def normalization(
     # correct with neuropil signals.
     fluo = F.copy() - ops['neucoeff']*Fneu
     # normalize into 0-1.
-    fluo = (fluo - np.min(fluo, axis=1).reshape(-1,1)) / (
-        np.max(fluo, axis=1).reshape(-1,1) - np.min(fluo, axis=1).reshape(-1,1))
+    # fluo = (fluo - np.min(fluo, axis=1).reshape(-1,1)) / (
+    #   np.max(fluo, axis=1).reshape(-1,1) - np.min(fluo, axis=1).reshape(-1,1))
     # baseline subtraction with window to compute df/f.
     fluo = preprocess(
             F=fluo,
@@ -48,6 +50,7 @@ def normalization(
 
 
 # compute moving average to reduce noise.
+
 def moving_average(
         fluo,
         win
@@ -58,6 +61,7 @@ def moving_average(
 
 
 # run spike detection on fluorescence signals.
+
 def spike_detect(
         ops,
         fluo
@@ -71,6 +75,7 @@ def spike_detect(
 
 
 # save the trace data.
+
 def save_traces(
         ops,
         fluo_ch1, mean_fluo_ch1, spikes_ch1,
@@ -98,11 +103,13 @@ def save_traces(
 
 
 # main function for fluorescence signal extraction from ROIs.
+
 def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
     print('===============================================')
     print('======= extracting fluorescence signals =======')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
     [stat,
      F_ch1, Fneu_ch1,
      F_ch2, Fneu_ch2] = get_fluorescence(
@@ -111,17 +118,21 @@ def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
          f_reg_ch1,
          f_reg_ch2)
     print('Fluorescence extraction completed')
+    
     fluo_ch1 = normalization(ops, F_ch1, Fneu_ch1)
     fluo_ch2 = normalization(ops, F_ch2, Fneu_ch2)
     mean_fluo_ch1 = moving_average(fluo_ch1, ops['average_window'])
     mean_fluo_ch2 = moving_average(fluo_ch2, ops['average_window'])
     print('Signal normalization completed')
+    
     spikes_ch1 = spike_detect(ops, mean_fluo_ch1)
     spikes_ch2 = spike_detect(ops, mean_fluo_ch2)
     print('Spike deconvolution completed')
+    
     save_traces(ops,
         fluo_ch1, mean_fluo_ch1, spikes_ch1,
         fluo_ch2, mean_fluo_ch2, spikes_ch2)
     print('Traces data saved')
+    
     return []
 

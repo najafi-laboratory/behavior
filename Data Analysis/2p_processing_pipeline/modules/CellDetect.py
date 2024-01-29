@@ -11,6 +11,7 @@ from suite2p.detection import roi_stats
 
 
 # read the projection images.
+
 def read_proj_img(
         ops
         ):
@@ -25,6 +26,7 @@ def read_proj_img(
 
 
 # run cellpose on one image for cell detection and save the results.
+
 def cellpose_eval(
         mean_img,
         file_names,
@@ -53,6 +55,7 @@ def cellpose_eval(
 
 
 # run cellpose on mean channel image and reference image.
+
 def get_mask(
         ops,
         proj_img
@@ -74,6 +77,7 @@ def get_mask(
 
 # reconstruct stat file for suite2p from mask.
 # https://github.com/MouseLand/suite2p/issues/292.
+
 def get_stat(
         ops,
         masks
@@ -95,6 +99,7 @@ def get_stat(
 
 
 # save the mask results.
+
 def save_mask(
         ops,
         proj_img,
@@ -136,21 +141,27 @@ def save_mask(
 
 
 # main function for cell detection as ROIs.
+
 def run(ops):
     print('===============================================')
     print('============== detecting neurons ==============')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
     proj_img = read_proj_img(ops)
+    
     restuls_ref, restuls_ch1, restuls_ch2 = get_mask(ops, proj_img)
     print('Running cellpose completed')
+    
     save_mask(ops, proj_img, restuls_ref, restuls_ch1, restuls_ch2)
     print('Mask result saved')
+    
     stat_ref = get_stat(ops, restuls_ref['masks'])
     stat_ch1 = get_stat(ops, restuls_ch1['masks'])
     stat_ch2 = get_stat(ops, restuls_ch2['masks'])
     print('Found {} cells in reference image'.format(len(stat_ref)))
     print('Found {} cells in channel 1 mean image'.format(len(stat_ch1)))
     print('Found {} cells in channel 2 mean image'.format(len(stat_ch2)))
+    
     return [stat_ref, stat_ch1, stat_ch2]
 

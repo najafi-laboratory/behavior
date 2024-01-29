@@ -25,7 +25,7 @@
 	"FileInput" : {
 		"data_path": "./testdata",
 		"fast_disk": [],
-		"delete_bin": false,
+		"delete_bin": true,
 		"mesoscan": false,
 		"bruker": true,
 		"bruker_bidirectional": false,

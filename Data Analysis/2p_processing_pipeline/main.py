@@ -12,23 +12,22 @@ from modules import SyncSignal
 from modules import RetrieveResults
 
 from plot.fig1_mask import plot_fig1
-from plot.fig2_traces import plot_fig2
-from plot.fig3_align_grating import plot_fig3
-from plot.fig4_mean_jitter_fixed import plot_fig4
-from plot.fig5_align_task import plot_fig5
+from plot.fig2_stim_distribution import plot_fig2
+from plot.fig3_raw_traces import plot_fig3
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='I Love Yicong Forever.')
-    parser.add_argument('-Reg',  '--run_Registration',    type=bool, default=True, help='Whether run the registration module.')
-    parser.add_argument('-Cell', '--run_CellDetect',      type=bool, default=True, help='Whether run the cell detection module.')
-    parser.add_argument('-Ext',  '--run_Extraction',      type=bool, default=True, help='Whether run the signal extraction module.')
-    parser.add_argument('-Syn',  '--run_SyncSignal',      type=bool, default=True, help='Whether run the synchronization module.')
-    parser.add_argument('-Ret',  '--run_RetrieveResults', type=bool, default=True, help='Whether run the data retrieval module.')
-    parser.add_argument('-Plot', '--run_Plotter',         type=bool, default=True, help='Whether plot the results.')
-    parser.add_argument('-data', '--data_path',  required=True, type=str, help='Path to the 2P imaging data.')
-    parser.add_argument('-save', '--save_path0', required=True, type=str, help='Path to save the results.')
+    parser.add_argument('--run_Registration',    type=bool, default=True, help='Whether run the registration module.')
+    parser.add_argument('--run_CellDetect',      type=bool, default=True, help='Whether run the cell detection module.')
+    parser.add_argument('--run_Extraction',      type=bool, default=True, help='Whether run the signal extraction module.')
+    parser.add_argument('--run_SyncSignal',      type=bool, default=True, help='Whether run the synchronization module.')
+    parser.add_argument('--run_RetrieveResults', type=bool, default=True, help='Whether run the data retrieval module.')
+    parser.add_argument('--run_Plotter',         type=bool, default=True, help='Whether plot the results.')
+    parser.add_argument('--data_path',       required=True, type=str, help='Path to the 2P imaging data.')
+    parser.add_argument('--save_path0',      required=True, type=str, help='Path to save the results.')
+    parser.add_argument('--functional_chan', required=True, type=int, help='Specify functional channel id.')
     args = parser.parse_args()
     
     # parameters.
@@ -74,8 +73,7 @@ if __name__ == "__main__":
         plot_fig1(ops)
         plot_fig2(ops)
         plot_fig3(ops)
-        plot_fig4(ops)
-        plot_fig5(ops)
+
         
         
         

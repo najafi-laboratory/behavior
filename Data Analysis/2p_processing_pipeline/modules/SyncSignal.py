@@ -7,6 +7,7 @@ from datetime import datetime
 
 
 # read raw traces.
+
 def read_traces(
         ops
         ):
@@ -21,6 +22,7 @@ def read_traces(
 
 
 # threshold the continuous voltage recordings to 01 series.
+
 def thres_binary(
         data,
         thres
@@ -32,6 +34,7 @@ def thres_binary(
 
 
 # convert all voltage recordings to binary series.
+
 def vol_to_binary(
         vol_start,
         vol_stim,
@@ -44,6 +47,7 @@ def vol_to_binary(
 
 
 # detect the rising edge and falling edge of binary series.
+
 def get_trigger_time(
         time,
         vol_bin
@@ -60,6 +64,7 @@ def get_trigger_time(
 
 
 # correct the fluorescence signal timing.
+
 def correct_time_img_center(time_img):
     # find the frame internal.
     diff_time_img = np.diff(time_img, append=0)
@@ -73,6 +78,7 @@ def correct_time_img_center(time_img):
     
 
 # align the stimulus sequence with fluorescence signal.
+
 def align_stim(
         time,
         time_neuro,
@@ -98,6 +104,7 @@ def align_stim(
 
 
 # process trial start signal.
+
 def get_trial_start_end(
         time_start
         ):
@@ -113,6 +120,7 @@ def get_trial_start_end(
 
 
 # trial segmentation.
+
 def trial_split(
         traces,
         stim,
@@ -135,6 +143,7 @@ def trial_split(
 
 
 # save final neural data.
+
 def save_trials(
         ops,
         traces,
@@ -177,6 +186,7 @@ def save_trials(
 
 
 # main function for series alignment and trial segmentation.
+
 def run(
         ops,
         time,
@@ -186,24 +196,30 @@ def run(
     print('===== reconstructing synchronized signals =====')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
     # read the raw traces.
     print('Loading traces data')
     traces = read_traces(ops)
+    
     # process the voltage recordings.
     print('Comnputing signal trigger time stamps')
     vol_start_bin, vol_stim_bin, vol_img_bin = vol_to_binary(
         vol_start, vol_stim, vol_img)
     time_img, _   = get_trigger_time(time, vol_img_bin)
     time_start, _ = get_trigger_time(time, vol_start_bin)
+    
     # correct imaging timing
     time_neuro = correct_time_img_center(time_img)
+    
     # stimulus alignment.
     print('Aligning stimulus input')
     stim = align_stim(time, time_neuro, vol_stim_bin)
+    
     # trial segmentation.
     print('Spliting trial data')
     start, end = get_trial_start_end(time_start)
     neural_trial = trial_split(traces, stim, time_neuro, start, end)
+    
     # save the final data.
     print('Merging obtained trial data')
     save_trials(
@@ -212,6 +228,7 @@ def run(
         vol_start_bin, vol_stim_bin, vol_img_bin,
         neural_trial)
     print('Trial data saved')
+    
     return []
 
 

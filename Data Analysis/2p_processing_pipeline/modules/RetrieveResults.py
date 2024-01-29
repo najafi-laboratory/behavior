@@ -44,10 +44,7 @@ def read_mask(ops):
 
 # main function to read completed results.
 def run(ops):
-    print('===============================================')
-    print('======= read saved trial data and masks =======')
-    print('===============================================')
-    # ops = read_ops('FN8_PPC_011824')
+    # ops = read_ops('FN8_PPC_121923')
     neural_trial = read_neural_trial(ops)
     mask = read_mask(ops)
     return [neural_trial, mask]

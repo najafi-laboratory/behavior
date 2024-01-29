@@ -9,6 +9,7 @@ from datetime import datetime
 
 
 # find the target filenames in ops['data_path'].
+
 def list_filenames(
         ops
         ):
@@ -29,6 +30,7 @@ def list_filenames(
 
 
 # read the tif files given the filename list.
+
 def read_tif_to_np(
         ops,
         ch_files
@@ -49,6 +51,7 @@ def read_tif_to_np(
 
 
 # read the voltage recording file.
+
 def read_vol_to_np(
         ops,
         vol_record
@@ -69,21 +72,28 @@ def read_vol_to_np(
 
 
 # main function for reading the data.
+
 def run(ops):
+    
     print('===============================================')
     print('========== read and merge video data ==========')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
     ch1_files, ch2_files, vol_record = list_filenames(ops)
     print('Found {} files for channel 1.'.format(len(ch1_files)))
     print('Found {} files for channel 2.'.format(len(ch2_files)))
+    
     print('Reading channel 1 data.')
     print(ch1_files)
     ch1_data = read_tif_to_np(ops, ch1_files)
+    
     print('Reading channel 2 data.')
     print(ch2_files)
     ch2_data = read_tif_to_np(ops, ch2_files)
+    
     print('Reading voltage recordings.')
     time, vol_start, vol_stim, vol_img = read_vol_to_np(ops, vol_record)
+    
     return [ch1_data, ch2_data,
             time, vol_start, vol_stim, vol_img]
