@@ -64,11 +64,11 @@ def read_vol_to_np(
     # column 2: stimulus signal from photodiode.
     # column 3: BNC2 not in use.
     # column 4: image trigger signal from 2p scope camera.
-    time      = df_vol.iloc[:,0].to_numpy()
+    vol_time  = df_vol.iloc[:,0].to_numpy()
     vol_start = df_vol.iloc[:,1].to_numpy()
     vol_stim  = df_vol.iloc[:,2].to_numpy()
     vol_img   = df_vol.iloc[:,4].to_numpy()
-    return time, vol_start, vol_stim, vol_img
+    return vol_time, vol_start, vol_stim, vol_img
 
 
 # main function for reading the data.
@@ -93,7 +93,7 @@ def run(ops):
     ch2_data = read_tif_to_np(ops, ch2_files)
     
     print('Reading voltage recordings.')
-    time, vol_start, vol_stim, vol_img = read_vol_to_np(ops, vol_record)
+    vol_time, vol_start, vol_stim, vol_img = read_vol_to_np(ops, vol_record)
     
     return [ch1_data, ch2_data,
-            time, vol_start, vol_stim, vol_img]
+            vol_time, vol_start, vol_stim, vol_img]

@@ -30,12 +30,14 @@ def matrix_to_img(
         img[img > 1] = 255
     else:
         img = adjust_contrast(img)
+    img = img.astype('uint8')
     return img
 
 
 # main function for plot
 
 def plot_fig1(ops):
+    print('plotting fig1 mean images and masks by cellpose')
     
     # read mask from in save_path0 in ops.
     [_, mask] = RetrieveResults.run(ops)
@@ -61,8 +63,11 @@ def plot_fig1(ops):
     anat_masks_img = matrix_to_img(anat_masks, [0], True)
     # channel shared masks.
     shared_masks_img = func_masks_img + anat_masks_img
-    # reference image masks in white.
-    ref_masks_img = matrix_to_img(ref_masks, [0,1,2], True)
+    # reference image masks.
+    ref_masks_img = np.zeros((ref_masks.shape[0], ref_masks.shape[1], 3))
+    ref_masks_img[:,:,0] = (ref_masks != 0) * anat_masks_img[:,:,0]
+    ref_masks_img[:,:,1] = (ref_masks != 0) * func_masks_img[:,:,1]
+    ref_masks_img = ref_masks_img.astype('uint8')
     
     # plot figs.
     fig, axs = plt.subplots(2, 4, figsize=(16, 8))

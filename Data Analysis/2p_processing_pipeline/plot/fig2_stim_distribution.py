@@ -28,9 +28,9 @@ def read_stim(
 # compute duration of sequence.
 
 def frame_dur(stim, time):
-    diff_stim = np.diff(stim, append=0)
-    idx_up   = np.where(diff_stim == 1)[0]+1
-    idx_down = np.where(diff_stim == -1)[0]+1
+    diff_stim = np.diff(stim, prepend=0)
+    idx_up   = np.where(diff_stim == 1)[0]
+    idx_down = np.where(diff_stim == -1)[0]
     dur_high = time[idx_down] - time[idx_up]
     dur_low  = time[idx_up[1:]] - time[idx_down[:-1]]
     return [dur_high, dur_low]
@@ -42,6 +42,7 @@ def plot_fig2(
         ops,
         bins=100,
         ):
+    print('plotting fig2 stimulus interval distribution')
     
     # read stimulus sequence.
     [stim_vol, time_vol, stim_align, time_align] = read_stim(ops)

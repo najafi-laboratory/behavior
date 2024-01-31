@@ -49,17 +49,17 @@ def vol_to_binary(
 # detect the rising edge and falling edge of binary series.
 
 def get_trigger_time(
-        time,
+        vol_time,
         vol_bin
         ):
-    # find the edge with np.diff and correct it by 1.
-    diff_vol = np.diff(vol_bin, append=0)
-    idx_up = np.where(diff_vol == 1)[0]+1
-    idx_down = np.where(diff_vol == -1)[0]+1
+    # find the edge with np.diff and correct it by preappend one 0.
+    diff_vol = np.diff(vol_bin, prepend=0)
+    idx_up = np.where(diff_vol == 1)[0]
+    idx_down = np.where(diff_vol == -1)[0]
     # select the indice for risging and falling.
     # give the edges in ms.
-    time_up = time[idx_up]
-    time_down = time[idx_down]
+    time_up   = vol_time[idx_up]
+    time_down = vol_time[idx_down]
     return time_up, time_down
 
 
@@ -80,13 +80,13 @@ def correct_time_img_center(time_img):
 # align the stimulus sequence with fluorescence signal.
 
 def align_stim(
-        time,
+        vol_time,
         time_neuro,
         vol_stim_bin,
         ):
     # find the rising and falling time of stimulus.
     stim_time_up, stim_time_down = get_trigger_time(
-        time, vol_stim_bin)
+        vol_time, vol_stim_bin)
     # assign the start and end time to fluorescence frames.
     stim_start = []
     stim_end = []
@@ -147,11 +147,12 @@ def trial_split(
 def save_trials(
         ops,
         traces,
-        vol_start_bin, vol_stim_bin, vol_img_bin,
+        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin,
         neural_trial
         ):
     # file structure:
     # -- raw
+    # ---- vol_time
     # ---- vol_start_bin
     # ---- vol_stim_bin
     # ---- vol_img_bin
@@ -173,9 +174,10 @@ def save_trials(
     f = h5py.File(os.path.join(
         ops['save_path0'], 'neural_trial.h5'), 'w')
     raw_g = f.create_group('raw')
+    raw_g['vol_time']      = vol_time
     raw_g['vol_start_bin'] = vol_start_bin
-    raw_g['vol_stim_bin'] = vol_stim_bin
-    raw_g['vol_img_bin'] = vol_img_bin
+    raw_g['vol_stim_bin']  = vol_stim_bin
+    raw_g['vol_img_bin']   = vol_img_bin
     for k in traces.keys():
         raw_g[k] = traces[k]
     for trial in range(len(neural_trial)):
@@ -189,7 +191,7 @@ def save_trials(
 
 def run(
         ops,
-        time,
+        vol_time,
         vol_start, vol_stim, vol_img,
         ):
     print('===============================================')
@@ -205,15 +207,15 @@ def run(
     print('Comnputing signal trigger time stamps')
     vol_start_bin, vol_stim_bin, vol_img_bin = vol_to_binary(
         vol_start, vol_stim, vol_img)
-    time_img, _   = get_trigger_time(time, vol_img_bin)
-    time_start, _ = get_trigger_time(time, vol_start_bin)
+    time_img, _   = get_trigger_time(vol_time, vol_img_bin)
+    time_start, _ = get_trigger_time(vol_time, vol_start_bin)
     
     # correct imaging timing
     time_neuro = correct_time_img_center(time_img)
     
     # stimulus alignment.
     print('Aligning stimulus input')
-    stim = align_stim(time, time_neuro, vol_stim_bin)
+    stim = align_stim(vol_time, time_neuro, vol_stim_bin)
     
     # trial segmentation.
     print('Spliting trial data')
@@ -225,7 +227,7 @@ def run(
     save_trials(
         ops,
         traces,
-        vol_start_bin, vol_stim_bin, vol_img_bin,
+        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin,
         neural_trial)
     print('Trial data saved')
     

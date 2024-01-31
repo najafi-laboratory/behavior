@@ -31,16 +31,30 @@ def cellpose_eval(
         mean_img,
         file_names,
         model_type='cyto',
-        diameter=None,
         ):
     # initialize cellpose pretrained model.
     model = models.Cellpose(model_type=model_type)
-    # run cellpose on the given image with the shape of Lx*Ly.
-    masks, flows, styles, diams = model.eval(
-        mean_img,
-        diameter=diameter,
-        channels=[[0,0]],
-        channel_axis=0)
+    # initialize candidate diameters and lists.
+    diameter_list = [None, 4, 8, 16, 32]
+    results_list = []
+    num_list = []
+    # search all diameters and collect results.
+    for diameter in diameter_list:
+        # run cellpose on the given image with the shape of Lx*Ly.
+        masks, flows, styles, diams = model.eval(
+            mean_img,
+            diameter=diameter,
+            channels=[[0,0]],
+            channel_axis=0)
+        num = len(np.unique(masks))-1
+        results_list.append([masks, flows, styles, diams])
+        num_list.append(num)
+        print('Found {} cells with diameter {}'.format(num, diameter))
+    # find the result gives the most neurons.
+    idx = np.argmax(num_list)
+    masks, flows, styles, diams = results_list[idx]
+    print('Save results with {} cells with diameter {}'.format(
+        num_list[idx], diams))
     # extract cell outlines.
     outlines = masks_to_outlines(masks)
     # save cell segmentation to file XXX_seg.npy.
@@ -61,14 +75,17 @@ def get_mask(
         proj_img
         ):
     # reference image.
+    print('Running cellpose on reference image')
     restuls_ref = cellpose_eval(
         proj_img['reg_ref'],
         os.path.join(ops['save_path0'], 'temp', 'mask_ref'))
     # ch1 mean image.
+    print('Running cellpose on ch1 mean image')
     restuls_ch1 = cellpose_eval(
         proj_img['mean_ch1'],
         os.path.join(ops['save_path0'], 'temp', 'mask_ch1'))
     # ch2 mean image.
+    print('Running cellpose on ch2 mean image')
     restuls_ch2 = cellpose_eval(
         proj_img['mean_ch2'],
         os.path.join(ops['save_path0'], 'temp', 'mask_ch2'))

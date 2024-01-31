@@ -14,6 +14,8 @@ from modules import RetrieveResults
 from plot.fig1_mask import plot_fig1
 from plot.fig2_stim_distribution import plot_fig2
 from plot.fig3_raw_traces import plot_fig3
+from plot.fig4_align_grating import plot_fig4
+from plot.fig5_align_error import plot_fig5
 
 
 if __name__ == "__main__":
@@ -36,7 +38,7 @@ if __name__ == "__main__":
     # registration.
     if args.run_Registration:
         [ch1_data, ch2_data,
-         time,
+         vol_time,
          vol_start, vol_stim, vol_img] = DataIO.run(
              ops)
         [f_reg_ch1, f_reg_ch2] = Registration.run(
@@ -60,7 +62,7 @@ if __name__ == "__main__":
     if args.run_SyncSignal:
         [] = SyncSignal.run(
             ops,
-            time,
+            vol_time,
             vol_start, vol_stim, vol_img)
     
     # read processed data.
@@ -73,8 +75,8 @@ if __name__ == "__main__":
         plot_fig1(ops)
         plot_fig2(ops)
         plot_fig3(ops)
-
-        
+        plot_fig4(ops)
+        plot_fig5(ops)
         
         
         

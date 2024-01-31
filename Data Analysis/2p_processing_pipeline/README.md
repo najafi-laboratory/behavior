@@ -29,3 +29,14 @@
 - Plot interval distribution completed.
 - Plot mean raw traces completed.
 - Added args support for specifying channels.
+
+## 2024.01.31
+- Cellpose detection researches different diameters to find the most neurons.
+- Find rising and dropping edges changed to pre-append one 0 and same indice.
+- Plot reference masks with channel colors.
+- Adjusted line weight and scale for raw traces plot.
+- Added a tentative function to hard code trial types via variance detection.
+- Save voltage timestamps into the output file.
+- Plot grating alignment completed.
+- Plot omission alignment average completed.
+- Plot pre-post alignment average completed.
