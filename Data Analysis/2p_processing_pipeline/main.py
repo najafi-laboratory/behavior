@@ -31,10 +31,10 @@ if __name__ == "__main__":
     parser.add_argument('--save_path0',      required=True, type=str, help='Path to save the results.')
     parser.add_argument('--functional_chan', required=True, type=int, help='Specify functional channel id.')
     args = parser.parse_args()
-    
+
     # parameters.
     ops = Params.run(args)
-    
+
     # registration.
     if args.run_Registration:
         [ch1_data, ch2_data,
@@ -44,12 +44,12 @@ if __name__ == "__main__":
         [f_reg_ch1, f_reg_ch2] = Registration.run(
              ops,
              ch1_data, ch2_data)
-    
+
     # ROI detection.
     if args.run_CellDetect:
         [stat_ref, _, _] = CellDetect.run(
              ops)
-    
+
     # Signal extraction.
     if args.run_Extraction:
         [] = Extraction.run(
@@ -57,14 +57,14 @@ if __name__ == "__main__":
              stat_ref,
              f_reg_ch1,
              f_reg_ch2)
-    
+
     # Synchronized signals.
     if args.run_SyncSignal:
         [] = SyncSignal.run(
             ops,
             vol_time,
             vol_start, vol_stim, vol_img)
-    
+
     # read processed data.
     if args.run_RetrieveResults:
         [neural_trial, mask] = RetrieveResults.run(
@@ -77,6 +77,5 @@ if __name__ == "__main__":
         plot_fig3(ops)
         plot_fig4(ops)
         plot_fig5(ops)
-        
-        
-        
+
+

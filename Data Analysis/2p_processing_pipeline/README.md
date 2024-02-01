@@ -40,3 +40,6 @@
 - Plot grating alignment completed.
 - Plot omission alignment average completed.
 - Plot pre-post alignment average completed.
+
+## 2024.02.01
+- Added error handling for data without voltage input.

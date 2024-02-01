@@ -75,7 +75,7 @@ def correct_time_img_center(time_img):
     # correct each individual timing.
     time_neuro = time_img + diff_time_img
     return time_neuro
-    
+
 
 # align the stimulus sequence with fluorescence signal.
 
@@ -142,13 +142,12 @@ def trial_split(
     return neural_trial
 
 
-# save final neural data.
+# save neural data.
 
-def save_trials(
+def save_raw(
         ops,
         traces,
         vol_time, vol_start_bin, vol_stim_bin, vol_img_bin,
-        neural_trial
         ):
     # file structure:
     # -- raw
@@ -162,6 +161,25 @@ def save_trials(
     # ---- mean_fluo_ch2
     # ---- spikes_ch1
     # ---- spikes_ch2
+    f = h5py.File(os.path.join(
+        ops['save_path0'], 'neural_trial.h5'), 'w')
+    raw_g = f.create_group('raw')
+    raw_g['vol_time']      = vol_time
+    raw_g['vol_start_bin'] = vol_start_bin
+    raw_g['vol_stim_bin']  = vol_stim_bin
+    raw_g['vol_img_bin']   = vol_img_bin
+    for k in traces.keys():
+        raw_g[k] = traces[k]
+    f.close()
+
+
+# save trial neural data.
+
+def save_trials(
+        ops,
+        neural_trial
+        ):
+    # file structure:
     # -- 1
     # ---- fluo_ch1
     # ---- fluo_ch2
@@ -173,13 +191,6 @@ def save_trials(
     # ...
     f = h5py.File(os.path.join(
         ops['save_path0'], 'neural_trial.h5'), 'w')
-    raw_g = f.create_group('raw')
-    raw_g['vol_time']      = vol_time
-    raw_g['vol_start_bin'] = vol_start_bin
-    raw_g['vol_stim_bin']  = vol_stim_bin
-    raw_g['vol_img_bin']   = vol_img_bin
-    for k in traces.keys():
-        raw_g[k] = traces[k]
     for trial in range(len(neural_trial)):
         trial_group = f.create_group(str(trial))
         for k in neural_trial[str(trial)].keys():
@@ -198,39 +209,47 @@ def run(
     print('===== reconstructing synchronized signals =====')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    
+
     # read the raw traces.
     print('Loading traces data')
     traces = read_traces(ops)
-    
+
     # process the voltage recordings.
-    print('Comnputing signal trigger time stamps')
     vol_start_bin, vol_stim_bin, vol_img_bin = vol_to_binary(
         vol_start, vol_stim, vol_img)
-    time_img, _   = get_trigger_time(vol_time, vol_img_bin)
-    time_start, _ = get_trigger_time(vol_time, vol_start_bin)
-    
-    # correct imaging timing
-    time_neuro = correct_time_img_center(time_img)
-    
-    # stimulus alignment.
-    print('Aligning stimulus input')
-    stim = align_stim(vol_time, time_neuro, vol_stim_bin)
-    
-    # trial segmentation.
-    print('Spliting trial data')
-    start, end = get_trial_start_end(time_start)
-    neural_trial = trial_split(traces, stim, time_neuro, start, end)
-    
-    # save the final data.
-    print('Merging obtained trial data')
-    save_trials(
-        ops,
-        traces,
-        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin,
-        neural_trial)
-    print('Trial data saved')
-    
+    save_raw(
+        ops, traces,
+        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin)
+
+    try:
+
+        print('Comnputing signal trigger time stamps')
+        time_img, _   = get_trigger_time(vol_time, vol_img_bin)
+        time_start, _ = get_trigger_time(vol_time, vol_start_bin)
+
+        # correct imaging timing
+        time_neuro = correct_time_img_center(time_img)
+
+        # stimulus alignment.
+        print('Aligning stimulus input')
+        stim = align_stim(vol_time, time_neuro, vol_stim_bin)
+
+        # trial segmentation.
+        print('Spliting trial data')
+        start, end = get_trial_start_end(time_start)
+        neural_trial = trial_split(traces, stim, time_neuro, start, end)
+
+        # save the final data.
+        print('Merging obtained trial data')
+        save_trials(
+            ops,
+            neural_trial)
+        print('Trial data saved')
+
+    except:
+
+        print('Trialize data failed due to voltage recordings issue')
+
     return []
 
 

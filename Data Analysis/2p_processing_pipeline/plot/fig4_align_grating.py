@@ -95,95 +95,99 @@ def plot_fig4(
         r_frames = 30,
         ):
     print('plotting fig4 grating aligned traces')
-    [neural_trial, _] = RetrieveResults.run(ops)
-    ch = 'fluo_ch'+str(ops['functional_chan'])
-    
-    # find trial id for jitter and fix.
-    fix_idx = np.where(neural_trial['trial_type']==2)[0]
-    jitter_idx = np.where(neural_trial['trial_type']==1)[0]
-    
-    # fix data
-    [fix_neu_seq,  fix_neu_time,
-     fix_stim_vol, fix_stim_time] = get_stim_response(
-        neural_trial, ch, fix_idx, l_frames, r_frames)
-    # jitter data
-    [jitter_neu_seq,  jitter_neu_time,
-     jitter_stim_vol, jitter_stim_time] = get_stim_response(
-        neural_trial, ch, jitter_idx, l_frames, r_frames)
+    try:
+        [neural_trial, _] = RetrieveResults.run(ops)
+        ch = 'fluo_ch'+str(ops['functional_chan'])
 
-    # plot signals.
-    num_subplots = fix_neu_seq.shape[1] + 1
-    fig, axs = plt.subplots(num_subplots, 1, figsize=(20, 10))
-    plt.subplots_adjust(hspace=1.2)
-    
-    # mean response.
-    axs[0].plot(
-        fix_stim_time,
-        norm(fix_stim_vol),
-        color='grey',
-        label='fix stim')
-    axs[0].plot(
-        fix_neu_time,
-        norm(np.mean(np.mean(fix_neu_seq, axis=0), axis=0)),
-        color='springgreen',
-        marker='.',
-        markersize=5,
-        label='fix')
-    axs[0].plot(
-        jitter_neu_time,
-        norm(np.mean(np.mean(jitter_neu_seq, axis=0), axis=0)),
-        color='violet',
-        marker='.',
-        markersize=5,
-        label='jitter')
-    axs[0].set_title(
-        'grating average trace of {} neurons'.format(
-        fix_neu_seq.shape[1]))
-    
-    # individual neuron response.
-    for i in range(fix_neu_seq.shape[1]):
-        axs[i+1].plot(
+        # find trial id for jitter and fix.
+        fix_idx = np.where(neural_trial['trial_type']==2)[0]
+        jitter_idx = np.where(neural_trial['trial_type']==1)[0]
+
+        # fix data
+        [fix_neu_seq,  fix_neu_time,
+         fix_stim_vol, fix_stim_time] = get_stim_response(
+            neural_trial, ch, fix_idx, l_frames, r_frames)
+        # jitter data
+        [jitter_neu_seq,  jitter_neu_time,
+         jitter_stim_vol, jitter_stim_time] = get_stim_response(
+            neural_trial, ch, jitter_idx, l_frames, r_frames)
+
+        # plot signals.
+        num_subplots = fix_neu_seq.shape[1] + 1
+        fig, axs = plt.subplots(num_subplots, 1, figsize=(20, 10))
+        plt.subplots_adjust(hspace=1.2)
+
+        # mean response.
+        axs[0].plot(
             fix_stim_time,
             norm(fix_stim_vol),
             color='grey',
             label='fix stim')
-        axs[i+1].plot(
+        axs[0].plot(
             fix_neu_time,
-            norm(np.mean(fix_neu_seq[:,i,:], axis=0)),
-            color='dodgerblue',
+            norm(np.mean(np.mean(fix_neu_seq, axis=0), axis=0)),
+            color='springgreen',
             marker='.',
             markersize=5,
             label='fix')
-        axs[i+1].plot(
+        axs[0].plot(
             jitter_neu_time,
-            norm(np.mean(jitter_neu_seq[:,i,:], axis=0)),
-            color='coral',
+            norm(np.mean(np.mean(jitter_neu_seq, axis=0), axis=0)),
+            color='violet',
             marker='.',
             markersize=5,
             label='jitter')
-        axs[i+1].set_title(
-            'grating average trace of neuron # '+ str(i).zfill(3))
-        
-    # adjust layout.
-    for i in range(num_subplots):
-        axs[i].tick_params(axis='y', tick1On=False)
-        axs[i].spines['left'].set_visible(False)
-        axs[i].spines['right'].set_visible(False)
-        axs[i].spines['top'].set_visible(False)
-        axs[i].set_xlabel('time / ms')
-        axs[i].set_xlabel('time since center grating start / ms')
-        axs[i].set_ylabel('response')
-        axs[i].set_xlim([np.min(fix_stim_time), np.max(fix_stim_time)])
-        axs[i].set_ylim([0, 1])
-        axs[i].set_yticks([])
-    handles1, labels1 = axs[0].get_legend_handles_labels()
-    handles2, labels2 = axs[-1].get_legend_handles_labels()
-    fig.legend(handles1+handles2[1:], labels1+labels2[1:], loc='upper right')
-    fig.set_size_inches(8, num_subplots*4)
-    fig.tight_layout()
-    
-    # save figure
-    fig.savefig(os.path.join(
-        ops['save_path0'], 'figures', 'fig4_align_grating.pdf'),
-        dpi=300)
-    plt.close()
+        axs[0].set_title(
+            'grating average trace of {} neurons'.format(
+            fix_neu_seq.shape[1]))
+
+        # individual neuron response.
+        for i in range(fix_neu_seq.shape[1]):
+            axs[i+1].plot(
+                fix_stim_time,
+                norm(fix_stim_vol),
+                color='grey',
+                label='fix stim')
+            axs[i+1].plot(
+                fix_neu_time,
+                norm(np.mean(fix_neu_seq[:,i,:], axis=0)),
+                color='dodgerblue',
+                marker='.',
+                markersize=5,
+                label='fix')
+            axs[i+1].plot(
+                jitter_neu_time,
+                norm(np.mean(jitter_neu_seq[:,i,:], axis=0)),
+                color='coral',
+                marker='.',
+                markersize=5,
+                label='jitter')
+            axs[i+1].set_title(
+                'grating average trace of neuron # '+ str(i).zfill(3))
+
+        # adjust layout.
+        for i in range(num_subplots):
+            axs[i].tick_params(axis='y', tick1On=False)
+            axs[i].spines['left'].set_visible(False)
+            axs[i].spines['right'].set_visible(False)
+            axs[i].spines['top'].set_visible(False)
+            axs[i].set_xlabel('time / ms')
+            axs[i].set_xlabel('time since center grating start / ms')
+            axs[i].set_ylabel('response')
+            axs[i].set_xlim([np.min(fix_stim_time), np.max(fix_stim_time)])
+            axs[i].set_ylim([0, 1])
+            axs[i].set_yticks([])
+        handles1, labels1 = axs[0].get_legend_handles_labels()
+        handles2, labels2 = axs[-1].get_legend_handles_labels()
+        fig.legend(handles1+handles2[1:], labels1+labels2[1:], loc='upper right')
+        fig.set_size_inches(8, num_subplots*4)
+        fig.tight_layout()
+
+        # save figure
+        fig.savefig(os.path.join(
+            ops['save_path0'], 'figures', 'fig4_align_grating.pdf'),
+            dpi=300)
+        plt.close()
+
+    except:
+        print('plotting fig4 failed')

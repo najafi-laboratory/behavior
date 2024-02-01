@@ -119,11 +119,11 @@ def plot_omi(
     print('plotting fig5 omission aligned response')
     [neural_trial, _] = RetrieveResults.run(ops)
     ch = 'fluo_ch'+str(ops['functional_chan'])
-    
+
     # find trial id for jitter and fix.
     fix_idx = np.where(neural_trial['trial_type']==2)[0]
     jitter_idx = np.where(neural_trial['trial_type']==1)[0]
-    
+
     # fix data.
     [fix_neu_seq,  fix_neu_time,
      fix_stim_vol, fix_stim_time] = get_omi_response(
@@ -137,7 +137,7 @@ def plot_omi(
     num_subplots = fix_neu_seq.shape[1] + 1
     fig, axs = plt.subplots(num_subplots, 1, figsize=(20, 10))
     plt.subplots_adjust(hspace=1.2)
-    
+
     # mean response.
     axs[0].plot(
         fix_stim_time,
@@ -167,7 +167,7 @@ def plot_omi(
     axs[0].set_title(
         'grating average trace of {} neurons'.format(
         fix_neu_seq.shape[1]))
-    
+
     # individual neuron response.
     for i in range(fix_neu_seq.shape[1]):
         axs[i+1].plot(
@@ -215,13 +215,13 @@ def plot_omi(
     fig.legend(handles1+handles2[1:], labels1+labels2[1:], loc='upper right')
     fig.set_size_inches(8, num_subplots*4)
     fig.tight_layout()
-    
+
     # save figure.
     fig.savefig(os.path.join(
         ops['save_path0'], 'figures', 'fig5_align_omission.pdf'),
         dpi=300)
     plt.close()
-    
+
 
 
 #%% prepost
@@ -257,7 +257,7 @@ def trim_seq(
         data = [data[i][:, :, pivots[i]-len_l_min:pivots[i]+len_r_min]
                 for i in range(len(data))]
     return data
-    
+
 
 # extract response around perturbation.
 
@@ -336,14 +336,14 @@ def plot_prepost(
     print('plotting fig5 prepost aligned response')
     [neural_trial, _] = RetrieveResults.run(ops)
     ch = 'fluo_ch'+str(ops['functional_chan'])
-    
+
     # find trial id for jitter and fix.
     fix_idx = np.where(neural_trial['trial_type']==2)[0]
     jitter_idx = np.where(neural_trial['trial_type']==1)[0]
-    
+
     # find pre perturbation repeatition.
     num_down = get_post_num_grat(neural_trial, fix_idx)
-    
+
     # fix data.
     [fix_neu_seq,  fix_neu_time,
      fix_stim_vol, fix_stim_time] = get_prepost_response(
@@ -352,12 +352,12 @@ def plot_prepost(
     [jitter_neu_seq,  jitter_neu_time,
      jitter_stim_vol, jitter_stim_time] = get_prepost_response(
          neural_trial, ch, jitter_idx, num_down)
-         
+
     # plot signals.
     num_subplots = fix_neu_seq.shape[1] + 1
     fig, axs = plt.subplots(num_subplots, 1, figsize=(20, 10))
     plt.subplots_adjust(hspace=1.2)
-    
+
     # mean response.
     axs[0].plot(
         fix_stim_time,
@@ -387,7 +387,7 @@ def plot_prepost(
     axs[0].set_title(
         'perturbation average trace of {} neurons'.format(
         fix_neu_seq.shape[1]))
-    
+
     # individual neuron response.
     for i in range(fix_neu_seq.shape[1]):
         axs[i+1].plot(
@@ -435,13 +435,13 @@ def plot_prepost(
     fig.legend(handles1+handles2[2:], labels1+labels2[2:], loc='upper right')
     fig.set_size_inches(16, num_subplots*2)
     fig.tight_layout()
-    
+
     # save figure.
     fig.savefig(os.path.join(
         ops['save_path0'], 'figures', 'fig5_align_prepost.pdf'),
         dpi=300)
     plt.close()
-    
+
 
 #%% main
 
@@ -449,11 +449,12 @@ def plot_prepost(
 def plot_fig5(
         ops,
         ):
-    [neural_trial, _] = RetrieveResults.run(ops)
-    if len(neural_trial['trial_type']) <= 5:
-        plot_omi(ops)
-    else:
-        plot_prepost(ops)
-    
-    
-    
+    try:
+        [neural_trial, _] = RetrieveResults.run(ops)
+        if len(neural_trial['trial_type']) <= 5:
+            plot_omi(ops)
+        else:
+            plot_prepost(ops)
+    except:
+        print('plotting fig5 failed')
+
