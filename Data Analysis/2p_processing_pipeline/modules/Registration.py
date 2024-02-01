@@ -18,18 +18,19 @@ def create_file_to_reg(
     # create the temp folder if not exist.
     if not os.path.exists(os.path.join(ops['save_path0'], 'temp')):
         os.makedirs(os.path.join(ops['save_path0'], 'temp'))
+    n_frames = np.max([ch1_data.shape[0], ch2_data.shape[0]])
     # ch1 binary file.
     f_reg_ch1 = BinaryFile(
         Ly=ops['Ly'],
         Lx=ops['Lx'],
         filename=os.path.join(ops['save_path0'], 'temp', 'reg_ch1.bin'),
-        n_frames=ch1_data.shape[0])
+        n_frames=n_frames)
     # ch2 binary file.
     f_reg_ch2 = BinaryFile(
         Ly=ops['Ly'],
         Lx=ops['Lx'],
         filename=os.path.join(ops['save_path0'], 'temp', 'reg_ch2.bin'),
-        n_frames=ch2_data.shape[0])
+        n_frames=n_frames)
     return f_reg_ch1, f_reg_ch2
 
 
@@ -74,31 +75,45 @@ def save_proj_img(
 # main function for registration.
 
 def run(ops, ch1_data, ch2_data):
-    
+
     print('===============================================')
     print('============= registering imaging =============')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    
+
     # create registration files.
     f_reg_ch1, f_reg_ch2 = create_file_to_reg(ops, ch1_data, ch2_data)
     print('Registered channel files created in {}.'.format(ops['save_path0']))
-    
+
     # suite2p registration.
     # reference image computation included.
     # motion correction included.
-    reg_ref, _, _, mean_ch1, _, _, _, mean_ch2, _, _, _ = register.registration_wrapper(
-        f_reg=f_reg_ch1,
-        f_raw=ch1_data,
-        f_reg_chan2=f_reg_ch2,
-        f_raw_chan2=ch2_data,
-        ops=ops)
+    if ops['nchannels'] == 1:
+        ch_data = [ch1_data, ch2_data]
+        ch_data = ch_data[np.argmax([ch1_data.shape[0], ch2_data.shape[0]])]
+        reg_ref, _, _, mean_ch1, _, _, _, mean_ch2, _, _, _ = register.registration_wrapper(
+            f_reg=f_reg_ch1,
+            f_raw=ch_data,
+            f_reg_chan2=None,
+            f_raw_chan2=None,
+            ops=ops)
+        mean_ch2 = mean_ch1
+        f_reg_ch2 = f_reg_ch1
+    elif ops['nchannels'] == 2:
+        reg_ref, _, _, mean_ch1, _, _, _, mean_ch2, _, _, _ = register.registration_wrapper(
+            f_reg=f_reg_ch1,
+            f_raw=ch1_data,
+            f_reg_chan2=f_reg_ch2,
+            f_raw_chan2=ch2_data,
+            ops=ops)
+    else:
+        raise ValueError('The number of channels is invalid.')
     print('Registration completed.')
-    
+
     # compute mean and max projection image.
     print('Computing max projection images.')
     max_ch1, max_ch2 = get_proj_img(f_reg_ch1, f_reg_ch2)
-    
+
     # save projection and reference images.
     save_proj_img(
         ops,
@@ -106,6 +121,6 @@ def run(ops, ch1_data, ch2_data):
         mean_ch1, mean_ch2,
         max_ch1,  max_ch2)
     print('Projected images saved.')
-    
+
     return [f_reg_ch1, f_reg_ch2]
 

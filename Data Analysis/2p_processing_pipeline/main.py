@@ -29,7 +29,9 @@ if __name__ == "__main__":
     parser.add_argument('--run_Plotter',         type=bool, default=True, help='Whether plot the results.')
     parser.add_argument('--data_path',       required=True, type=str, help='Path to the 2P imaging data.')
     parser.add_argument('--save_path0',      required=True, type=str, help='Path to save the results.')
+    parser.add_argument('--nchannels',       required=True, type=int, help='Specify the number of channels.')
     parser.add_argument('--functional_chan', required=True, type=int, help='Specify functional channel id.')
+    parser.add_argument('--diameter',        required=True, type=int, help='Cell diameter for cellpose detection.')
     args = parser.parse_args()
 
     # parameters.

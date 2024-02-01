@@ -42,8 +42,8 @@ def plot_fig2(
         ops,
         bins=100,
         ):
-    print('plotting fig2 stimulus interval distribution')
     try:
+        print('plotting fig2 stimulus interval distribution')
 
         # read stimulus sequence.
         [stim_vol, time_vol, stim_align, time_align] = read_stim(ops)

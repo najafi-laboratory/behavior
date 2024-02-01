@@ -12,6 +12,8 @@
 cd /storage/coda1/p-fnajafi3/0/yhuang887/Projects/2p_processing_pipeline_202401
 source activate suite2p
 python main.py \
---data_path '/storage/coda1/p-fnajafi3/0/shared/2P_Imaging/FN8/12132023/Tseries FN8_PPC_121323_-504_704_219-213' \
---save_path0 'FN8_PPC_121323' \
---functional_chan 2
+--data_path './testdata' \
+--save_path0 './results/testdata' \
+--nchannels 1 \
+--functional_chan 2 \
+--diameter 0

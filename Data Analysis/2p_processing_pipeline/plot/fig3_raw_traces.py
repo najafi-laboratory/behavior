@@ -57,8 +57,8 @@ def plot_fig3(
         ops,
         max_ms = 180000,
         ):
-    print('plotting fig3 raw traces')
     try:
+        print('plotting fig3 raw traces')
 
         [fluo, time_img, vol_stim_bin, time_vol] = read_raw_traces(ops)
         mean_fluo = np.mean(fluo, axis=0)

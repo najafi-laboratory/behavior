@@ -94,8 +94,10 @@ def plot_fig4(
         l_frames = 30,
         r_frames = 30,
         ):
-    print('plotting fig4 grating aligned traces')
+
     try:
+        print('plotting fig4 grating aligned traces')
+
         [neural_trial, _] = RetrieveResults.run(ops)
         ch = 'fluo_ch'+str(ops['functional_chan'])
 

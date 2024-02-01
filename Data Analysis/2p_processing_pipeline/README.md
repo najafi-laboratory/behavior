@@ -31,7 +31,6 @@
 - Added args support for specifying channels.
 
 ## 2024.01.31
-- Cellpose detection researches different diameters to find the most neurons.
 - Find rising and dropping edges changed to pre-append one 0 and same indice.
 - Plot reference masks with channel colors.
 - Adjusted line weight and scale for raw traces plot.
@@ -43,3 +42,5 @@
 
 ## 2024.02.01
 - Added error handling for data without voltage input.
+- Added diameter control support for cellpose.
+- Added number of channels in configuration.

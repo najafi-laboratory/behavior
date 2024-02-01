@@ -46,7 +46,7 @@ def read_tif_to_np(
         ch_data = ch_data.astype('float32')
     # no channel data found.
     else:
-        ch_data = np.zeros((1, ops['Lx'], ops['Ly']))
+        ch_data = np.zeros((1, ops['Lx'], ops['Ly']), dtype='float32')
     return ch_data
 
 
@@ -74,26 +74,27 @@ def read_vol_to_np(
 # main function for reading the data.
 
 def run(ops):
-    
+
     print('===============================================')
     print('========== read and merge video data ==========')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    
+
     ch1_files, ch2_files, vol_record = list_filenames(ops)
     print('Found {} files for channel 1.'.format(len(ch1_files)))
     print('Found {} files for channel 2.'.format(len(ch2_files)))
-    
+
     print('Reading channel 1 data.')
     print(ch1_files)
     ch1_data = read_tif_to_np(ops, ch1_files)
-    
+
     print('Reading channel 2 data.')
     print(ch2_files)
     ch2_data = read_tif_to_np(ops, ch2_files)
-    
+
     print('Reading voltage recordings.')
+    print(vol_record)
     vol_time, vol_start, vol_stim, vol_img = read_vol_to_np(ops, vol_record)
-    
+
     return [ch1_data, ch2_data,
             vol_time, vol_start, vol_stim, vol_img]
