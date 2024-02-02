@@ -3,11 +3,17 @@
 Run on windows command line window:
 ```
 python main.py `
-	--data_path './testdata' `
-	--save_path0 './results/testdata' `
-	--nchannels 2 `
-	--functional_chan 2 `
-	--diameter 0
+--run_Registration True `
+--run_CellDetect True `
+--run_Extraction True `
+--run_SyncSignal True `
+--run_RetrieveResults True `
+--run_Plotter True `
+--data_path './testdata' `
+--save_path0 './results/testdata' `
+--nchannels 1 `
+--functional_chan 2 `
+--diameter 0
 ```
 Run on linux server:
 ```
