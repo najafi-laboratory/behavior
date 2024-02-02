@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import gc
 import os
 import tifffile
 import numpy as np
@@ -33,20 +34,28 @@ def list_filenames(
 
 def read_tif_to_np(
         ops,
-        ch_files
+        ch_files,
+        ch,
         ):
-    # read into list.
-    ch_data = []
-    for f in tqdm(ch_files):
-        data = tifffile.imread(os.path.join(ops['data_path'], f))
-        ch_data.append(data)
-    # concat on time axis.
-    if len(ch_data) > 0:
-        ch_data = np.concatenate(ch_data, axis=0)
-        ch_data = ch_data.astype('float32')
     # no channel data found.
-    else:
+    if len(ch_files) == 0:
         ch_data = np.zeros((1, ops['Lx'], ops['Ly']), dtype='float32')
+    else:
+        # initialize memory mapped file.
+        mem_file = os.path.join(ops['save_path0'], 'temp', 'ch'+ch+'.data')
+        ch_data = np.empty((0, ops['Lx'], ops['Ly']), dtype='float32')
+        # read channel files to memory mapped file.
+        for f in tqdm(ch_files):
+            data = tifffile.imread(os.path.join(ops['data_path'], f))
+            n_frames = ch_data.shape[0] + data.shape[0]
+            ch_data = np.memmap(
+                mem_file,
+                dtype='float32',
+                mode='w+',
+                shape=(n_frames, ops['Lx'], ops['Ly']))
+            ch_data[-data.shape[0]:,:,:] = data
+            del data
+            gc.collect()
     return ch_data
 
 
@@ -86,11 +95,11 @@ def run(ops):
 
     print('Reading channel 1 data.')
     print(ch1_files)
-    ch1_data = read_tif_to_np(ops, ch1_files)
+    ch1_data = read_tif_to_np(ops, ch1_files, '1')
 
     print('Reading channel 2 data.')
     print(ch2_files)
-    ch2_data = read_tif_to_np(ops, ch2_files)
+    ch2_data = read_tif_to_np(ops, ch2_files, '2')
 
     print('Reading voltage recordings.')
     print(vol_record)

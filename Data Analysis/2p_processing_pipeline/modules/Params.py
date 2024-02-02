@@ -38,6 +38,8 @@ def run(args):
     # create the path for saving data.
     if not os.path.exists(os.path.join(ops['save_path0'])):
         os.makedirs(os.path.join(ops['save_path0']))
+    if not os.path.exists(os.path.join(ops['save_path0'], 'temp')):
+        os.makedirs(os.path.join(ops['save_path0'], 'temp'))
     if not os.path.exists(os.path.join(ops['save_path0'], 'figures')):
         os.makedirs(os.path.join(ops['save_path0'], 'figures'))
 

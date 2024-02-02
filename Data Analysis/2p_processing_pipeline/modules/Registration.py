@@ -15,9 +15,6 @@ def create_file_to_reg(
         ch1_data,
         ch2_data
         ):
-    # create the temp folder if not exist.
-    if not os.path.exists(os.path.join(ops['save_path0'], 'temp')):
-        os.makedirs(os.path.join(ops['save_path0'], 'temp'))
     n_frames = np.max([ch1_data.shape[0], ch2_data.shape[0]])
     # ch1 binary file.
     f_reg_ch1 = BinaryFile(

@@ -44,3 +44,5 @@
 - Added error handling for data without voltage input.
 - Added diameter control support for cellpose.
 - Added number of channels in configuration.
+- Read channel files with dynamic concatenate to lower memory usage.
+- Read channel files with memory mapping to lower memory usage.
