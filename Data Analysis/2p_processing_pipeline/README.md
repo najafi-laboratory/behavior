@@ -1,7 +1,20 @@
-# file structure
+# Usage
 
+Run on windows command line window:
+```
+python main.py \
+	--data_path '/storage/coda1/p-fnajafi3/0/shared/2P_Imaging/FN6/12162023/Tseries FN6_PPC_121623_-439_786_435-229' \
+	--save_path0 './results/FN6_PPC_121623_spont2' \
+	--nchannels 2 \
+	--functional_chan 2 \
+	--diameter 0
+```
+Run on linux server:
+```
+sbatch run.sh
+```
 
-# update note
+# Update note
 
 ## 2024.01.19
 - First release.
