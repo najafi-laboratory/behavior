@@ -11,7 +11,8 @@ from modules import RetrieveResults
 # extract response around stimulus.
 
 def get_stim_response(
-        neural_trial,
+        raw_voltages,
+        neural_trials,
         ch,
         trial_idx,
         l_frames,
@@ -21,14 +22,14 @@ def get_stim_response(
     neu_time = []
     stim_vol  = []
     stim_time = []
-    vol_stim_bin = neural_trial['raw']['vol_stim_bin']
-    #vol_time = neural_trial['raw']['vol_time']
-    vol_time = np.arange(0, len(vol_stim_bin))
+    vol_stim_bin = raw_voltages['vol_stim_bin']
+    vol_time = raw_voltages['vol_time']
+    #vol_time = np.arange(0, len(vol_stim_bin))
     for trials in trial_idx:
         # read trial data.
-        fluo = neural_trial[str(trials)][ch]
-        stim = neural_trial[str(trials)]['stim']
-        time = neural_trial[str(trials)]['time']
+        fluo = neural_trials[str(trials)][ch]
+        stim = neural_trials[str(trials)]['stim']
+        time = neural_trials[str(trials)]['time']
         # compute stimulus start point.
         grat_start = get_grating_start(stim)
         for idx in grat_start:
@@ -57,8 +58,8 @@ def get_stim_response(
     stim_vol = [sv[:,:min_len] for sv in stim_vol]
     stim_time = [st[:,:min_len] for st in stim_time]
     # concatenate results.
-    neu_seq  = np.concatenate(neu_seq, axis=0)
-    neu_time = np.concatenate(neu_time, axis=0)
+    neu_seq   = np.concatenate(neu_seq, axis=0)
+    neu_time  = np.concatenate(neu_time, axis=0)
     stim_vol  = np.concatenate(stim_vol, axis=0)
     stim_time = np.concatenate(stim_time, axis=0)
     # get mean time stamps.
@@ -67,9 +68,6 @@ def get_stim_response(
     # get mode stimulus.
     stim_vol, _ = mode(stim_vol, axis=0)
     # scale stimulus sequence.
-    neu_max = np.mean(neu_seq) + 3 * np.std(neu_seq)
-    neu_min = np.mean(neu_seq) - 3 * np.std(neu_seq)
-    stim_vol = stim_vol*(neu_max-neu_min) + neu_min
     return [neu_seq, neu_time, stim_vol, stim_time]
 
 
@@ -79,12 +77,6 @@ def get_grating_start(stim):
     diff_stim = np.diff(stim, prepend=0)
     grat_start = np.where(diff_stim == 1)[0]
     return grat_start
-
-
-# normalize sequence.
-
-def norm(data):
-    return (data - np.min(data)) / (np.max(data) - np.min(data) + 1e-8)
 
 
 # main function for plot
@@ -98,43 +90,45 @@ def plot_fig4(
     try:
         print('plotting fig4 grating aligned traces')
 
-        [neural_trial, _] = RetrieveResults.run(ops)
+        [_, _, raw_voltages, neural_trials] = RetrieveResults.run(ops)
         ch = 'fluo_ch'+str(ops['functional_chan'])
 
         # find trial id for jitter and fix.
-        fix_idx = np.where(neural_trial['trial_type']==2)[0]
-        jitter_idx = np.where(neural_trial['trial_type']==1)[0]
+        fix_idx = np.where(neural_trials['trial_type']==2)[0]
+        jitter_idx = np.where(neural_trials['trial_type']==1)[0]
 
         # fix data
         [fix_neu_seq,  fix_neu_time,
          fix_stim_vol, fix_stim_time] = get_stim_response(
-            neural_trial, ch, fix_idx, l_frames, r_frames)
+            raw_voltages, neural_trials,
+            ch, fix_idx, l_frames, r_frames)
         # jitter data
         [jitter_neu_seq,  jitter_neu_time,
          jitter_stim_vol, jitter_stim_time] = get_stim_response(
-            neural_trial, ch, jitter_idx, l_frames, r_frames)
+            raw_voltages, neural_trials,
+            ch, jitter_idx, l_frames, r_frames)
 
         # plot signals.
         num_subplots = fix_neu_seq.shape[1] + 1
         fig, axs = plt.subplots(num_subplots, 1, figsize=(20, 10))
-        plt.subplots_adjust(hspace=1.2)
+        plt.subplots_adjust(hspace=0.2)
 
         # mean response.
         axs[0].plot(
             fix_stim_time,
-            norm(fix_stim_vol),
+            fix_stim_vol,
             color='grey',
             label='fix stim')
         axs[0].plot(
             fix_neu_time,
-            norm(np.mean(np.mean(fix_neu_seq, axis=0), axis=0)),
+            np.mean(np.mean(fix_neu_seq, axis=0), axis=0),
             color='springgreen',
             marker='.',
             markersize=5,
             label='fix')
         axs[0].plot(
             jitter_neu_time,
-            norm(np.mean(np.mean(jitter_neu_seq, axis=0), axis=0)),
+            np.mean(np.mean(jitter_neu_seq, axis=0), axis=0),
             color='violet',
             marker='.',
             markersize=5,
@@ -147,19 +141,19 @@ def plot_fig4(
         for i in range(fix_neu_seq.shape[1]):
             axs[i+1].plot(
                 fix_stim_time,
-                norm(fix_stim_vol),
+                fix_stim_vol,
                 color='grey',
                 label='fix stim')
             axs[i+1].plot(
                 fix_neu_time,
-                norm(np.mean(fix_neu_seq[:,i,:], axis=0)),
+                np.mean(fix_neu_seq[:,i,:], axis=0),
                 color='dodgerblue',
                 marker='.',
                 markersize=5,
                 label='fix')
             axs[i+1].plot(
                 jitter_neu_time,
-                norm(np.mean(jitter_neu_seq[:,i,:], axis=0)),
+                np.mean(jitter_neu_seq[:,i,:], axis=0),
                 color='coral',
                 marker='.',
                 markersize=5,
@@ -182,7 +176,7 @@ def plot_fig4(
         handles1, labels1 = axs[0].get_legend_handles_labels()
         handles2, labels2 = axs[-1].get_legend_handles_labels()
         fig.legend(handles1+handles2[1:], labels1+labels2[1:], loc='upper right')
-        fig.set_size_inches(8, num_subplots*4)
+        fig.set_size_inches(8, num_subplots*2)
         fig.tight_layout()
 
         # save figure

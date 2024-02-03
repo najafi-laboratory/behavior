@@ -7,6 +7,7 @@ import numpy as np
 
 # read saved ops.npy given a folder in ./results.
 
+# ops = read_ops('testdata_pp')
 def read_ops(save_folder):
     ops = np.load(
         os.path.join('./results', save_folder, 'ops.npy'),
@@ -15,25 +16,54 @@ def read_ops(save_folder):
     return ops
 
 
-# read neural_trial.h5.
+# read raw_traces.h5.
 
-def read_neural_trial(ops):
+def read_raw_traces(ops):
     f = h5py.File(
-        os.path.join(ops['save_path0'], 'neural_trial.h5'),
+        os.path.join(ops['save_path0'], 'raw_traces.h5'),
         'r')
-    neural_trial = dict()
-    for trial in f.keys():
-        neural_trial[trial] = dict()
-        for data in f[trial].keys():
-            neural_trial[trial][data] = np.array(f[trial][data])
+    raw_traces = dict()
+    for k in f['raw'].keys():
+        raw_traces[k] = np.array(f['raw'][k])
     f.close()
-    neural_trial = add_trial_types(neural_trial)
-    return neural_trial
+    return raw_traces
+
+
+# read raw_voltages.h5
+
+def read_raw_voltages(ops):
+    f = h5py.File(
+        os.path.join(ops['save_path0'], 'raw_voltages.h5'),
+        'r')
+    raw_voltages = dict()
+    for k in f['raw'].keys():
+        raw_voltages[k] = np.array(f['raw'][k])
+    f.close()
+    return raw_voltages
+
+
+# read neural_trials.h5
+
+def read_neural_trials(ops):
+    try:
+        f = h5py.File(
+            os.path.join(ops['save_path0'], 'neural_trials.h5'),
+            'r')
+        neural_trials = dict()
+        for trial in f['trial_id'].keys():
+            neural_trials[trial] = dict()
+            for data in f['trial_id'][trial].keys():
+                neural_trials[trial][data] = np.array(f['trial_id'][trial][data])
+        f.close()
+        neural_trials = add_trial_types(neural_trials)
+    except:
+        print('Fail to read trial data')
+    return neural_trials
 
 
 # tentative function to hard code trial types.
 
-def add_trial_types(neural_trial):
+def add_trial_types(neural_trials):
     from sklearn.mixture import GaussianMixture
     def frame_dur(stim, time):
         diff_stim = np.diff(stim, prepend=0)
@@ -49,17 +79,17 @@ def add_trial_types(neural_trial):
         return std
     thres = 25
     trial_type = []
-    for i in range(len(neural_trial)-1):
-        stim = neural_trial[str(i)]['stim']
-        time = neural_trial[str(i)]['time']
+    for i in range(len(neural_trials)):
+        stim = neural_trials[str(i)]['stim']
+        time = neural_trials[str(i)]['time']
         [_, isi] = frame_dur(stim, time)
         std = get_mean_std(isi)
         trial_type.append(std)
     trial_type = np.array(trial_type)
     trial_type[trial_type<thres] = 2
     trial_type[trial_type>thres] = 1
-    neural_trial['trial_type'] = trial_type
-    return neural_trial
+    neural_trials['trial_type'] = trial_type
+    return neural_trials
 
 
 # read mask.h5.
@@ -80,8 +110,9 @@ def read_mask(ops):
 # main function to read completed results.
 
 def run(ops):
-    # ops = read_ops('FN8_PPC_011824')
-    neural_trial = read_neural_trial(ops)
     mask = read_mask(ops)
-    return [neural_trial, mask]
+    raw_traces = read_raw_traces(ops)
+    raw_voltages = read_raw_voltages(ops)
+    neural_trials = read_neural_trials(ops)
+    return [mask, raw_traces, raw_voltages, neural_trials]
 

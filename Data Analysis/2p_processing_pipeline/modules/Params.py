@@ -29,10 +29,11 @@ def run(args):
     ops['save_path0'] = args.save_path0
     ops['nchannels'] = args.nchannels
     ops['functional_chan'] = args.functional_chan
+    ops['diameter'] = args.diameter
     ops['align_by_chan'] = 3-args.functional_chan
-    print('Search data files in {}.'.format(ops['data_path']))
+    print('Search data files in {}'.format(ops['data_path']))
     print('Will save processed data in {}'.format(ops['save_path0']))
-    print('Processing {} channel data.'.format(ops['nchannels']))
+    print('Processing {} channel data'.format(ops['nchannels']))
     print('Set functional channel to ch'+str(ops['functional_chan']))
 
     # create the path for saving data.

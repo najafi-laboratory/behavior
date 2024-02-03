@@ -2,23 +2,70 @@
 
 import os
 import h5py
+import pandas as pd
 import numpy as np
 from datetime import datetime
 
 
 # read raw traces.
 
-def read_traces(
-        ops
-        ):
+# read raw_traces.h5.
+
+def read_raw_traces(ops):
     f = h5py.File(
-        os.path.join(ops['save_path0'], 'temp', 'traces.h5'),
+        os.path.join(ops['save_path0'], 'raw_traces.h5'),
         'r')
-    traces = dict()
-    for k in f['traces'].keys():
-        traces[k] = np.array(f['traces'][k])
+    raw_traces = dict()
+    for k in f['raw'].keys():
+        raw_traces[k] = np.array(f['raw'][k])
     f.close()
-    return traces
+    return raw_traces
+
+
+# read the voltage recording file.
+
+def read_vol_to_np(
+        ops,
+        ):
+    # voltage: SESSION_Cycle00001_VoltageRecording_000NUM.csv.
+    vol_record = [f for f in os.listdir(ops['data_path'])
+                  if 'VoltageRecording' in f and '.csv' in f]
+    df_vol = pd.read_csv(
+        os.path.join(ops['data_path'], vol_record[0]),
+        engine='python')
+    # column 0: time index in ms.
+    # column 1: trial start signal from bpod.
+    # column 2: stimulus signal from photodiode.
+    # column 3: BNC2 not in use.
+    # column 4: image trigger signal from 2p scope camera.
+    vol_time  = df_vol.iloc[:,0].to_numpy()
+    vol_start = df_vol.iloc[:,1].to_numpy()
+    vol_stim  = df_vol.iloc[:,2].to_numpy()
+    vol_img   = df_vol.iloc[:,4].to_numpy()
+    return vol_time, vol_start, vol_stim, vol_img
+
+
+# save voltage data.
+
+def save_vol(
+        ops,
+        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin,
+        ):
+    # file structure:
+    # ops['save_path0'] / raw_voltages.h5
+    # -- raw
+    # ---- vol_time
+    # ---- vol_start_bin
+    # ---- vol_stim_bin
+    # ---- vol_img_bin
+    f = h5py.File(os.path.join(
+        ops['save_path0'], 'raw_voltages.h5'), 'w')
+    grp = f.create_group('raw')
+    grp['vol_time']      = vol_time
+    grp['vol_start_bin'] = vol_start_bin
+    grp['vol_stim_bin']  = vol_stim_bin
+    grp['vol_img_bin']   = vol_img_bin
+    f.close()
 
 
 # threshold the continuous voltage recordings to 01 series.
@@ -122,79 +169,53 @@ def get_trial_start_end(
 # trial segmentation.
 
 def trial_split(
-        traces,
+        raw_traces,
         stim,
         time_neuro,
         start, end
         ):
-    neural_trial = dict()
+    neural_trials = dict()
     for i in range(len(start)):
         # find start and end timing index.
         start_idx = np.where(time_neuro > start[i])[0][0]
         end_idx = np.where(time_neuro < end[i])[0][-1] if end[i] != -1 else -1
         # save time and stimulus for each trial.
-        neural_trial[str(i)] = dict()
-        neural_trial[str(i)]['time'] = time_neuro[start_idx:end_idx]
-        neural_trial[str(i)]['stim'] = stim[start_idx:end_idx]
+        neural_trials[str(i)] = dict()
+        neural_trials[str(i)]['time'] = time_neuro[start_idx:end_idx]
+        neural_trials[str(i)]['stim'] = stim[start_idx:end_idx]
         # save traces for each trial.
-        for k in traces.keys():
-            neural_trial[str(i)][k] = traces[k][:,start_idx:end_idx]
-    return neural_trial
+        for k in raw_traces.keys():
+            neural_trials[str(i)][k] = raw_traces[k][:,start_idx:end_idx]
+    return neural_trials
 
-
-# save neural data.
-
-def save_raw(
-        ops,
-        traces,
-        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin,
-        ):
-    # file structure:
-    # -- raw
-    # ---- vol_time
-    # ---- vol_start_bin
-    # ---- vol_stim_bin
-    # ---- vol_img_bin
-    # ---- fluo_ch1
-    # ---- fluo_ch2
-    # ---- mean_fluo_ch1
-    # ---- mean_fluo_ch2
-    # ---- spikes_ch1
-    # ---- spikes_ch2
-    f = h5py.File(os.path.join(
-        ops['save_path0'], 'neural_trial.h5'), 'w')
-    raw_g = f.create_group('raw')
-    raw_g['vol_time']      = vol_time
-    raw_g['vol_start_bin'] = vol_start_bin
-    raw_g['vol_stim_bin']  = vol_stim_bin
-    raw_g['vol_img_bin']   = vol_img_bin
-    for k in traces.keys():
-        raw_g[k] = traces[k]
-    f.close()
 
 
 # save trial neural data.
 
 def save_trials(
         ops,
-        neural_trial
+        neural_trials
         ):
     # file structure:
-    # -- 1
-    # ---- fluo_ch1
-    # ---- fluo_ch2
-    # ---- mean_fluo_ch1
-    # ---- mean_fluo_ch2
-    # ---- spikes_ch1
-    # ---- spikes_ch2
-    # -- 2
+    # ops['save_path0'] / neural_trials.h5
+    # -- trial_id
+    # ---- 1
+    # ------ fluo_ch1
+    # ------ fluo_ch2
+    # ------ neuropil_ch1
+    # ------ neuropil_ch2
+    # ------ spikes_ch1
+    # ------ spikes_ch2
+    # ---- 2
     # ...
-    f = h5py.File(os.path.join(
-        ops['save_path0'], 'neural_trial.h5'), 'w')
-    for trial in range(len(neural_trial)):
-        trial_group = f.create_group(str(trial))
-        for k in neural_trial[str(trial)].keys():
-            trial_group[k] = neural_trial[str(trial)][k]
+    f = h5py.File(
+        os.path.join(ops['save_path0'], 'neural_trials.h5'),
+        'w')
+    grp = f.create_group('trial_id')
+    for trial in range(len(neural_trials)):
+        trial_group = grp.create_group(str(trial))
+        for k in neural_trials[str(trial)].keys():
+            trial_group[k] = neural_trials[str(trial)][k]
     f.close()
 
 
@@ -202,8 +223,6 @@ def save_trials(
 
 def run(
         ops,
-        vol_time,
-        vol_start, vol_stim, vol_img,
         ):
     print('===============================================')
     print('===== reconstructing synchronized signals =====')
@@ -212,16 +231,21 @@ def run(
 
     # read the raw traces.
     print('Loading traces data')
-    traces = read_traces(ops)
-
-    # process the voltage recordings.
-    vol_start_bin, vol_stim_bin, vol_img_bin = vol_to_binary(
-        vol_start, vol_stim, vol_img)
-    save_raw(
-        ops, traces,
-        vol_time, vol_start_bin, vol_stim_bin, vol_img_bin)
+    raw_traces = read_raw_traces(ops)
 
     try:
+        
+        # read voltage recordings.
+        print('Reading voltage recordings')
+        vol_time, vol_start, vol_stim, vol_img = read_vol_to_np(ops)
+        
+        # binary signals.
+        vol_start_bin, vol_stim_bin, vol_img_bin = vol_to_binary(
+            vol_start, vol_stim, vol_img)
+        # save into raw_traces.
+        save_vol(
+            ops,
+            vol_time, vol_start_bin, vol_stim_bin, vol_img_bin)
 
         print('Comnputing signal trigger time stamps')
         time_img, _   = get_trigger_time(vol_time, vol_img_bin)
@@ -237,19 +261,17 @@ def run(
         # trial segmentation.
         print('Spliting trial data')
         start, end = get_trial_start_end(time_start)
-        neural_trial = trial_split(traces, stim, time_neuro, start, end)
+        neural_trials = trial_split(raw_traces, stim, time_neuro, start, end)
 
         # save the final data.
         print('Merging obtained trial data')
         save_trials(
             ops,
-            neural_trial)
+            neural_trials)
         print('Trial data saved')
 
     except:
 
-        print('Trialize data failed due to voltage recordings issue')
-
-    return []
+        print('Trialize data failed due to prblematic voltage recordings')
 
 

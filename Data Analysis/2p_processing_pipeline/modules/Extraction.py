@@ -27,16 +27,13 @@ def get_fluorescence(
 
 # process the fluorescence signals.
 
-def normalization(
+def get_dff(
         ops,
-        F,
-        Fneu
+        fluo,
+        neuropil,
         ):
     # correct with neuropil signals.
-    fluo = F.copy() - ops['neucoeff']*Fneu
-    # normalize into 0-1.
-    # fluo = (fluo - np.min(fluo, axis=1).reshape(-1,1)) / (
-    #   np.max(fluo, axis=1).reshape(-1,1) - np.min(fluo, axis=1).reshape(-1,1))
+    fluo = fluo.copy() - ops['neucoeff']*neuropil
     # baseline subtraction with window to compute df/f.
     fluo = preprocess(
             F=fluo,
@@ -47,17 +44,6 @@ def normalization(
             prctile_baseline=ops['prctile_baseline']
         )
     return fluo
-
-
-# compute moving average to reduce noise.
-
-def moving_average(
-        fluo,
-        win
-        ):
-    conv = lambda x: np.convolve(x, np.ones(win)/win, mode='same')
-    mean_fluo = np.apply_along_axis(conv, axis=1, arr=fluo)
-    return mean_fluo
 
 
 # run spike detection on fluorescence signals.
@@ -78,28 +64,35 @@ def spike_detect(
 
 def save_traces(
         ops,
-        fluo_ch1, mean_fluo_ch1, spikes_ch1,
-        fluo_ch2, mean_fluo_ch2, spikes_ch2
+        fluo_ch1, neuropil_ch1, spikes_ch1,
+        fluo_ch2, neuropil_ch2, spikes_ch2
         ):
     # file structure:
-    # ops['save_path0'] / temp / traces.h5
-    # -- traces
+    # ops['save_path0'] / raw_traces.h5
+    # -- raw
     # ---- fluo_ch1
     # ---- fluo_ch2
-    # ---- mean_fluo_ch1
-    # ---- mean_fluo_ch2
+    # ---- neuropil_ch1
+    # ---- neuropil_ch2
     # ---- spikes_ch1
     # ---- spikes_ch2
     f = h5py.File(os.path.join(
-        ops['save_path0'], 'temp', 'traces.h5'), 'w')
-    dict_group = f.create_group('traces')
-    dict_group['fluo_ch1'] = fluo_ch1
-    dict_group['fluo_ch2'] = fluo_ch2
-    dict_group['mean_fluo_ch1'] = mean_fluo_ch1
-    dict_group['mean_fluo_ch2'] = mean_fluo_ch2
-    dict_group['spikes_ch1'] = spikes_ch1
-    dict_group['spikes_ch2'] = spikes_ch2
+        ops['save_path0'], 'raw_traces.h5'), 'w')
+    dict_group = f.create_group('raw')
+    dict_group['fluo_ch1'] = norm01(fluo_ch1)
+    dict_group['fluo_ch2'] = norm01(fluo_ch2)
+    dict_group['neuropil_ch1'] = norm01(neuropil_ch1)
+    dict_group['neuropil_ch2'] = norm01(neuropil_ch2)
+    dict_group['spikes_ch1'] = norm01(spikes_ch1)
+    dict_group['spikes_ch2'] = norm01(spikes_ch2)
     f.close()
+    
+
+# normalize data into [0,1]
+
+def norm01(data):
+    data = (data - np.min(data)) / ( np.max(data) - np.min(data) )
+    return data
 
 
 # main function for fluorescence signal extraction from ROIs.
@@ -111,28 +104,24 @@ def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     
     [stat,
-     F_ch1, Fneu_ch1,
-     F_ch2, Fneu_ch2] = get_fluorescence(
+     fluo_ch1, neuropil_ch1,
+     fluo_ch2, neuropil_ch2] = get_fluorescence(
          ops,
          stat_ref,
          f_reg_ch1,
          f_reg_ch2)
     print('Fluorescence extraction completed')
     
-    fluo_ch1 = normalization(ops, F_ch1, Fneu_ch1)
-    fluo_ch2 = normalization(ops, F_ch2, Fneu_ch2)
-    mean_fluo_ch1 = moving_average(fluo_ch1, ops['average_window'])
-    mean_fluo_ch2 = moving_average(fluo_ch2, ops['average_window'])
-    print('Signal normalization completed')
+    fluo_ch1 = get_dff(ops, fluo_ch1, neuropil_ch1)
+    fluo_ch2 = get_dff(ops, fluo_ch2, neuropil_ch2)
+    print('Signal dff completed')
     
-    spikes_ch1 = spike_detect(ops, mean_fluo_ch1)
-    spikes_ch2 = spike_detect(ops, mean_fluo_ch2)
+    spikes_ch1 = spike_detect(ops, fluo_ch1)
+    spikes_ch2 = spike_detect(ops, fluo_ch2)
     print('Spike deconvolution completed')
     
     save_traces(ops,
-        fluo_ch1, mean_fluo_ch1, spikes_ch1,
-        fluo_ch2, mean_fluo_ch2, spikes_ch2)
+        fluo_ch1, neuropil_ch1, spikes_ch1,
+        fluo_ch2, neuropil_ch2, spikes_ch2)
     print('Traces data saved')
-    
-    return []
 

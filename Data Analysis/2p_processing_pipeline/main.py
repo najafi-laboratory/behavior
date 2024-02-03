@@ -17,16 +17,29 @@ from plot.fig3_raw_traces import plot_fig3
 from plot.fig4_align_grating import plot_fig4
 from plot.fig5_align_error import plot_fig5
 
-
+'''
+python main.py `
+--run_Registration 1 `
+--run_CellDetect 1 `
+--run_Extraction 1 `
+--run_SyncSignal 0 `
+--run_RetrieveResults 0 `
+--run_Plotter 1 `
+--data_path './testdata' `
+--save_path0 './results/testdata' `
+--nchannels 2 `
+--functional_chan 2 `
+--diameter 16
+'''
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='I Love Yicong Forever.')
-    parser.add_argument('--run_Registration',    type=bool, default=True, help='Whether run the registration module.')
-    parser.add_argument('--run_CellDetect',      type=bool, default=True, help='Whether run the cell detection module.')
-    parser.add_argument('--run_Extraction',      type=bool, default=True, help='Whether run the signal extraction module.')
-    parser.add_argument('--run_SyncSignal',      type=bool, default=True, help='Whether run the synchronization module.')
-    parser.add_argument('--run_RetrieveResults', type=bool, default=True, help='Whether run the data retrieval module.')
-    parser.add_argument('--run_Plotter',         type=bool, default=True, help='Whether plot the results.')
+    parser = argparse.ArgumentParser(description='Before using the code say I Love Yicong Forever very loudly!')
+    parser.add_argument('--run_Registration',    type=int, default=1, help='Whether run the registration module.')
+    parser.add_argument('--run_CellDetect',      type=int, default=1, help='Whether run the cell detection module.')
+    parser.add_argument('--run_Extraction',      type=int, default=1, help='Whether run the signal extraction module.')
+    parser.add_argument('--run_SyncSignal',      type=int, default=1, help='Whether run the synchronization module.')
+    parser.add_argument('--run_RetrieveResults', type=int, default=1, help='Whether run the data retrieval module.')
+    parser.add_argument('--run_Plotter',         type=int, default=1, help='Whether plot the results.')
     parser.add_argument('--data_path',       required=True, type=str, help='Path to the 2P imaging data.')
     parser.add_argument('--save_path0',      required=True, type=str, help='Path to save the results.')
     parser.add_argument('--nchannels',       required=True, type=int, help='Specify the number of channels.')
@@ -36,41 +49,37 @@ if __name__ == "__main__":
 
     # parameters.
     ops = Params.run(args)
+    
+    # read video data.
+    [ch1_data, ch2_data] = DataIO.run(ops)
 
     # registration.
     if args.run_Registration:
-        [ch1_data, ch2_data,
-         vol_time,
-         vol_start, vol_stim, vol_img] = DataIO.run(
-             ops)
         [f_reg_ch1, f_reg_ch2] = Registration.run(
-             ops,
-             ch1_data, ch2_data)
+             ops, ch1_data, ch2_data)
 
     # ROI detection.
     if args.run_CellDetect:
-        [stat_ref, _, _] = CellDetect.run(
-             ops)
+        [stat_ref, _, _] = CellDetect.run(ops)
 
     # Signal extraction.
     if args.run_Extraction:
-        [] = Extraction.run(
-             ops,
-             stat_ref,
-             f_reg_ch1,
-             f_reg_ch2)
+        Extraction.run(
+            ops,
+            stat_ref,
+            f_reg_ch1,
+            f_reg_ch2)
 
     # Synchronized signals.
     if args.run_SyncSignal:
-        [] = SyncSignal.run(
-            ops,
-            vol_time,
-            vol_start, vol_stim, vol_img)
+        SyncSignal.run(ops)
 
     # read processed data.
     if args.run_RetrieveResults:
-        [neural_trial, mask] = RetrieveResults.run(
-            ops)
+        [mask,
+         raw_traces,
+         raw_voltages,
+         neural_trials] = RetrieveResults.run(ops)
 
     # plot results
     if args.run_Plotter:

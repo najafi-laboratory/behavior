@@ -9,17 +9,17 @@ from modules import RetrieveResults
 
 # read and process stimulus.
 
-def read_stim(
+def read_data(
         ops
         ):
-    [neural_trial, _] = RetrieveResults.run(ops)
-    stim_vol = neural_trial['raw']['vol_stim_bin']
+    [_, _, raw_voltages, neural_trials] = RetrieveResults.run(ops)
+    stim_vol = raw_voltages['vol_stim_bin']
     time_vol = np.arange(0, len(stim_vol))
     stim_align = []
     time_align = []
-    for trial in range(len(neural_trial)-1):
-        stim_align.append(neural_trial[str(trial)]['stim'])
-        time_align.append(neural_trial[str(trial)]['time'])
+    for trial in range(len(neural_trials)-1):
+        stim_align.append(neural_trials[str(trial)]['stim'])
+        time_align.append(neural_trials[str(trial)]['time'])
     stim_align = np.concatenate(stim_align)
     time_align = np.concatenate(time_align)
     return [stim_vol, time_vol, stim_align, time_align]
@@ -46,7 +46,7 @@ def plot_fig2(
         print('plotting fig2 stimulus interval distribution')
 
         # read stimulus sequence.
-        [stim_vol, time_vol, stim_align, time_align] = read_stim(ops)
+        [stim_vol, time_vol, stim_align, time_align] = read_data(ops)
 
         # get durations
         [dur_high_vol, dur_low_vol] = frame_dur(stim_vol, time_vol)
