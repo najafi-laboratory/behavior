@@ -69,3 +69,11 @@ sbatch run.sh
 ## 2024.02.02
 - Rearranged file structure.
 - Rewrote data normalization for figures.
+
+## 2024.02.05
+- Cell detection now uses costumized flow_threshold in ops.npy.
+- Cellpose pre trained model now uses cyto2.
+- Now signal extraction uses the masks of the max projection of functional channel.
+- Completed computing masks overlap between channels to label neurons.
+- Modified plotting masks with labels.
+- Plot traces with different colors to specify excitory and inhibitory neurons.

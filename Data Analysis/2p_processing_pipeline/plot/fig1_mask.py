@@ -34,18 +34,35 @@ def matrix_to_img(
     return img
 
 
-# main function for plot
+# label images with yellow and green.
+
+def get_labeled_masks_img(
+        func_masks,
+        label,
+        ):
+    # get green image.
+    labeled_masks_img = matrix_to_img(func_masks, [1], True)
+    # find marked neurons.
+    neuron_idx = np.where(label == 1)[0] + 1
+    for i in neuron_idx:
+        neuron_mask = ((func_masks == i) * 255).astype('uint8')
+        labeled_masks_img[:,:,0] += neuron_mask
+    return labeled_masks_img
+
+
+# main function for plot.
 
 def plot_fig1(ops):
 
     # read mask from in save_path0 in ops.
     [mask, _, _, _] = RetrieveResults.run(ops)
-    func_ch    = mask['ch'+str(ops['functional_chan'])]['mean_img']
+    func_ch    = mask['ch'+str(ops['functional_chan'])]['max_img']
     func_masks = mask['ch'+str(ops['functional_chan'])]['masks']
     anat_ch    = mask['ch'+str(3-ops['functional_chan'])]['mean_img']
     anat_masks = mask['ch'+str(3-ops['functional_chan'])]['masks']
-    ref_ch     = mask['ref']['mean_img']
+    ref_ch     = mask['ref']['reg_ref']
     ref_masks  = mask['ref']['masks']
+    label      = mask['label']
 
     # functional channel in green.
     func_ch_img = matrix_to_img(func_ch, [1], False)
@@ -60,14 +77,14 @@ def plot_fig1(ops):
     func_masks_img = matrix_to_img(func_masks, [1], True)
     # anatomy masks in red.
     anat_masks_img = matrix_to_img(anat_masks, [0], True)
-    # channel shared masks.
-    shared_masks_img = func_masks_img + anat_masks_img
+    # labelled masks.
+    labeled_masks_img = get_labeled_masks_img(func_masks, label)
     # reference image masks.
     ref_masks_img = np.zeros((ref_masks.shape[0], ref_masks.shape[1], 3))
     ref_masks_img[:,:,0] = (ref_masks != 0) * anat_masks_img[:,:,0]
     ref_masks_img[:,:,1] = (ref_masks != 0) * func_masks_img[:,:,1]
     ref_masks_img = ref_masks_img.astype('uint8')
-
+    
     # 1 channel data.
     if ops['nchannels'] == 1:
 
@@ -76,7 +93,7 @@ def plot_fig1(ops):
 
         # functional channel mean image.
         axs[0,0].imshow(func_ch_img)
-        axs[0,0].set_title('functional channel mean image')
+        axs[0,0].set_title('functional channel max projection')
         # suite2p reference image.
         axs[0,1].imshow(ref_ch_img, cmap='gray')
         axs[0,1].set_title('reference image by suite2p')
@@ -96,13 +113,13 @@ def plot_fig1(ops):
 
         # functional channel mean image.
         axs[0,0].imshow(func_ch_img)
-        axs[0,0].set_title('functional channel mean image')
+        axs[0,0].set_title('functional channel max projection image')
         # anatomy channel mean image.
         axs[0,1].imshow(anat_ch_img)
         axs[0,1].set_title('anatomy channel mean image')
         # superimpose image.
         axs[0,2].imshow(super_img)
-        axs[0,2].set_title('channel mean images superimpose')
+        axs[0,2].set_title('channel images superimpose')
         # suite2p reference image.
         axs[0,3].imshow(ref_ch_img, cmap='gray')
         axs[0,3].set_title('reference image by suite2p')
@@ -114,8 +131,8 @@ def plot_fig1(ops):
         axs[1,1].imshow(anat_masks_img)
         axs[1,1].set_title('anatomy channel masks')
         # channel shared masks.
-        axs[1,2].imshow(shared_masks_img)
-        axs[1,2].set_title('channel shared masks')
+        axs[1,2].imshow(labeled_masks_img)
+        axs[1,2].set_title('channel based labelled masks')
         # reference image masks.
         axs[1,3].imshow(ref_masks_img)
         axs[1,3].set_title('reference image masks')
@@ -130,7 +147,7 @@ def plot_fig1(ops):
             axs[i,j].spines['bottom'].set_visible(False)
             axs[i,j].set_xticks([])
             axs[i,j].set_yticks([])
-    fig.suptitle('Mean images and masks by cellpose')
+    fig.suptitle('Channel images and masks by cellpose')
     fig.tight_layout()
 
     # save figure

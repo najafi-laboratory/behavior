@@ -97,7 +97,7 @@ def norm01(data):
 
 # main function for fluorescence signal extraction from ROIs.
 
-def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
+def run(ops, stat_func, f_reg_ch1, f_reg_ch2):
     print('===============================================')
     print('======= extracting fluorescence signals =======')
     print('===============================================')
@@ -107,7 +107,7 @@ def run(ops, stat_ref, f_reg_ch1, f_reg_ch2):
      fluo_ch1, neuropil_ch1,
      fluo_ch2, neuropil_ch2] = get_fluorescence(
          ops,
-         stat_ref,
+         stat_func,
          f_reg_ch1,
          f_reg_ch2)
     print('Fluorescence extraction completed')

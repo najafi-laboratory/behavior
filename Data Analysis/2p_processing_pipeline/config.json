@@ -95,11 +95,11 @@
 
 	"AnatomicalROI" : {
 		"anatomical_only": 0,
-		"diameter": 0,
+		"diameter": 8,
 		"cellprob_threshold": 0.0,
 		"flow_threshold": 1.5,
 		"spatial_hp_cp": 0,
-		"pretrained_model": "cyto"
+		"pretrained_model": "cyto2"
 	},
 
 	"SpikeDeconv" : {

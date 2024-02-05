@@ -90,8 +90,9 @@ def plot_fig4(
     try:
         print('plotting fig4 grating aligned traces')
 
-        [_, _, raw_voltages, neural_trials] = RetrieveResults.run(ops)
+        [mask, _, raw_voltages, neural_trials] = RetrieveResults.run(ops)
         ch = 'fluo_ch'+str(ops['functional_chan'])
+        label = mask['label']
 
         # find trial id for jitter and fix.
         fix_idx = np.where(neural_trials['trial_type']==2)[0]
@@ -109,11 +110,14 @@ def plot_fig4(
             ch, jitter_idx, l_frames, r_frames)
 
         # plot signals.
-        num_subplots = fix_neu_seq.shape[1] + 1
+        color_fix = ['dodgerblue', 'coral']
+        color_jitter = ['violet', 'brown']
+        fluo_label = ['excitory', 'inhibitory']
+        num_subplots = fix_neu_seq.shape[1] + 2
         fig, axs = plt.subplots(num_subplots, 1, figsize=(20, 10))
         plt.subplots_adjust(hspace=0.2)
 
-        # mean response.
+        # mean response of excitory.
         axs[0].plot(
             fix_stim_time,
             fix_stim_vol,
@@ -121,44 +125,68 @@ def plot_fig4(
             label='fix stim')
         axs[0].plot(
             fix_neu_time,
-            np.mean(np.mean(fix_neu_seq, axis=0), axis=0),
-            color='springgreen',
+            np.mean(np.mean(fix_neu_seq[:, label==0, :], axis=0), axis=0),
+            color=color_fix[0],
             marker='.',
             markersize=5,
-            label='fix')
+            label='excitory_fix')
         axs[0].plot(
             jitter_neu_time,
-            np.mean(np.mean(jitter_neu_seq, axis=0), axis=0),
-            color='violet',
+            np.mean(np.mean(jitter_neu_seq[:, label==0, :], axis=0), axis=0),
+            color=color_jitter[0],
             marker='.',
             markersize=5,
-            label='jitter')
+            label='excitory_jitter')
         axs[0].set_title(
-            'grating average trace of {} neurons'.format(
-            fix_neu_seq.shape[1]))
+            'grating average trace of {} excitory neurons'.format(
+            np.sum(label==0)))
+        
+        # mean response of inhibitory.
+        axs[1].plot(
+            fix_stim_time,
+            fix_stim_vol,
+            color='grey',
+            label='fix stim')
+        axs[1].plot(
+            fix_neu_time,
+            np.mean(np.mean(fix_neu_seq[:, label==1, :], axis=0), axis=0),
+            color=color_fix[1],
+            marker='.',
+            markersize=5,
+            label='inhibitory_fix')
+        axs[1].plot(
+            jitter_neu_time,
+            np.mean(np.mean(jitter_neu_seq[:, label==1, :], axis=0), axis=0),
+            color=color_jitter[1],
+            marker='.',
+            markersize=5,
+            label='inhibitory_jitter')
+        axs[1].set_title(
+            'grating average trace of {} inhibitory neurons'.format(
+            np.sum(label==1)))
 
         # individual neuron response.
         for i in range(fix_neu_seq.shape[1]):
-            axs[i+1].plot(
+            axs[i+2].plot(
                 fix_stim_time,
                 fix_stim_vol,
                 color='grey',
                 label='fix stim')
-            axs[i+1].plot(
+            axs[i+2].plot(
                 fix_neu_time,
                 np.mean(fix_neu_seq[:,i,:], axis=0),
-                color='dodgerblue',
+                color=color_fix[label[i]],
                 marker='.',
                 markersize=5,
-                label='fix')
-            axs[i+1].plot(
+                label=fluo_label[label[i]]+'_fix')
+            axs[i+2].plot(
                 jitter_neu_time,
                 np.mean(jitter_neu_seq[:,i,:], axis=0),
-                color='coral',
+                color=color_jitter[label[i]],
                 marker='.',
                 markersize=5,
-                label='jitter')
-            axs[i+1].set_title(
+                label=fluo_label[label[i]]+'_jitter')
+            axs[i+2].set_title(
                 'grating average trace of neuron # '+ str(i).zfill(3))
 
         # adjust layout.
@@ -173,10 +201,8 @@ def plot_fig4(
             axs[i].set_xlim([np.min(fix_stim_time), np.max(fix_stim_time)])
             axs[i].set_ylim([0, 1])
             axs[i].set_yticks([])
-        handles1, labels1 = axs[0].get_legend_handles_labels()
-        handles2, labels2 = axs[-1].get_legend_handles_labels()
-        fig.legend(handles1+handles2[1:], labels1+labels2[1:], loc='upper right')
-        fig.set_size_inches(8, num_subplots*2)
+            axs[i].legend(loc='upper left')
+        fig.set_size_inches(12, num_subplots*3)
         fig.tight_layout()
 
         # save figure

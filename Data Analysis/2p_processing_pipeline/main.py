@@ -22,14 +22,14 @@ python main.py `
 --run_Registration 1 `
 --run_CellDetect 1 `
 --run_Extraction 1 `
---run_SyncSignal 0 `
---run_RetrieveResults 0 `
+--run_SyncSignal 1 `
+--run_RetrieveResults 1 `
 --run_Plotter 1 `
---data_path './testdata' `
---save_path0 './results/testdata' `
+--data_path './testdata/FN8_P_Omii_020224_-2730_1285_-85_debug-272' `
+--save_path0 './results/test_omi' `
 --nchannels 2 `
 --functional_chan 2 `
---diameter 16
+--diameter 8
 '''
 if __name__ == "__main__":
 
@@ -60,13 +60,13 @@ if __name__ == "__main__":
 
     # ROI detection.
     if args.run_CellDetect:
-        [stat_ref, _, _] = CellDetect.run(ops)
+        [stat_func] = CellDetect.run(ops)
 
     # Signal extraction.
     if args.run_Extraction:
         Extraction.run(
             ops,
-            stat_ref,
+            stat_func,
             f_reg_ch1,
             f_reg_ch2)
 

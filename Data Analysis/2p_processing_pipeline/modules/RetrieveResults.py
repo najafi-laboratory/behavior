@@ -7,7 +7,7 @@ import numpy as np
 
 # read saved ops.npy given a folder in ./results.
 
-# ops = read_ops('testdata_pp')
+# ops = read_ops('test_omi')
 def read_ops(save_folder):
     ops = np.load(
         os.path.join('./results', save_folder, 'ops.npy'),
@@ -99,6 +99,7 @@ def read_mask(ops):
         os.path.join(ops['save_path0'], 'mask.h5'),
         'r')
     mask = dict()
+    mask['label'] = np.array(f['label'])
     for ch in f['mask'].keys():
         mask[ch] = dict()
         for k in f['mask'][ch].keys():
