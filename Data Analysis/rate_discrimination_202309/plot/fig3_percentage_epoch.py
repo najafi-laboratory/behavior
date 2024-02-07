@@ -5,24 +5,18 @@ import matplotlib.pyplot as plt
 states = [
     'Reward',
     'RewardNaive',
+    'ChangingMindReward',
     'Punish',
     'PunishNaive',
     'WrongInitiation',
-    'EarlyChoice',
-    'DidNotChoose',
-    'DidNotConfirm',
-    'ChangingMindReward',
-    'Habituation']
+    'DidNotChoose']
 colors = [
     'limegreen',
     'springgreen',
-    'coral',
-    'lightcoral',
-    'orange',
     'dodgerblue',
-    'deeppink',
+    'coral',
     'violet',
-    'purple',
+    'orange',
     'grey']
 
 
@@ -47,37 +41,55 @@ def count_label(outcomes, states):
     return counts
 
 
-def plot_fig3(
-    session_data,
-    session_id=-1,
-    bin_size=10
-    ):
-    fig, axs = plt.subplots(1, figsize=(10,4))
-    plt.subplots_adjust(hspace=0.7)
-    subject = session_data['subject']
-    outcomes = session_data['outcomes']
-    dates = session_data['dates']
+def plot_subject(
+        ax,
+        subject_session_data,
+        session_id,
+        bin_size,
+        ):
+    subject = subject_session_data['subject']
+    outcomes = subject_session_data['outcomes']
+    dates = subject_session_data['dates']
     counts = count_bin(outcomes, states, bin_size)
     counts = counts[session_id]
     for j in range(len(states)):
         if len(counts)>0:
-            axs.plot(
+            ax.plot(
                 np.arange(len(counts))+1,
                 counts[:,j],
                 color=colors[j],
                 label=states[j])
-    axs.tick_params(tick1On=False)
-    axs.spines['left'].set_visible(False)
-    axs.spines['right'].set_visible(False)
-    axs.spines['top'].set_visible(False)
-    axs.yaxis.grid(True)
-    axs.set_xlabel('bins with size {}'.format(bin_size))
-    axs.set_ylabel('percentage')
-    axs.set_title(subject + ' ' + dates[session_id])
-    axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    fig.suptitle('reward/punish percentage for completed trials across epoches')
+    ax.tick_params(tick1On=False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.yaxis.grid(True)
+    ax.set_xlabel('bins with size {}'.format(bin_size))
+    ax.set_ylabel('percentage')
+    ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
+    ax.set_title(
+        subject + ' ' + dates[session_id] + 
+        ' outcome percentage across epoches')
+    
+    
+def plot_fig3(
+        session_data,
+        session_id=-1,
+        bin_size=10
+        ):
+    fig, axs = plt.subplots(
+        len(session_data), 1,
+        figsize=(16, 8*len(session_data)))
+    plt.subplots_adjust(hspace=2)
+    for i in range(len(session_data)):
+        plot_subject(
+            axs[i],
+            session_data[i],
+            session_id=session_id,
+            bin_size=bin_size)
+    print('Completed fig3')
+    fig.set_size_inches(10, len(session_data)*3)
     fig.tight_layout()
-    print('Completed fig3 for ' + subject)
-    fig.savefig('./figures/fig3_'+subject+'_percentage_epoch.pdf', dpi=300)
-    fig.savefig('./figures/fig3_'+subject+'_opercentage_epoch.png', dpi=300)
+    fig.savefig('./figures/fig3_percentage_epoch.pdf', dpi=300)
+    fig.savefig('./figures/fig3_percentage_epoch.png', dpi=300)
     plt.close()

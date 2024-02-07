@@ -91,3 +91,6 @@
 
 ## 2024.01.14
 - Seperate figures for each subject.
+
+## 2024.02.07
+- Plot adjustablee figures for given subjects.

@@ -48,39 +48,56 @@ def plot_curves(axs, subject, dates, choice):
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
 
 
+def plot_subject(
+        subject_session_data,
+        max_subplots,
+        max_sessions,
+        ):
+    subject = subject_session_data['subject']
+    dates = subject_session_data['dates'][subject_session_data['LR12_start']:]
+    choice = subject_session_data['choice'][subject_session_data['LR12_start']:]
+    if len(np.concatenate(choice)) > 0:
+        if len(dates) <= max_sessions:
+            max_subplots = 1
+            start_idx = 0
+        else:
+            max_subplots = min(int(len(dates)/max_sessions), max_subplots)
+            start_idx = len(dates) - max_subplots * max_sessions
+        dates = dates[start_idx:]
+        choice = choice[start_idx:]
+        fig, axs = plt.subplots(max_subplots, 1, figsize=(4, max_subplots*2))
+        plt.subplots_adjust(hspace=0.4)
+        plt.subplots_adjust(wspace=0.4)
+        if max_subplots > 1:
+            for i in range(max_subplots):
+                plot_curves(
+                    axs[i], subject,
+                    dates[i*max_sessions:(i+1)*max_sessions],
+                    choice[i*max_sessions:(i+1)*max_sessions])
+        else:
+            plot_curves(
+                axs, subject,
+                dates,
+                choice)
+        fig.suptitle(subject + ' psychometric functions')
+        fig.set_size_inches(4, len(subject_session_data)*4)
+        fig.tight_layout()
+        print('Completed fig4 for ' + subject)
+        fig.savefig('./figures/fig4_psychometric_epoch_'+subject+'.pdf', dpi=300)
+        fig.savefig('./figures/fig4_psychometric_epoch_'+subject+'.png', dpi=300)
+        plt.close()
+    else:
+        print('Plot fig4 failed. Found no non-naive trials for ' + subject)
+    
+
 def plot_fig4(
         session_data,
         max_subplots=5,
         max_sessions=6
         ):
-    subject = session_data['subject']
-    dates = session_data['dates'][session_data['LR12_start']:]
-    choice = session_data['choice'][session_data['LR12_start']:]
-    if len(dates) <= max_sessions:
-        max_subplots = 1
-        start_idx = 0
-    else:
-        max_subplots = min(int(len(dates)/max_sessions), max_subplots)
-        start_idx = len(dates) - max_subplots * max_sessions
-    dates = dates[start_idx:]
-    choice = choice[start_idx:]
-    fig, axs = plt.subplots(max_subplots, 1, figsize=(4, max_subplots*2))
-    plt.subplots_adjust(hspace=0.4)
-    plt.subplots_adjust(wspace=0.4)
-    if max_subplots > 1:
-        for i in range(max_subplots):
-            plot_curves(
-                axs[i], subject,
-                dates[i*max_sessions:(i+1)*max_sessions],
-                choice[i*max_sessions:(i+1)*max_sessions])
-    else:
-        plot_curves(
-            axs, subject,
-            dates,
-            choice)
-    fig.suptitle('psychometric functions for '+subject)
-    fig.tight_layout()
-    print('Completed fig4 for ' + subject)
-    fig.savefig('./figures/fig4_'+subject+'_psychometric_epoch.pdf', dpi=300)
-    fig.savefig('./figures/fig4_'+subject+'_psychometric_epoch.png', dpi=300)
-    plt.close()
+    for i in range(len(session_data)):
+        plot_subject(
+            session_data[i],
+            max_subplots=max_subplots,
+            max_sessions=max_sessions)
+    print('Completed fig4')

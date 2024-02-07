@@ -1,15 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def plot_fig5(
-    session_data,
-    max_sessions=25
-    ):
-    fig, axs = plt.subplots(1, figsize=(10, 4))
-    subject = session_data['subject']
-    isi = session_data['isi'][session_data['LR12_start']:]
-    dates = session_data['dates'][session_data['LR12_start']:]
+def plot_subject(
+        ax,
+        subject_session_data,
+        max_sessions
+        ):
+    subject = subject_session_data['subject']
+    isi = subject_session_data['isi'][subject_session_data['LR12_start']:]
+    dates = subject_session_data['dates'][subject_session_data['LR12_start']:]
     start_idx = 0
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
@@ -20,28 +19,43 @@ def plot_fig5(
             duration = np.concatenate(isi[i])
         else:
             duration = isi[i]
-        axs.scatter(
+        ax.scatter(
             np.zeros_like(duration) + i + 1, duration,
             color='dodgerblue',
             alpha=0.2,
             s=5)
-    axs.tick_params(tick1On=False)
-    axs.spines['left'].set_visible(False)
-    axs.spines['right'].set_visible(False)
-    axs.spines['top'].set_visible(False)
-    axs.set_ylim([0, 1.0])
-    axs.set_xlabel('training session')
-    axs.set_ylabel('isi / s')
-    axs.set_xticks(np.arange(len(isi))+1)
-    axs.set_xticklabels(dates, rotation='vertical')
-    axs.set_yticks(np.arange(11)*0.1)
-    axs.yaxis.grid(True)
-    axs.set_title(subject)
-    fig.suptitle(subject + ' stimulus isi across sessions')
+    ax.tick_params(tick1On=False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.set_ylim([0, 1.0])
+    ax.set_xlabel('training session')
+    ax.set_ylabel('isi / s')
+    ax.set_xticks(np.arange(len(isi))+1)
+    ax.set_xticklabels(dates, rotation='vertical')
+    ax.set_yticks(np.arange(11)*0.1)
+    ax.yaxis.grid(True)
+    ax.set_title(subject + ' stimulus isi across sessions')
+    
+    
+def plot_fig5(
+    session_data,
+    max_sessions=25
+    ):
+    fig, axs = plt.subplots(
+        len(session_data), 1,
+        figsize=(16, 8*len(session_data)))
+    plt.subplots_adjust(hspace=2)
+    for i in range(len(session_data)):
+        plot_subject(
+            axs[i],
+            session_data[i],
+            max_sessions=max_sessions)
+    print('Completed fig5')
+    fig.set_size_inches(8, len(session_data)*3)
     fig.tight_layout()
-    print('Completed fig5 for ' + subject)
-    fig.savefig('./figures/fig5_'+subject+'_stim_isi.pdf', dpi=300)
-    fig.savefig('./figures/fig5_'+subject+'_stim_isi.png', dpi=300)
+    fig.savefig('./figures/fig5_stim_isi.pdf', dpi=300)
+    fig.savefig('./figures/fig5_stim_isi.png', dpi=300)
     plt.close()
     
     

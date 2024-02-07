@@ -15,14 +15,14 @@ def bin_trials(trial_reaction, max_time, bin_size=0.5, least_trials=2):
     return bin_stat
 
 
-def plot_fig9(
-    session_data,
-    max_sessions=20
-    ):
-    fig, axs = plt.subplots(1, figsize=(10, 4))
-    subject = session_data['subject']
-    dates = session_data['dates']
-    reaction = session_data['reaction']
+def plot_subject(
+        ax,
+        subject_session_data,
+        max_sessions
+        ):
+    subject = subject_session_data['subject']
+    dates = subject_session_data['dates']
+    reaction = subject_session_data['reaction']
     start_idx = 0
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
@@ -39,7 +39,7 @@ def plot_fig9(
     mean = [np.mean(r) for r in processed_reaction]
     std = [np.std(r) for r in processed_reaction]
     loc = np.arange(1, len(dates)+1)
-    axs.errorbar(
+    ax.errorbar(
         loc, mean, yerr=std,
         linestyle='none',
         color='dodgerblue',
@@ -47,27 +47,42 @@ def plot_fig9(
         marker='o',
         markeredgecolor='white',
         markeredgewidth=1)
-    axs.tick_params(tick1On=False)
-    axs.spines['right'].set_visible(False)
-    axs.spines['top'].set_visible(False)
-    axs.fill_between(
-        [0, max_sessions], 0, 1.3,
+    ax.tick_params(tick1On=False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.fill_between(
+        [0, len(dates)+1], 0, 1.3,
         color='gold', alpha=0.2,
         label='Pre-perturb stim')
-    axs.fill_between(
-        [0, max_sessions], 1.3, 4.3,
+    ax.fill_between(
+        [0, len(dates)+1], 1.3, 4.3,
         color='coral', alpha=0.2,
         label='Post-perturb stim')
-    axs.set_ylim([0.0, 8])
-    axs.set_xlabel('Dates')
-    axs.set_ylabel('Reaction time (since stim onset) / s')
-    axs.set_xticks(loc)
-    axs.set_xticklabels(dates, rotation='vertical')
-    axs.set_title(subject + ' ')
-    axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    fig.suptitle('Reaction time (the 1st side lick since stim onset) mean/std across sessions')
+    ax.set_ylim([0.0, 8])
+    ax.set_xlabel('Dates')
+    ax.set_ylabel('Reaction time (since stim onset) / s')
+    ax.set_xticks(loc)
+    ax.set_xticklabels(dates, rotation='vertical')
+    ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
+    ax.set_title(subject + ' Reaction time (the 1st side lick since stim onset) mean/std across sessions')
+
+
+def plot_fig9(
+        session_data,
+        max_sessions=20
+        ):
+    fig, axs = plt.subplots(
+        len(session_data), 1,
+        figsize=(16, 8*len(session_data)))
+    plt.subplots_adjust(hspace=2)
+    for i in range(len(session_data)):
+        plot_subject(
+            axs[i],
+            session_data[i],
+            max_sessions=max_sessions)
+    print('Completed fig9')
+    fig.set_size_inches(10, len(session_data)*4)
     fig.tight_layout()
-    print('Completed fig8 for ' + subject)
-    fig.savefig('./figures/fig8_'+subject+'_reaction_sess.pdf', dpi=300)
-    fig.savefig('./figures/fig8_'+subject+'_reaction_sess.png', dpi=300)
+    fig.savefig('./figures/fig9_reaction_sess.pdf', dpi=300)
+    fig.savefig('./figures/fig9_reaction_sess.png', dpi=300)
     plt.close()

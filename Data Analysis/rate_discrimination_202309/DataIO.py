@@ -233,6 +233,8 @@ def read_trials(subject):
 def states_labeling(trial_states):
     if 'ChangingMindReward' in trial_states.keys() and not np.isnan(trial_states['ChangingMindReward'][0]):
         outcome = 'ChangingMindReward'
+    elif 'WrongInitiation' in trial_states.keys() and not np.isnan(trial_states['WrongInitiation'][0]):
+        outcome = 'WrongInitiation'
     elif 'Punish' in trial_states.keys() and not np.isnan(trial_states['Punish'][0]):
         outcome = 'Punish'
     elif 'Reward' in trial_states.keys() and not np.isnan(trial_states['Reward'][0]):
@@ -241,25 +243,21 @@ def states_labeling(trial_states):
         outcome = 'PunishNaive'
     elif 'RewardNaive' in trial_states.keys() and not np.isnan(trial_states['RewardNaive'][0]):
         outcome = 'RewardNaive'
-    elif 'WrongInitiation' in trial_states.keys() and not np.isnan(trial_states['WrongInitiation'][0]):
-        outcome = 'WrongInitiation'
     elif 'EarlyChoice' in trial_states.keys() and not np.isnan(trial_states['EarlyChoice'][0]):
         outcome = 'EarlyChoice'
     elif 'DidNotChoose' in trial_states.keys() and not np.isnan(trial_states['DidNotChoose'][0]):
         outcome = 'DidNotChoose'
-    elif 'DidNotConfirm' in trial_states.keys() and not np.isnan(trial_states['DidNotConfirm'][0]):
-        outcome = 'DidNotConfirm'
-    elif 'DidNotLickCenter' in trial_states.keys() and not np.isnan(trial_states['DidNotLickCenter'][0]):
-        outcome = 'DidNotLickCenter'
-    elif 'HabituationExtendWindow' in trial_states.keys():
-        outcome = 'Habituation'
-    elif 'HabituationInitReward' in trial_states.keys():
-        outcome = 'Habituation'
     else:
         outcome = 'Other'
     return outcome
 
 
-# get choice from outcomes and trial types
-def compute_choice():
-    0
+# read session data given subjects
+def run(subject_list):
+    session_data = []
+    for sub in subject_list:
+        session_data.append(read_trials(sub))
+    if not os.path.exists('./figures'):
+        os.makedirs('./figures')
+    return session_data
+
