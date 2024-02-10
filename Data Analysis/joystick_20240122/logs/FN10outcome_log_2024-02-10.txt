@@ -1,0 +1,48 @@
+FN10 20240131 Counts
+Trials: 200
+Reward: 142
+Punish: 58
+Hit Rate: 71.00%
+
+FN10 20240201 Counts
+Trials: 210
+Reward: 122
+Punish: 88
+Hit Rate: 58.10%
+
+FN10 20240202 Counts
+Trials: 270
+Reward: 193
+Punish: 77
+Hit Rate: 71.48%
+
+FN10 20240205 Counts
+Trials: 154
+Reward: 68
+Punish: 86
+Hit Rate: 44.16%
+
+FN10 20240206 Counts
+Trials: 208
+Reward: 119
+Punish: 89
+Hit Rate: 57.21%
+
+FN10 20240207 Counts
+Trials: 312
+Reward: 180
+Punish: 132
+Hit Rate: 57.69%
+
+FN10 20240208 Counts
+Trials: 342
+Reward: 170
+Punish: 157
+Hit Rate: 49.71%
+
+FN10 20240209 Counts
+Trials: 308
+Reward: 167
+Punish: 141
+Hit Rate: 54.22%
+

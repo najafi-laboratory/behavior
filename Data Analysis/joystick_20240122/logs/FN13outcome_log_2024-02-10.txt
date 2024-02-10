@@ -1,0 +1,48 @@
+FN13 20240130 Counts
+Trials: 85
+Reward: 46
+Punish: 39
+Hit Rate: 54.12%
+
+FN13 20240131 Counts
+Trials: 208
+Reward: 105
+Punish: 103
+Hit Rate: 50.48%
+
+FN13 20240201 Counts
+Trials: 312
+Reward: 239
+Punish: 73
+Hit Rate: 76.60%
+
+FN13 20240202 Counts
+Trials: 322
+Reward: 242
+Punish: 80
+Hit Rate: 75.16%
+
+FN13 20240205 Counts
+Trials: 203
+Reward: 142
+Punish: 57
+Hit Rate: 69.95%
+
+FN13 20240206 Counts
+Trials: 260
+Reward: 202
+Punish: 58
+Hit Rate: 77.69%
+
+FN13 20240207 Counts
+Trials: 218
+Reward: 187
+Punish: 31
+Hit Rate: 85.78%
+
+FN13 20240209 Counts
+Trials: 244
+Reward: 161
+Punish: 83
+Hit Rate: 65.98%
+

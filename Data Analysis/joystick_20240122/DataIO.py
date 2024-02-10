@@ -158,112 +158,7 @@ def read_trials(subject):
             # outcome
             outcome = states_labeling(trial_states, trial_reps)
             trial_outcomes.append(outcome)
-            # iti duration
-            iti = trial_states['ITI']
-            trial_iti.append(iti[1]-iti[0])
-            # licking events after stim onset
-            if ('VisStimTrigger' in trial_states.keys() and
-                not np.isnan(trial_states['VisStimTrigger'][1])):
-                stim_start = trial_states['VisStimTrigger'][1]
-                licking_events = []
-                direction = []
-                correctness = []
-                if 'Port1In' in trial_events.keys():
-                    lick_left = np.array(trial_events['Port1In']).reshape(-1) - stim_start
-                    licking_events.append(lick_left)
-                    direction.append(np.zeros_like(lick_left))
-                    if TrialTypes[i] == 1:
-                        correctness.append(np.ones_like(lick_left))
-                    else:
-                        correctness.append(np.zeros_like(lick_left))
-                if 'Port3In' in trial_events.keys():
-                    lick_right = np.array(trial_events['Port3In']).reshape(-1) - stim_start
-                    licking_events.append(lick_right)
-                    direction.append(np.ones_like(lick_right))
-                    if TrialTypes[i] == 2:
-                        correctness.append(np.ones_like(lick_right))
-                    else:
-                        correctness.append(np.zeros_like(lick_right))
-                if len(licking_events) > 0:
-                    licking_events = np.concatenate(licking_events).reshape(1,-1)
-                    correctness = np.concatenate(correctness).reshape(1,-1)
-                    direction = np.concatenate(direction).reshape(1,-1)
-                    lick = np.concatenate([licking_events, correctness, direction])
-                    trial_licking.append(lick)
-            # reaction time
-                    lick = lick[:,lick[0,:]>0]
-                    if lick.shape[1] > 0:
-                        reaction_idx = np.argmin(lick[0,:])
-                        trial_reaction.append(lick[:,reaction_idx].reshape(1,-1))
-            # stim isi
-            if ('BNC1High' in trial_events.keys() and
-                'BNC1Low' in trial_events.keys()):
-                BNC1High = trial_events['BNC1High']
-                BNC1High = np.array(BNC1High).reshape(-1)
-                BNC1Low = trial_events['BNC1Low']
-                BNC1Low = np.array(BNC1Low).reshape(-1)
-                if len(BNC1High) > 1 and len(BNC1Low) > 1:
-                    BNC1High = BNC1High[1:]
-                    BNC1Low = BNC1Low[0:-1]
-                    if np.size(BNC1High) == np.size(BNC1Low):
-                        BNC1HighLow = BNC1High - BNC1Low
-                        trial_isi.append(BNC1HighLow)
-            # trial choice
-                        if outcome in [
-                            'Reward',
-                            'Punish',
-                            'ChangingMindReward']:
-                            if outcome in [
-                                'Reward', 
-                                ]:
-                                choice = TrialTypes[i]-1
-                            if outcome in [
-                                'Punish',
-                                'ChangingMindReward'
-                                ]:
-                                choice = 2-TrialTypes[i]
-                            # 0-left / 1-right
-                            trial_choice.append(np.array([BNC1HighLow[-1], choice]))
-            # change of mind choice 0:right2left 1:left2right
-                        if outcome in [
-                            'ChangingMindReward'
-                            ]:
-                            trial_com.append(TrialTypes[i]-1)
-            # post-perturbation licking events
-                        post_start_idx = np.where(
-                            np.abs(BNC1HighLow - BNC1HighLow[-1]) <= 0.05)[0]
-                        if (len(post_start_idx) > 0 and
-                            BNC1HighLow[-1] < 1.1 and
-                            BNC1HighLow[-1] > -0.1
-                            ):
-                            # early choice included
-                            post_start_idx = post_start_idx[0]
-                            lick_left = np.array([])
-                            lick_right = np.array([])
-                            if 'Port1In' in trial_events.keys():
-                                lick_left = np.array(trial_events['Port1In']).reshape(-1)
-                                if len(lick_left) > 0:
-                                    lick_left = lick_left[post_start_idx:]
-                            if 'Port3In' in trial_events.keys():
-                                lick_right = np.array(trial_events['Port3In']).reshape(-1)
-                                if len(lick_left) > 0:
-                                    lick_right = lick_right[post_start_idx:]
-                            right_pc = len(lick_right)/(len(lick_left)+len(lick_right)+1e-5)
-                            trial_post_lick.append(np.array([BNC1HighLow[-1], right_pc]))
-            # av sync
-            if ('BNC1High' in trial_events.keys()) and ('BNC2High' in trial_events.keys()):
-                BNC1High = trial_events['BNC1High']
-                BNC1High = np.array(BNC1High).reshape(-1)
-                BNC2High = trial_events['BNC2High']
-                BNC2High = np.array(BNC2High).reshape(-1)
-                FirstGrating = BNC1High[0]
-                FirstGratingAudioDiff = FirstGrating - BNC2High
-                FirstGratingAudioDiff_abs = abs(FirstGratingAudioDiff)
-                avsync_abs = min(FirstGratingAudioDiff_abs).tolist()
-                AudioStimStartIndex = FirstGratingAudioDiff_abs.tolist().index(avsync_abs)
-                avsync = (FirstGrating - BNC2High)[AudioStimStartIndex]
-                trial_avsync.append(avsync.tolist())
-           
+       
             # encoder data                
             encoder_data = raw_data['EncoderData'][i]
             trial_encoder_data.append(encoder_data)
@@ -273,6 +168,8 @@ def read_trials(subject):
             # maybe only use one array of linspace for efficiency
             # trial_reps = raw_data['TrialSettings'][i]['GUI']['Reps']
             trial_target_thresh = raw_data['TrialSettings'][i]['GUI']['Threshold']
+            # if (fname == 'YH5_Joystick_visual_7_20240209_150957.mat'):
+            #     print()
             if encoder_data['nPositions']:                
                 times = encoder_data['Times']
                 positions = encoder_data['Positions']
@@ -296,12 +193,7 @@ def read_trials(subject):
                     vis_diff = np.abs(VisStim1Start - session_encoder_times_aligned)
                     min_vis_diff = np.min(np.abs(VisStim1Start - session_encoder_times_aligned))
                     closest_aligned_time_vis1_idx = [ind for ind, ele in enumerate(vis_diff) if ele == min_vis_diff][0]
-                    
-                    # LeverRetract1Stop = trial_states['LeverRetract1'][1]
-                    # retract1_diff = np.abs(LeverRetract1Stop - session_encoder_times_aligned)
-                    # min_retract1_diff = np.min(np.abs(LeverRetract1Stop - session_encoder_times_aligned))
-                    # closest_aligned_time_retract1_idx = [ind for ind, ele in enumerate(retract1_diff) if ele == min_retract1_diff][0]
-                    
+                                      
                     left_idx_VisStim1 = int(closest_aligned_time_vis1_idx+time_left_VisStim1*ms_per_s)
                     right_idx_VisStim1 = int(closest_aligned_time_vis1_idx+(time_right_VisStim1*ms_per_s))
                     # pad with nan if left idx < 0
@@ -310,10 +202,6 @@ def read_trials(subject):
                         nan_pad[:] = np.nan
                         trial_encoder_positions_aligned_VisStim1 = np.append(nan_pad, encoder_data_aligned[0:right_idx_VisStim1])
                     else:                        
-                        # trial_encoder_times_aligned_VisStim1 = session_encoder_times_aligned[left_idx_VisStim1:right_idx_VisStim1]                    
-                        # trial_encoder_positions_aligned_VisStim1 = encoder_data_aligned[left_idx_VisStim1:closest_aligned_time_retract1_idx]
-                        # zeros_needed = len(trial_encoder_times_aligned_VisStim1) - len(trial_encoder_positions_aligned_VisStim1)
-                        # trial_encoder_positions_aligned_VisStim1 = np.append(trial_encoder_positions_aligned_VisStim1, np.zeros(zeros_needed))
                         trial_encoder_positions_aligned_VisStim1 = encoder_data_aligned[left_idx_VisStim1:right_idx_VisStim1]
                     
                     trial_encoder_positions_aligned_vis1.append(trial_encoder_positions_aligned_VisStim1)
@@ -382,7 +270,6 @@ def read_trials(subject):
                         nan_pad[:] = np.nan
                         trial_encoder_positions_aligned_Reward = np.append(nan_pad, encoder_data_aligned[0:right_idx_rew])
                     else:                       
-                        # trial_encoder_times_aligned_VisStim2 = session_encoder_times_aligned[left_idx_VisStim2:right_idx_VisStim2]
                         trial_encoder_positions_aligned_Reward = encoder_data_aligned[left_idx_rew:right_idx_rew]
                     
                     # if i == 121:
@@ -396,43 +283,17 @@ def read_trials(subject):
                     # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
                     #plt.plot(session_encoder_times_aligned_Reward, trial_encoder_positions_aligned_Reward)
                     
-                    #indices = [ind for ind, ele in enumerate(session_encoder_times_aligned) if ele == 1]
-           # trial_encoder_positions_aligned.append(encoder_data_aligned)
-            
-            # plt.plot(trial_encoder_times_aligned_VisStim1,trial_encoder_positions_aligned_VisStim1, 'o')
-            # plt.plot(trial_encoder_times_aligned_VisStim2,trial_encoder_positions_aligned_VisStim2, 'o')
-            # plt.plot(times,positions, 'o')
-            # plt.plot(session_encoder_times_aligned,encoder_data_aligned, 'o')  
-            # plt.plot(session_encoder_times_aligned,sess_enc_avg, 'o') 
-        
-        # encoder trajectory average across session for rewarded trials
-        # if i == 251:
-        #     print()
-        # pos = np.sum(trial_encoder_positions_aligned[0:], axis=0)        
-        # sess_enc_avg = pos/len(trial_encoder_positions_aligned)
-        
-        # update trial_encoder_positions_aligned_VisStim1 and 2 above for common time vector
-        # session_encoder_times_aligned_VisStim1
-        # session_encoder_times_aligned_VisStim2
-        
-        # plt.plot(session_encoder_times_aligned_VisStim2, trial_encoder_positions_aligned_vis2[0], label='trial 1')
-        # plt.plot(session_encoder_times_aligned_VisStim2, trial_encoder_positions_aligned_vis2[1], label='trial 2')
-        
-        # encoder trajectory average across session for rewarded trials, vis stim 1 aligned
-        
+        # encoder trajectory average across session for rewarded trials, vis stim 1 aligned        
         try:
             pos_vis1 = np.sum(trial_encoder_positions_aligned_vis1[0:], axis=0)
         except:
             print(fname)
             time.sleep(15)
-        
-        
+                
         pos_vis1 = np.sum(trial_encoder_positions_aligned_vis1[0:], axis=0)        
-        sess_enc_avg_vis1 = pos_vis1/len(trial_num_rewarded)
+        sess_enc_avg_vis1 = pos_vis1/len(trial_num_rewarded)        
         
-        
-        if 0:
-        
+        if 0:        
             for i in range(len(trial_encoder_positions_aligned[0:4])):
                 plt.plot(session_encoder_times_aligned_VisStim1,trial_encoder_positions_aligned_vis1[i], label=i)
                 plt.legend(loc='upper right')
@@ -446,30 +307,22 @@ def read_trials(subject):
         
         if 0:
             plt.plot(session_encoder_times_aligned_VisStim2, sess_enc_avg_vis2)
-        
-        
+                
             for i in range(10):
                 plt.plot(session_encoder_times_aligned_VisStim2,trial_encoder_positions_aligned_vis2[i], label=i)
                 plt.legend(loc='upper right')
                 # plt.show()
-        
-        # [0:5000]
-              
+                     
             for i in range(len(trial_encoder_positions_aligned[0:4])):
                 plt.plot(session_encoder_times_aligned,trial_encoder_positions_aligned[i], label=i)
                 plt.legend(loc='upper right')
                 # plt.show()
-        
-       
+               
             for i in range(len(trial_encoder_positions_aligned[0:4])):
                 plt.plot(session_encoder_times_aligned[0:7000],trial_encoder_positions_aligned[i][0:7000], label=i)
                 plt.legend(loc='upper right')
         
-        # try:
-        #     pos_rew = np.sum(trial_encoder_positions_aligned_rew, axis=0)  
-        # except:
-        #     print(fname)
-        #     time.sleep(15)
+
         pos_rew = np.sum(trial_encoder_positions_aligned_rew, axis=0)
         sess_enc_avg_rew = pos_rew/len(trial_num_rewarded)
         
@@ -483,8 +336,6 @@ def read_trials(subject):
         
         session_target_thresh = trial_target_thresh
         session_press_reps = trial_reps
-        # session_encoder_times_aligned_VisStim1
-        # session_encoder_times_aligned_VisStim2
         
         # save one session data
         session_encoder_data.append(trial_encoder_data)
@@ -507,6 +358,7 @@ def read_trials(subject):
         session_licking.append(trial_licking)
         session_isi.append(trial_isi)
         session_avsync.append(trial_avsync)
+    
     # merge all session data
     data = {
         'total_sessions' : len(session_outcomes),

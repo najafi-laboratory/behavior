@@ -1,32 +1,10 @@
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import date
+import random
 
-
-# states = [
-#     'Reward',
-#     'RewardNaive',
-#     'Punish',
-#     'PunishNaive',
-#     'WrongInitiation',
-#     'EarlyChoice',
-#     'DidNotChoose',
-#     'DidNotConfirm',
-#     'DidNotLickCenter',
-#     'ChangingMindReward',
-#     'Habituation']
-# colors = [
-#     'limegreen',
-#     'springgreen',
-#     'coral',
-#     'lightcoral',
-#     'orange',
-#     'dodgerblue',
-#     'deeppink',
-#     'violet',
-#     'mediumorchid',
-#     'purple',
-#     'grey']
 
 states = [
     'Reward',
@@ -43,8 +21,6 @@ colors = [
     'mediumorchid',
     'purple',
     'grey']
-
-
 
 def count_label(session_label, states, norm=True):
     num_session = len(session_label)
@@ -105,22 +81,48 @@ def plot_fig1(
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('reward/punish percentage for completed trials across sessions')
     fig.tight_layout()
-    print('Completed fig1 for ' + subject)
+    print('Completed fig1 outcome percentages for ' + subject)
     print()
+    
+    # Saving the reference of the standard output
+    original_stdout = sys.stdout
+    today = date.today()
+    output_fname = './logs/'+ subject + 'outcome_log_' + str(today) + '.txt'
+    os.makedirs('./logs/', exist_ok = True)
+    with open(output_fname, 'w') as f:
+        sys.stdout = f
+    
+    
+        for i in range(len(session_id)):
+            Trials = len(outcomes[i])
+            Reward = outcomes[i].count('Reward')
+            Punish = outcomes[i].count('Punish')
+            HitRate = Reward/Trials
+            # print to log file
+            print(subject, dates[i], 'Counts')
+            print('Trials:', Trials)
+            print('Reward:', Reward)
+            print('Punish:', Punish)
+            print('Hit Rate:', format(HitRate, ".2%"))
+            print()
+           
+    # Reset the standard output
+    sys.stdout = original_stdout 
+
     for i in range(len(session_id)):
         Trials = len(outcomes[i])
         Reward = outcomes[i].count('Reward')
         Punish = outcomes[i].count('Punish')
         HitRate = Reward/Trials
+        # print to console
         print(subject, dates[i], 'Counts')
         print('Trials:', Trials)
         print('Reward:', Reward)
         print('Punish:', Punish)
         print('Hit Rate:', format(HitRate, ".2%"))
         print()
-    # print(session_id 'Outcome counts:')
-    # print('Outcome counts:')
-    # print()
+    
+            
     os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
     fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
     fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
@@ -128,8 +130,16 @@ def plot_fig1(
     
     
     
+# debugging
+
 # session_data = session_data_1
 # plot_fig1(session_data)
 
+# session_data = session_data_2
+# plot_fig1(session_data)
+    
 # session_data = session_data_3
+# plot_fig1(session_data)
+
+# session_data = session_data_4
 # plot_fig1(session_data)
