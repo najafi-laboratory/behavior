@@ -2,6 +2,7 @@ import DataIO
 from plot.fig1_outcome import plot_fig1
 from plot.fig2_trajectory_avg_sess import plot_fig2
 from plot.fig3_avg_licks import plot_fig3
+from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 # from plot.fig2_complete_trials_percentage import plot_fig2
 # from plot.fig3_percentage_epoch import plot_fig3
 # from plot.fig4_psychometric_epoch import plot_fig4
@@ -25,7 +26,7 @@ if __name__ == "__main__":
             plot_fig1,
             plot_fig2,
             # plot_fig3,
-            # plot_fig4,
+            plot_fig4,
             # plot_fig5,
             # plot_fig6,
             # plot_fig7,

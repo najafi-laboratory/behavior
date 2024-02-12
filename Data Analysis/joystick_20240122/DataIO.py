@@ -411,6 +411,27 @@ def states_labeling(trial_states, reps):
     #     outcome = 'DidNotPress2'
     # elif 'DidNotPress3' in trial_states.keys() and not np.isnan(trial_states['DidNotPress3'][0]):
     #     outcome = 'DidNotPress3'
+    # if 'Punish' in trial_states.keys() and not np.isnan(trial_states['Punish'][0]):
+    #     outcome = 'Punish'
+    # elif reps == 1 and 'Reward1' in trial_states.keys() and not np.isnan(trial_states['Reward1'][0]):
+    #     outcome = 'Reward'
+    # elif reps == 2 and 'Reward2' in trial_states.keys() and not np.isnan(trial_states['Reward2'][0]):
+    #     outcome = 'Reward'
+    # elif reps == 3 and 'Reward3' in trial_states.keys() and not np.isnan(trial_states['Reward3'][0]):        
+    #     outcome = 'Reward'
+    # elif 'Reward' in trial_states.keys() and not np.isnan(trial_states['Reward'][0]):
+    #     outcome = 'Reward'
+    # else:
+    #     outcome = 'Other'        
+    # elif 'Reward1' in trial_states.keys() and not np.isnan(trial_states['Reward1'][0]):
+    #     outcome = 'Reward' 
+    # elif 'Reward2' in trial_states.keys() and not np.isnan(trial_states['Reward2'][0]):
+    #     outcome = 'Reward'  
+    # elif 'Reward3' in trial_states.keys() and not np.isnan(trial_states['Reward3'][0]):
+    #     outcome = 'Reward'          
+    # else:
+    #     outcome = 'Other'
+    # keep below code for compatibilty with pre-version 8
     if 'Punish' in trial_states.keys() and not np.isnan(trial_states['Punish'][0]):
         outcome = 'Punish'
     elif reps == 1 and 'Reward1' in trial_states.keys() and not np.isnan(trial_states['Reward1'][0]):
@@ -422,15 +443,7 @@ def states_labeling(trial_states, reps):
     elif 'Reward' in trial_states.keys() and not np.isnan(trial_states['Reward'][0]):
         outcome = 'Reward'
     else:
-        outcome = 'Other'        
-    # elif 'Reward1' in trial_states.keys() and not np.isnan(trial_states['Reward1'][0]):
-    #     outcome = 'Reward' 
-    # elif 'Reward2' in trial_states.keys() and not np.isnan(trial_states['Reward2'][0]):
-    #     outcome = 'Reward'  
-    # elif 'Reward3' in trial_states.keys() and not np.isnan(trial_states['Reward3'][0]):
-    #     outcome = 'Reward'          
-    # else:
-    #     outcome = 'Other'
+        outcome = 'Other' 
         
 
         
