@@ -3,6 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
+from bokeh.plotting import figure, output_file, show  
+from bokeh.palettes import Magma, Inferno, Plasma, Viridis, Cividis, Greys, Blues, Reds, Greens
+# import bokeh.palettes as bp
+# import bokeh as bp
+# https://docs.bokeh.org/en/latest/docs/reference/palettes.html
 
 
 def save_image(filename): 
@@ -90,7 +95,26 @@ def plot_fig4(
     numTrials = []
     numRewardedTrials = []
     
-    for i in range(super_start_idx, session_data['total_sessions']):
+    
+    # palette = Plasma[256][palette_start:palette_start + session_data['total_sessions']]
+    # palette = Plasma[256][palette_start:palette_start + max_superimpose]
+    #Magma, Inferno, Plasma, Viridis, Cividis, Greys256
+    #palette = bp.palettes.Plasma[256]
+    # import bokeh as bp
+    # palette = Greys[256]
+    palette = Blues[256]
+    palette_idx = 1
+    palette_indices = []
+    palette_contrast_increment = 4
+    
+    for i in range(0, session_data['total_sessions']):
+        palette_indices.append(palette_idx + palette_contrast_increment)
+        palette_idx = palette_idx + palette_contrast_increment
+    
+    palette = [palette[i] for i in palette_indices]
+    palette.reverse()
+    
+    for i in range(0, session_data['total_sessions']):
         # print(i)
         
         numTrials.append(session_data['outcomes'][i])
@@ -118,7 +142,7 @@ def plot_fig4(
         # axs[0].set_ylim(-0.2, target_thresh+1)
         # axs[0].spines['right'].set_visible(False)
         # axs[0].spines['top'].set_visible(False)
-        # axs[0].set_xlabel('trial time relative to VisStim1 [s]')
+        # axs[0].set_xlabel('trial time from VisStim1 [s]')
         # axs[0].set_ylabel('joystick deflection [deg]')
             
         # # vis 2 or waitforpress aligned
@@ -126,11 +150,11 @@ def plot_fig4(
         # if vis_stim_2_enable:
         #     axs[1].axvline(x = 0, color = 'r', label = 'VisStim2', linestyle='--')
         #     axs[1].set_title('VisStim2 Aligned.\n')
-        #     axs[1].set_xlabel('trial time relative to VisStim2 [s]')
+        #     axs[1].set_xlabel('trial time from VisStim2 [s]')
         # else:
         #     axs[1].axvline(x = 0, color = 'r', label = 'WaitForPress2', linestyle='--')
         #     axs[1].set_title('WaitForPress2 Aligned.\n')
-        #     axs[1].set_xlabel('trial time relative to WaitForPress2 [s]')
+        #     axs[1].set_xlabel('trial time from WaitForPress2 [s]')
             
         # axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
         # axs[1].legend(loc='upper right')
@@ -153,7 +177,7 @@ def plot_fig4(
         # axs[2].set_ylim(-0.2, target_thresh+1)
         # axs[2].spines['right'].set_visible(False)
         # axs[2].spines['top'].set_visible(False)
-        # axs[2].set_xlabel('trial time relative to Reward [s]')
+        # axs[2].set_xlabel('trial time from Reward [s]')
         # axs[2].set_ylabel('joystick deflection [deg]')
         
         
@@ -170,10 +194,15 @@ def plot_fig4(
     # fig.suptitle(subject + ' - ' + dates[i] + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
     fig.suptitle(subject + ' Average Trajectories')
     
+    sessions_idxs = range(0, session_data['total_sessions'])
+    
     # vis 1 aligned
-    for i in range(0, max_superimpose):
-        # label = 
-        axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', label=super_dates[i])
+    for i in sessions_idxs:        
+        if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+            axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', color=palette[i], label=dates[i])
+        else:
+            axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', color=palette[i])
+        
         
     axs[0].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
     axs[0].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
@@ -183,21 +212,24 @@ def plot_fig4(
     axs[0].set_ylim(-0.2, target_thresh+1)
     axs[0].spines['right'].set_visible(False)
     axs[0].spines['top'].set_visible(False)
-    axs[0].set_xlabel('trial time relative to VisStim1 [s]')
+    axs[0].set_xlabel('trial time from VisStim1 [s]')
     axs[0].set_ylabel('joystick deflection [deg]')
         
     # vis 2 or waitforpress aligned
-    for i in range(0, max_superimpose):
-        axs[1].plot(encoder_times_vis2, encoder_pos_avg_vis2[i],'-', label=super_dates[i])
-        
+    for i in sessions_idxs:        
+        if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+            axs[1].plot(encoder_times_vis2, encoder_pos_avg_vis2[i],'-', color=palette[i], label=dates[i])
+        else:
+            axs[1].plot(encoder_times_vis2, encoder_pos_avg_vis2[i],'-', color=palette[i])
+            
     if vis_stim_2_enable:
         axs[1].axvline(x = 0, color = 'r', label = 'VisStim2', linestyle='--')
         axs[1].set_title('VisStim2 Aligned.\n')
-        axs[1].set_xlabel('trial time relative to VisStim2 [s]')
+        axs[1].set_xlabel('trial time from VisStim2 [s]')
     else:
         axs[1].axvline(x = 0, color = 'r', label = 'WaitForPress2', linestyle='--')
         axs[1].set_title('WaitForPress2 Aligned.\n')
-        axs[1].set_xlabel('trial time relative to WaitForPress2 [s]')
+        axs[1].set_xlabel('trial time from WaitForPress2 [s]')
         
     axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
     axs[1].legend(loc='upper right')
@@ -210,8 +242,11 @@ def plot_fig4(
     # reward aligned
     # fig3, axs3 = plt.subplots(1, figsize=(10, 4))
     # axs[2].subplots_adjust(hspace=0.7)
-    for i in range(0, max_superimpose):
-        axs[2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', label=super_dates[i])
+    for i in sessions_idxs:        
+        if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+            axs[2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i], label=dates[i])
+        else:
+            axs[2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i])       
         
     axs[2].axvline(x = 0, color = 'r', label = 'Reward', linestyle='--')
     axs[2].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
@@ -222,7 +257,7 @@ def plot_fig4(
     axs[2].set_ylim(-0.2, target_thresh+1)
     axs[2].spines['right'].set_visible(False)
     axs[2].spines['top'].set_visible(False)
-    axs[2].set_xlabel('trial time relative to Reward [s]')
+    axs[2].set_xlabel('trial time from Reward [s]')
     axs[2].set_ylabel('joystick deflection [deg]')    
     
     fig.tight_layout()
@@ -232,7 +267,7 @@ def plot_fig4(
     fig.savefig(img_dir + '/fig4_'+subject+'_avg_trajectory_superimpose.png', dpi=300)
     # plt.close(fig)
     
-    print('Completed fig4 trajectories for ' + subject)
+    print('Completed fig4 trajectories superimposed for ' + subject)
     print()
     plt.close("all")
 
