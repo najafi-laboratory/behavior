@@ -41,7 +41,7 @@ def plot_fig2(
     # dates = dates[start_idx:]
     # session_data = session_data[start_idx:]
     session_id = np.arange(len(outcomes)) + 1
-    filename = './figures/'+subject+'/'+'fig2_'+subject+'_avg_trajectory'    
+    filename = 'C:\\behavior\\joystick\\figures\\'+subject+'\\'+'fig2_'+subject+'_avg_trajectory'    
     
     # print()
     
@@ -127,9 +127,9 @@ def plot_fig2(
         
         
         fig.tight_layout()
-        os.makedirs('./figures/'+subject+'/'+dates[i], exist_ok = True)
+        os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\'+dates[i], exist_ok = True)
         save_image(filename)
-        fig.savefig('./figures/'+subject+'/'+dates[i]+'/fig2_'+subject+'_avg_trajectory.png', dpi=300)
+        fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\'+dates[i]+'\\fig2_'+subject+'_avg_trajectory.png', dpi=300)
         # plt.close(fig)
         
     print('Completed fig2 trajectories for ' + subject)

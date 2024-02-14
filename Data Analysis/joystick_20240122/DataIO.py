@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-session_data_path = 'C:\\behavior\\session_data' 
+session_data_path = 'C:\\behavior\\joystick\\session_data_joystick_figs' 
 # session_data_path = '.\\session_data'  # code test dir
 
 

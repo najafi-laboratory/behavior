@@ -68,6 +68,6 @@ def plot_fig2(
     fig.suptitle('reward/punish percentage for completed trials across sessions')
     fig.tight_layout()
     print('Completed fig2 for ' + subject)
-    fig.savefig('./figures/fig2_'+subject+'_complete_trials_percentage.pdf', dpi=300)
-    fig.savefig('./figures/fig2_'+subject+'_complete_trials_percentage.png', dpi=300)
+    fig.savefig('C:\\behavior\\joystick\\figures\\fig2_'+subject+'_complete_trials_percentage.pdf', dpi=300)
+    fig.savefig('C:\\behavior\\joystick\\figures\\fig2_'+subject+'_complete_trials_percentage.png', dpi=300)
     plt.close()

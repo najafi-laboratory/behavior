@@ -37,10 +37,19 @@ def plot_fig4(
         max_superimpose=3
         ):
     
-
+    print('plotting fig4')
     subject = session_data['subject']
+    # return if 0 total sessions
+    if session_data['total_sessions'] == 0:
+        print('no session data in folder for ' + subject)
+        return
+    
     outcomes = session_data['outcomes']
     dates = session_data['dates']
+    print('Subject ' + subject)
+    print('Date List')
+    for date in dates:
+        print(date)
     start_idx = 0
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
@@ -52,7 +61,7 @@ def plot_fig4(
     # dates = dates[start_idx:]
     # session_data = session_data[start_idx:]
     session_id = np.arange(len(outcomes)) + 1
-    filename = './figures/'+subject+'/'+'fig4_'+subject+'_avg_trajectory_superimpose'    
+    filename = 'C:\\behavior\\joystick\\figures\\'+subject+'\\'+'fig4_'+subject+'_avg_trajectory_superimpose'    
     
     # using now() to get current time
     current_time = datetime.datetime.now()
@@ -203,7 +212,7 @@ def plot_fig4(
         else:
             axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', color=palette[i])
         
-        
+    # print(subject)
     axs[0].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
     axs[0].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
     axs[0].set_title('VisStim1 Aligned.\n')        
@@ -261,10 +270,10 @@ def plot_fig4(
     axs[2].set_ylabel('joystick deflection [deg]')    
     
     fig.tight_layout()
-    img_dir = './figures/'+subject+'/fig4_' + time_string
+    img_dir = 'C:\\behavior\\joystick\\figures\\'+subject+'\\fig4_' + time_string
     os.makedirs(img_dir, exist_ok = True)
     save_image(filename)
-    fig.savefig(img_dir + '/fig4_'+subject+'_avg_trajectory_superimpose.png', dpi=300)
+    fig.savefig(img_dir + '\\fig4_'+subject+'_avg_trajectory_superimpose.png', dpi=300)
     # plt.close(fig)
     
     print('Completed fig4 trajectories superimposed for ' + subject)

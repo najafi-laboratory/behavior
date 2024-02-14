@@ -87,8 +87,8 @@ def plot_fig1(
     # Saving the reference of the standard output
     original_stdout = sys.stdout
     today = date.today()
-    output_fname = './logs/'+ subject + 'outcome_log_' + str(today) + '.txt'
-    os.makedirs('./logs/', exist_ok = True)
+    output_fname = 'C:\\behavior\\joystick\\logs\\'+ subject + 'outcome_log_' + str(today) + '.txt'
+    os.makedirs('C:\\behavior\\joystick\\logs\\', exist_ok = True)
     with open(output_fname, 'w') as f:
         sys.stdout = f
     
@@ -122,10 +122,17 @@ def plot_fig1(
         print('Hit Rate:', format(HitRate, ".2%"))
         print()
     
-            
-    os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
-    fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
-    fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
+         
+    # update to better code later
+    # save_dir = './figures/'+ subject + '/outcome'
+    # save_dir_outcome = save_dir + '/outcome'
+    # save_fn = 
+    # os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
+    # fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
+    # fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
+    os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome', exist_ok = True)
+    fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\fig1_'+subject+'_outcome.pdf', dpi=300)
+    fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome\\fig1_'+subject+'_outcome.png', dpi=300)
     plt.close()
     
     
