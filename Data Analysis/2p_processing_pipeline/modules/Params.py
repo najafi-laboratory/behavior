@@ -31,6 +31,7 @@ def run(args):
     ops['functional_chan'] = args.functional_chan
     ops['diameter'] = args.diameter
     ops['align_by_chan'] = 3-args.functional_chan
+    ops['brain_region'] = args.brain_region
     print('Search data files in {}'.format(ops['data_path']))
     print('Will save processed data in {}'.format(ops['save_path0']))
     print('Processing {} channel data'.format(ops['nchannels']))

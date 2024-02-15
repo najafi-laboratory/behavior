@@ -4,7 +4,8 @@ import os
 import h5py
 import numpy as np
 from datetime import datetime
-from suite2p.registration import register
+from suite2p.registration.register import compute_reference
+from suite2p.registration.register import registration_wrapper
 from suite2p.io import BinaryFile
 
 
@@ -35,35 +36,50 @@ def create_file_to_reg(
 
 def get_proj_img(
         f_reg_ch1,
-        f_reg_ch2
+        f_reg_ch2,
+        ops
         ):
+    mean_ch1 = np.mean(f_reg_ch1.data, axis=0)
+    mean_ch2 = np.mean(f_reg_ch2.data, axis=0)
+    frames_ch1 = f_reg_ch1.data[
+        np.linspace(0, f_reg_ch1.data.shape[0],
+        1 + np.minimum(ops["nimg_init"], f_reg_ch1.data.shape[0]),
+        dtype=int)[:-1]]
+    frames_ch2 = f_reg_ch2.data[
+        np.linspace(0, f_reg_ch2.data.shape[0],
+        1 + np.minimum(ops["nimg_init"], f_reg_ch2.data.shape[0]),
+        dtype=int)[:-1]]
+    ref_ch1 = compute_reference(frames_ch1, ops=ops)
+    ref_ch2 = compute_reference(frames_ch2, ops=ops)
     max_ch1 = np.max(f_reg_ch1.data, axis=0)
     max_ch2 = np.max(f_reg_ch2.data, axis=0)
-    return max_ch1, max_ch2
+    return [mean_ch1, mean_ch2, ref_ch1, ref_ch2, max_ch1, max_ch2]
 
 
 # save the mean and max image to h5 file in temp.
 
 def save_proj_img(
         ops,
-        reg_ref,
         mean_ch1, mean_ch2,
+        ref_ch1,  ref_ch2,
         max_ch1,  max_ch2
         ):
     # file structure:
     # ops['save_path0'] / temp / proj_img.h5
     # -- proj_img
-    # ---- reg_ref
     # ---- mean_ch1
     # ---- mean_ch2
+    # ---- ref_ch1
+    # ---- ref_ch2
     # ---- max_ch1
     # ---- max_ch2
     f = h5py.File(os.path.join(
         ops['save_path0'], 'temp', 'proj_img.h5'), 'w')
     grp = f.create_group('proj_img')
-    grp['reg_ref'] = reg_ref
     grp['mean_ch1'] = mean_ch1
     grp['mean_ch2'] = mean_ch2
+    grp['ref_ch1'] = ref_ch1
+    grp['ref_ch2'] = ref_ch2
     grp['max_ch1'] = max_ch1
     grp['max_ch2'] = max_ch2
     f.close()
@@ -91,16 +107,15 @@ def run(
     if ops['nchannels'] == 1:
         ch_data = [ch1_data, ch2_data]
         ch_data = ch_data[np.argmax([ch1_data.shape[0], ch2_data.shape[0]])]
-        reg_ref, _, _, mean_ch1, _, _, _, mean_ch2, _, _, _ = register.registration_wrapper(
+        _ = registration_wrapper(
             f_reg=f_reg_ch1,
             f_raw=ch_data,
             f_reg_chan2=None,
             f_raw_chan2=None,
             ops=ops)
-        mean_ch2 = mean_ch1
         f_reg_ch2 = f_reg_ch1
     elif ops['nchannels'] == 2:
-        reg_ref, _, _, mean_ch1, _, _, _, mean_ch2, _, _, _ = register.registration_wrapper(
+        _ = registration_wrapper(
             f_reg=f_reg_ch1,
             f_raw=ch1_data,
             f_reg_chan2=f_reg_ch2,
@@ -111,14 +126,15 @@ def run(
     print('Registration completed')
 
     # compute mean and max projection image.
-    print('Computing max projection images')
-    max_ch1, max_ch2 = get_proj_img(f_reg_ch1, f_reg_ch2)
+    print('Computing projection images')
+    [mean_ch1, mean_ch2, ref_ch1, ref_ch2, max_ch1, max_ch2] = get_proj_img(
+        f_reg_ch1, f_reg_ch2, ops)
 
     # save projection and reference images.
     save_proj_img(
         ops,
-        reg_ref,
         mean_ch1, mean_ch2,
+        ref_ch1,  ref_ch2,
         max_ch1,  max_ch2)
     print('Projected images saved')
 

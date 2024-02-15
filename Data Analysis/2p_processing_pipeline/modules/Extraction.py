@@ -2,7 +2,6 @@
 
 import os
 import h5py
-import numpy as np
 from datetime import datetime
 from suite2p import extraction_wrapper
 from suite2p.extraction import preprocess
@@ -79,20 +78,13 @@ def save_traces(
     f = h5py.File(os.path.join(
         ops['save_path0'], 'raw_traces.h5'), 'w')
     dict_group = f.create_group('raw')
-    dict_group['fluo_ch1'] = norm01(fluo_ch1)
-    dict_group['fluo_ch2'] = norm01(fluo_ch2)
-    dict_group['neuropil_ch1'] = norm01(neuropil_ch1)
-    dict_group['neuropil_ch2'] = norm01(neuropil_ch2)
-    dict_group['spikes_ch1'] = norm01(spikes_ch1)
-    dict_group['spikes_ch2'] = norm01(spikes_ch2)
+    dict_group['fluo_ch1'] = fluo_ch1
+    dict_group['fluo_ch2'] = fluo_ch2
+    dict_group['neuropil_ch1'] = neuropil_ch1
+    dict_group['neuropil_ch2'] = neuropil_ch2
+    dict_group['spikes_ch1'] = spikes_ch1
+    dict_group['spikes_ch2'] = spikes_ch2
     f.close()
-    
-
-# normalize data into [0,1]
-
-def norm01(data):
-    data = (data - np.min(data)) / ( np.max(data) - np.min(data) )
-    return data
 
 
 # main function for fluorescence signal extraction from ROIs.
@@ -102,7 +94,7 @@ def run(ops, stat_func, f_reg_ch1, f_reg_ch2):
     print('======= extracting fluorescence signals =======')
     print('===============================================')
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    
+
     [stat,
      fluo_ch1, neuropil_ch1,
      fluo_ch2, neuropil_ch2] = get_fluorescence(
@@ -111,15 +103,15 @@ def run(ops, stat_func, f_reg_ch1, f_reg_ch2):
          f_reg_ch1,
          f_reg_ch2)
     print('Fluorescence extraction completed')
-    
+
     fluo_ch1 = get_dff(ops, fluo_ch1, neuropil_ch1)
     fluo_ch2 = get_dff(ops, fluo_ch2, neuropil_ch2)
     print('Signal dff completed')
-    
+
     spikes_ch1 = spike_detect(ops, fluo_ch1)
     spikes_ch2 = spike_detect(ops, fluo_ch2)
     print('Spike deconvolution completed')
-    
+
     save_traces(ops,
         fluo_ch1, neuropil_ch1, spikes_ch1,
         fluo_ch2, neuropil_ch2, spikes_ch2)

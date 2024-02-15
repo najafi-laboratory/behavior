@@ -14,13 +14,16 @@ def read_data(
         ):
     [mask, raw_traces, raw_voltages, _] = RetrieveResults.run(ops)
     label = mask['label']
-    ch = 'fluo_ch' + str(ops['functional_chan'])
-    fluo = raw_traces[ch]
-    vol_img_bin = raw_voltages['vol_img_bin']
-    vol_stim_bin = raw_voltages['vol_stim_bin']
-    vol_time = raw_voltages['vol_time']
-    time_img = get_img_time(vol_time, vol_img_bin)
-    return [label, fluo, time_img, vol_stim_bin, vol_time]
+    fluo = raw_traces['fluo_ch' + str(ops['functional_chan'])]
+    spikes = raw_traces['spikes_ch' + str(ops['functional_chan'])]
+    if raw_voltages is not None:
+        vol_img_bin = raw_voltages['vol_img_bin']
+        vol_stim_bin = raw_voltages['vol_stim_bin']
+        vol_time = raw_voltages['vol_time']
+        time_img = get_img_time(vol_time, vol_img_bin)
+        return [label, fluo, spikes, time_img, vol_stim_bin, vol_time]
+    else:
+        return [label, fluo, spikes, None, None, None]
 
 
 # find imaging trigger time stamps
@@ -55,16 +58,19 @@ def plot_fig3(
     try:
         print('plotting fig3 raw traces')
 
-        [label, fluo, time_img, vol_stim_bin, time_vol] = read_data(ops)
-        fluo = (fluo - np.min(fluo)) / (np.max(fluo) - np.min(fluo) + 1e-8)
+        [label, fluo, spikes, time_img, vol_stim_bin, time_vol] = read_data(ops)
         mean_fluo_0 = np.mean(fluo[label==0, :], axis=0)
         mean_fluo_1 = np.mean(fluo[label==1, :], axis=0)
+        
+        # scale data
+        spikes = spikes * np.max(fluo) / np.max(spikes)
+        vol_stim_bin = vol_stim_bin * np.max(fluo)
 
         # plot figs.
-        if len(time_vol) < max_ms:
+        if np.max(time_vol) < max_ms:
             num_figs = 1
         else:
-            num_figs = int(len(time_vol)/max_ms)
+            num_figs = int(np.max(time_vol)/max_ms)
         num_subplots = fluo.shape[0] + 2
         for f in range(num_figs):
 
@@ -79,6 +85,7 @@ def plot_fig3(
             sub_time_img     = time_img[sub_time_img_idx]
             sub_vol_stim_bin = vol_stim_bin[sub_time_vol_idx]
             sub_fluo         = fluo[:, sub_time_img_idx]
+            sub_spikes       = spikes[:, sub_time_img_idx]
             sub_mean_fluo_0  = mean_fluo_0[sub_time_img_idx]
             sub_mean_fluo_1  = mean_fluo_1[sub_time_img_idx]
 
@@ -103,7 +110,7 @@ def plot_fig3(
             axs[0].set_title(
                 'mean trace of {} excitory neurons'.format(
                     np.sum(label==0)))
-            
+
             # plot mean inhibitory fluo on functional and anatomical channels.
             axs[1].plot(
                 sub_time_img, sub_mean_fluo_1,
@@ -117,12 +124,23 @@ def plot_fig3(
             # plot traces.
             fluo_color = ['seagreen', 'coral']
             fluo_label = ['excitory', 'inhibitory']
+            spikes_color = ['dodgerblue', 'violet']
             for i in range(fluo.shape[0]):
                 axs[i+2].plot(
                     sub_time_img, sub_fluo[i,:],
                     color=fluo_color[label[i]],
                     label=fluo_label[label[i]],
                     lw=0.5)
+                spikes_idx = np.nonzero(sub_spikes[i,:])[0]
+                spikes_data = sub_spikes[i,spikes_idx]
+                spikes_time = sub_time_img[spikes_idx]
+                axs[i+2].vlines(
+                    x=spikes_time,
+                    ymin=0,
+                    ymax=spikes_data,
+                    color=spikes_color[label[i]],
+                    label=fluo_label[label[i]]+'_spikes',
+                    lw=0.75)
                 axs[i+2].set_title('raw trace of neuron # '+ str(i).zfill(3))
 
             # adjust layout.
@@ -135,11 +153,11 @@ def plot_fig3(
                 axs[i].set_xlim([start, end])
                 axs[i].autoscale(axis='y')
                 axs[i].set_xticks(f * max_ms + np.arange(0,max_ms/5000+1) * 5000)
-                axs[i].set_yticks([])
+                axs[i].set_ylim([np.min(fluo), np.max(fluo)])
                 axs[i].legend(loc='upper left')
             fig.set_size_inches(max_ms/2000, num_subplots*2)
             fig.tight_layout()
-            
+
             # save figure.
             fig.savefig(os.path.join(
                 ops['save_path0'], 'figures',

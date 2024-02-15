@@ -5,10 +5,10 @@
 	},
 
 	"Main" : {
+		"brain_region" : "ppc",
 		"nplanes": 1,
 		"nchannels": 2,
 		"functional_chan": 2,
-		"tau": 1.0,
 		"fs": 30.0,
 		"Lx": 512,
 		"Ly": 512,
@@ -86,11 +86,11 @@
 		"connected": true,
 		"nbinned": 5000,
 		"max_iterations": 20,
-		"threshold_scaling": 1.0,
+		"threshold_scaling": 2.0,
 		"max_overlap": 0.75,
 		"high_pass": 100,
 		"spatial_hp_detect": 25,
-		"denoise": false
+		"denoise": true
 	},
 
 	"AnatomicalROI" : {
@@ -103,6 +103,8 @@
 	},
 
 	"SpikeDeconv" : {
+		"tau": 1.0,
+		"spike_thres": 0.15,
 		"spikedetect": true,
 		"baseline": "maximin",
 		"win_baseline": 60.0,

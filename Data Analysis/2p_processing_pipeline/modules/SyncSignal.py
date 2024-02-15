@@ -153,8 +153,15 @@ def align_stim(
 # process trial start signal.
 
 def get_trial_start_end(
-        time_start
+        vol_time,
+        vol_start_bin,
         ):
+    time_up, time_down = get_trigger_time(vol_time, vol_start_bin)
+    # find the impulse start signal.
+    time_start = []
+    for i in range(len(time_up)):
+        if time_down[i] - time_up[i] < 200:
+            time_start.append(time_up[i])
     start = []
     end = []
     # assume the current trial end at the next start point.
@@ -249,7 +256,6 @@ def run(
 
         print('Comnputing signal trigger time stamps')
         time_img, _   = get_trigger_time(vol_time, vol_img_bin)
-        time_start, _ = get_trigger_time(vol_time, vol_start_bin)
 
         # correct imaging timing
         time_neuro = correct_time_img_center(time_img)
@@ -260,7 +266,7 @@ def run(
 
         # trial segmentation.
         print('Spliting trial data')
-        start, end = get_trial_start_end(time_start)
+        start, end = get_trial_start_end(vol_time, vol_start_bin)
         neural_trials = trial_split(raw_traces, stim, time_neuro, start, end)
 
         # save the final data.

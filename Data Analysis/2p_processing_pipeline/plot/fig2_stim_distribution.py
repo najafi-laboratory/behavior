@@ -79,7 +79,7 @@ def plot_fig2(
             axs[i].set_xticklabels(np.arange(0, 21)*100, rotation='vertical')
         handles, labels = axs[i].get_legend_handles_labels()
         fig.legend(handles[-2:], labels[-2:], loc='upper right')
-        fig.suptitle('Stimulus interval distribution')
+        fig.suptitle('Inter stimulus interval distribution')
         fig.tight_layout()
         # save figure.
         fig.savefig(os.path.join(

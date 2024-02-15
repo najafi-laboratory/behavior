@@ -77,3 +77,15 @@ sbatch run.sh
 - Completed computing masks overlap between channels to label neurons.
 - Modified plotting masks with labels.
 - Plot traces with different colors to specify excitory and inhibitory neurons.
+
+## 2024.02.08
+- Added voltage recording issue handler.
+
+## 2024.02.10
+- Deleted cellpose results on reference image.
+- Added comparison between max projection and reference image for cellpose on functional channel.
+- Plot spike trigger average completed.
+
+## 2024.02.14
+- Added args for cerebellum/ppc.
+- Added functional ROI detection for cerebellum.

@@ -6,7 +6,7 @@ import argparse
 from modules import Params
 from modules import DataIO
 from modules import Registration
-from modules import CellDetect
+from modules import Detection
 from modules import Extraction
 from modules import SyncSignal
 from modules import RetrieveResults
@@ -16,26 +16,29 @@ from plot.fig2_stim_distribution import plot_fig2
 from plot.fig3_raw_traces import plot_fig3
 from plot.fig4_align_grating import plot_fig4
 from plot.fig5_align_error import plot_fig5
+from plot.fig6_spike_trigger_average import plot_fig6
 
 '''
 python main.py `
 --run_Registration 1 `
---run_CellDetect 1 `
+--run_Detection 1 `
 --run_Extraction 1 `
 --run_SyncSignal 1 `
 --run_RetrieveResults 1 `
 --run_Plotter 1 `
---data_path './testdata/FN8_P_Omii_020224_-2730_1285_-85_debug-272' `
---save_path0 './results/test_omi' `
---nchannels 2 `
+--data_path './testdata/crbl' `
+--save_path0 './results/crbl' `
+--nchannels 1 `
 --functional_chan 2 `
---diameter 8
+--diameter 8 `
+--brain_region 'crbl'
 '''
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Before using the code say I Love Yicong Forever very loudly!')
+    parser = argparse.ArgumentParser(description='Before using the code say I Love Yicong Forever!')
     parser.add_argument('--run_Registration',    type=int, default=1, help='Whether run the registration module.')
-    parser.add_argument('--run_CellDetect',      type=int, default=1, help='Whether run the cell detection module.')
+    parser.add_argument('--run_Detection',       type=int, default=1, help='Whether run the cell detection module.')
     parser.add_argument('--run_Extraction',      type=int, default=1, help='Whether run the signal extraction module.')
     parser.add_argument('--run_SyncSignal',      type=int, default=1, help='Whether run the synchronization module.')
     parser.add_argument('--run_RetrieveResults', type=int, default=1, help='Whether run the data retrieval module.')
@@ -44,12 +47,13 @@ if __name__ == "__main__":
     parser.add_argument('--save_path0',      required=True, type=str, help='Path to save the results.')
     parser.add_argument('--nchannels',       required=True, type=int, help='Specify the number of channels.')
     parser.add_argument('--functional_chan', required=True, type=int, help='Specify functional channel id.')
-    parser.add_argument('--diameter',        required=True, type=int, help='Cell diameter for cellpose detection.')
+    parser.add_argument('--diameter',        required=True, type=int, help='Cell diameter for cell detection.')
+    parser.add_argument('--brain_region',    required=True, type=str, help='Can only be crbl or ppc.')
     args = parser.parse_args()
 
     # parameters.
     ops = Params.run(args)
-    
+
     # read video data.
     [ch1_data, ch2_data] = DataIO.run(ops)
 
@@ -59,8 +63,9 @@ if __name__ == "__main__":
              ops, ch1_data, ch2_data)
 
     # ROI detection.
-    if args.run_CellDetect:
-        [stat_func] = CellDetect.run(ops)
+    if args.run_Detection:
+        stat_func = Detection.run(
+            ops, f_reg_ch1, f_reg_ch2)
 
     # Signal extraction.
     if args.run_Extraction:
@@ -88,5 +93,6 @@ if __name__ == "__main__":
         plot_fig3(ops)
         plot_fig4(ops)
         plot_fig5(ops)
+        plot_fig6(ops)
 
 

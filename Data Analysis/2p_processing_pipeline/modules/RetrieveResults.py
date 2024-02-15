@@ -7,7 +7,7 @@ import numpy as np
 
 # read saved ops.npy given a folder in ./results.
 
-# ops = read_ops('test_omi')
+# ops = read_ops('FN8_P_PrePost_020224')
 def read_ops(save_folder):
     ops = np.load(
         os.path.join('./results', save_folder, 'ops.npy'),
@@ -32,14 +32,18 @@ def read_raw_traces(ops):
 # read raw_voltages.h5
 
 def read_raw_voltages(ops):
-    f = h5py.File(
-        os.path.join(ops['save_path0'], 'raw_voltages.h5'),
-        'r')
-    raw_voltages = dict()
-    for k in f['raw'].keys():
-        raw_voltages[k] = np.array(f['raw'][k])
-    f.close()
-    return raw_voltages
+    try:
+        f = h5py.File(
+            os.path.join(ops['save_path0'], 'raw_voltages.h5'),
+            'r')
+        raw_voltages = dict()
+        for k in f['raw'].keys():
+            raw_voltages[k] = np.array(f['raw'][k])
+        f.close()
+        return raw_voltages
+    except:
+        print('Fail to read voltage data')
+        return None
 
 
 # read neural_trials.h5
@@ -56,9 +60,10 @@ def read_neural_trials(ops):
                 neural_trials[trial][data] = np.array(f['trial_id'][trial][data])
         f.close()
         neural_trials = add_trial_types(neural_trials)
+        return neural_trials
     except:
         print('Fail to read trial data')
-    return neural_trials
+        return None
 
 
 # tentative function to hard code trial types.
