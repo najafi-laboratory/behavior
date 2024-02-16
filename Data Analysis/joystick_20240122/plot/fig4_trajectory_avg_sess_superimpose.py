@@ -31,13 +31,21 @@ def save_image(filename):
     # close the object 
     p.close() 
 
+# def plot_fig4(
+#         session_data,
+#         max_sessions=10,
+#         max_superimpose=3
+#         ):
+    
 def plot_fig4(
         session_data,
-        max_sessions=10,
-        max_superimpose=3
-        ):
+        date_range_start,
+        date_range_stop
+        ):    
     
     print('plotting fig4')
+    print(date_range_start)
+    print(date_range_stop)
     subject = session_data['subject']
     # return if 0 total sessions
     if session_data['total_sessions'] == 0:
@@ -50,13 +58,21 @@ def plot_fig4(
     print('Date List')
     for date in dates:
         print(date)
-    start_idx = 0
-    if max_sessions != -1 and len(dates) > max_sessions:
-        start_idx = len(dates) - max_sessions
-    super_start_idx = 0
-    if max_superimpose != -1 and len(dates) > max_superimpose:
-        super_start_idx = len(dates) - max_superimpose
-    super_dates = session_data['dates'][super_start_idx:]
+        
+    
+    # start_idx = 0
+    start_idx = dates.index(date_range_start)
+    stop_idx = dates.index(date_range_stop)
+    
+    dates = dates[start_idx:stop_idx+1]
+    
+    
+    # if max_sessions != -1 and len(dates) > max_sessions:
+    #     start_idx = len(dates) - max_sessions
+    # super_start_idx = 0
+    # if max_superimpose != -1 and len(dates) > max_superimpose:
+    #     super_start_idx = len(dates) - max_superimpose
+    # super_dates = session_data['dates'][super_start_idx:]
     outcomes = outcomes[start_idx:]
     # dates = dates[start_idx:]
     # session_data = session_data[start_idx:]
@@ -112,18 +128,26 @@ def plot_fig4(
     # import bokeh as bp
     # palette = Greys[256]
     palette = Blues[256]
+    palette = palette
     palette_idx = 1
     palette_indices = []
-    palette_contrast_increment = 4
     
-    for i in range(0, session_data['total_sessions']):
-        palette_indices.append(palette_idx + palette_contrast_increment)
-        palette_idx = palette_idx + palette_contrast_increment
+    # palette_luminosity_increment = int(np.floor(len(palette) / len(dates)))
+    palette_luminosity_increment = int(np.floor(len(palette) / len(range(start_idx, stop_idx + 1))))
+        
+    # for i in range(0, session_data['total_sessions']):
+    for i in range(start_idx, stop_idx + 1):
+        if i > 0:
+            palette_indices.append(palette_idx + palette_luminosity_increment)
+        else:
+            palette_indices.append(palette_idx)
+        palette_idx = palette_idx + palette_luminosity_increment
     
     palette = [palette[i] for i in palette_indices]
     palette.reverse()
     
-    for i in range(0, session_data['total_sessions']):
+    # for i in range(0, session_data['total_sessions']):
+    for i in range(start_idx, stop_idx + 1):   
         # print(i)
         
         numTrials.append(session_data['outcomes'][i])
@@ -148,7 +172,7 @@ def plot_fig4(
         # axs[0].set_title('VisStim1 Aligned.\n')        
         # axs[0].legend(loc='upper right')
         # axs[0].set_xlim(time_left_VisStim1, 4.0)
-        # axs[0].set_ylim(-0.2, target_thresh+1)
+        # axs[0].set_ylim(-0.2, target_thresh+1.25)
         # axs[0].spines['right'].set_visible(False)
         # axs[0].spines['top'].set_visible(False)
         # axs[0].set_xlabel('trial time from VisStim1 [s]')
@@ -168,7 +192,7 @@ def plot_fig4(
         # axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
         # axs[1].legend(loc='upper right')
         # axs[1].set_xlim(-1, 2.0)
-        # axs[1].set_ylim(-0.2, target_thresh+1)
+        # axs[1].set_ylim(-0.2, target_thresh+1.25)
         # axs[1].spines['right'].set_visible(False)
         # axs[1].spines['top'].set_visible(False)
         # axs[1].set_ylabel('joystick deflection [deg]')
@@ -183,7 +207,7 @@ def plot_fig4(
         # axs[2].set_title('Reward Aligned.\n')    
         # axs[2].legend(loc='upper right')               
         # axs[2].set_xlim(-1.0, 1.5)
-        # axs[2].set_ylim(-0.2, target_thresh+1)
+        # axs[2].set_ylim(-0.2, target_thresh+1.25)
         # axs[2].spines['right'].set_visible(False)
         # axs[2].spines['top'].set_visible(False)
         # axs[2].set_xlabel('trial time from Reward [s]')
@@ -203,11 +227,14 @@ def plot_fig4(
     # fig.suptitle(subject + ' - ' + dates[i] + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
     fig.suptitle(subject + ' Average Trajectories')
     
-    sessions_idxs = range(0, session_data['total_sessions'])
-    
+    # sessions_idxs = range(0, session_data['total_sessions'])
+    sessions_idxs = range(0, len(dates))
+    for j in sessions_idxs:
+        print(j)
     # vis 1 aligned
     for i in sessions_idxs:        
-        if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+        # if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+        if (i == 0) or (i == stop_idx):            
             axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', color=palette[i], label=dates[i])
         else:
             axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', color=palette[i])
@@ -218,7 +245,7 @@ def plot_fig4(
     axs[0].set_title('VisStim1 Aligned.\n')        
     axs[0].legend(loc='upper right')
     axs[0].set_xlim(time_left_VisStim1, 4.0)
-    axs[0].set_ylim(-0.2, target_thresh+1)
+    axs[0].set_ylim(-0.2, target_thresh+1.25)
     axs[0].spines['right'].set_visible(False)
     axs[0].spines['top'].set_visible(False)
     axs[0].set_xlabel('trial time from VisStim1 [s]')
@@ -226,7 +253,8 @@ def plot_fig4(
         
     # vis 2 or waitforpress aligned
     for i in sessions_idxs:        
-        if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+        # if (i == 0) or (i == (session_data['total_sessions'] - 1)):
+        if (i == 0) or (i == (len(list(sessions_idxs))-1)):                
             axs[1].plot(encoder_times_vis2, encoder_pos_avg_vis2[i],'-', color=palette[i], label=dates[i])
         else:
             axs[1].plot(encoder_times_vis2, encoder_pos_avg_vis2[i],'-', color=palette[i])
@@ -243,7 +271,7 @@ def plot_fig4(
     axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
     axs[1].legend(loc='upper right')
     axs[1].set_xlim(-1, 2.0)
-    axs[1].set_ylim(-0.2, target_thresh+1)
+    axs[1].set_ylim(-0.2, target_thresh+1.25)
     axs[1].spines['right'].set_visible(False)
     axs[1].spines['top'].set_visible(False)
     axs[1].set_ylabel('joystick deflection [deg]')
@@ -252,7 +280,8 @@ def plot_fig4(
     # fig3, axs3 = plt.subplots(1, figsize=(10, 4))
     # axs[2].subplots_adjust(hspace=0.7)
     for i in sessions_idxs:        
-        if (i == 0) or (i == (session_data['total_sessions'] - 1)):            
+        # if (i == 0) or (i == (session_data['total_sessions'] - 1)): 
+        if (i == 0) or (i == (len(list(sessions_idxs))-1)):    
             axs[2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i], label=dates[i])
         else:
             axs[2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i])       
@@ -263,7 +292,7 @@ def plot_fig4(
     axs[2].set_title('Reward Aligned.\n')    
     axs[2].legend(loc='upper right')               
     axs[2].set_xlim(-1.0, 1.5)
-    axs[2].set_ylim(-0.2, target_thresh+1)
+    axs[2].set_ylim(-0.2, target_thresh+1.25)
     axs[2].spines['right'].set_visible(False)
     axs[2].spines['top'].set_visible(False)
     axs[2].set_xlabel('trial time from Reward [s]')

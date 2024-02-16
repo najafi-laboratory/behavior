@@ -14,19 +14,25 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 # from plot.fig10_com import plot_fig10
 
 
+# session_data_1 = session_data_1
+# session_data_2 = session_data_2
+# session_data_3 = session_data_3
+session_data_4 = session_data_4
+
+
 if __name__ == "__main__":
 
-    session_data_1 = DataIO.read_trials('YH4')
-    session_data_2 = DataIO.read_trials('YH5')
-    session_data_3 = DataIO.read_trials('FN10')
-    session_data_4 = DataIO.read_trials('FN13')
+    # session_data_1 = DataIO.read_trials('YH4')
+    # session_data_2 = DataIO.read_trials('YH5')
+    # session_data_3 = DataIO.read_trials('FN10')
+    # session_data_4 = DataIO.read_trials('FN13')
 
 
     for plotter in [
-            plot_fig1,
-            plot_fig2,
+            # plot_fig1,
+            # plot_fig2,
             # plot_fig3,
-            plot_fig4,
+            plot_fig4(session_data, '20240207', '20240215'),
             # plot_fig5,
             # plot_fig6,
             # plot_fig7,
@@ -35,12 +41,14 @@ if __name__ == "__main__":
             # plot_fig10,
             ]:
         for session_data in [
-                session_data_1,
-                session_data_2,
-                session_data_3,
+                # session_data_1,
+                # session_data_2,
+                # session_data_3,
                 session_data_4,
                 # session_data_5,
                 # session_data_6
                 ]:
             plotter(session_data)
+ 
+    
  
