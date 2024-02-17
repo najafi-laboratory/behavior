@@ -294,6 +294,7 @@ classdef PsychToolboxVideoPlayer < handle
             obj.StimulusType(TextIndex) = 1;
         end
         function play(obj, StimulusIndex)
+            obj.tic1 = tic; % get stopwatch time to account for processing overhead when using timermode 2
             if StimulusIndex == 0
                 Screen('DrawTexture', obj.Window, obj.BlankScreen);
                 Screen('Flip', obj.Window);

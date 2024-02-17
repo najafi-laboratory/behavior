@@ -26,19 +26,12 @@ classdef BpodStepperModule < handle & matlab.mixin.CustomDisplay
                         % 0 = PWM chopper ("spreadCycle")
                         % 1 = voltage chopper ("stealthChop")
                         % 2 = constant off time
-        ChopperMode       
+        ChopperMode
         Acceleration    % acceleration (full steps / s^2)
         MaxSpeed        % peak velocity (full steps / s)
         MicroPosition
         Position        % absolute position
         EncoderPosition
-
-                        % freewheel mode
-                        % 0 = normal operation
-                        % 1 = freewheeling
-                        % 2 = coil shorted using LS drivers
-                        % 3 = coil shorted using HS drivers
-        freewheel         
     end
 
     properties (Dependent, Access = {?BpodStepperLive})
@@ -54,8 +47,6 @@ classdef BpodStepperModule < handle & matlab.mixin.CustomDisplay
         privChopper                         % private: Chopper mode
         privStreamingMode = false           % private: streaming mode
         CurrentFirmwareVersion = [2023 4 1] % most recent firmware version
-
-        privFreewheel                       % private: freewheel mode
     end
 
     methods
@@ -104,10 +95,6 @@ classdef BpodStepperModule < handle & matlab.mixin.CustomDisplay
             obj.privRMScurrent = obj.Port.read(1, 'uint16');
             obj.Port.write('Gi', 'uint8');
             obj.privHoldRMScurrent = obj.Port.read(1, 'uint16');
-
-            % obj.Port.read('Gf', 'uint8');
-            % obj.privFreewheel = obj.Port.read(1, 'uint8');
-
             obj.Port.write('GC', 'uint8');
             obj.privChopper = obj.Port.read(1, 'uint8');
             obj.privUseEncoder = isequal(obj.getMode(1:2),'ab');
@@ -165,19 +152,6 @@ classdef BpodStepperModule < handle & matlab.mixin.CustomDisplay
             obj.pauseStreaming(true);
             obj.Port.write('Gi', 'uint8');
             obj.privHoldRMScurrent = obj.Port.read(1, 'uint16');
-            obj.pauseStreaming(false);
-        end
-
-        function out = get.freewheel(obj)
-            out = obj.privFreewheel;
-        end
-        function set.freewheel(obj, newMode)
-            validateattributes(newMode,{'numeric'},...
-                {'scalar','nonnegative','real'})
-            obj.Port.write('f', 'uint8', newMode, 'uint8');
-            obj.pauseStreaming(true);
-            obj.Port.write('Gf', 'uint8');
-            obj.privFreewheel = obj.Port.read(1, 'uint8');
             obj.pauseStreaming(false);
         end
 

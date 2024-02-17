@@ -82,7 +82,6 @@ classdef RotaryEncoderModule < handle
         halfPoint = 512; % Half of total positions per revolution (depends both on encoder and encoding method)
         thresholdType = 0; % 0 = standard (legacy, default), 1 = advanced, see comment of useAdvancedThresholds property above
         hardwareTimerInterval = 0.0001; % seconds, currently fixed in firmware
-        LastKnownEncPos = 0; % last unflushed location of encoder
     end
             
     methods
@@ -131,29 +130,9 @@ classdef RotaryEncoderModule < handle
         end
         
         function pos = currentPosition(obj)
-            if obj.acquiring == 1
-                stop(obj.Timer);                
-                obj.captureUSBStream; % Push latest data to buffer
-                %pos = obj.usbCapturedData.Positions(end);
-                %mk1
-                try
-                   % Error when positions vector empty, if empty
-                   % vector, then still don't know encoder pos
-                   pos = obj.usbCapturedData.Positions(end);
-                   
-                catch e %e is an MException struct
-                    % fprintf(1,'The identifier was:\n%s',e.identifier);
-                    % fprintf(1,'There was an error! The message was:\n%s',e.message);
-                    % send codes up to softcode handler...
-                    %pos = 999; % code to indicate no position reported from encoder
-                    pos = obj.LastKnownEncPos;
-                end
-
-                start(obj.Timer);
-            else
-                obj.Port.write('Q', 'uint8');
-                pos = obj.pos2degrees(obj.Port.read(1, 'int16'));
-            end
+            obj.assertNotUSBStreaming;
+            obj.Port.write('Q', 'uint8');
+            pos = obj.pos2degrees(obj.Port.read(1, 'int16'));
         end
         function set.userCallbackFcn(obj, newFcn)
             if obj.acquiring == 1
@@ -397,12 +376,11 @@ classdef RotaryEncoderModule < handle
                         op = varargin{1};
                         switch lower(op)
                             case 'usetimer'
-                                
+                                obj.usbCaptureEnabled = 1;
                             otherwise
                                 error(['Error starting rotary encoder USB stream: Invalid argument ' op '. Valid arguments are: ''UseTimer'''])
                         end     
                     end
-                    obj.usbCaptureEnabled = 1;
                     obj.Timer = timer('TimerFcn',@(h,e)obj.captureUSBStream(), 'ExecutionMode', 'fixedRate', 'Period', obj.timerInterval, 'Tag', ['RE_' obj.Port.PortName]);
                     start(obj.Timer);
                 else
@@ -410,7 +388,7 @@ classdef RotaryEncoderModule < handle
                 end
             end
         end
-        function NewData = readUSBStream(obj, varargin) %mk3
+        function NewData = readUSBStream(obj, varargin)
             % Usage: readUSBStream() returns all new data up to the current moment. readUSBStream(eventCode) reads all new data prior to an event code received by the REM.
             % To send an event code to the REM from the state machine, use {'RotaryEncoder1', ['#' eventCode]} in output actions.
             eventCode = [];
@@ -605,15 +583,12 @@ classdef RotaryEncoderModule < handle
             newData = obj.readUSBStream;
             if (newData.nEvents > 0) || (newData.nPositions > 0)
                 obj.usbCapturedData = obj.appendStreamData(obj.usbCapturedData, newData);
-                if ~isempty(obj.usbCapturedData.Positions)
-                    obj.LastKnownEncPos = obj.usbCapturedData.Positions(end); %mk2
-                end
             end
         end
         function updatePlot(obj)
             newData = obj.getUSBStream;
             if ~isempty(newData.Positions)
-                DisplayTime = (newData.Times(end)-obj.sweepStartTime); % what really is the ny times affect on man? you don't know, ask the owl how many licks to the center of a delicious
+                DisplayTime = (newData.Times(end)-obj.sweepStartTime);
                 obj.displayPos = obj.displayPos + newData.nPositions;
                 if (DisplayTime >= obj.maxDisplayTime) || (obj.UIResetScheduled == 1)
                     obj.displayPositions(1:obj.displayPos) = NaN;
