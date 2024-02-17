@@ -2,6 +2,19 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from PyPDF2 import PdfFileReader, PdfFileWriter, PdfWriter
+
+# output = PdfFileWriter()
+# output = PdfWriter()
+# pdfOne = PdfFileReader(open("path/to/pdf1.pdf", "rb"))
+# pdfTwo = PdfFileReader(open("path/to/pdf2.pdf", "rb"))
+
+# output.addPage(pdfOne.getPage(0))
+# output.addPage(pdfTwo.getPage(0))
+
+# outputStream = open(r"output.pdf", "wb")
+# output.write(outputStream)
+# outputStream.close()
 
 
 def save_image(filename): 
@@ -74,8 +87,12 @@ def plot_fig3(
         target_thresh = session_data['session_target_thresh']
         
         
+        # max_percentage = 1
         min_trial = 0
-        max_trial = int(np.floor(0.05 * numRewardedTrials))
+        # max_trial = int(np.floor(max_percentage * numRewardedTrials))
+        max_trial = 30
+        
+        
         
         for trial in range(min_trial, max_trial):
             fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(20, 4))
@@ -149,8 +166,8 @@ def plot_fig3(
 
 # debugging
 
-# session_data = session_data_1
-# plot_fig3(session_data)
+session_data = session_data_1
+plot_fig3(session_data)
 
 # session_data = session_data_2
 # plot_fig3(session_data)
@@ -158,5 +175,5 @@ def plot_fig3(
 # session_data = session_data_3
 # plot_fig3(session_data)
 
-session_data = session_data_4
-plot_fig3(session_data)
+# session_data = session_data_4
+# plot_fig3(session_data)
