@@ -3,6 +3,8 @@ import scipy.io as sio
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import tkinter as tk
+from tkinter import filedialog
 
 session_data_path = 'C:\\behavior\\joystick\\session_data_joystick_figs' 
 # session_data_path = '.\\session_data'  # code test dir
@@ -47,9 +49,11 @@ def load_mat(fname):
 
 # extract all session data for a subject
 
-def read_trials(subject):
+def read_trials(subject, file_names):
+    
+    
 
-    file_names = os.listdir(os.path.join(session_data_path, subject))
+    # file_names = os.listdir(os.path.join(session_data_path, subject))
     file_names.sort(key=lambda x: x[-19:])
     session_raw_data = []
     session_encoder_data = []
