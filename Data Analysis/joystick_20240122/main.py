@@ -28,28 +28,27 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 if __name__ == "__main__":
 
     
-    # root = tk.Tk()
-    # root.withdraw()
+    extract_data = 0
+    run_plots = 1
     
-    window = tk.Tk()
-    window.wm_attributes('-topmost', 1)
-    window.withdraw()   # this supress the tk window
-    
-    session_data_path = 'C:\\behavior\\joystick\\session_data_joystick_figs'
-    file_paths_1 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH4', title='Select YH4 Sessions'))
-    file_paths_2 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH5', title='Select YH5 Sessions'))
-    file_paths_3 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN10', title='Select FN10 Sessions'))
-    file_paths_4 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN13', title='Select FN13 Sessions'))
-    
-    
-    
-    session_data_1 = DataIO.read_trials('YH4', file_paths_1)
-    session_data_2 = DataIO.read_trials('YH5', file_paths_2)
-    session_data_3 = DataIO.read_trials('FN10', file_paths_3)
-    session_data_4 = DataIO.read_trials('FN13', file_paths_4)
+    if extract_data:
+        window = tk.Tk()
+        window.wm_attributes('-topmost', 1)
+        window.withdraw()   # this supress the tk window
+        
+        session_data_path = 'C:\\behavior\\joystick\\session_data_joystick_figs'
+        file_paths_1 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH4', title='Select YH4 Sessions'))
+        file_paths_2 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH5', title='Select YH5 Sessions'))
+        file_paths_3 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN10', title='Select FN10 Sessions'))
+        file_paths_4 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN13', title='Select FN13 Sessions'))
+        
+        session_data_1 = DataIO.read_trials('YH4', file_paths_1)
+        session_data_2 = DataIO.read_trials('YH5', file_paths_2)
+        session_data_3 = DataIO.read_trials('FN10', file_paths_3)
+        session_data_4 = DataIO.read_trials('FN13', file_paths_4)
 
 
-    run_plots = 0
+    
     if run_plots:
         for plotter in [
                 # plot_fig1,

@@ -41,15 +41,10 @@ def plot_fig3(
     # dates = dates[start_idx:]
     # session_data = session_data[start_idx:]
     session_id = np.arange(len(outcomes)) + 1
-    # filename = 'C:\\behavior\\joystick\\figures\\'+subject+'\\'+'fig3_'+subject+'_trajectory'    
-    
-    # print()    
-    
-    # trajectory_dir = 'C:\\behavior\\joystick\\figures\\'+subject+'\\'
     
     for i in range(start_idx, session_data['total_sessions']):
     # for i in range(start_idx, 1):
-        print('plotting trajectories for session ', dates[i][2:])
+        print('plotting trajectories for' + subject + ' session ', dates[i][2:])
         
         numTrials = len(session_data['outcomes'][i])
         numRewardedTrials = len(session_data['rewarded_trials'][i])
@@ -193,14 +188,14 @@ def plot_fig3(
 
 # debugging
 
-session_data = session_data_1
-plot_fig3(session_data)
+# session_data = session_data_1
+# plot_fig3(session_data)
 
 # session_data = session_data_2
 # plot_fig3(session_data)
     
-session_data = session_data_3
-plot_fig3(session_data)
+# session_data = session_data_3
+# plot_fig3(session_data)
 
-session_data = session_data_4
-plot_fig3(session_data)
+# session_data = session_data_4
+# plot_fig3(session_data)
