@@ -28,7 +28,7 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 if __name__ == "__main__":
 
     
-    extract_data = 0
+    extract_data = 1
     run_plots = 1
     
     if extract_data:
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         window.wm_attributes('-topmost', 1)
         window.withdraw()   # this supress the tk window
         
-        session_data_path = 'C:\\behavior\\joystick\\session_data_joystick_figs'
+        session_data_path = 'C:\\behavior\\session_data'
         file_paths_1 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH4', title='Select YH4 Sessions'))
         file_paths_2 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH5', title='Select YH5 Sessions'))
         file_paths_3 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN10', title='Select FN10 Sessions'))
@@ -51,10 +51,10 @@ if __name__ == "__main__":
     
     if run_plots:
         for plotter in [
-                # plot_fig1,
-                # plot_fig2,
+                plot_fig1,
+                plot_fig2,
                 plot_fig3,
-                # plot_fig4(session_data, '20240207', '20240215'),
+                plot_fig4,
                 # plot_fig5,
                 # plot_fig6,
                 # plot_fig7,
@@ -64,9 +64,9 @@ if __name__ == "__main__":
                 ]:
             for session_data in [
                     session_data_1,
-                    # session_data_2,
-                    # session_data_3,
-                    # session_data_4,
+                    session_data_2,
+                    session_data_3,
+                    session_data_4,
                     # session_data_5,
                     # session_data_6
                     ]:

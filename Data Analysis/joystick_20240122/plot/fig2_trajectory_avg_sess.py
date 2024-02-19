@@ -2,7 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-
+from datetime import date
 
 def save_image(filename): 
     
@@ -40,8 +40,14 @@ def plot_fig2(
     outcomes = outcomes[start_idx:]
     # dates = dates[start_idx:]
     # session_data = session_data[start_idx:]
-    session_id = np.arange(len(outcomes)) + 1
-    filename = 'C:\\behavior\\joystick\\figures\\'+subject+'\\'+'fig2_'+subject+'_avg_trajectory'    
+    session_id = np.arange(len(outcomes)) + 1      
+    
+    today = date.today()
+    today_formatted = str(today)[2:]
+    year = today_formatted[0:2]
+    month = today_formatted[3:5]
+    day = today_formatted[6:]
+    today_string = year + month + day
     
     # print()
     
@@ -50,6 +56,8 @@ def plot_fig2(
         
         numTrials = len(session_data['outcomes'][i])
         numRewardedTrials = len(session_data['rewarded_trials'][i])
+                
+        session_date_formatted = dates[i][2:]       
         
         press_window = session_data['session_press_window']
         
@@ -75,7 +83,7 @@ def plot_fig2(
         
         fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(20, 4))
         fig.subplots_adjust(hspace=0.7)
-        fig.suptitle(subject + ' - ' + dates[i] + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
+        fig.suptitle(subject + ' - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
         
         # vis 1 aligned
         axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1,'-', label='Average Trajectory')
@@ -87,19 +95,19 @@ def plot_fig2(
         axs[0].set_ylim(-0.2, target_thresh+1)
         axs[0].spines['right'].set_visible(False)
         axs[0].spines['top'].set_visible(False)
-        axs[0].set_xlabel('trial time relative to VisStim1 [s]')
-        axs[0].set_ylabel('joystick deflection [deg]')
+        axs[0].set_xlabel('Time from VisStim1 (s)')
+        axs[0].set_ylabel('Joystick deflection (deg)')
             
         # vis 2 or waitforpress aligned
         axs[1].plot(encoder_times_vis2, encoder_pos_avg_vis2,'-', label='Average Trajectory')
         if vis_stim_2_enable:
             axs[1].axvline(x = 0, color = 'r', label = 'VisStim2', linestyle='--')
             axs[1].set_title('VisStim2 Aligned.\n')
-            axs[1].set_xlabel('trial time relative to VisStim2 [s]')
+            axs[1].set_xlabel('Time from VisStim2 (s)')
         else:
             axs[1].axvline(x = 0, color = 'r', label = 'WaitForPress2', linestyle='--')
             axs[1].set_title('WaitForPress2 Aligned.\n')
-            axs[1].set_xlabel('trial time relative to WaitForPress2 [s]')
+            axs[1].set_xlabel('Time from WaitForPress2 (s)')
             
         axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
         axs[1].legend(loc='upper right')
@@ -107,7 +115,7 @@ def plot_fig2(
         axs[1].set_ylim(-0.2, target_thresh+1)
         axs[1].spines['right'].set_visible(False)
         axs[1].spines['top'].set_visible(False)
-        axs[1].set_ylabel('joystick deflection [deg]')
+        axs[1].set_ylabel('Joystick deflection (deg)')
         
         # reward aligned
         # fig3, axs3 = plt.subplots(1, figsize=(10, 4))
@@ -115,21 +123,33 @@ def plot_fig2(
         axs[2].plot(encoder_times_rew, encoder_pos_avg_rew,'-', label='Average Trajectory')
         axs[2].axvline(x = 0, color = 'r', label = 'Reward', linestyle='--')
         axs[2].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
-        # axs[2].set_title(subject + ' - ' + dates[i])
+        # axs[2].set_title(subject + ' - ' + session_date_formatted)
         axs[2].set_title('Reward Aligned.\n')    
         axs[2].legend(loc='upper right')               
         axs[2].set_xlim(-1.0, 1.5)
         axs[2].set_ylim(-0.2, target_thresh+1)
         axs[2].spines['right'].set_visible(False)
         axs[2].spines['top'].set_visible(False)
-        axs[2].set_xlabel('trial time relative to Reward [s]')
-        axs[2].set_ylabel('joystick deflection [deg]')
+        axs[2].set_xlabel('Time from Reward (s)')
+        axs[2].set_ylabel('Joystick deflection (deg)')
         
         
         fig.tight_layout()
-        os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\'+dates[i], exist_ok = True)
-        save_image(filename)
-        fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\'+dates[i]+'\\fig2_'+subject+'_avg_trajectory.png', dpi=300)
+        output_figs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'
+        output_imgs_dir = output_figs_dir + 'avg_trajectory_imgs\\'        
+        os.makedirs(output_imgs_dir, exist_ok = True)
+        output_pdf_filename = output_figs_dir + today_string + '_' + subject+'_avg_trajectory'
+        save_image(output_pdf_filename)
+        fig.savefig(output_imgs_dir + today_string + '_' + subject + '_avg_trajectory_' + session_date_formatted + '.png', dpi=300)
+        
+        
+        
+        
+        
+        # filename = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'+'fig2_'+subject+'_avg_trajectory'  
+        # os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\'+dates[i], exist_ok = True)
+        # save_image(filename)
+        # fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\'+dates[i]+'\\fig2_'+subject+'_avg_trajectory.png', dpi=300)
         # plt.close(fig)
         
     print('Completed fig2 trajectories for ' + subject)

@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from PyPDF2 import PdfFileReader, PdfFileWriter, PdfWriter, PdfReader
+from datetime import date
+
 
 def save_image(filename): 
     
@@ -42,9 +44,19 @@ def plot_fig3(
     # session_data = session_data[start_idx:]
     session_id = np.arange(len(outcomes)) + 1
     
+    today = date.today()
+    today_formatted = str(today)[2:]
+    year = today_formatted[0:2]
+    month = today_formatted[3:5]
+    day = today_formatted[6:]
+    today_string = year + month + day
+    
     for i in range(start_idx, session_data['total_sessions']):
     # for i in range(start_idx, 1):
-        print('plotting trajectories for' + subject + ' session ', dates[i][2:])
+        
+        session_date = dates[i][2:]
+                
+        print('plotting trajectories for ' + subject + ' session ', session_date)
         
         numTrials = len(session_data['outcomes'][i])
         numRewardedTrials = len(session_data['rewarded_trials'][i])
@@ -101,11 +113,13 @@ def plot_fig3(
             
             fig, axs = plt.subplots(nrows=num_rows, ncols=num_columns, figsize=(20, 30))
             
-            # fig.suptitle(subject + ' - ' + dates[i][2:] + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's\nVisStim1 Aligned.')
-            fig.suptitle(subject + ' - ' + dates[i][2:] + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's\nVisStim1 Aligned.')            
+            # fig.suptitle(subject + ' - ' + session_date + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's\nVisStim1 Aligned.')
+            fig.suptitle(subject + ' - ' + session_date + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's\nVisStim1 Aligned.')            
             
-            fig.tight_layout(rect=[0, 0.03, 1, 0.98]) # [left, bottom, right, top]
+            # fig.tight_layout(rect=[0, 0.03, 1, 0.98]) # [left, bottom, right, top]
+            fig.tight_layout(rect=[0.01, 0.03, 1, 0.98]) # [left, bottom, right, top]
             fig.subplots_adjust(hspace=0.4)
+            # fig.subplots_adjust(wspace=0.4, hspace=0.4) # if need more space horiz between subplots
             
             row = 0
             col = 0
@@ -144,8 +158,8 @@ def plot_fig3(
                 axs[row, col].set_ylim(-0.2, target_thresh+1)
                 axs[row, col].spines['right'].set_visible(False)
                 axs[row, col].spines['top'].set_visible(False)
-                axs[row, col].set_xlabel('time from VisStim1 (s)')
-                axs[row, col].set_ylabel('joystick deflection (deg)')
+                axs[row, col].set_xlabel('Time from VisStim1 (s)')
+                axs[row, col].set_ylabel('Joystick deflection (deg)')
                         
                 col = col + 1
                     
@@ -154,11 +168,31 @@ def plot_fig3(
             top_left_trial = bottom_right_trial
             bottom_right_trial = top_left_trial + plots_per_page                                                            
             current_page = current_page + 1
-            os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\trajectories_' + dates[i][2:] + '\\', exist_ok = True)
-            filename = 'C:\\behavior\\joystick\\figures\\'+subject+'\\trajectories_' + dates[i][2:] + '\\'+'fig3_'+subject+'_trajectory_' + str(page)
-            pdf_paths.append(filename + '.pdf')
-            save_image(filename)        
+            
+            output_pdf_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\trajectories\\'
+            output_pdf_pages_dir = output_pdf_dir + 'trajectories_' + session_date + '\\'
+            os.makedirs(output_pdf_pages_dir, exist_ok = True)
+            output_pdf_filename = output_pdf_pages_dir + today_string + '_' + subject + '_trajectories_' + session_date + '_' + str(page)
+            pdf_paths.append(output_pdf_filename + '.pdf')
+            save_image(output_pdf_filename)        
             plt.close(fig)
+            
+            # output_imgs_dir = output_figs_dir + 'avg_trajectory_imgs\\'        
+            # os.makedirs(output_imgs_dir, exist_ok = True)
+            # output_pdf_filename = output_figs_dir + today_string + '_' + subject+'_avg_trajectory'
+            # save_image(output_pdf_filename)
+            # fig.savefig(output_imgs_dir + today_string + '_' + subject + '_avg_trajectory_' + session_date_formatted + '.png', dpi=300)
+            
+            
+            
+            
+            
+            
+            # os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\trajectories_' + session_date + '\\', exist_ok = True)
+            # filename = 'C:\\behavior\\joystick\\figures\\'+subject+'\\trajectories_' + session_date + '\\'+'fig3_'+subject+'_trajectory_' + str(page)
+            # pdf_paths.append(filename + '.pdf')
+            # save_image(filename)        
+            # plt.close(fig)
         
         output = PdfWriter()
         # pdf_streams = []
@@ -177,13 +211,15 @@ def plot_fig3(
         for pdf_file in pdf_files:
             pdf_file.close()
     
-        outputStream = open(r'C:\\behavior\\joystick\\figures\\'+subject+'\\fig3_'+subject+'_trajectory_combined_'+dates[i][2:]+'.pdf', "wb")
+    
+        # outputStream = open(r'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + today_string + '_'+subject+'_trajectory_combined_'+session_date+'.pdf', "wb")
+        outputStream = open(r'' + output_pdf_dir + today_string + '_' + subject + '_single_trial_trajectory_rewarded_' + session_date + '.pdf', "wb")
         output.write(outputStream)
         outputStream.close()
 
     print('Completed fig2 trajectories for ' + subject)
     print()
-    # plt.close("all")
+    plt.close("all")
 
 
 # debugging

@@ -51,7 +51,12 @@ def plot_fig1(
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
     outcomes = outcomes[start_idx:]
-    dates = dates[start_idx:]
+    dates = dates[start_idx:]    
+    new_dates = []
+    for date_item in dates:
+        new_dates.append(date_item[2:])
+    dates = new_dates
+        
     counts = count_label(outcomes, states)
     session_id = np.arange(len(outcomes)) + 1
     bottom = np.cumsum(counts, axis=1)
@@ -71,15 +76,15 @@ def plot_fig1(
     axs.spines['right'].set_visible(False)
     axs.spines['top'].set_visible(False)
     axs.yaxis.grid(True)
-    axs.set_xlabel('training session')
+    axs.set_xlabel('Training session')
     
-    axs.set_ylabel('outcome percentages')
+    axs.set_ylabel('Outcome percentages')
     
     axs.set_xticks(np.arange(len(outcomes))+1)
     axs.set_xticklabels(dates, rotation='vertical')
     axs.set_title(subject)
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    fig.suptitle('reward/punish percentage for completed trials across sessions')
+    fig.suptitle('Reward/punish percentage for completed trials across sessions')
     fig.tight_layout()
     print('Completed fig1 outcome percentages for ' + subject)
     print()
@@ -87,9 +92,16 @@ def plot_fig1(
     # Saving the reference of the standard output
     original_stdout = sys.stdout
     today = date.today()
-    output_fname = 'C:\\behavior\\joystick\\logs\\'+ subject + 'outcome_log_' + str(today) + '.txt'
-    os.makedirs('C:\\behavior\\joystick\\logs\\', exist_ok = True)
-    with open(output_fname, 'w') as f:
+    today_formatted = str(today)[2:]
+    year = today_formatted[0:2]
+    month = today_formatted[3:5]
+    day = today_formatted[6:]
+    today_string = year + month + day
+    output_dir = 'C:\\data analysis\\behavior\\joystick\\'
+    output_logs_dir = output_dir +'logs\\'
+    output_logs_fname = output_logs_dir + subject + 'outcome_log_' + today_string + '.txt'
+    os.makedirs(output_logs_dir, exist_ok = True)
+    with open(output_logs_fname, 'w') as f:
         sys.stdout = f
     
     
@@ -130,9 +142,17 @@ def plot_fig1(
     # os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
     # fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
     # fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
-    os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome', exist_ok = True)
-    fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\fig1_'+subject+'_outcome.pdf', dpi=300)
-    fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome\\fig1_'+subject+'_outcome.png', dpi=300)
+    output_figs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'
+    output_imgs_dir = output_figs_dir + 'outcome_imgs\\'
+    os.makedirs(output_imgs_dir, exist_ok = True)
+    fig.savefig(output_figs_dir + today_string + '_' + subject + '_trial_outcome.pdf', dpi=300)
+    fig.savefig(output_imgs_dir + today_string + '_' + subject + '_trial_outcome.png', dpi=300)
+    # fig.savefig(output_figs_dir + 'fig1_'+subject+'_outcome.pdf', dpi=300)
+    # fig.savefig(output_imgs_dir + '\\fig1_'+subject+'_outcome.png', dpi=300)
+    
+    # os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome', exist_ok = True)
+    # fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\fig1_'+subject+'_outcome.pdf', dpi=300)
+    # fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome\\fig1_'+subject+'_outcome.png', dpi=300)
     plt.close()
     
     
