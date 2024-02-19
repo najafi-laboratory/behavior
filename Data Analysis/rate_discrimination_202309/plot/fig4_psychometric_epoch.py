@@ -26,16 +26,15 @@ def plot_curves(axs, subject, dates, choice):
             axs.plot(
                 bin_stat[:,0], bin_stat[:,1],
                 color=cmap[i],
-                label=dates[i][4:])
-            axs.scatter(
-                bin_stat[:,0], bin_stat[:,1],
-                color=cmap[i], s=5)
-            axs.hlines(
-                0.5, 0.0, 1.0,
-                linestyle=':', color='grey')
-            axs.vlines(
-                0.5, 0.0, 1.0,
-                linestyle=':', color='grey')
+                label=dates[i][4:],
+                marker='.',
+                markersize=0.5)
+    axs.hlines(
+        0.5, 0.0, 1.0,
+        linestyle=':', color='grey')
+    axs.vlines(
+        0.5, 0.0, 1.0,
+        linestyle=':', color='grey')
     axs.tick_params(tick1On=False)
     axs.spines['right'].set_visible(False)
     axs.spines['top'].set_visible(False)
@@ -56,7 +55,10 @@ def plot_subject(
     subject = subject_session_data['subject']
     dates = subject_session_data['dates'][subject_session_data['LR12_start']:]
     choice = subject_session_data['choice'][subject_session_data['LR12_start']:]
-    if len(np.concatenate(choice)) > 0:
+    len_choice = np.array([len(c) for c in choice])
+    if np.sum(len_choice) > 0:
+        choice = choice[np.where(len_choice != 0)[0][0]:]
+        dates = dates[np.where(len_choice != 0)[0][0]:]
         if len(dates) <= max_sessions:
             max_subplots = 1
             start_idx = 0
@@ -65,7 +67,7 @@ def plot_subject(
             start_idx = len(dates) - max_subplots * max_sessions
         dates = dates[start_idx:]
         choice = choice[start_idx:]
-        fig, axs = plt.subplots(max_subplots, 1, figsize=(4, max_subplots*2))
+        fig, axs = plt.subplots(max_subplots, 1, figsize=(4, max_subplots*3))
         plt.subplots_adjust(hspace=0.4)
         plt.subplots_adjust(wspace=0.4)
         if max_subplots > 1:
@@ -80,7 +82,7 @@ def plot_subject(
                 dates,
                 choice)
         fig.suptitle(subject + ' psychometric functions')
-        fig.set_size_inches(4, len(subject_session_data)*4)
+        fig.set_size_inches(4, max_subplots*3)
         fig.tight_layout()
         print('Completed fig4 for ' + subject)
         fig.savefig('./figures/fig4_psychometric_epoch_'+subject+'.pdf', dpi=300)
