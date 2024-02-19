@@ -94,3 +94,4 @@
 
 ## 2024.02.07
 - Plot adjustablee figures for given subjects.
+- Delete legacy outcomes.

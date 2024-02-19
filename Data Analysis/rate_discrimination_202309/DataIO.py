@@ -1,6 +1,7 @@
 import os
 import scipy.io as sio
 import numpy as np
+from tqdm import tqdm
 
 session_data_path = '.\\session_data'
 
@@ -58,7 +59,7 @@ def read_trials(subject):
     session_isi = []
     session_avsync = []
     LR12_start = 0
-    for f in range(len(file_names)):
+    for f in tqdm(range(len(file_names))):
         # the first session with LR_12
         fname = file_names[f]
         if LR12_start==0 and fname[14:16]=='12':
@@ -256,6 +257,7 @@ def states_labeling(trial_states):
 def run(subject_list):
     session_data = []
     for sub in subject_list:
+        print('reading data for ' + sub)
         session_data.append(read_trials(sub))
     if not os.path.exists('./figures'):
         os.makedirs('./figures')
