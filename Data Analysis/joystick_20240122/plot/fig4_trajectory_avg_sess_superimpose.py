@@ -47,15 +47,17 @@ def plot_fig4(
     
     subject = session_data['subject']
     
-    # return if 0 total sessions
-    if session_data['total_sessions'] == 0:
-        print('no session data loaded for ' + subject)
+    print('plotting superimposed trajectories for ' + subject)  # add dates selected in update
+    
+    # return if < 2 total sessions
+    if session_data['total_sessions'] < 2:
+        print('less than 2 sessions loaded for ' + subject)
         return
     
     
     
     # print('plotting superimposed trajectories for ' + subject + ' session ', session_date)  # add dates selected in update
-    print('plotting superimposed trajectories for ' + subject)  # add dates selected in update
+    
     
     
     outcomes = session_data['outcomes']

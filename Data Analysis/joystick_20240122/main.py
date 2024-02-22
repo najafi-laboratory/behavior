@@ -28,7 +28,7 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 if __name__ == "__main__":
 
     
-    extract_data = 1
+    extract_data = 0
     run_plots = 1
     
     if extract_data:
