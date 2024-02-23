@@ -28,7 +28,7 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 if __name__ == "__main__":
 
     
-    extract_data = 0
+    extract_data = 1
     run_plots = 1
     
     if extract_data:
@@ -47,8 +47,6 @@ if __name__ == "__main__":
         session_data_3 = DataIO.read_trials('FN10', file_paths_3)
         session_data_4 = DataIO.read_trials('FN13', file_paths_4)
 
-
-    
     if run_plots:
         for plotter in [
                 plot_fig1,

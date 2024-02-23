@@ -57,7 +57,7 @@ def read_trials(subject, file_names):
     file_names.sort(key=lambda x: x[-19:])
     session_raw_data = []
     session_encoder_data = []
-    encoder_time_max = 30
+    encoder_time_max = 70
     ms_per_s = 1000
     
     time_left_VisStim1 = -0.1
@@ -144,8 +144,8 @@ def read_trials(subject, file_names):
         trial_com = []
         # for i in range(nTrials):
         
-        for i in range(nTrials):
-            trial_states = raw_data['RawEvents']['Trial'][i]['States']
+        # for i in range(nTrials):
+        #     trial_states = raw_data['RawEvents']['Trial'][i]['States']
             
         for i in range(nTrials):
         # for i in range(119, 123):
@@ -248,7 +248,7 @@ def read_trials(subject, file_names):
                         trial_encoder_positions_aligned_VisStim2[:] = np.nan
                         trial_encoder_positions_aligned_vis2.append(trial_encoder_positions_aligned_VisStim2)
                             
-                    
+                    # print(i)
                     # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
                     #plt.plot(session_encoder_times_aligned_VisStim2, trial_encoder_positions_aligned_VisStim2)
                     
@@ -256,11 +256,14 @@ def read_trials(subject, file_names):
                     if trial_reps == 3:
                         RewardStart = trial_states['Reward3'][0]
                     elif trial_reps == 2:
-                        RewardStart = trial_states['Reward2'][0]
+                        if 'Reward2' in trial_states.keys() and not np.isnan(trial_states['Reward2'][0]):
+                            RewardStart = trial_states['Reward2'][0]
+                        elif 'Reward' in trial_states.keys() and not np.isnan(trial_states['Reward'][0]):
+                                RewardStart = trial_states['Reward'][0]
                     elif trial_reps == 1:
                         if 'Reward' in trial_states.keys() and not np.isnan(trial_states['Reward'][0]):
                             RewardStart = trial_states['Reward'][0]
-                        else:
+                        elif 'Reward1' in trial_states.keys() and not np.isnan(trial_states['Reward1'][0]):
                             RewardStart = trial_states['Reward1'][0]
                         
                     rew_diff = np.abs(RewardStart - session_encoder_times_aligned)
