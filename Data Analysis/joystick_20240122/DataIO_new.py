@@ -178,53 +178,69 @@ def read_trials(subject, file_names):
                 times = encoder_data['Times']
                 positions = encoder_data['Positions']
                 
+                if outcome == 'Punish':
+                    print('Punish')
+                
                 # all trials encoder positions
                 # encoder_data_aligned = np.interp(session_encoder_times_aligned, times, positions)
                 # all trials encoder data
                 # encoder_data_aligned = {'Positions': encoder_data_aligned}
                 # process encoder data for rewarded trials
-                if outcome == 'Reward':                    
-                    encoder_data_aligned = np.interp(session_encoder_times_aligned, times, positions)
+                # if outcome == 'Reward':                    
+                encoder_data_aligned = np.interp(session_encoder_times_aligned, times, positions)
+                
+                trial_encoder_positions_aligned.append(encoder_data_aligned)
+                
+                # find times and pos aligned to vis stim 1
+                VisStim1Start = trial_states['VisualStimulus1'][0]  
+                
+                if VisStim1Start > 12:
+                    continue # vis detect missed stim, go to next trial
                     
-                    trial_encoder_positions_aligned.append(encoder_data_aligned)
+                vis_diff = np.abs(VisStim1Start - session_encoder_times_aligned)
+                min_vis_diff = np.min(np.abs(VisStim1Start - session_encoder_times_aligned))
+                closest_aligned_time_vis1_idx = [ind for ind, ele in enumerate(vis_diff) if ele == min_vis_diff][0]
+                                  
+                left_idx_VisStim1 = int(closest_aligned_time_vis1_idx+time_left_VisStim1*ms_per_s)
+                right_idx_VisStim1 = int(closest_aligned_time_vis1_idx+(time_right_VisStim1*ms_per_s))
+                # pad with nan if left idx < 0
+                if left_idx_VisStim1 < 0:
+                    nan_pad = np.zeros(-left_idx_VisStim1)
+                    nan_pad[:] = np.nan
+                    trial_encoder_positions_aligned_VisStim1 = np.append(nan_pad, encoder_data_aligned[0:right_idx_VisStim1])
+                else:                        
+                    trial_encoder_positions_aligned_VisStim1 = encoder_data_aligned[left_idx_VisStim1:right_idx_VisStim1]
+                
+                trial_encoder_positions_aligned_vis1.append(trial_encoder_positions_aligned_VisStim1)
+                
+                # plt.plot(trial_encoder_times_aligned_VisStim1, trial_encoder_positions_aligned_VisStim1)
+                # plt.plot(session_encoder_times_aligned_VisStim1, trial_encoder_positions_aligned_VisStim1)
+                
+                
+                HasVis2 = 0
+                VisStim2Start = 0
+                if not np.isnan(trial_states['VisualStimulus2'][0]):
+                    VisStim2Start = trial_states['VisualStimulus2'][0]
+                    HasVis2 = 1
+                elif not np.isnan(trial_states['WaitForPress2'][0]):
+                    VisStim2Start = trial_states['WaitForPress2'][0]
+                    HasVis2 = 1
+                else:
+                    HasVis2 = 0
+                
+                # find times and pos aligned to vis stim 2
+                if "VisStim2Enable" in raw_data['TrialSettings'][i]['GUI']:
+                    VisStim2Enable = raw_data['TrialSettings'][i]['GUI']['VisStim2Enable']
+                
+                # !!update this later to account more mixed trials in a given session with two array averages for align
+                # OR align at WaitForPress 
+                # if VisStim2Enable and not np.isnan(trial_states['VisualStimulus2'][0]):
+                #     VisStim2Start = trial_states['VisualStimulus2'][0]                        
+                # elif  not np.isnan(trial_states['WaitForPress2'][0]):
+                #     VisStim2Start = trial_states['WaitForPress2'][0]
+                # else:
                     
-                    # find times and pos aligned to vis stim 1
-                    VisStim1Start = trial_states['VisualStimulus1'][0]  
-                    
-                    if VisStim1Start > 12:
-                        continue # vis detect missed stim, go to next trial
-                        
-                    vis_diff = np.abs(VisStim1Start - session_encoder_times_aligned)
-                    min_vis_diff = np.min(np.abs(VisStim1Start - session_encoder_times_aligned))
-                    closest_aligned_time_vis1_idx = [ind for ind, ele in enumerate(vis_diff) if ele == min_vis_diff][0]
-                                      
-                    left_idx_VisStim1 = int(closest_aligned_time_vis1_idx+time_left_VisStim1*ms_per_s)
-                    right_idx_VisStim1 = int(closest_aligned_time_vis1_idx+(time_right_VisStim1*ms_per_s))
-                    # pad with nan if left idx < 0
-                    if left_idx_VisStim1 < 0:
-                        nan_pad = np.zeros(-left_idx_VisStim1)
-                        nan_pad[:] = np.nan
-                        trial_encoder_positions_aligned_VisStim1 = np.append(nan_pad, encoder_data_aligned[0:right_idx_VisStim1])
-                    else:                        
-                        trial_encoder_positions_aligned_VisStim1 = encoder_data_aligned[left_idx_VisStim1:right_idx_VisStim1]
-                    
-                    trial_encoder_positions_aligned_vis1.append(trial_encoder_positions_aligned_VisStim1)
-                    
-                    # plt.plot(trial_encoder_times_aligned_VisStim1, trial_encoder_positions_aligned_VisStim1)
-                    # plt.plot(session_encoder_times_aligned_VisStim1, trial_encoder_positions_aligned_VisStim1)
-                    
-                    
-                    # find times and pos aligned to vis stim 2
-                    if "VisStim2Enable" in raw_data['TrialSettings'][i]['GUI']:
-                        VisStim2Enable = raw_data['TrialSettings'][i]['GUI']['VisStim2Enable']
-                    
-                    # !!update this later to account more mixed trials in a given session with two array averages for align
-                    # OR align at WaitForPress 
-                    if VisStim2Enable:
-                        VisStim2Start = trial_states['VisualStimulus2'][0]                        
-                    else:
-                        VisStim2Start = trial_states['WaitForPress2'][0]
-                        
+                if HasVis2:
                     if trial_reps > 1:
                         vis_diff = np.abs(VisStim2Start - session_encoder_times_aligned)
                         min_vis_diff = np.min(np.abs(VisStim2Start - session_encoder_times_aligned))
@@ -251,7 +267,8 @@ def read_trials(subject, file_names):
                     # print(i)
                     # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
                     #plt.plot(session_encoder_times_aligned_VisStim2, trial_encoder_positions_aligned_VisStim2)
-                    
+                
+                if outcome == 'Reward':
                     # find times and pos aligned to reward
                     if trial_reps == 3:
                         RewardStart = trial_states['Reward3'][0]
@@ -286,9 +303,9 @@ def read_trials(subject, file_names):
                     
                     # index of rewarded trials
                     trial_num_rewarded.append(i)
-                                        
-                    # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
-                    #plt.plot(session_encoder_times_aligned_Reward, trial_encoder_positions_aligned_Reward)
+                                    
+                # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
+                #plt.plot(session_encoder_times_aligned_Reward, trial_encoder_positions_aligned_Reward)
                     
         # encoder trajectory average across session for rewarded trials, vis stim 1 aligned        
         try:

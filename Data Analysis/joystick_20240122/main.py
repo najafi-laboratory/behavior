@@ -17,19 +17,16 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 # from plot.fig9_reaction_sess import plot_fig9
 # from plot.fig10_com import plot_fig10
 
-
 # session_data_1 = session_data_1
 # session_data_2 = session_data_2
 # session_data_3 = session_data_3
 # session_data_4 = session_data_4
 
-
-
 if __name__ == "__main__":
 
     
     extract_data = 1
-    run_plots = 1
+    run_plots = 0
     
     if extract_data:
         window = tk.Tk()
