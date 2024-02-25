@@ -7,7 +7,13 @@ function UpdateOutcomePlot(obj, BpodSystem, TrialTypes, isEndOfTrial)
     if isfield(Data, 'nTrials')
         Outcomes = zeros(1,Data.nTrials);
         for x = 1:Data.nTrials
-            if ( isfield(Data.RawEvents.Trial{x}.States, 'Reward1') && ...
+            if ( isfield(Data.RawEvents.Trial{x}.States, 'EarlyPress') && ...
+                    ~isnan(Data.RawEvents.Trial{x}.States.EarlyPress(1)))
+                if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured
+                    disp('Outcome: EarlyPress');
+                end
+                Outcomes(x) = 0;    % draws red circle on outcome plot
+            elseif ( isfield(Data.RawEvents.Trial{x}.States, 'Reward1') && ...
                     ~isnan(Data.RawEvents.Trial{x}.States.Reward1(1)) && (Data.TrialSettings(x).GUI.Reps == 1))
                 if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured
                     disp('Outcome: Reward1');

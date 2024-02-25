@@ -97,8 +97,7 @@ try
     %     end
     % end
          
-        
-    disp('here 1')
+            
     % initialize anti-bias variables
 
     %% Initialize plots
@@ -933,15 +932,30 @@ try
             % access them in plot function
             TrialDuration = BpodSystem.Data.TrialEndTimestamp(currentTrial)-BpodSystem.Data.TrialStartTimestamp(currentTrial);
     
-            % extrapolate start and end position and time values for missing data -> impute
-            if ~isempty(BpodSystem.Data.EncoderData{currentTrial}.Times)
-                % if missing position values between start of trial and first
-                % encoder movement, extrapolate from first recorded enc
-                % position
-                if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
-                    BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
-                    BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions(1) BpodSystem.Data.EncoderData{currentTrial}.Positions];
-                    BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
+            % encoder module doesn't report positions if there is no recent
+            % change in position (could probably update this in enc module
+            % code, but takes longer)
+
+            % impute start and end position and time values for missing data            
+            if ~isempty(BpodSystem.Data.EncoderData{currentTrial}.Times) % if some encoder positions reported                
+                if currentTrial == 1
+                    % if first trial, and if missing position values between start of trial and first
+                    % encoder movement, extrapolate from first recorded enc 
+                    % position
+                    if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
+                        BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
+                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions(1) BpodSystem.Data.EncoderData{currentTrial}.Positions];
+                        BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
+                    end
+                else
+                    % if > first trial, and if missing position values between start of trial and first
+                    % encoder movement, extrapolate from last recorded enc
+                    % position of previous trial
+                    if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
+                        BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
+                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end) BpodSystem.Data.EncoderData{currentTrial}.Positions];
+                        BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
+                    end
                 end
                 % if missing position values after last encoder movement,
                 % extrapolate from last recorded enc position
@@ -950,7 +964,21 @@ try
                     BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions BpodSystem.Data.EncoderData{currentTrial}.Positions(end)];
                     BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
                 end
-            end  
+            else % if no encoder positions reported
+                % if first trial, impute position as zero
+                if currentTrial == 1
+                    BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 TrialDuration];
+                    BpodSystem.Data.EncoderData{currentTrial}.Positions = [0.0 0.0];
+                    BpodSystem.Data.EncoderData{currentTrial}.nPositions = 2;
+                else
+                    % if > first trial, impute positions as extrapolation
+                    % from last recorded enc position of previous trial
+                    BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 TrialDuration];
+                    BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end) BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end)];
+                    BpodSystem.Data.EncoderData{currentTrial}.nPositions = 2;
+                end
+                  
+            end 
     
             PreVisStimITITimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PreVisStimITI;
             VisDetect1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisDetect1;
@@ -959,13 +987,12 @@ try
             LeverRetract1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetract1;
             Reward1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward1;
             DidNotPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress1;
-            
-    
-    
+             
             ITITimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.ITI;
     
             LeverResetPos = BpodSystem.Data.TrialData{1, currentTrial}.LeverResetPos;
     
+            VisualStimulus2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus2;
             WaitForPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress2;
             LeverRetract2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetract2;
             Reward2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward2;
@@ -977,6 +1004,8 @@ try
             DidNotPress3Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress3;
     
             RewardTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward;
+
+            EarlyPressTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress;            
     
             LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'update', S.GUI.Threshold, BpodSystem.Data.EncoderData{currentTrial},...
                 TrialDuration, ...
@@ -997,7 +1026,9 @@ try
                 LeverRetract3Times, ...
                 Reward3Times, ...
                 DidNotPress3Times, ...
-                RewardTimes);
+                RewardTimes, ...
+                EarlyPressTimes, ...
+                VisualStimulus2Times);
     
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     

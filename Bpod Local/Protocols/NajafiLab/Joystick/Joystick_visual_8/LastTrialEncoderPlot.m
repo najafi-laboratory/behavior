@@ -37,6 +37,7 @@ switch op
         BpodSystem.GUIHandles.EncoderPlotDidNotPress1StartLine = xline(0, '-', 'DidNotPress1 Start', 'Color', 'k', 'LineStyle', 'none');        
         BpodSystem.GUIHandles.EncoderPlotITIStartLine = xline(0, '-', 'ITI Start', 'Color', 'k', 'LineStyle', 'none');
 
+        BpodSystem.GUIHandles.EncoderPlotVisualStimulus12StartLine = xline(0, '-', 'VisualStimulus2 Start', 'Color', 'k', 'LineStyle', 'none');        
         BpodSystem.GUIHandles.EncoderPlotWaitForPress2StartLine = xline(0, '-', 'WaitForPress2 Start', 'Color', 'r', 'LineStyle', 'none');        
         BpodSystem.GUIHandles.EncoderPlotLeverRetract2StartLine = xline(0, '-', 'LeverRetract2 Start', 'Color', 'k', 'LineStyle', 'none');
         BpodSystem.GUIHandles.EncoderPlotReward2StartLine = xline(0, '-', 'Reward2 Start', 'Color', 'k', 'LineStyle', 'none');      
@@ -47,7 +48,11 @@ switch op
         BpodSystem.GUIHandles.EncoderPlotReward3StartLine = xline(0, '-', 'Reward3 Start', 'Color', 'k', 'LineStyle', 'none');      
         BpodSystem.GUIHandles.EncoderPlotDidNotPress3StartLine = xline(0, '-', 'DidNotPress3 Start', 'Color', 'k', 'LineStyle', 'none');        
 
-        BpodSystem.GUIHandles.EncoderPlotRewardStartLine = xline(0, '-', 'Reward Start', 'Color', 'k', 'LineStyle', 'none');      
+        BpodSystem.GUIHandles.EncoderPlotEarlyPressStartLine = xline(0, '-', 'Early Press Start', 'Color', 'r', 'LineStyle', 'none');        
+
+        BpodSystem.GUIHandles.EncoderPlotRewardStartLine = xline(0, '-', 'Reward Start', 'Color', 'k', 'LineStyle', 'none');
+
+
         
         %set(BpodSystem.GUIHandles.EncoderPlotSetLeverBeforePressStartLine,'value',3, 'LineStyle', 'none');     
 
@@ -89,6 +94,10 @@ switch op
 
         RewardTimes = varargin{20};
 
+        EarlyPressTimes = varargin{21};
+
+        VisualStimulus2Times = varargin{22};
+
         set(BpodSystem.GUIHandles.EncoderPlot, 'XData', EncoderData.Times,'YData', EncoderData.Positions);
         set(axes, 'ylim', [-1 choiceThreshold*4], 'xlim', [0 TrialDuration]);
         set(BpodSystem.GUIHandles.EncoderPlotThreshold1Line,'ydata',[0.0, 0.0]);
@@ -128,6 +137,12 @@ switch op
         end
 
         %% press 2
+
+        if ~isnan(VisualStimulus2Times(1))
+            set(BpodSystem.GUIHandles.EncoderPlotVisualStimulus12StartLine,'value',VisualStimulus2Times(1), 'LineStyle', ':'); 
+        else
+            set(BpodSystem.GUIHandles.EncoderPlotVisualStimulus12StartLine,'LineStyle', 'none');
+        end
 
         if ~isnan(WaitForPress2Times(1))
             set(BpodSystem.GUIHandles.EncoderPlotWaitForPress2StartLine,'value',WaitForPress2Times(1), 'LineStyle', ':'); 
@@ -178,6 +193,15 @@ switch op
         else
             set(BpodSystem.GUIHandles.EncoderPlotDidNotPress3StartLine,'LineStyle', 'none');
         end
+
+        %% Early Press
+
+        if ~isnan(EarlyPressTimes(1))
+            set(BpodSystem.GUIHandles.EncoderPlotEarlyPressStartLine,'value',EarlyPressTimes(1), 'LineStyle', ':'); 
+        else
+            set(BpodSystem.GUIHandles.EncoderPlotEarlyPressStartLine,'LineStyle', 'none'); 
+        end
+
 
         %% Reward
 
