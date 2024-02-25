@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     
     extract_data = 1
-    run_plots = 0
+    run_plots = 1
     
     if extract_data:
         window = tk.Tk()

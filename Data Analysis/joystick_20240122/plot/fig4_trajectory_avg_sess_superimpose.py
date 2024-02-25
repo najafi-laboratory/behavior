@@ -253,12 +253,15 @@ def plot_fig4(
         else:
             axs[0].plot(encoder_times_vis1, encoder_pos_avg_vis1[i],'-', color=palette[i])
         
+    y_top = 3.5
+        
     # print(subject)
     axs[0].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
     axs[0].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
     axs[0].set_title('VisStim1 Aligned.\n')        
     axs[0].legend(loc='upper right')
     axs[0].set_xlim(time_left_VisStim1, 4.0)
+    # axs[0].set_ylim(-0.2, target_thresh+1.25)
     axs[0].set_ylim(-0.2, target_thresh+1.25)
     axs[0].spines['right'].set_visible(False)
     axs[0].spines['top'].set_visible(False)
@@ -285,7 +288,8 @@ def plot_fig4(
     axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
     axs[1].legend(loc='upper right')
     axs[1].set_xlim(-1, 2.0)
-    axs[1].set_ylim(-0.2, target_thresh+1.25)
+    # axs[1].set_ylim(-0.2, target_thresh+1.25)
+    axs[1].set_ylim(-0.2, y_top)
     axs[1].spines['right'].set_visible(False)
     axs[1].spines['top'].set_visible(False)
     axs[1].set_ylabel('Joystick deflection (deg)')
@@ -306,7 +310,8 @@ def plot_fig4(
     axs[2].set_title('Reward Aligned.\n')    
     axs[2].legend(loc='upper right')               
     axs[2].set_xlim(-1.0, 1.5)
-    axs[2].set_ylim(-0.2, target_thresh+1.25)
+    # axs[2].set_ylim(-0.2, target_thresh+1.25)
+    axs[2].set_ylim(-0.2, y_top)
     axs[2].spines['right'].set_visible(False)
     axs[2].spines['top'].set_visible(False)
     axs[2].set_xlabel('Time from Reward (s)')

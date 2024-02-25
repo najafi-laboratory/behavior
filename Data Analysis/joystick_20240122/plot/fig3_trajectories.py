@@ -51,16 +51,21 @@ def plot_fig3(
     day = today_formatted[6:]
     today_string = year + month + day
     
-    for i in range(start_idx, session_data['total_sessions']):
+    numSessions = session_data['total_sessions']
+    
+    for i in range(start_idx, numSessions):
     # for i in range(start_idx, 1):
         
         session_date = dates[i][2:]
                 
         print('plotting trajectories for ' + subject + ' session ', session_date)
         
+        TrialOutcomes = session_data['outcomes'][i]
+
         numTrials = len(session_data['outcomes'][i])
-        numRewardedTrials = len(session_data['rewarded_trials'][i])
-        
+        RewardedTrials = session_data['rewarded_trials'][i]
+        numRewardedTrials = len(RewardedTrials)
+                
         press_window = session_data['session_press_window']
         
         vis_stim_2_enable = session_data['vis_stim_2_enable']
@@ -87,10 +92,12 @@ def plot_fig3(
         num_columns = 3
         
         plots_per_page = num_rows * num_columns
+                
+        # num_pages = int(np.ceil(numRewardedTrials/plots_per_page))
+        num_pages = int(np.ceil(numTrials/plots_per_page))
         
-        num_pages = int(np.ceil(numRewardedTrials/plots_per_page))
-        
-        num_plots_bottom_page = int(numRewardedTrials - (plots_per_page * (num_pages - 1)))
+        # num_plots_bottom_page = int(numRewardedTrials - (plots_per_page * (num_pages - 1)))
+        num_plots_bottom_page = int(numTrials - (plots_per_page * (num_pages - 1)))
         num_rows_bottom_page = int(np.ceil(num_plots_bottom_page / num_columns))
         
         current_page = 1
@@ -145,17 +152,27 @@ def plot_fig3(
                 # if trial == numRewardedTrials:
                 #     break
                 
+                # print(trial)
                 encoder_positions_aligned_vis1 = session_data['encoder_positions_aligned_vis1'][i][trial]
-                encoder_positions_aligned_vis2 = session_data['encoder_positions_aligned_vis2'][i][trial]
-                encoder_positions_aligned_rew = session_data['encoder_positions_aligned_rew'][i][trial]
+                # encoder_positions_aligned_vis2 = session_data['encoder_positions_aligned_vis2'][i][trial]
+                # encoder_positions_aligned_rew = session_data['encoder_positions_aligned_rew'][i][trial]
+                
+                y_top = 3.5
+                
+                if TrialOutcomes[trial] == 'Reward':
+                    axs[row, col].plot(encoder_times_vis1, encoder_positions_aligned_vis1,'-', color = '#1f77b4', label='Trajectory')
+                elif TrialOutcomes[trial] == 'Punish':
+                    axs[row, col].plot(encoder_times_vis1, encoder_positions_aligned_vis1,'-', color = '#d62728', label='Trajectory')
+                else:
+                    axs[row, col].plot(encoder_times_vis1, encoder_positions_aligned_vis1,'-', color = '#e377c2', label='Trajectory')
                     
-                axs[row, col].plot(encoder_times_vis1, encoder_positions_aligned_vis1,'-', label='Trajectory')
                 axs[row, col].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
                 axs[row, col].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
                 axs[row, col].set_title('Trial ' + str(trial + 1))        
                 axs[row, col].legend(loc='upper right')
-                axs[row, col].set_xlim(time_left_VisStim1, 4.0)
-                axs[row, col].set_ylim(-0.2, target_thresh+1)
+                axs[row, col].set_xlim(time_left_VisStim1, 7.0)
+                # axs[row, col].set_ylim(-0.2, target_thresh+1.5)
+                axs[row, col].set_ylim(-0.2, y_top)
                 axs[row, col].spines['right'].set_visible(False)
                 axs[row, col].spines['top'].set_visible(False)
                 axs[row, col].set_xlabel('Time from VisStim1 (s)')
@@ -217,7 +234,7 @@ def plot_fig3(
         output.write(outputStream)
         outputStream.close()
 
-    print('Completed fig2 trajectories for ' + subject)
+    print('Completed fig3 trajectories for ' + subject)
     print()
     plt.close("all")
 

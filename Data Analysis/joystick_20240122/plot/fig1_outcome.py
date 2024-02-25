@@ -28,9 +28,14 @@ def count_label(session_label, states, norm=True):
     for i in range(num_session):
         for j in range(len(states)):
             if norm:
-                counts[i,j] = np.sum(
-                    np.array(session_label[i]) == states[j]
-                    ) / len(session_label[i])
+                if 'Other' in session_label[i]:
+                    counts[i,j] = np.sum(
+                        np.array(session_label[i]) == states[j]
+                        ) / (len(session_label[i]) - session_label[i].count('Other'))
+                else:
+                    counts[i,j] = np.sum(
+                        np.array(session_label[i]) == states[j]
+                        ) / len(session_label[i])   
             else:
                 counts[i,j] = np.sum(
                     np.array(session_label[i]) == states[j]
@@ -101,37 +106,52 @@ def plot_fig1(
     output_logs_dir = output_dir +'logs\\'
     output_logs_fname = output_logs_dir + subject + 'outcome_log_' + today_string + '.txt'
     os.makedirs(output_logs_dir, exist_ok = True)
+    
+    Trials = []
+    Reward = []
+    Punish = []
+    HitRate = []
+    
+    for i in range(len(session_id)):
+        if 'Other' in outcomes[i]:
+            Trials.append(len(outcomes[i]) - outcomes[i].count('Other'))
+        else:
+            Trials.append(len(outcomes[i]))
+        Reward.append(outcomes[i].count('Reward'))
+        Punish.append(outcomes[i].count('Punish'))
+        HitRate.append(Reward[i]/Trials[i])
+    
     with open(output_logs_fname, 'w') as f:
         sys.stdout = f
     
     
         for i in range(len(session_id)):
-            Trials = len(outcomes[i])
-            Reward = outcomes[i].count('Reward')
-            Punish = outcomes[i].count('Punish')
-            HitRate = Reward/Trials
+            # Trials = len(outcomes[i])
+            # Reward = outcomes[i].count('Reward')
+            # Punish = outcomes[i].count('Punish')
+            # HitRate = Reward/Trials
             # print to log file
             print(subject, dates[i], 'Counts')
-            print('Trials:', Trials)
-            print('Reward:', Reward)
-            print('Punish:', Punish)
-            print('Hit Rate:', format(HitRate, ".2%"))
+            print('Trials:', Trials[i])
+            print('Reward:', Reward[i])
+            print('Punish:', Punish[i])
+            print('Hit Rate:', format(HitRate[i], ".2%"))
             print()
            
     # Reset the standard output
     sys.stdout = original_stdout 
 
     for i in range(len(session_id)):
-        Trials = len(outcomes[i])
-        Reward = outcomes[i].count('Reward')
-        Punish = outcomes[i].count('Punish')
-        HitRate = Reward/Trials
+        # Trials = len(outcomes[i])
+        # Reward = outcomes[i].count('Reward')
+        # Punish = outcomes[i].count('Punish')
+        # HitRate = Reward/Trials
         # print to console
         print(subject, dates[i], 'Counts')
-        print('Trials:', Trials)
-        print('Reward:', Reward)
-        print('Punish:', Punish)
-        print('Hit Rate:', format(HitRate, ".2%"))
+        print('Trials:', Trials[i])
+        print('Reward:', Reward[i])
+        print('Punish:', Punish[i])
+        print('Hit Rate:', format(HitRate[i], ".2%"))
         print()
     
          
