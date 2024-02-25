@@ -58,7 +58,7 @@ switch Action
         TrialTypeList = varargin{1};
         nTrialsToShow = 90; %default number of trials to display
                         
-        if nargin > 3 %custom number of trials
+        if nargin > 4 %custom number of trials
             nTrialsToShow =varargin{3};
         end
 
@@ -73,7 +73,27 @@ switch Action
         MaxTrialType = max(TrialTypeList);
         %plot in specified axes
         Xdata = 1:nTrialsToShow; Ydata = -TrialTypeList(Xdata);
-        BpodSystem.GUIHandles.FutureTrialLine = line([Xdata,Xdata],[Ydata,Ydata],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
+
+        if OptoTrialTypeList ~= -1
+            YOptoOffIdxs = (OptoTrialTypeList(Xdata) == 1);
+            YOptoOnIdxs = ~YOptoOffIdxs;
+    
+            % YOptoOffIdxs = (OptoTrialTypeList(Xdata) == 1);
+            % YOptoOnIdxs = ~YOptoOffIdxs;
+    
+            YdataOptoOff = Ydata(YOptoOffIdxs);
+            YdataOptoOn = Ydata(YOptoOnIdxs);
+    
+            DisplayXdataOptoOff = Xdata(YOptoOffIdxs);
+            DisplayXdataOptoOn = Xdata(YOptoOnIdxs);
+
+            BpodSystem.GUIHandles.FutureTrialLineOptoOff = line([DisplayXdataOptoOff,DisplayXdataOptoOff],[YdataOptoOff,YdataOptoOff],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
+            BpodSystem.GUIHandles.FutureTrialLineOptoOn = line([DisplayXdataOptoOn,DisplayXdataOptoOn],[YdataOptoOn,YdataOptoOn],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','magenta', 'MarkerSize',6);
+        else
+            BpodSystem.GUIHandles.FutureTrialLine = line([Xdata,Xdata],[Ydata,Ydata],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
+        end
+        
+
         BpodSystem.GUIHandles.CurrentTrialCircle = line([0,0],[0,0], 'LineStyle','none','Marker','o','MarkerEdge','k','MarkerFace',[1 1 1], 'MarkerSize',6);
         BpodSystem.GUIHandles.CurrentTrialCross = line([0,0],[0,0], 'LineStyle','none','Marker','+','MarkerEdge','k','MarkerFace',[1 1 1], 'MarkerSize',6);
         BpodSystem.GUIHandles.UnpunishedErrorLine = line([0,0],[0,0], 'LineStyle','none','Marker','o','MarkerEdge','r','MarkerFace',[1 1 1], 'MarkerSize',6);
@@ -112,7 +132,23 @@ switch Action
         FutureTrialsIndx = CurrentTrial:mx;
         Xdata = FutureTrialsIndx; Ydata = TrialTypeList(Xdata);
         DisplayXdata = Xdata-offset;
-        set(BpodSystem.GUIHandles.FutureTrialLine, 'xdata', [DisplayXdata,DisplayXdata], 'ydata', [Ydata,Ydata]);
+
+        if OptoTrialTypeList ~= -1
+            YOptoOffIdxs = (OptoTrialTypeList(Xdata) == 1);
+            YOptoOnIdxs = ~YOptoOffIdxs;
+    
+            YdataOptoOff = Ydata(YOptoOffIdxs);
+            YdataOptoOn = Ydata(YOptoOnIdxs);
+    
+            DisplayXdataOptoOff = DisplayXdata(YOptoOffIdxs);
+            DisplayXdataOptoOn = DisplayXdata(YOptoOnIdxs);
+
+            set(BpodSystem.GUIHandles.FutureTrialLineOptoOff, 'xdata', [DisplayXdataOptoOff,DisplayXdataOptoOff], 'ydata', [YdataOptoOff,YdataOptoOff]);
+            set(BpodSystem.GUIHandles.FutureTrialLineOptoOn, 'xdata', [DisplayXdataOptoOn,DisplayXdataOptoOn], 'ydata', [YdataOptoOn,YdataOptoOn]);
+        else
+            set(BpodSystem.GUIHandles.FutureTrialLine, 'xdata', [DisplayXdata,DisplayXdata], 'ydata', [Ydata,Ydata]);
+        end
+               
         %Plot current trial
         displayCurrentTrial = CurrentTrial-offset;
         set(BpodSystem.GUIHandles.CurrentTrialCircle, 'xdata', [displayCurrentTrial,displayCurrentTrial], 'ydata', [TrialTypeList(CurrentTrial),TrialTypeList(CurrentTrial)]);

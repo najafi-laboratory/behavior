@@ -9,18 +9,22 @@ function [TrialTypes] = GenTrials(obj, S)
 end
 
 function [OptoTrialTypes] = GenOptoTrials(obj, BpodSystem, S)
-    BpodSystem.Data.PreviousEnableManualTrialType = S.GUI.EnManOptoTrialType;
+    BpodSystem.Data.PreviousEnManOptoTrialType = S.GUI.EnManOptoTrialType;
     BpodSystem.Data.PreviousOptoTrialTypeSeq = S.GUI.OptoTrialTypeSeq;
-    BpodSystem.Data.BpodSystem.Data.PreviousNumOptoTrialsPerBlock = S.GUI.NumOptoTrialsPerBlock;
+    BpodSystem.Data.OnFraction = S.GUI.OnFraction;
+    BpodSystem.Data.PreviousNumOptoTrialsPerBlock = S.GUI.NumOptoTrialsPerBlock;
     OptoTrialTypes = ceil(rand(1, S.GUI.MaxTrials)*2);
 end
 
-function [OptoTrialTypes] = UpdateOptoTrials(obj, BpodSystem, S, OptoTrialTypes, currentTrial)
+function [OptoTrialTypes] = UpdateOptoTrials(obj, BpodSystem, S, OptoTrialTypes, currentTrial, forceUpdate)
     ManualDeactivated = 0;
     updateOptoTrialTypeSequence = 0;
-    BpodSystem.Data.PreviousEnManOptoTrialType
-    BpodSystem.Data.PreviousOptoTrialTypeSeq
+    % BpodSystem.Data.PreviousEnManOptoTrialType
+    % BpodSystem.Data.PreviousOptoTrialTypeSeq
 
+    if forceUpdate == 1
+        updateOptoTrialTypeSequence = 1;
+    end   
     if (BpodSystem.Data.PreviousEnManOptoTrialType ~= S.GUI.EnManOptoTrialType) 
         if (BpodSystem.Data.PreviousEnManOptoTrialType == 1)
             ManualDeactivated = 1;                
@@ -36,53 +40,51 @@ function [OptoTrialTypes] = UpdateOptoTrials(obj, BpodSystem, S, OptoTrialTypes,
     if BpodSystem.Data.PreviousNumOptoTrialsPerBlock ~= S.GUI.NumOptoTrialsPerBlock
         updateOptoTrialTypeSequence = 1;
         BpodSystem.Data.PreviousNumOptoTrialsPerBlock = S.GUI.NumOptoTrialsPerBlock;
-    end
+    end    
     
-    if updateOptoTrialTypeSequence
+    if S.GUI.EnManOptoTrialType  
+        switch S.GUI.ManOptoTrialType
+            case 1
+                OptoTrialTypes(currentTrial:end) = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];
+            case 2
+                OptoTrialTypes(currentTrial:end) = [repmat(2, 1, S.GUI.MaxTrials - currentTrial + 1)];
+        end                
+    elseif updateOptoTrialTypeSequence
         numTrialsAddedToSequence = 0;
         OptoTrialTypesToAdd = [];
-        if S.GUI.EnManOptoTrialType  
-            switch S.GUI.ManOptoTrialType
-                case 1
-                    OptoTrialTypes(currentTrial:end) = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];
-                case 2
-                    OptoTrialTypes(currentTrial:end) = [repmat(2, 1, S.GUI.MaxTrials - currentTrial + 1)];
-            end                
-        elseif updateOptoTrialTypeSequence
-            switch S.GUI.OptoTrialTypeSeq
-                case 1 % interleaved - random
-                    numOnTrialsToAdd = [];
-                    OptoTrialTypesToAdd = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];                
-                    numOnTrialsToAdd = ceil(S.GUI.OnFraction * length(OptoTrialTypesToAdd));                
-                    numOnTrialsToAdd_idxs = randperm(length(OptoTrialTypesToAdd), numOnTrialsToAdd);
-                    OptoTrialTypesToAdd(numOnTrialsToAdd_idxs) = 2;
-                    TrialTypes(currentTrial:end) = OptoTrialTypesToAdd;                
-                case 2 % interleaved - random first trial type                
-                    FirstTrialType = ceil(rand(1,1)*numTrialTypes);
-                    switch FirstTrialType
-                        case 1 % on first
-                            SecondTrialType = 2;
-                        case 2 % off first
-                            SecondTrialType = 1;
-                    end
-                    while numTrialsAddedToSequence < S.GUI.MaxTrials
-                        OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(FirstTrialType, 1, S.GUI.NumOptoTrialsPerBlock) repmat(SecondTrialType, 1, S.GUI.NumOptoTrialsPerBlock)];
-                        numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock; 
-                    end
-                    TrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
-                case 3 % interleaved - short first block
-                    while numTrialsAddedToSequence < S.GUI.MaxTrials
-                        OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(1, 1, S.GUI.NumOptoTrialsPerBlock) repmat(2, 1, S.GUI.NumOptoTrialsPerBlock)];
-                        numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock; 
-                    end
-                    TrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
-                case 4 % interleaved - long first block
-                    while numTrialsAddedToSequence < S.GUI.MaxTrials
-                        OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(2, 1, S.GUI.NumOptoTrialsPerBlock) repmat(1, 1, S.GUI.NumOptoTrialsPerBlock)];
-                        numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock; 
-                    end
-                    TrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
-            end
+        switch S.GUI.OptoTrialTypeSeq
+            case 1 % interleaved - random
+                numOnTrialsToAdd = [];
+                OptoTrialTypesToAdd = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];                
+                numOnTrialsToAdd = ceil(S.GUI.OnFraction * length(OptoTrialTypesToAdd));                
+                numOnTrialsToAdd_idxs = randperm(length(OptoTrialTypesToAdd), numOnTrialsToAdd);
+                OptoTrialTypesToAdd(numOnTrialsToAdd_idxs) = 2;
+                OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd;                
+            case 2 % interleaved - random first trial type                
+                FirstTrialType = ceil(rand(1,1)*2);
+                switch FirstTrialType
+                    case 1 % on first
+                        SecondTrialType = 2;
+                    case 2 % off first
+                        SecondTrialType = 1;
+                end
+                while numTrialsAddedToSequence < S.GUI.MaxTrials
+                    OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(FirstTrialType, 1, S.GUI.NumOptoTrialsPerBlock) repmat(SecondTrialType, 1, S.GUI.NumOptoTrialsPerBlock)];
+                    numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock; 
+                end
+                OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+            case 3 % interleaved - short first block
+                while numTrialsAddedToSequence < S.GUI.MaxTrials
+                    OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(1, 1, S.GUI.NumOptoTrialsPerBlock) repmat(2, 1, S.GUI.NumOptoTrialsPerBlock)];
+                    numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock; 
+                end
+                OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+            case 4 % interleaved - long first block
+                while numTrialsAddedToSequence < S.GUI.MaxTrials
+                    OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(2, 1, S.GUI.NumOptoTrialsPerBlock) repmat(1, 1, S.GUI.NumOptoTrialsPerBlock)];
+                    numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock; 
+                end
+                OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
         end
     end
 end
