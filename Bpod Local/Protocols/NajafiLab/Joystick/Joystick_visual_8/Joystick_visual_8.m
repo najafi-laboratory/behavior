@@ -1055,9 +1055,62 @@ try
     BpodSystem.PluginObjects.R.sendThresholdEvents = 'off'; % Stop sending threshold events to state machine
     BpodSystem.PluginObjects.R = [];
     M = [];
-catch ME
-    disp(ME.identifier);
-    disp(getReport(ME));
+catch MatlabException
+    disp(MatlabException.identifier);
+    disp(getReport(MatlabException));
+
+    % err report log file
+    % recording error and stack information to file
+    t = datetime;
+    session_date = 10000*(year(t)-2000) + 100*month(t) + day(t);
+    
+    % get session file name
+    [SessionFilepath, SessionFileName, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
+
+    CrashFileDir = 'C:\data analysis\behavior\joystick\error logs\';
+    CrashFileName = [CrashFileDir, num2str(session_date), '_BPod-matlab_crash_log_', SessionFileName];    
+
+    % make crash log folder if it doesn't already exist
+    [status, msg, msgID] = mkdir(CrashFileDir);
+
+    % save workspace variables associated with session
+    Data = BpodSystem.Data;
+    save(CrashFileName, 'Data');
+    % add more workspace vars if needed
+
+    %open file
+    fid = fopen([CrashFileName, '.txt'],'a+');
+
+    % write session associated with error
+    fprintf(fid,'%s\n', SessionFileName);
+
+    % date
+    fprintf(fid,'%s\n', num2str(session_date));
+
+    % rig specs
+    fprintf(fid,'%s\n', 'Joystick Rig - Behavior Room');
+    % fprintf(fid,'%s\n', computer);
+    % fprintf(fid,'%s\n', feature('GetCPU'));
+    % fprintf(fid,'%s\n', getenv('NUMBER_OF_PROCESSORS'));
+    % fprintf(fid,'%s\n', memory); % add code to print memory struct to
+    % file later   
+
+    % write the error to file   
+    fprintf(fid,'%s\n',MatlabException.identifier);
+    fprintf(fid,'%s\n',MatlabException.message);
+    % fprintf(fid,'%s\n',MatlabException.stack);
+    % fprintf(fid,'%s\n',MatlabException.cause);
+    fprintf(fid,'%s\n',MatlabException.Correction);
+
+    % print stack
+    fprintf(fid, '%s', MatlabException.getReport('extended', 'hyperlinks','off'));
+
+    % close file
+    fclose(fid);
+
+    % save workspace variables associated with session to file
+    
+
     disp('Resetting encoder and maestro objects...');
     BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
     try
