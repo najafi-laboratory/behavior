@@ -1,9 +1,9 @@
 classdef AVstimConfig
-    methods
+
+   methods
 
 
 %% Video utils
-
 
 % generate grey image
 function [VideoGrayFixed] = GenGreyImg( ...

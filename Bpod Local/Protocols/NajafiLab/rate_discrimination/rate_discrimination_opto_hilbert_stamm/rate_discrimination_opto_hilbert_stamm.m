@@ -6,7 +6,7 @@ try
     EnableMovingSpouts = 0;
     EnablePassive      = 0;
     PassiveSessMode    = 2; %1: omission; 2:ISI
-    MonitorID          = 1;
+    MonitorID          = 2;
     EnableOpto         = 1;
     
     %% Import scripts
@@ -101,59 +101,63 @@ try
     
     %% test dynamic opto trial updater
     
-    inx = 0;
-    currentTrial = 1;
-    
-    % PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
-    % PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
-    % PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
-    S = BpodParameterGUI('sync', S);
-    [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
-    while inx == 0
-        inx = input('Set parameters and press enter to continue >', 's');
-        if isempty(inx) 
-            inx = 0; % refill inx
-        end
-        % usr_input = ['inx: ', inx];
-        % disp(usr_input);
-        S = BpodParameterGUI('sync', S);
-            
-        % ManualDeactivated = 0;
-        % updateTrialTypeSequence = 0;
-        % if (PreviousEnableManualTrialType ~= S.GUI.EnableManualTrialType) 
-        %     if (PreviousEnableManualTrialType == 1)
-        %         ManualDeactivated = 1;                
-        %     end
-        %     PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
-        % end
-        % 
-        % if (PreviousTrialTypeSequence ~= S.GUI.TrialTypeSequence) || (ManualDeactivated)
-        %     updateTrialTypeSequence = 1;            
-        % end
+    DoOptoTrialConfigTester = 1;
+
+    if DoOptoTrialConfigTester
+        inx = 0;
+        currentTrial = 1;
+        
+        % PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
         % PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
-        % 
-        % if PreviousNumTrialsPerBlock ~= S.GUI.NumTrialsPerBlock
-        %     updateTrialTypeSequence = 1;
-        %     PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
-        % end
+        % PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
+        S = BpodParameterGUI('sync', S);
+        [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
+        while inx == 0
+            inx = input('Set parameters and press enter to continue >', 's');
+            if isempty(inx) 
+                inx = 0; % refill inx
+            end
+            % usr_input = ['inx: ', inx];
+            % disp(usr_input);
+            S = BpodParameterGUI('sync', S);
+                
+            % ManualDeactivated = 0;
+            % updateTrialTypeSequence = 0;
+            % if (PreviousEnableManualTrialType ~= S.GUI.EnableManualTrialType) 
+            %     if (PreviousEnableManualTrialType == 1)
+            %         ManualDeactivated = 1;                
+            %     end
+            %     PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
+            % end
+            % 
+            % if (PreviousTrialTypeSequence ~= S.GUI.TrialTypeSequence) || (ManualDeactivated)
+            %     updateTrialTypeSequence = 1;            
+            % end
+            % PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
+            % 
+            % if PreviousNumTrialsPerBlock ~= S.GUI.NumTrialsPerBlock
+            %     updateTrialTypeSequence = 1;
+            %     PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
+            % end
+            
         
-    
-        % BpodSystem.Data.TrialTypes = []; % The trial type of each trial completed will be added here.
-        % TrialTypes = [];
-        BpodSystem.Data.RawEvents.Trial{currentTrial}.States.Reward(1) = 1;
-    
-        disp(['currentTrial:', num2str(currentTrial)])
-        % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
-        [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
+            % BpodSystem.Data.TrialTypes = []; % The trial type of each trial completed will be added here.
+            % TrialTypes = [];
+            BpodSystem.Data.RawEvents.Trial{currentTrial}.States.Reward(1) = 1;
         
+            disp(['currentTrial:', num2str(currentTrial)])
+            % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
+            [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
+            
+            
+            % S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI and returned in the next line
+            % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update',(numTrialTypes+1)-TrialTypes);  
+            % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update', TrialTypes);
+            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
         
-        % S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI and returned in the next line
-        % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update',(numTrialTypes+1)-TrialTypes);  
-        % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update', TrialTypes);
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
-    
-        currentTrial = currentTrial + 1;
-        BpodSystem.Data.nTrials = currentTrial-1;
+            currentTrial = currentTrial + 1;
+            BpodSystem.Data.nTrials = currentTrial-1;
+        end
     end
     
     %% Define stimuli and send to analog module
@@ -320,7 +324,8 @@ try
         BpodSystem.PluginObjects.V.Videos{25}.nFrames = length(VisStim.Data.Full); 
         BpodSystem.PluginObjects.V.Videos{25}.Data = VisStim.Data.Full;
     
-        VisStimDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
+        VisStim.VisStimDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
+
     
     
         %% Generate audio stim based on vis stim for this trial
@@ -376,44 +381,54 @@ try
         
         
         if (EnableMovingSpouts == 1)
-            SCOA.SpoutIn = {'SoftCode', 9};
+            if m_Opto.EnableOpto
+                SCOA.SpoutIn = {'SoftCode', 9, 'GlobalTimerCancel', 1};
+            else
+                SCOA.SpoutIn = {'SoftCode', 9};
+            end                
         else
-            SCOA.SpoutIn = {};
+            if m_Opto.EnableOpto
+                SCOA.SpoutIn = {'GlobalTimerCancel', 1};
+            else
+                SCOA.SpoutIn = {};
+            end            
         end        
     
         %% construct state matrix
-    
+        sma = NewStateMatrix();
+        sma = m_Opto.InsertGlobalTimer(sma, VisStim);
+
         % update for opto interop
         switch S.GUI.TrainingLevel
             case 1 % passive
                 ExperimenterTrialInfo.TrainingLevel = 'Passive';
-                StatePassive(S, SCOA, VisStimDuration, DURA);
+                StatePassive(sma, S, SCOA, VisStim.VisStimDuration, DURA);
             case 2 % naive
                 ExperimenterTrialInfo.TrainingLevel = 'Naive';
-                StateNaive(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                StateNaive(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
             case 3 % Mid 1 Trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
-                    StateNaive(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateNaive(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
                 else
                     ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 1';
-                    StateMidTrain1(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateMidTrain1(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
                 end
             case 4 % Mid 2 Trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
-                    StateNaive(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateNaive(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
                 else
                     ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 2';
-                    StateMidTrain2(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateMidTrain2(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
                 end
             case 5 % well trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
-                    StateNaive(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateNaive(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
                 else
                     ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
-                    StateWellTrained(S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateWellTrained(sma, S, SCOA, TrialTarget, VisStim.VisStimDuration, DURA);
                 end
         end
     
@@ -486,7 +501,7 @@ catch MatlabException
     % get session file name
     [SessionFilepath, SessionFileName, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
 
-    CrashFileDir = 'C:\data analysis\behavior\opto\error logs\';
+    CrashFileDir = 'C:\data analysis\behavior\rig2\error logs\';
     CrashFileName = [CrashFileDir, num2str(session_date), '_BPod-matlab_crash_log_', SessionFileName];    
 
     % make crash log folder if it doesn't already exist
