@@ -11,7 +11,7 @@ end
 function [OptoTrialTypes] = GenOptoTrials(obj, BpodSystem, S)
     BpodSystem.Data.PreviousEnManOptoTrialType = S.GUI.EnManOptoTrialType;
     BpodSystem.Data.PreviousOptoTrialTypeSeq = S.GUI.OptoTrialTypeSeq;
-    BpodSystem.Data.OnFraction = S.GUI.OnFraction;
+    BpodSystem.Data.PreviousOnFraction = S.GUI.OnFraction;
     BpodSystem.Data.PreviousNumOptoTrialsPerBlock = S.GUI.NumOptoTrialsPerBlock;
     OptoTrialTypes = ceil(rand(1, S.GUI.MaxTrials)*2);
 end
@@ -40,7 +40,12 @@ function [OptoTrialTypes] = UpdateOptoTrials(obj, BpodSystem, S, OptoTrialTypes,
     if BpodSystem.Data.PreviousNumOptoTrialsPerBlock ~= S.GUI.NumOptoTrialsPerBlock
         updateOptoTrialTypeSequence = 1;
         BpodSystem.Data.PreviousNumOptoTrialsPerBlock = S.GUI.NumOptoTrialsPerBlock;
-    end    
+    end
+
+    if BpodSystem.Data.PreviousOnFraction ~= S.GUI.OnFraction
+        updateOptoTrialTypeSequence = 1;
+        BpodSystem.Data.PreviousOnFraction = S.GUI.OnFraction;
+    end 
     
     if S.GUI.EnManOptoTrialType  
         switch S.GUI.ManOptoTrialType

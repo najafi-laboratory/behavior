@@ -6,7 +6,7 @@ try
     EnableMovingSpouts = 0;
     EnablePassive      = 0;
     PassiveSessMode    = 2; %1: omission; 2:ISI
-    MonitorID          = 2;
+    MonitorID          = 1;
     EnableOpto         = 1;
     
     %% Import scripts
@@ -99,6 +99,11 @@ try
     TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
     
+    currentTrial = 1;
+    [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
+    m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+
+
     %% test dynamic opto trial updater
     
     DoOptoTrialConfigTester = 1;
