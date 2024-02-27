@@ -9,21 +9,17 @@ function [S] = SetParams(obj, BpodSystem)
         % Optogentic params
         % S.GUI.EnableManualTrialType = 0;
         % S.GUIMeta.EnableManualTrialType.Style = 'checkbox';
-        S.GUI.SessionType = 1;
-        S.GUIMeta.SessionType.Style = 'popupmenu';
-        S.GUIMeta.SessionType.String = {'Opto', 'Control'};
-        % S.GUI.EnManOptoTrialType = 0;
-        % S.GUIMeta.EnManOptoTrialType.Style = 'checkbox';        
-        % S.GUI.ManOptoTrialType = 1;
-        % S.GUIMeta.ManOptoTrialType.Style = 'popupmenu';
-        % S.GUIMeta.ManOptoTrialType.String = {'Opto Off', 'Opto On'};
+        S.GUI.EnManOptoTrialType = 0;
+        S.GUIMeta.EnManOptoTrialType.Style = 'checkbox';        
+        S.GUI.ManOptoTrialType = 1;
+        S.GUIMeta.ManOptoTrialType.Style = 'popupmenu';
+        S.GUIMeta.ManOptoTrialType.String = {'Opto Off', 'Opto On'};
         S.GUI.OptoTrialTypeSeq = 3;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
         S.GUI.OnFraction = 0.3;
         S.GUI.NumOptoTrialsPerBlock = 50;  
-        % S.GUIPanels.Opto = {'EnManOptoTrialType', 'ManOptoTrialType', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
-        S.GUIPanels.Opto = {'SessionType', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
+        S.GUIPanels.Opto = {'EnManOptoTrialType', 'ManOptoTrialType', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;

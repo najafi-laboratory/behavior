@@ -84,15 +84,13 @@ try
             [TrialTypes] = m_TrialConfig.GenPassiveTrials(S);
     end
     
-    [OptoTrialTypes] = m_Opto.GenOptoTrials(BpodSystem, S);
-
-    % switch m_Opto.EnableOpto
-    %     case 0
-    %         [OptoTrialTypes] = -1;
-    %     case 1
-    %         % generate opto trial types
-    %         [OptoTrialTypes] = m_Opto.GenOptoTrials(BpodSystem, S);
-    % end
+    switch m_Opto.EnableOpto
+        case 0
+            [OptoTrialTypes] = -1;
+        case 1
+            % generate opto trial types
+            [OptoTrialTypes] = m_TrialConfig.GenOptoTrials(BpodSystem, S);
+    end
     
     % update for opto interop
     % Side Outcome Plot
@@ -102,7 +100,7 @@ try
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
     
     currentTrial = 1;
-    [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
+    [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
     m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
 
 
@@ -118,7 +116,7 @@ try
         % PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
         % PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
         S = BpodParameterGUI('sync', S);
-        [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
+        [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
         while inx == 0
             inx = input('Set parameters and press enter to continue >', 's');
             if isempty(inx) 
@@ -154,7 +152,7 @@ try
         
             disp(['currentTrial:', num2str(currentTrial)])
             % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
-            [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
+            [OptoTrialTypes] = m_TrialConfig.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
             
             
             % S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI and returned in the next line

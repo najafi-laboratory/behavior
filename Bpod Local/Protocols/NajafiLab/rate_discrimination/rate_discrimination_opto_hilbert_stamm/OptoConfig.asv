@@ -11,10 +11,6 @@ classdef OptoConfig
             end
         end
 
-        function obj = SetEnableOpto(obj, EnableOpto)
-            obj.EnableOpto = EnableOpto;
-        end
-
         function [OptoTrialTypes] = GenOptoTrials(obj, BpodSystem, S)
             BpodSystem.Data.PreviousSessionType = S.GUI.SessionType;
             BpodSystem.Data.PreviousOptoTrialTypeSeq = S.GUI.OptoTrialTypeSeq;
@@ -35,16 +31,13 @@ classdef OptoConfig
         
             switch S.GUI.SessionType
                 case 1
-                    obj.SetEnableOpto(1);
+                    obj.OptoConfig(1);
                 case 2
-                    obj.SetEnableOpto(0);
-                    S.GUI.OptoTrialTypeSeq = 1;
-                    S.GUI.OnFraction = 0;
-                    updateOptoTrialTypeSequence = 1;
+                    obj.OptoConfig(0);
             end
 
             if (BpodSystem.Data.PreviousSessionType ~= S.GUI.SessionType) && (S.GUI.SessionType == 1)
-                updateOptoTrialTypeSequence = 1;           
+                updateOptoTrialTypeSequence = 1;
             end
             BpodSystem.Data.PreviousSessionType = S.GUI.SessionType;
             % if (BpodSystem.Data.PreviousEnManOptoTrialType ~= S.GUI.EnManOptoTrialType)
