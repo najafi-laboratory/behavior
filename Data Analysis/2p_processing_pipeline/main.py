@@ -26,12 +26,12 @@ python main.py `
 --run_SyncSignal 1 `
 --run_RetrieveResults 1 `
 --run_Plotter 1 `
---data_path './testdata/crbl' `
---save_path0 './results/crbl' `
---nchannels 1 `
+--data_path './testdata/test_pp' `
+--save_path0 './results/test_pp' `
+--nchannels 2 `
 --functional_chan 2 `
 --diameter 8 `
---brain_region 'crbl'
+--brain_region 'ppc'
 '''
 
 if __name__ == "__main__":

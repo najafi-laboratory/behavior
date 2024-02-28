@@ -84,10 +84,10 @@
 		"sparse_mode": true,
 		"spatial_scale": 0,
 		"connected": true,
-		"nbinned": 5000,
+		"nbinned": 25000,
 		"max_iterations": 20,
-		"threshold_scaling": 2.0,
-		"max_overlap": 0.75,
+		"threshold_scaling": 2,
+		"max_overlap": 1,
 		"high_pass": 100,
 		"spatial_hp_detect": 25,
 		"denoise": true
@@ -103,7 +103,7 @@
 	},
 
 	"SpikeDeconv" : {
-		"tau": 1.0,
+		"tau": 0.1,
 		"spike_thres": 0.15,
 		"spikedetect": true,
 		"baseline": "maximin",

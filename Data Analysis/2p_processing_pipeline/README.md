@@ -89,3 +89,17 @@ sbatch run.sh
 ## 2024.02.14
 - Added args for cerebellum/ppc.
 - Added functional ROI detection for cerebellum.
+- Fixed bugs in plotting figures.
+- Added standard error for average figures.
+- Adjusted figure scale.
+
+## 2024.02.16
+- Change spike trigger average figures from individual traces to standard error.
+
+## 2024.02.26
+- Changed to use the signal density ratio between ROI and surroundings to classify inhibitory neurons.
+
+## 2024.02.28
+- Df/f computation and normalization with individual variance completed.
+- Spike triggered average now takes global variance and individual means to find the threshold.
+- Added reading bpod session data mat files.

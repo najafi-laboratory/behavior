@@ -32,25 +32,35 @@ def get_channel_img(
         proj_img,
         ch
         ):
-    # functional channel uses max projection.
+    # functional channel.
     if ch == ops['functional_chan']:
-        print('Using max projection for functional channel')
-        img = proj_img['max_ch'+str(ops['functional_chan'])]
+        img = proj_img['ref_ch'+str(ops['functional_chan'])]
         return img
-    # anatomical channel uses mean image.
+    # anatomical channel.
     if ch == 3-ops['functional_chan']:
-        print('Using mean image for anatomical channel')
-        img = proj_img['mean_ch'+str(3-ops['functional_chan'])]
+        img = proj_img['ref_ch'+str(3-ops['functional_chan'])]
         return img
 
+'''
+img = proj_img['ref_ch2']
+model = models.Cellpose(model_type=ops['pretrained_model'])
+masks, flows, styles, diams = model.eval(
+    img,
+    diameter=12,
+    flow_threshold=ops['flow_threshold'],
+    channels=[[0,0]],
+    channel_axis=0)
+from cellpose import plot
+import matplotlib.pyplot as plt
+fig = plt.figure(figsize=(12,5))
+plot.show_segmentation(fig, img, masks, flows[0], channels=[[0,0]])
+plt.tight_layout()
+plt.show()
+'''
 
 # run cellpose on one image for cell detection and save the results.
 
-def cellpose_eval(
-        ops,
-        img,
-        file_names,
-        ):
+def run_cellpose(ops, img):
     # initialize cellpose pretrained model.
     model = models.Cellpose(model_type=ops['pretrained_model'])
     # run cellpose on the given image with the shape of Lx*Ly.
@@ -60,17 +70,54 @@ def cellpose_eval(
         flow_threshold=ops['flow_threshold'],
         channels=[[0,0]],
         channel_axis=0)
-    num = len(np.unique(masks))-1
-    print('Found {} cells with diameter {}'.format(num, diams))
     # extract cell outlines.
     outlines = masks_to_outlines(masks)
-    # save cell segmentation to file XXX_seg.npy.
+    return [masks, flows, styles, diams, outlines]
+
+
+# save cell segmentation to file XXX_seg.npy and reorganize it.
+
+def save_cellpose_results(img, masks, flows, diams, outlines, file_names):
     io.masks_flows_to_seg(img, masks, flows, diams, file_names, [[0,0]])
     restuls = dict(
+        cellpose_img = img,
         masks = masks,
         outlines = outlines,
         diams = diams,
         )
+    return restuls
+    
+
+# identify two channels and get the best results.
+
+def cellpose_eval(
+        ops,
+        proj_img,
+        ch,
+        file_names,
+        ):
+    # functional channel.
+    if ch == ops['functional_chan']:
+        # find the result with most neurons.
+        results = []
+        img = [proj_img['ref_ch'+str(ops['functional_chan'])],
+               proj_img['max_ch'+str(ops['functional_chan'])]]
+        results = [
+            run_cellpose(ops, img[0]),
+            run_cellpose(ops, img[1])]
+        num = [len(np.unique(results[0][0]))-1,
+               len(np.unique(results[1][0]))-1]
+        masks, flows, styles, diams, outlines = results[np.argmax(num)]
+        img = img[np.argmax(num)]
+        restuls = save_cellpose_results(
+            img, masks, flows, diams, outlines, file_names)
+    # anatomical channel.
+    if ch == 3-ops['functional_chan']:
+        # use reference image.
+        img = proj_img['ref_ch'+str(3-ops['functional_chan'])]
+        masks, flows, styles, diams, outlines = run_cellpose(ops, img)
+        restuls = save_cellpose_results(
+            img, masks, flows, diams, outlines, file_names)
     return restuls
 
 
@@ -80,24 +127,17 @@ def get_mask(
         ops,
         proj_img
         ):
-    # reference image.
-    print('Running cellpose on reference image')
-    restuls_ref = cellpose_eval(
-        ops, proj_img['reg_ref'],
-        os.path.join(ops['save_path0'], 'temp', 'mask_ref'))
     # ch1 image.
     print('Running cellpose on ch1 image')
-    img = get_channel_img(ops, proj_img, 1)
     restuls_ch1 = cellpose_eval(
-        ops, img,
+        ops, proj_img, 1,
         os.path.join(ops['save_path0'], 'temp', 'mask_ch1'))
     # ch2 image.
     print('Running cellpose on ch2 image')
-    img = get_channel_img(ops, proj_img, 2)
     restuls_ch2 = cellpose_eval(
-        ops, img,
+        ops, proj_img, 2,
         os.path.join(ops['save_path0'], 'temp', 'mask_ch2'))
-    return restuls_ref, restuls_ch1, restuls_ch2
+    return restuls_ch1, restuls_ch2
 
 
 # use anatomical to label functional channel masks.
@@ -162,7 +202,7 @@ def get_stat(
 def save_mask(
         ops,
         proj_img,
-        restuls_ref, restuls_ch1, restuls_ch2,
+        restuls_ch1, restuls_ch2,
         label,
         ):
     # file structure:
@@ -170,21 +210,18 @@ def save_mask(
     # -- mask
     # ---- ch1
     # ------ mean_img
+    # ------ ref_img
     # ------ masks
     # ------ outlines
     # ------ diams
     # ------ max_img
     # ---- ch2
     # ------ mean_img
+    # ------ ref_img
     # ------ masks
     # ------ outlines
     # ------ diams
     # ------ max_img
-    # ---- ref
-    # ------ reg_ref
-    # ------ masks
-    # ------ outlines
-    # ------ diams
     # ---- label
     f = h5py.File(os.path.join(
         ops['save_path0'], 'mask.h5'), 'w')
@@ -192,16 +229,15 @@ def save_mask(
     f['label'] = label
     ch1 = grp.create_group('ch1')
     ch2 = grp.create_group('ch2')
-    ref = grp.create_group('ref')
-    for k in restuls_ref.keys():
+    for k in restuls_ch1.keys():
         ch1[k] = restuls_ch1[k]
         ch2[k] = restuls_ch2[k]
-        ref[k] = restuls_ref[k]
-    ref['reg_ref'] = proj_img['reg_ref']
     ch1['max_img'] = proj_img['max_ch1']
     ch2['max_img'] = proj_img['max_ch2']
     ch1['mean_img'] = proj_img['mean_ch1']
     ch2['mean_img'] = proj_img['mean_ch2']
+    ch1['ref_img'] = proj_img['ref_ch1']
+    ch2['ref_img'] = proj_img['ref_ch2']
     f.close()
 
 
@@ -215,12 +251,12 @@ def run(ops):
 
     proj_img = read_proj_img(ops)
 
-    restuls_ref, restuls_ch1, restuls_ch2 = get_mask(ops, proj_img)
+    restuls_ch1, restuls_ch2 = get_mask(ops, proj_img)
     print('Running cellpose completed')
-    
+
     label = get_label_from_masks(ops, restuls_ch1, restuls_ch2)
 
-    save_mask(ops, proj_img, restuls_ref, restuls_ch1, restuls_ch2, label)
+    save_mask(ops, proj_img, restuls_ch1, restuls_ch2, label)
     print('Mask result saved')
 
     stat_func = get_stat(ops, restuls_ch1, restuls_ch2)

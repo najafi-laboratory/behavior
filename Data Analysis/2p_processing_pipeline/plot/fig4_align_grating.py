@@ -26,7 +26,6 @@ def get_stim_response(
     stim_time = []
     vol_stim_bin = raw_voltages['vol_stim_bin']
     vol_time = raw_voltages['vol_time']
-    #vol_time = np.arange(0, len(vol_stim_bin))
     for trials in trial_idx:
         # read trial data.
         fluo = neural_trials[str(trials)][ch]
@@ -133,15 +132,11 @@ def plot_fig4(
             fix_neu_time,
             np.mean(np.mean(fix_neu_seq[:, label==0, :], axis=0), axis=0),
             color=color_fix[0],
-            marker='.',
-            markersize=5,
             label='excitory_fix')
         axs[0].plot(
             jitter_neu_time,
             np.mean(np.mean(jitter_neu_seq[:, label==0, :], axis=0), axis=0),
             color=color_jitter[0],
-            marker='.',
-            markersize=5,
             label='excitory_jitter')
         axs[0].set_title(
             'grating average trace of {} excitory neurons'.format(
@@ -157,15 +152,11 @@ def plot_fig4(
             fix_neu_time,
             np.mean(np.mean(fix_neu_seq[:, label==1, :], axis=0), axis=0),
             color=color_fix[1],
-            marker='.',
-            markersize=5,
             label='inhibitory_fix')
         axs[1].plot(
             jitter_neu_time,
             np.mean(np.mean(jitter_neu_seq[:, label==1, :], axis=0), axis=0),
             color=color_jitter[1],
-            marker='.',
-            markersize=5,
             label='inhibitory_jitter')
         axs[1].set_title(
             'grating average trace of {} inhibitory neurons'.format(
@@ -186,8 +177,6 @@ def plot_fig4(
                 fix_neu_time,
                 fix_mean,
                 color=color_fix[label[i]],
-                marker='.',
-                markersize=5,
                 label=fluo_label[label[i]]+'_fix')
             axs[i+2].fill_between(
                 fix_neu_time,
@@ -199,8 +188,6 @@ def plot_fig4(
                 jitter_neu_time,
                 jitter_mean,
                 color=color_jitter[label[i]],
-                marker='.',
-                markersize=5,
                 label=fluo_label[label[i]]+'_jitter')
             axs[i+2].fill_between(
                 jitter_neu_time,

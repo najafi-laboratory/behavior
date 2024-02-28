@@ -64,7 +64,6 @@ def plot_fig3(
         
         # scale data
         spikes = spikes * np.max(fluo) / np.max(spikes)
-        vol_stim_bin = vol_stim_bin * np.max(fluo)
 
         # plot figs.
         if np.max(time_vol) < max_ms:
@@ -83,25 +82,24 @@ def plot_fig3(
             sub_time_img_idx = get_sub_time_idx(time_img, start, end)
             sub_time_vol     = time_vol[sub_time_vol_idx]
             sub_time_img     = time_img[sub_time_img_idx]
-            sub_vol_stim_bin = vol_stim_bin[sub_time_vol_idx]
             sub_fluo         = fluo[:, sub_time_img_idx]
             sub_spikes       = spikes[:, sub_time_img_idx]
             sub_mean_fluo_0  = mean_fluo_0[sub_time_img_idx]
             sub_mean_fluo_1  = mean_fluo_1[sub_time_img_idx]
+            sub_vol_stim_bin = vol_stim_bin[sub_time_vol_idx]
 
             # create new figure.
             fig, axs = plt.subplots(num_subplots, 1, figsize=(24, 16))
             plt.subplots_adjust(hspace=0.6)
 
-            # plot stimulus.
-            for i in range(num_subplots):
-                axs[i].plot(
-                    sub_time_vol, sub_vol_stim_bin,
-                    color='grey',
-                    label='stimulus',
-                    lw=0.5)
-
             # plot mean excitory fluo on functional only.
+            scale = np.mean(sub_mean_fluo_0) + 5 * np.std(sub_mean_fluo_0)
+            axs[0].plot(
+                sub_time_vol,
+                sub_vol_stim_bin * scale,
+                color='grey',
+                label='stimulus',
+                lw=0.5)
             axs[0].plot(
                 sub_time_img, sub_mean_fluo_0,
                 color='dodgerblue',
@@ -112,6 +110,13 @@ def plot_fig3(
                     np.sum(label==0)))
 
             # plot mean inhibitory fluo on functional and anatomical channels.
+            scale = np.mean(sub_mean_fluo_1) + 5 * np.std(sub_mean_fluo_1)
+            axs[1].plot(
+                sub_time_vol,
+                sub_vol_stim_bin * scale,
+                color='grey',
+                label='stimulus',
+                lw=0.5)
             axs[1].plot(
                 sub_time_img, sub_mean_fluo_1,
                 color='dodgerblue',
@@ -121,16 +126,24 @@ def plot_fig3(
                 'mean trace of {} inhibitory neurons'.format(
                     np.sum(label==1)))
 
-            # plot traces.
+            # plot individual traces.
             fluo_color = ['seagreen', 'coral']
             fluo_label = ['excitory', 'inhibitory']
             spikes_color = ['dodgerblue', 'violet']
             for i in range(fluo.shape[0]):
+                scale = np.mean(sub_fluo[i,:]) + 5 * np.std(sub_fluo[i,:])
+                axs[i+2].plot(
+                    sub_time_vol,
+                    sub_vol_stim_bin * scale,
+                    color='grey',
+                    label='stimulus',
+                    lw=0.5)
                 axs[i+2].plot(
                     sub_time_img, sub_fluo[i,:],
                     color=fluo_color[label[i]],
                     label=fluo_label[label[i]],
                     lw=0.5)
+                '''
                 spikes_idx = np.nonzero(sub_spikes[i,:])[0]
                 spikes_data = sub_spikes[i,spikes_idx]
                 spikes_time = sub_time_img[spikes_idx]
@@ -141,6 +154,7 @@ def plot_fig3(
                     color=spikes_color[label[i]],
                     label=fluo_label[label[i]]+'_spikes',
                     lw=0.75)
+                '''
                 axs[i+2].set_title('raw trace of neuron # '+ str(i).zfill(3))
 
             # adjust layout.
@@ -153,7 +167,6 @@ def plot_fig3(
                 axs[i].set_xlim([start, end])
                 axs[i].autoscale(axis='y')
                 axs[i].set_xticks(f * max_ms + np.arange(0,max_ms/5000+1) * 5000)
-                axs[i].set_ylim([np.min(fluo), np.max(fluo)])
                 axs[i].legend(loc='upper left')
             fig.set_size_inches(max_ms/2000, num_subplots*2)
             fig.tight_layout()

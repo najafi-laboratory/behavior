@@ -23,6 +23,24 @@ def frame_dur(stim, time):
     return [idx_up, idx_down, dur_high, dur_low]
 
 
+# cut sequence into the same length as the shortest one given pivots.
+
+def trim_seq(
+        data,
+        pivots,
+        ):
+    if len(data[0].shape) == 1:
+        len_l_min = np.min(pivots)
+        len_r_min = np.min([len(data[i])-pivots[i] for i in range(len(data))])
+        data = [data[i][pivots[i]-len_l_min:pivots[i]+len_r_min]
+                for i in range(len(data))]
+    if len(data[0].shape) == 3:
+        len_l_min = np.min(pivots)
+        len_r_min = np.min([len(data[i][0,0,:])-pivots[i] for i in range(len(data))])
+        data = [data[i][:, :, pivots[i]-len_l_min:pivots[i]+len_r_min]
+                for i in range(len(data))]
+    return data
+
 
 #%% omission
 
@@ -30,10 +48,10 @@ def frame_dur(stim, time):
 # compute omission start point.
 
 def get_omi_idx(stim, time):
-    [_, grat_end, _, isi] = frame_dur(stim, time)
-    idx = np.where(isi > 1000)[0]
-    omi_frames = int(500/np.median(np.diff(time, prepend=0))) + 1
-    omi_start = grat_end[idx] + omi_frames
+    [grat_start, grat_end, _, isi] = frame_dur(stim, time)
+    idx = np.where(isi >= 950)[0]
+    omi_start = grat_end[idx] + int(500/np.median(np.diff(time, prepend=0))) + 1
+    #omi_start = grat_start[idx+1]
     return omi_start
 
 
@@ -65,32 +83,34 @@ def get_omi_response(
         omi_start = get_omi_idx(stim, time)
         for idx in omi_start:
             if idx > l_frames and idx < len(time)-r_frames:
-                # reshape for concatenate into matrix.
-                stim = stim.reshape(1,-1)
-                time = time.reshape(1,-1)
                 # signal response.
                 f = fluo[:, idx-l_frames : idx+r_frames]
                 f = np.expand_dims(f, axis=0)
                 neu_seq.append(f)
                 # signal time stamps.
-                t = time[:, idx-l_frames : idx+r_frames] - time[:, idx]
+                t = time[idx-l_frames : idx+r_frames] - time[idx]
                 neu_time.append(t)
                 # voltage recordings.
                 vidx = np.where(
-                    (vol_time > time[:,idx-l_frames]) &
-                    (vol_time < time[:,idx+r_frames]))[0]
-                sv = vol_stim_bin[vidx].reshape(1,-1)
-                stim_vol.append(sv)
+                    (vol_time > time[idx-l_frames]) &
+                    (vol_time < time[idx+r_frames]))[0]
+                stim_vol.append(vol_stim_bin[vidx])
                 # voltage time stamps.
-                st = vol_time[vidx].reshape(1,-1) - time[:, idx]
-                stim_time.append(st)
-    # correct voltage recordings to the same length.
-    min_len = np.min([sv.shape[1] for sv in stim_vol])
-    stim_vol = [sv[:,:min_len] for sv in stim_vol]
-    stim_time = [st[:,:min_len] for st in stim_time]
+                stim_time.append(vol_time[vidx] - time[idx])
+    # correct voltage recordings centering at perturbation.
+    stim_time_zero = [np.argmin(np.abs(st)) for st in stim_time]
+    stim_time = trim_seq(stim_time, stim_time_zero)
+    stim_vol = trim_seq(stim_vol, stim_time_zero)
+    # correct neuron time stamps centering at perturbation.
+    neu_time_zero = [np.argmin(np.abs(nt)) for nt in neu_time]
+    neu_time = trim_seq(neu_time, neu_time_zero)
+    neu_seq = trim_seq(neu_seq, neu_time_zero)
     # concatenate results.
-    neu_seq  = np.concatenate(neu_seq, axis=0)
-    neu_time = np.concatenate(neu_time, axis=0)
+    neu_time  = [nt.reshape(1,-1) for nt in neu_time]
+    stim_time = [st.reshape(1,-1) for st in stim_time]
+    stim_vol  = [sv.reshape(1,-1) for sv in stim_vol]
+    neu_seq   = np.concatenate(neu_seq, axis=0)
+    neu_time  = np.concatenate(neu_time, axis=0)
     stim_vol  = np.concatenate(stim_vol, axis=0)
     stim_time = np.concatenate(stim_time, axis=0)
     # get mean time stamps.
@@ -105,8 +125,8 @@ def get_omi_response(
 
 def plot_omi(
         ops,
-        l_frames = 30,
-        r_frames = 50,
+        l_frames = 80,
+        r_frames = 150,
         ):
     print('plotting fig5 omission aligned response')
     [mask, raw_traces, raw_voltages, neural_trials] = RetrieveResults.run(ops)
@@ -137,9 +157,14 @@ def plot_omi(
     plt.subplots_adjust(hspace=1.2)
 
     # mean response of excitory.
+    mean_exc_fix = np.mean(
+        np.mean(fix_neu_seq[:, label==0, :], axis=0), axis=0)
+    mean_exc_jitter = np.mean(
+        np.mean(jitter_neu_seq[:, label==0, :], axis=0), axis=0)
+    scale = np.mean(mean_exc_fix) + 2*np.std(mean_exc_fix)
     axs[0].plot(
         fix_stim_time,
-        fix_stim_vol * np.max(raw_traces[ch]),
+        fix_stim_vol * scale,
         color='grey',
         label='fix stim')
     axs[0].axvline(
@@ -150,26 +175,27 @@ def plot_omi(
         linestyle='--')
     axs[0].plot(
         fix_neu_time,
-        np.mean(np.mean(fix_neu_seq[:, label==0, :], axis=0), axis=0),
+        mean_exc_fix,
         color=color_fix[0],
-        marker='.',
-        markersize=5,
         label='excitory_fix')
     axs[0].plot(
         jitter_neu_time,
-        np.mean(np.mean(jitter_neu_seq[:, label==0, :], axis=0), axis=0),
+        mean_exc_jitter,
         color=color_jitter[0],
-        marker='.',
-        markersize=5,
         label='excitory_jitter')
     axs[0].set_title(
         'omission average trace of {} excitory neurons'.format(
         np.sum(label==0)))
     
     # mean response of inhibitory.
+    mean_inh_fix = np.mean(
+        np.mean(fix_neu_seq[:, label==1, :], axis=0), axis=0)
+    mean_inh_jitter = np.mean(
+        np.mean(jitter_neu_seq[:, label==1, :], axis=0), axis=0)
+    scale = np.mean(mean_inh_fix) + 3*np.std(mean_inh_fix)
     axs[1].plot(
         fix_stim_time,
-        fix_stim_vol * np.max(raw_traces[ch]),
+        fix_stim_vol * scale,
         color='grey',
         label='fix stim')
     axs[1].axvline(
@@ -180,17 +206,13 @@ def plot_omi(
         linestyle='--')
     axs[1].plot(
         fix_neu_time,
-        np.mean(np.mean(fix_neu_seq[:, label==1, :], axis=0), axis=0),
+        mean_inh_fix,
         color=color_fix[1],
-        marker='.',
-        markersize=5,
         label='inhibitory_fix')
     axs[1].plot(
         jitter_neu_time,
-        np.mean(np.mean(jitter_neu_seq[:, label==1, :], axis=0), axis=0),
+        mean_inh_jitter,
         color=color_jitter[1],
-        marker='.',
-        markersize=5,
         label='inhibitory_jitter')
     axs[1].set_title(
         'omission average trace of {} inhibitory neurons'.format(
@@ -198,31 +220,44 @@ def plot_omi(
     
     # individual neuron response.
     for i in range(fix_neu_seq.shape[1]):
+        fix_mean = np.mean(fix_neu_seq[:,i,:], axis=0)
+        fix_sem = sem(fix_neu_seq[:,i,:], axis=0)
+        jitter_mean = np.mean(jitter_neu_seq[:,i,:], axis=0)
+        jitter_sem = sem(jitter_neu_seq[:,i,:], axis=0)
+        scale = np.mean(fix_mean) + 3*np.std(fix_mean)
         axs[i+2].plot(
             fix_stim_time,
-            fix_stim_vol * np.max(raw_traces[ch]),
+            fix_stim_vol * scale,
             color='grey',
             label='fix stim')
         axs[i+2].axvline(
             0,
             color='red',
             lw=2,
-            label='omission',
+            label='perturbation',
             linestyle='--')
         axs[i+2].plot(
             fix_neu_time,
-            np.mean(fix_neu_seq[:,i,:], axis=0),
+            fix_mean,
             color=color_fix[label[i]],
-            marker='.',
-            markersize=5,
             label=fluo_label[label[i]]+'_fix')
+        axs[i+2].fill_between(
+            fix_neu_time,
+            fix_mean - fix_sem,
+            fix_mean + fix_sem,
+            color=color_fix[label[i]],
+            alpha=0.2)
         axs[i+2].plot(
             jitter_neu_time,
-            np.mean(jitter_neu_seq[:,i,:], axis=0),
+            jitter_mean,
             color=color_jitter[label[i]],
-            marker='.',
-            markersize=5,
             label=fluo_label[label[i]]+'_jitter')
+        axs[i+2].fill_between(
+            jitter_neu_time,
+            jitter_mean - jitter_sem,
+            jitter_mean + jitter_sem,
+            color=color_jitter[label[i]],
+            alpha=0.2)
         axs[i+2].set_title(
             'omission average trace of neuron # '+ str(i).zfill(3))
 
@@ -236,9 +271,9 @@ def plot_omi(
         axs[i].set_xlabel('time since omission / ms')
         axs[i].set_ylabel('response')
         axs[i].set_xlim([np.min(fix_stim_time), np.max(fix_stim_time)])
-        axs[i].set_ylim([np.min(raw_traces[ch]), np.max(raw_traces[ch])])
+        axs[i].autoscale(axis='y')
         axs[i].legend(loc='upper left')
-    fig.set_size_inches(12, num_subplots*3)
+    fig.set_size_inches(12, num_subplots*6)
     fig.tight_layout()
 
     # save figure.
@@ -265,25 +300,6 @@ def get_post_num_grat(
     return num_down
 
 
-# cut sequence into the same length as the shortest one given pivots.
-
-def trim_seq(
-        data,
-        pivots,
-        ):
-    if len(data[0].shape) == 1:
-        len_l_min = np.min(pivots)
-        len_r_min = np.min([len(data[i])-pivots[i] for i in range(len(data))])
-        data = [data[i][pivots[i]-len_l_min:pivots[i]+len_r_min]
-                for i in range(len(data))]
-    if len(data[0].shape) == 3:
-        len_l_min = np.min(pivots)
-        len_r_min = np.min([len(data[i][0,0,:])-pivots[i] for i in range(len(data))])
-        data = [data[i][:, :, pivots[i]-len_l_min:pivots[i]+len_r_min]
-                for i in range(len(data))]
-    return data
-
-
 # extract response around perturbation.
 
 def get_prepost_response(
@@ -302,38 +318,36 @@ def get_prepost_response(
             for trials in trial_idx]
     stim = [neural_trials[str(trials)]['stim']
             for trials in trial_idx]
+    # find voltage recordings.
+    stim_vol  = []
+    stim_time = []
+    for t in neu_time:
+        vidx = np.where(
+            (vol_time > np.min(t)) &
+            (vol_time < np.max(t)))[0]
+        stim_vol.append(vol_stim_bin[vidx])
+        stim_time.append(vol_time[vidx])
     # find perturbation point.
     post_start_idx = []
     for s,t in zip(stim, neu_time):
         [_, idx_down, _, _] = frame_dur(s, t)
         post_start_idx.append(idx_down[num_down])
-    # trim sequences.
-    neu_seq = trim_seq(neu_seq, post_start_idx)
-    neu_time = trim_seq(neu_time, post_start_idx)
-    # find voltage recordings.
-    stim_vol  = []
-    stim_time = []
-    for t in neu_time:
-        # voltage recordings.
-        vidx = np.where(
-            (vol_time > np.min(t)) &
-            (vol_time < np.max(t)))[0]
-        sv = vol_stim_bin[vidx].reshape(1,-1)
-        stim_vol.append(sv)
-        # voltage time stamps.
-        st = vol_time[vidx].reshape(1,-1)
-        stim_time.append(st)
-    # correct voltage recordings to the same length.
-    min_len = np.min([sv.shape[1] for sv in stim_vol])
-    stim_vol = [sv[:,:min_len].reshape(1,-1) for sv in stim_vol]
-    stim_time = [st[:,:min_len].reshape(1,-1) for st in stim_time]
+    # correct voltage recordings centering at perturbation.
     stim_time  = [stim_time[i] - neu_time[i][post_start_idx[i]]
                  for i in range(len(stim_time))]
+    stim_time_zero = [np.argmin(np.abs(st)) for st in stim_time]
+    stim_time = trim_seq(stim_time, stim_time_zero)
+    stim_vol = trim_seq(stim_vol, stim_time_zero)
     # correct neuron time stamps centering at perturbation.
-    neu_time  = [neu_time[i] - neu_time[i][post_start_idx[i]]
-                 for i in range(len(neu_time))]
-    neu_time  = [t.reshape(1,-1) for t in neu_time]
+    neu_time = [neu_time[i] - neu_time[i][post_start_idx[i]]
+                for i in range(len(neu_time))]
+    neu_time_zero = [np.argmin(np.abs(nt)) for nt in neu_time]
+    neu_time = trim_seq(neu_time, post_start_idx)
+    neu_seq = trim_seq(neu_seq, neu_time_zero)
     # concatenate results.
+    neu_time  = [nt.reshape(1,-1) for nt in neu_time]
+    stim_time = [st.reshape(1,-1) for st in stim_time]
+    stim_vol  = [sv.reshape(1,-1) for sv in stim_vol]
     neu_seq   = np.concatenate(neu_seq, axis=0)
     neu_time  = np.concatenate(neu_time, axis=0)
     stim_vol  = np.concatenate(stim_vol, axis=0)
@@ -343,6 +357,7 @@ def get_prepost_response(
     stim_time = np.mean(stim_time, axis=0)
     # get mode stimulus.
     stim_vol, _ = mode(stim_vol, axis=0)
+    #stim_vol = np.mean(stim_vol, axis=0)
     return [neu_seq, neu_time, stim_vol, stim_time]
 
 
@@ -383,9 +398,14 @@ def plot_prepost(
     plt.subplots_adjust(hspace=1.2)
 
     # mean response of excitory.
+    mean_exc_fix = np.mean(
+        np.mean(fix_neu_seq[:, label==0, :], axis=0), axis=0)
+    mean_exc_jitter = np.mean(
+        np.mean(jitter_neu_seq[:, label==0, :], axis=0), axis=0)
+    scale = np.mean(mean_exc_fix) + 2*np.std(mean_exc_fix)
     axs[0].plot(
         fix_stim_time,
-        fix_stim_vol * 400,
+        fix_stim_vol * scale,
         color='grey',
         label='fix stim')
     axs[0].axvline(
@@ -396,26 +416,27 @@ def plot_prepost(
         linestyle='--')
     axs[0].plot(
         fix_neu_time,
-        np.mean(np.mean(fix_neu_seq[:, label==0, :], axis=0), axis=0),
+        mean_exc_fix,
         color=color_fix[0],
-        marker='.',
-        markersize=5,
         label='excitory_fix')
     axs[0].plot(
         jitter_neu_time,
-        np.mean(np.mean(jitter_neu_seq[:, label==0, :], axis=0), axis=0),
+        mean_exc_jitter,
         color=color_jitter[0],
-        marker='.',
-        markersize=5,
         label='excitory_jitter')
     axs[0].set_title(
         'perturbation average trace of {} excitory neurons'.format(
         np.sum(label==0)))
     
     # mean response of inhibitory.
+    mean_inh_fix = np.mean(
+        np.mean(fix_neu_seq[:, label==1, :], axis=0), axis=0)
+    mean_inh_jitter = np.mean(
+        np.mean(jitter_neu_seq[:, label==1, :], axis=0), axis=0)
+    scale = np.mean(mean_inh_fix) + 3*np.std(mean_inh_fix)
     axs[1].plot(
         fix_stim_time,
-        fix_stim_vol * 400,
+        fix_stim_vol * scale,
         color='grey',
         label='fix stim')
     axs[1].axvline(
@@ -426,17 +447,13 @@ def plot_prepost(
         linestyle='--')
     axs[1].plot(
         fix_neu_time,
-        np.mean(np.mean(fix_neu_seq[:, label==1, :], axis=0), axis=0),
+        mean_inh_fix,
         color=color_fix[1],
-        marker='.',
-        markersize=5,
         label='inhibitory_fix')
     axs[1].plot(
         jitter_neu_time,
-        np.mean(np.mean(jitter_neu_seq[:, label==1, :], axis=0), axis=0),
+        mean_inh_jitter,
         color=color_jitter[1],
-        marker='.',
-        markersize=5,
         label='inhibitory_jitter')
     axs[1].set_title(
         'perturbation average trace of {} inhibitory neurons'.format(
@@ -448,9 +465,10 @@ def plot_prepost(
         fix_sem = sem(fix_neu_seq[:,i,:], axis=0)
         jitter_mean = np.mean(jitter_neu_seq[:,i,:], axis=0)
         jitter_sem = sem(jitter_neu_seq[:,i,:], axis=0)
+        scale = np.mean(fix_mean) + 3*np.std(fix_mean)
         axs[i+2].plot(
             fix_stim_time,
-            fix_stim_vol * 400,
+            fix_stim_vol * scale,
             color='grey',
             label='fix stim')
         axs[i+2].axvline(
@@ -463,8 +481,6 @@ def plot_prepost(
             fix_neu_time,
             fix_mean,
             color=color_fix[label[i]],
-            marker='.',
-            markersize=5,
             label=fluo_label[label[i]]+'_fix')
         axs[i+2].fill_between(
             fix_neu_time,
@@ -476,8 +492,6 @@ def plot_prepost(
             jitter_neu_time,
             jitter_mean,
             color=color_jitter[label[i]],
-            marker='.',
-            markersize=5,
             label=fluo_label[label[i]]+'_jitter')
         axs[i+2].fill_between(
             jitter_neu_time,
@@ -498,7 +512,7 @@ def plot_prepost(
         axs[i].set_xlabel('time since perturbation / ms')
         axs[i].set_ylabel('response')
         axs[i].set_xlim([np.min(fix_stim_time), np.max(fix_stim_time)])
-        axs[i].set_ylim([-10, 500])
+        axs[i].autoscale(axis='y')
         axs[i].legend(loc='upper left')
     fig.set_size_inches(16, num_subplots*2)
     fig.tight_layout()
@@ -518,7 +532,7 @@ def plot_fig5(
         ):
     try:
         [_, _, _, neural_trials] = RetrieveResults.run(ops)
-        if len(neural_trials['trial_type']) <= 5:
+        if len(neural_trials['trial_type']) <= 25:
             plot_omi(ops)
         else:
             plot_prepost(ops)

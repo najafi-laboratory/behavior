@@ -6,8 +6,24 @@ import numpy as np
 
 
 # read saved ops.npy given a folder in ./results.
+'''
+for save_folder in [
+        'FN6_P_spont1_121623',
+        'FN6_P_spont2_121623',
+        'FN8_P_pp_020824',
+        'FN8_P_spont1_121823',
+        'FN8_P_spont2_121823',
+        'FN9_P_pp_020824',
+        'FN9_P_pp_021424',
+        'FN12_C_omi_021324',
+        'FN13_P_omi_021324',
+        'FN13_P_pp_020724',
+        'FN13_P_pp_021424']:
 
-# ops = read_ops('FN8_P_PrePost_020224')
+    plot_fig5(ops)
+
+'''
+# ops = read_ops('FN12_C_omi_021324')
 def read_ops(save_folder):
     ops = np.load(
         os.path.join('./results', save_folder, 'ops.npy'),

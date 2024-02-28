@@ -3,6 +3,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import sem
 
 from modules import RetrieveResults
 
@@ -34,37 +35,34 @@ def get_stim_response(
                     neu_t + r_frames < fluo.shape[1]):
                     f = fluo[neu_idx,neu_t - l_frames:neu_t + r_frames]
                     f = f.reshape(1, -1)
-                    f = f / spikes[neu_idx,neu_t]
+                    f = f / (spikes[neu_idx,neu_t]+1e-5)
                     neu_tri_fluo.append(f)
-                else:
-                    f = np.empty((1, l_frames+r_frames))
-                    neu_tri_fluo.append(f)
-            neu_tri_fluo = np.concatenate(neu_tri_fluo, axis=0)
+            if len(neu_tri_fluo) > 0:
+                neu_tri_fluo = np.concatenate(neu_tri_fluo, axis=0)
+            else:
+                neu_tri_fluo = np.zeros((1, l_frames+r_frames))
         else:
             neu_tri_fluo = np.zeros((1, l_frames+r_frames))
         all_tri_fluo.append(neu_tri_fluo)
     return all_tri_fluo
-    
 
 
 # main function for plot
 
 def plot_fig6(
         ops,
-        l_frames = 20,
-        r_frames = 40,
+        l_frames = 10,
+        r_frames = 30,
         ):
 
     try:
         print('plotting fig6 spike trigger fluorescence average')
 
-        [_, raw_traces, _, _] = RetrieveResults.run(ops)
+        [mask, raw_traces, _, _] = RetrieveResults.run(ops)
         fluo = raw_traces['fluo_ch'+str(ops['functional_chan'])]
         spikes = raw_traces['spikes_ch'+str(ops['functional_chan'])]
-        
-        # threshold spikes.
-        spikes[norm01(spikes) < ops['spike_thres']] = 0
-        
+        label = mask['label']
+
         # get response.
         all_tri_fluo = get_stim_response(
             fluo, spikes, l_frames, r_frames)
@@ -76,22 +74,33 @@ def plot_fig6(
         plt.subplots_adjust(hspace=0.2)
         
         # individual neuron response.
+        color = ['seagreen', 'coral']
         for i in range(fluo.shape[0]):
             # individual triggered traces.
             if np.sum(all_tri_fluo[i]) != 0:
+                '''
                 for j in range(all_tri_fluo[i].shape[0]):
                     axs[i+1].plot(
                         frame,
                         all_tri_fluo[i][j,:],
                         color='grey',
                         label='triggered trace',
-                        alpha=0.1)
+                        alpha=0.01)
+                '''
+                fluo_mean = np.mean(all_tri_fluo[i], axis=0)
+                fluo_sem = sem(all_tri_fluo[i], axis=0)
                 # aveerage for one neuron.
                 axs[i+1].plot(
                     frame,
-                    np.mean(all_tri_fluo[i], axis=0),
-                    color='dodgerblue',
+                    fluo_mean,
+                    color=color[label[i]],
                     label='mean trace')
+                axs[i+1].fill_between(
+                    frame,
+                    fluo_mean - fluo_sem,
+                    fluo_mean + fluo_sem,
+                    color=color[label[i]],
+                    alpha=0.2)
                 axs[i+1].set_title(
                     'mean spike trigger average of neuron # '+ str(i).zfill(3))
 
@@ -99,18 +108,19 @@ def plot_fig6(
         tri_fluo = np.concatenate(all_tri_fluo, axis=0)
         tri_fluo = tri_fluo[
             np.where(np.sum(tri_fluo, axis=1)!=0)[0], :]
-        for i in range(tri_fluo.shape[0]):
-            axs[0].plot(
-                frame,
-                tri_fluo[i,:],
-                color='grey',
-                label='triggered trace',
-                alpha=0.01)
+        fluo_mean = np.mean(tri_fluo, axis=0)
+        fluo_sem = sem(tri_fluo, axis=0)
         axs[0].plot(
             frame,
-            np.mean(tri_fluo, axis=0),
+            fluo_mean,
             color='coral',
             label='mean trace')
+        axs[0].fill_between(
+            frame,
+            fluo_mean - fluo_sem,
+            fluo_mean + fluo_sem,
+            color='coral',
+            alpha=0.2)
         axs[0].set_title(
             'mean spike trigger average across {} neurons'.format(
                 fluo.shape[0]))
@@ -123,7 +133,7 @@ def plot_fig6(
             axs[i].spines['top'].set_visible(False)
             axs[i].set_xlabel('frame')
             axs[i].set_ylabel('response')
-        fig.set_size_inches(6, num_subplots*4)
+        fig.set_size_inches(6, num_subplots*3)
         fig.tight_layout()
 
         # save figure
