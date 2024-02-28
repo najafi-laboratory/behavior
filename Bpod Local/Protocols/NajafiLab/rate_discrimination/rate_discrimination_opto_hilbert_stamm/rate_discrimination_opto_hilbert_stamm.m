@@ -327,7 +327,7 @@ try
         end
 
         % disp(OptoTrialTypes)
-        disp(BpodSystem.Data.OptoTag)
+        % disp(BpodSystem.Data.OptoTag)
 
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
         
