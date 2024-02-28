@@ -326,8 +326,10 @@ function [FullAudio] = GenAudioStim( ...
     end
     if (S.GUI.EnablePassive==0)
         GoCueStartIdx = ceil((VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur) * SF);
-        AudioSeq = [AudioSeq, zeros(1, length(GoCueSound))];
-        AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) = AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) + GoCueSound;
+        % AudioSeq = [AudioSeq, zeros(1, length(GoCueSound))];
+        % beneficial interrupt mutation - +1
+        AudioSeq = [AudioSeq, zeros(1, length(GoCueSound)+1)];               
+        AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) = AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) + GoCueSound;      
     end
     FullAudio = AudioSeq;
 end

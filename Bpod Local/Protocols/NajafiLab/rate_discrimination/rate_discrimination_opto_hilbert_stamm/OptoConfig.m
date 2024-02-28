@@ -11,7 +11,7 @@ classdef OptoConfig
             end
         end
 
-        function obj = SetEnableOpto(obj, EnableOpto)
+        function obj = set.EnableOpto(obj, EnableOpto)
             obj.EnableOpto = EnableOpto;
         end
 
@@ -24,20 +24,13 @@ classdef OptoConfig
         end
 
         function [OptoTrialTypes] = UpdateOptoTrials(obj, BpodSystem, S, OptoTrialTypes, currentTrial, forceUpdate)
-            % ManualDeactivated = 0;
             updateOptoTrialTypeSequence = 0;
-            % BpodSystem.Data.PreviousEnManOptoTrialType
-            % BpodSystem.Data.PreviousOptoTrialTypeSeq
 
             if forceUpdate == 1
                 updateOptoTrialTypeSequence = 1;
             end
         
-            switch S.GUI.SessionType
-                case 1
-                    obj.SetEnableOpto(1);
-                case 2
-                    obj.SetEnableOpto(0);
+            if S.GUI.SessionType == 2
                     S.GUI.OptoTrialTypeSeq = 1;
                     S.GUI.OnFraction = 0;
                     updateOptoTrialTypeSequence = 1;
@@ -47,12 +40,6 @@ classdef OptoConfig
                 updateOptoTrialTypeSequence = 1;           
             end
             BpodSystem.Data.PreviousSessionType = S.GUI.SessionType;
-            % if (BpodSystem.Data.PreviousEnManOptoTrialType ~= S.GUI.EnManOptoTrialType)
-            %     if (BpodSystem.Data.PreviousEnManOptoTrialType == 1)
-            %         ManualDeactivated = 1;
-            %     end
-            %     BpodSystem.Data.PreviousEnManOptoTrialType = S.GUI.EnManOptoTrialType;
-            % end
 
             if BpodSystem.Data.PreviousOptoTrialTypeSeq ~= S.GUI.OptoTrialTypeSeq
                 updateOptoTrialTypeSequence = 1;
@@ -69,13 +56,6 @@ classdef OptoConfig
                 BpodSystem.Data.PreviousOnFraction = S.GUI.OnFraction;
             end
 
-            % if S.GUI.EnManOptoTrialType
-            %     switch S.GUI.ManOptoTrialType
-            %         case 1
-            %             OptoTrialTypes(currentTrial:end) = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];
-            %         case 2
-            %             OptoTrialTypes(currentTrial:end) = [repmat(2, 1, S.GUI.MaxTrials - currentTrial + 1)];
-            %     end
             if updateOptoTrialTypeSequence
                 numTrialsAddedToSequence = 0;
                 OptoTrialTypesToAdd = [];
@@ -116,8 +96,6 @@ classdef OptoConfig
             end
         end
 
-
-
         function [AudStimOpto] = GetAudStimOpto(obj, OptoTrialType)
             switch obj.EnableOpto
                 case 0
@@ -130,6 +108,7 @@ classdef OptoConfig
                     end
             end
         end
+
         function [sma] = InsertGlobalTimer(obj, sma, VisStim)
             if obj.EnableOpto
                 sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', VisStim.VisStimDuration, 'OnsetDelay', 0,...

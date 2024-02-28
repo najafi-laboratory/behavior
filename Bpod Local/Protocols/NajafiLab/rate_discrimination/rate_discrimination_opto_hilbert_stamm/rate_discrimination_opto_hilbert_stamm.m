@@ -6,7 +6,7 @@ try
     EnableMovingSpouts = 0;
     EnablePassive      = 0;
     PassiveSessMode    = 2; %1: omission; 2:ISI
-    MonitorID          = 1;
+    MonitorID          = 2;
     EnableOpto         = 1;
     
     %% Import scripts
@@ -54,6 +54,8 @@ try
     % init bpod session data vars
     
     BpodSystem.Data.TrialTypes = [];
+    BpodSystem.Data.OptoTrialTypes = [];    % store opto trial types as 1-off, 2-on (could later generate as arrays of 0 & 1)
+    BpodSystem.Data.OptoTag = [];    % store opto trial types as 1-off, 2-on
     BpodSystem.Data.ProcessedSessionData = {};
     
     % initialize anti-bias variables
@@ -108,7 +110,7 @@ try
 
     %% test dynamic opto trial updater
     
-    DoOptoTrialConfigTester = 1;
+    DoOptoTrialConfigTester = 0;
 
     if DoOptoTrialConfigTester
         inx = 0;
@@ -165,6 +167,10 @@ try
             currentTrial = currentTrial + 1;
             BpodSystem.Data.nTrials = currentTrial-1;
         end
+        % BpodSystem.Data.nTrials = 0;
+        % currentTrial = 1;
+        % BpodSystem.Data.RawEvents = [];
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
     end
     
     %% Define stimuli and send to analog module
@@ -296,10 +302,35 @@ try
     
         BpodSystem.Data.TrialVars.Trial{currentTrial}.PostPertISI = PostPertISI + S.GUI.GratingDur_s;
     
+        %% update opto trial types and outcome plot
         % update for opto interop
+        [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
+        if S.GUI.SessionType == 2
+            m_Opto.EnableOpto = 0;
+            OptoStateExpInfo = 'Control';
+            OptoTrialExpInfo = 'NA';
+        else
+            OptoStateExpInfo = 'Opto Enabled';
+            switch OptoTrialTypes(currentTrial)
+                case 1                    
+                    OptoTrialExpInfo = 'Opto Off';
+                case 2                    
+                    OptoTrialExpInfo = 'Opto On';
+            end
+        end
+
+        switch OptoTrialTypes(currentTrial)
+            case 1
+                BpodSystem.Data.OptoTag(currentTrial) = 0;
+            case 2
+                BpodSystem.Data.OptoTag(currentTrial) = 1;
+        end
+
+        % disp(OptoTrialTypes)
+        disp(BpodSystem.Data.OptoTag)
+
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
-    
-    
+        
         %% construct preperturb vis stim videos and audio stim base for grating and gray if duration parameters changed
         
         % config audio stimulus
@@ -460,6 +491,8 @@ try
         ExperimenterTrialInfo.PostISIinfo = VisStim.PostISIinfo;
         ExperimenterTrialInfo.Jitter = JitterFlag;
         ExperimenterTrialInfo.Omission = VisStim.OmiFlag;
+        ExperimenterTrialInfo.OptoState = OptoStateExpInfo;
+        ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;
     
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
         disp(strExperimenterTrialInfo);
@@ -477,6 +510,7 @@ try
             BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents);
             BpodSystem.Data.TrialSettings(currentTrial) = S;
             BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
+            BpodSystem.Data.OptoTrialTypes(currentTrial) = OptoTrialTypes(currentTrial);            
             m_PostProcess.SaveProcessedSessionData(BpodSystem, VisStim, GrayPerturbISI);
             m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 1);
             StateTiming();
