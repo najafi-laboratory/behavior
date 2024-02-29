@@ -1,9 +1,9 @@
 classdef AVstimConfig
-
-   methods
+    methods
 
 
 %% Video utils
+
 
 % generate grey image
 function [VideoGrayFixed] = GenGreyImg( ...
@@ -324,12 +324,11 @@ function [FullAudio] = GenAudioStim( ...
             AudioSeq = [AudioSeq NoSoundPrePert AudioStimSound];
         end
     end
+    AudioSeq = [AudioSeq NoSoundPrePert];
     if (S.GUI.EnablePassive==0)
         GoCueStartIdx = ceil((VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur) * SF);
-        % AudioSeq = [AudioSeq, zeros(1, length(GoCueSound))];
-        % beneficial interrupt mutation - +1
-        AudioSeq = [AudioSeq, zeros(1, length(GoCueSound)+1)];               
-        AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) = AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) + GoCueSound;      
+        AudioSeq = [AudioSeq, zeros(1, length(GoCueSound))];
+        AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) = AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) + GoCueSound;
     end
     FullAudio = AudioSeq;
 end
@@ -375,7 +374,7 @@ end
 
 
 function [StimAct] = GetStimAct( ...
-        obj, S)
+        obj, S, EnableOpto)
     if S.GUI.VisStimEnable && S.GUI.AudioStimEnable
         StimAct = {'BNC2', 0};
     elseif S.GUI.VisStimEnable
@@ -385,12 +384,11 @@ function [StimAct] = GetStimAct( ...
     else
         StimAct = {'HiFi1', ['P' 1]};
     end
+
+    if EnableOpto
+        StimAct = [StimAct, {'GlobalTimerCancel', 1}];
+    end
 end
-
-
-
-
-
 
     end
 end        

@@ -1,6 +1,5 @@
 function StatePassive(sma, S, SCOA, VisStimDuration, DURA)
 
-    % sma = NewStateMatrix();
     sma = SetCondition(sma, 3, 'Port4', 1);
     sma = SetCondition(sma, 4, 'Port4', 0);
 

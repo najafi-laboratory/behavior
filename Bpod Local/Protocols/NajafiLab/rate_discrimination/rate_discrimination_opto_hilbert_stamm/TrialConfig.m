@@ -5,8 +5,9 @@ classdef TrialConfig
 %% trial generation
 
 function [TrialTypes] = GenTrials(obj, S)
-    TrialTypes = ceil(rand(1, S.GUI.MaxTrials)*2);    
+    TrialTypes = ceil(rand(1, 1106)*2); 
 end
+
 
 function [GrayPerturbISI] = SetPostPertISI( ...
         obj, S, TrialTypes, currentTrial, PostPertISI)
@@ -306,24 +307,22 @@ function [TrialSide] = SampleSide( ...
 end
 
 
-% reduce consecutive trials in warmup
+% reduce consecutive trials
 function [TrialTypes] = AdjustWarmupTrials( ...
         obj, S, TrialTypes)       
-    MaxSameConsecutiveTrials = 4;
-    for i = MaxSameConsecutiveTrials:S.GUI.MaxTrials
-        if (i > MaxSameConsecutiveTrials)
-            PrevMaxTrials = TrialTypes(i-3:i-1);
-            if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
-                NewSameAsPrevMax = true;
-                while NewSameAsPrevMax
-                    DrawTrialType = unidrnd(2,1,1);       
-                    if ~all(PrevMaxTrials == DrawTrialType)
-                        NewSameAsPrevMax = false;
-                    end
+    MaxSameConsecutiveTrials = 7;
+    for i = MaxSameConsecutiveTrials+1:S.GUI.MaxTrials
+        PrevMaxTrials = TrialTypes(i-MaxSameConsecutiveTrials:i-1);
+        if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
+            NewSameAsPrevMax = true;
+            while NewSameAsPrevMax
+                DrawTrialType = unidrnd(2,1,1);
+                if ~all(PrevMaxTrials == DrawTrialType)
+                    NewSameAsPrevMax = false;
                 end
-                TrialTypes(i) = DrawTrialType;
             end
-        end   
+            TrialTypes(i) = DrawTrialType;
+        end
     end
 end
 

@@ -1,4 +1,3 @@
-
 classdef InitGUI
     methods
 
@@ -8,22 +7,14 @@ function [S] = SetParams(obj, BpodSystem)
     if isempty(fieldnames(S))
 
         % Optogentic params
-        % S.GUI.EnableManualTrialType = 0;
-        % S.GUIMeta.EnableManualTrialType.Style = 'checkbox';
         S.GUI.SessionType = 1;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
-        % S.GUI.EnManOptoTrialType = 0;
-        % S.GUIMeta.EnManOptoTrialType.Style = 'checkbox';        
-        % S.GUI.ManOptoTrialType = 1;
-        % S.GUIMeta.ManOptoTrialType.Style = 'popupmenu';
-        % S.GUIMeta.ManOptoTrialType.String = {'Opto Off', 'Opto On'};
         S.GUI.OptoTrialTypeSeq = 1;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
         S.GUI.OnFraction = 0.5;
-        S.GUI.NumOptoTrialsPerBlock = 50;  
-        % S.GUIPanels.Opto = {'EnManOptoTrialType', 'ManOptoTrialType', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
+        S.GUI.NumOptoTrialsPerBlock = 50;          
         S.GUIPanels.Opto = {'SessionType', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
         % Servos - spouts
@@ -35,13 +26,13 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
         % ITI params
-        S.GUI.SetManualITI = 1;
+        S.GUI.SetManualITI = 0;
         S.GUIMeta.SetManualITI.Style = 'checkbox';
         S.GUI.ManualITI = 0;
         S.GUI.ITIMin = 1;
         S.GUI.ITIMax = 5;
         S.GUI.ITIMean = 3;
-        S.GUI.ActTimeOutPunish = 0;
+        S.GUI.ActTimeOutPunish = 1;
         S.GUIMeta.ActTimeOutPunish.Style = 'checkbox';
         S.GUI.ManuallTimeOutPunish = 0;
         S.GUIMeta.ManuallTimeOutPunish.Style = 'checkbox';
@@ -52,10 +43,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NoInit = 0;
         S.GUIMeta.NoInit.Style = 'checkbox';
         S.GUI.MaxTrials = 1000;
-        S.GUI.TrainingLevel = 5;
+        S.GUI.TrainingLevel = 2;
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
         S.GUIMeta.TrainingLevel.String = {'Passive', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
-        S.GUI.NumNaiveWarmup = 0;
+        S.GUI.NumNaiveWarmup = 15;
         S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup'};
 
         % difficulty params
@@ -181,11 +172,11 @@ function [S] = UpdatePassive(obj, S, EnablePassive, PassiveSessMode)
         switch PassiveSessMode
             case 1 % omisison
                 S.GUI.SetManualITI = 1;
-                S.GUI.ManualITI = S.GUI.ISIOrig_s * 0.75; % trying to approximate 500ms gray, so mouse doesn't notice a change in gray screen duration from trial to trial; but this is approximte!!!
+                S.GUI.ManualITI = S.GUI.ISIOrig_s * 0.7; % trying to approximate 500ms gray, so mouse doesn't notice a change in gray screen duration from trial to trial; but this is approximte!!!
                 S.GUI.TrialPerBlock = 8; % xx trials, each including "PrePertFlashRep" reps of grating-gray
                 S.GUI.PrePertFlashRep = 150; % reps of grating-gray
                 S.GUI.PostPertDur = 0;
-                S.GUI.RandomISIWid = 0.4;
+                S.GUI.RandomISIWid = 0.3;
                 S.GUI.ActOmi = 1;
                 S.GUI.OmiProb = 0.20;
                 S.GUI.OmiMinInterval = 3; % min gratings before an omission is allowed
