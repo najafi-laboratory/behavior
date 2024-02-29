@@ -6,17 +6,6 @@ function [S] = SetParams(obj, BpodSystem)
     S = BpodSystem.ProtocolSettings;
     if isempty(fieldnames(S))
 
-        % Optogentic params
-        S.GUI.SessionType = 1;
-        S.GUIMeta.SessionType.Style = 'popupmenu';
-        S.GUIMeta.SessionType.String = {'Opto', 'Control'};
-        S.GUI.OptoTrialTypeSeq = 1;
-        S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
-        S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
-        S.GUI.OnFraction = 0.5;
-        S.GUI.NumOptoTrialsPerBlock = 50;          
-        S.GUIPanels.Opto = {'SessionType', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
-
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
         S.GUIMeta.EnableMovingSpouts.Style = 'checkbox';
@@ -36,18 +25,26 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ActTimeOutPunish.Style = 'checkbox';
         S.GUI.ManuallTimeOutPunish = 0;
         S.GUIMeta.ManuallTimeOutPunish.Style = 'checkbox';
-        S.GUI.TimeOutPunish = 0;
-        S.GUIPanels.ITI_Dist = {'SetManualITI', 'ManualITI', 'ITIMin', 'ITIMax', 'ITIMean', 'ActTimeOutPunish', 'ManuallTimeOutPunish', 'TimeOutPunish'};
+        S.GUI.TimeOutPunishMin = 1;
+        S.GUI.TimeOutPunishMax = 5;
+        S.GUI.TimeOutPunishMean = 3;
+        S.GUIPanels.ITI_Dist = {'SetManualITI', 'ManualITI', 'ITIMin', 'ITIMax', 'ITIMean', 'ActTimeOutPunish', 'ManuallTimeOutPunish', 'TimeOutPunishMin', 'TimeOutPunishMax', 'TimeOutPunishMean'};
 
         % training level params
         S.GUI.NoInit = 0;
         S.GUIMeta.NoInit.Style = 'checkbox';
         S.GUI.MaxTrials = 1000;
-        S.GUI.TrainingLevel = 2;
+        S.GUI.TrainingLevel = 6;
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
-        S.GUIMeta.TrainingLevel.String = {'Passive', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
+        S.GUIMeta.TrainingLevel.String = {'Passive', 'Habituation', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
+        S.GUI.NumHabituationWarmup = 5;
         S.GUI.NumNaiveWarmup = 15;
-        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup'};
+        S.GUI.ChangeMindDur = 2;
+        S.GUI.ResetWaitDur = 1;
+        S.GUIMeta.ResetWaitDur.Style = 'checkbox';
+        S.GUI.WaitDurOrig_s = 0.0;
+        S.GUI.WaitDurStep_s = 0.01;
+        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumHabituationWarmup', 'NumNaiveWarmup', 'ChangeMindDur', 'ResetWaitDur', 'WaitDurOrig_s', 'WaitDurStep_s'};
 
         % difficulty params
         S.GUI.PercentEasy = 100;
@@ -57,44 +54,38 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Difficulty = {'PercentEasy', 'PercentMediumEasy', 'PercentMediumHard', 'PercentHard'};
 
         % audio stim params
-        S.GUI.InitCueVolume_percent = 0.35;
+        S.GUI.InitCueVolume_percent = 0.5;
         S.GUI.InitCueDuration_s = 0.05;
         S.GUI.InitWindowTimeout_s = 5;
         S.GUI.InitCueFreq_Hz = 4900;
         S.GUI.GoCueVolume_percent = 100;
         S.GUI.GoCueDuration_s = 0.0;
-        S.GUI.GoCueFreq_Hz = 14700;
+        S.GUI.GoCueFreq_Hz = 11025;
         S.GUI.AudioStimEnable = 1;
         S.GUIMeta.AudioStimEnable.Style = 'checkbox';
-        S.GUI.AudioStimVolume_percent = 0.9;
+        S.GUI.AudioStimVolume_percent = 1;
         S.GUI.AudioStimFreq_Hz = 11025;
-        S.GUI.NoiseVolume_percent = 0.065;
-        S.GUI.NoiseDuration_s = 1;
-        S.GUI.ActNoise = 1;
-        S.GUIMeta.ActNoise.Style = 'checkbox';
-        S.GUIPanels.AudioStim = {'InitCueVolume_percent', 'InitCueDuration_s', 'InitWindowTimeout_s', 'InitCueFreq_Hz', 'GoCueVolume_percent', 'GoCueDuration_s', 'GoCueFreq_Hz', 'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz', 'NoiseVolume_percent', 'NoiseDuration_s', 'ActNoise'};
+        S.GUIPanels.AudioStim = {'InitCueVolume_percent', 'InitCueDuration_s', 'InitWindowTimeout_s', 'InitCueFreq_Hz', 'GoCueVolume_percent', 'GoCueDuration_s', 'GoCueFreq_Hz', 'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz'};
 
         % vis stim params
         S.GUI.VisStimEnable = 1;
         S.GUIMeta.VisStimEnable.Style = 'checkbox';
-        S.GUI.RandomOrient = 0;
-        S.GUIMeta.RandomOrient.Style = 'checkbox';
         S.GUI.GratingDur_s = 0.1;
         S.GUI.ISIOrig_s = 0.5;
         S.GUI.PrePertFlashRep = 2;
         S.GUI.PostPertDur = 3;
         S.GUI.ExtraStim = 1;
         S.GUIMeta.ExtraStim.Style = 'popupmenu';
-        S.GUIMeta.ExtraStim.String = {'Default', 'Manual', 'Zero'};
+        S.GUIMeta.ExtraStim.String = {'Default', 'Activated', 'Deactivated'};
         S.GUI.PostPertDurExtra = 3;
-        S.GUI.PostRewardDelay_s = 2;
+        S.GUI.PostRewardDelay_s = 5;
         S.GUI.MinISIPerturb_ms = 100;
         S.GUI.PreVisStimDelay_s = 0;
         S.GUI.PreGoCueDelay_s = 0;
         S.GUI.EasyMax = 1;
         S.GUIMeta.EasyMax.Style = 'popupmenu';
         S.GUIMeta.EasyMax.String = {'Default', 'Activated', 'Deactivated'};
-        S.GUIPanels.VisStim = {'VisStimEnable', 'RandomOrient', 'PostPertDur', 'ExtraStim', 'PostPertDurExtra', 'GratingDur_s', 'ISIOrig_s', 'PrePertFlashRep', 'PostRewardDelay_s', 'MinISIPerturb_ms', 'PreVisStimDelay_s', 'PreGoCueDelay_s', 'EasyMax'}; 
+        S.GUIPanels.VisStim = {'VisStimEnable', 'PostPertDur', 'ExtraStim', 'PostPertDurExtra', 'GratingDur_s', 'ISIOrig_s', 'PrePertFlashRep', 'PostRewardDelay_s', 'MinISIPerturb_ms', 'PreVisStimDelay_s', 'PreGoCueDelay_s', 'EasyMax'}; 
 
         % contingency and bias params
         S.GUI.ShortISIFraction = 0.5;
@@ -103,9 +94,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.RepeatedProb = 1.0;
         S.GUI.AdjustValve = 1;
         S.GUIMeta.AdjustValve.Style = 'checkbox';
-        S.GUI.NumMonitorTrials = 5;
-        S.GUI.BiasIndexThres = 0.5;
-        S.GUI.AdjustValvePercent = 0.25;
+        S.GUI.NumMonitorTrials = 2;
+        S.GUI.BiasIndexThres = 0.8;
+        S.GUI.AdjustValvePercent = 0.12;
         S.GUI.AdjustFraction = 0.65;
         S.GUI.FarMoveSpout = 1;
         S.GUIMeta.FarMoveSpout.Style = 'checkbox';
@@ -113,16 +104,17 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFraction', 'FarMoveSpout', 'FarMoveSpoutPos'};
 
         % choice params
-        S.GUI.ManualChoiceWindow = 0;
-        S.GUIMeta.ManualChoiceWindow.Style = 'checkbox';
         S.GUI.ChoiceWindow_s = 5;
-        S.GUI.ManuallChangeMindDur = 0;
-        S.GUIMeta.ManuallChangeMindDur.Style = 'checkbox';
-        S.GUI.ChangeMindDur = 2;
-        S.GUI.CenterValveAmount_uL = 0;
+        S.GUI.ConfirmLickInterval_s = 0.2;  
+        S.GUI.ChoiceConfirmWindow_s = 5;
+        S.GUI.CenterValveAmount_uL = 1;
         S.GUI.LeftValveAmount_uL = 5;
         S.GUI.RightValveAmount_uL = 5;
-        S.GUIPanels.Choice = {'ManualChoiceWindow', 'ChoiceWindow_s', 'ManuallChangeMindDur', 'ChangeMindDur', 'CenterValveAmount_uL', 'LeftValveAmount_uL', 'RightValveAmount_uL'};
+        S.GUI.IncorrectSoundVolume_percent = 0.15;
+        S.GUI.PunishSoundDuration_s = 1;
+        S.GUI.IncorrectSound = 1;
+        S.GUIMeta.IncorrectSound.Style = 'checkbox';
+        S.GUIPanels.Choice = {'CenterValveAmount_uL', 'LeftValveAmount_uL', 'RightValveAmount_uL', 'IncorrectSoundVolume_percent', 'PunishSoundDuration_s', 'IncorrectSound', 'ChoiceWindow_s', 'ConfirmLickInterval_s', 'ChoiceConfirmWindow_s'};
 
         % passive
         S.GUI.EnablePassive = 0;
@@ -141,10 +133,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ActOmi = 0;
         S.GUIMeta.ActOmi.Style = 'checkbox';
         S.GUI.OmiProb = 0.25;
-        S.GUI.OmiAvoidFrame = 3;
+        S.GUI.OmiAvoidFrame = 5;
         S.GUI.OmiMinInterval = 3;
-        S.GUI.SpontSilenceTime = 300;
-        S.GUIPanels.Passive = {'EnablePassive', 'SessionMode', 'TrialPerBlock', 'BlockRep', 'ActRandomISI', 'RandomISIMin', 'RandomISIMax', 'RandomISIWid', 'RandomISIStd', 'ActOmi', 'OmiProb', 'OmiAvoidFrame', 'OmiMinInterval', 'SpontSilenceTime'};
+        S.GUIPanels.Passive = {'EnablePassive', 'SessionMode', 'TrialPerBlock', 'BlockRep', 'ActRandomISI', 'RandomISIMin', 'RandomISIMax', 'RandomISIWid', 'RandomISIStd', 'ActOmi', 'OmiProb', 'OmiAvoidFrame', 'OmiMinInterval'};
 
     end
 end
@@ -164,36 +155,31 @@ function [S] = UpdatePassive(obj, S, EnablePassive, PassiveSessMode)
     S.GUI.SessionMode = PassiveSessMode;
     if (EnablePassive == 1)
         S.GUI.TrainingLevel = 1;
-        S.GUI.RandomOrient = 1;
         S.GUI.PostRewardDelay_s = 0;
+        S.GUI.NumHabituationWarmup = 0;
         S.GUI.NumNaiveWarmup = 0;
         S.GUI.ActRandomISI = 1;
-        S.GUI.AudioStimVolume_percent = 1;
         switch PassiveSessMode
-            case 1 % omisison
+            case 1
                 S.GUI.SetManualITI = 1;
-                S.GUI.ManualITI = S.GUI.ISIOrig_s * 0.7; % trying to approximate 500ms gray, so mouse doesn't notice a change in gray screen duration from trial to trial; but this is approximte!!!
-                S.GUI.TrialPerBlock = 8; % xx trials, each including "PrePertFlashRep" reps of grating-gray
-                S.GUI.PrePertFlashRep = 150; % reps of grating-gray
+                S.GUI.ManualITI = 5;
+                S.GUI.TrialPerBlock = 1;
+                S.GUI.PrePertFlashRep = 1200;
                 S.GUI.PostPertDur = 0;
-                S.GUI.RandomISIWid = 0.3;
+                S.GUI.RandomISIWid = 0.4;
                 S.GUI.ActOmi = 1;
                 S.GUI.OmiProb = 0.20;
-                S.GUI.OmiMinInterval = 3; % min gratings before an omission is allowed
-                S.GUI.MaxTrials = 4*S.GUI.TrialPerBlock;  % number of blocks x number of trials per block
-                S.GUI.SpontSilenceTime = 300; % no-stim interval at the beginning, end, and in between blocks
-
-            case 2 % pre-post 
+                S.GUI.OmiMinInterval = 3;
+                S.GUI.MaxTrials = 4;
+            case 2
                 S.GUI.SetManualITI = 1;
                 S.GUI.ManualITI = 3;
                 S.GUI.TrialPerBlock = 60;
-                S.GUI.PrePertFlashRep = 10;
+                S.GUI.PrePertFlashRep = 6;
                 S.GUI.PostPertDur = 6;
-                S.GUI.RandomISIMax = 1.15;
                 S.GUI.RandomISIWid = 0.25;
                 S.GUI.ActOmi = 0;
                 S.GUI.MaxTrials = 4*S.GUI.TrialPerBlock;
-                S.GUI.SpontSilenceTime = 300;
         end
     end
 end

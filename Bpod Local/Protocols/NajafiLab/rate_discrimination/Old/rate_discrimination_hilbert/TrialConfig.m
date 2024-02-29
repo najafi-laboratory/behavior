@@ -307,22 +307,24 @@ function [TrialSide] = SampleSide( ...
 end
 
 
-% reduce consecutive trials
+% reduce consecutive trials in warmup
 function [TrialTypes] = AdjustWarmupTrials( ...
         obj, S, TrialTypes)       
-    MaxSameConsecutiveTrials = 7;
-    for i = MaxSameConsecutiveTrials+1:S.GUI.MaxTrials
-        PrevMaxTrials = TrialTypes(i-MaxSameConsecutiveTrials:i-1);
-        if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
-            NewSameAsPrevMax = true;
-            while NewSameAsPrevMax
-                DrawTrialType = unidrnd(2,1,1);
-                if ~all(PrevMaxTrials == DrawTrialType)
-                    NewSameAsPrevMax = false;
+    MaxSameConsecutiveTrials = 4;
+    for i = MaxSameConsecutiveTrials:S.GUI.MaxTrials
+        if (i > MaxSameConsecutiveTrials)
+            PrevMaxTrials = TrialTypes(i-3:i-1);
+            if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
+                NewSameAsPrevMax = true;
+                while NewSameAsPrevMax
+                    DrawTrialType = unidrnd(2,1,1);       
+                    if ~all(PrevMaxTrials == DrawTrialType)
+                        NewSameAsPrevMax = false;
+                    end
                 end
+                TrialTypes(i) = DrawTrialType;
             end
-            TrialTypes(i) = DrawTrialType;
-        end
+        end   
     end
 end
 

@@ -1,4 +1,4 @@
-function rate_discrimination_opto_hilbert_stamm
+function rate_discrimination_opto_V1
 try
     global BpodSystem
     global M
@@ -240,7 +240,7 @@ try
             OptoStateExpInfo = 'Control';
             OptoTrialExpInfo = 'NA';
         else
-            OptoStateExpInfo = 'Opto Enabled';
+            OptoStateExpInfo = 'Opto';
             switch OptoTrialTypes(currentTrial)
                 case 1                    
                     OptoTrialExpInfo = 'Opto Off';
@@ -398,7 +398,7 @@ try
         ExperimenterTrialInfo.PostISIinfo = VisStim.PostISIinfo;
         ExperimenterTrialInfo.Jitter = JitterFlag;
         ExperimenterTrialInfo.Omission = VisStim.OmiFlag;
-        ExperimenterTrialInfo.OptoState = OptoStateExpInfo;
+        ExperimenterTrialInfo.SessionType = OptoStateExpInfo;
         ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;        
     
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);

@@ -1,5 +1,6 @@
-function StateMidTrain2(sma, S, SCOA, TrialTarget, VisStimDuration, DURA)
+function StateMidTrain2(S, SCOA, TrialTarget, VisStimDuration, DURA)
 
+    sma = NewStateMatrix();
     sma = SetCondition(sma, 1, TrialTarget.CorrectPort, 1);
     sma = SetCondition(sma, 2, TrialTarget.IncorrectPort, 1);
     sma = SetCondition(sma, 3, 'Port4', 1);

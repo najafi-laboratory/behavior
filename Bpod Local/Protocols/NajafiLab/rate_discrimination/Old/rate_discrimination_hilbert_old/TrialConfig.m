@@ -27,9 +27,9 @@ function [JitterFlag] = GetJitterFlag( ...
         obj, S, TrialTypes, currentTrial, EnablePassive)
     if (EnablePassive == 1)
         switch TrialTypes(currentTrial)
-            case 1 % jitter
+            case 1
                 JitterFlag = 'True';
-            case 2 % fixed
+            case 2
                 JitterFlag = 'False';
         end
     else
@@ -89,14 +89,6 @@ function [GrayPerturbISI] = SetPostPertISIPassive( ...
             GrayPerturbISI = PostPertISI;
         case 2 % PrePost
             GrayPerturbISI = S.GUI.ISIOrig_s + PostPertISI;
-    end
-end
-
-
-function [] = PassiveBlockSleep( ...
-        obj, S, TrialTypes, currentTrial)
-    if TrialTypes(currentTrial) ~= TrialTypes(currentTrial+1)
-        pause(S.GUI.SpontSilenceTime)
     end
 end
 
@@ -307,22 +299,24 @@ function [TrialSide] = SampleSide( ...
 end
 
 
-% reduce consecutive trials
+% reduce consecutive trials in warmup
 function [TrialTypes] = AdjustWarmupTrials( ...
         obj, S, TrialTypes)       
-    MaxSameConsecutiveTrials = 7;
-    for i = MaxSameConsecutiveTrials+1:S.GUI.MaxTrials
-        PrevMaxTrials = TrialTypes(i-MaxSameConsecutiveTrials:i-1);
-        if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
-            NewSameAsPrevMax = true;
-            while NewSameAsPrevMax
-                DrawTrialType = unidrnd(2,1,1);
-                if ~all(PrevMaxTrials == DrawTrialType)
-                    NewSameAsPrevMax = false;
+    MaxSameConsecutiveTrials = 4;
+    for i = MaxSameConsecutiveTrials:(S.GUI.NumHabituationWarmup + S.GUI.NumNaiveWarmup)
+        if (i > MaxSameConsecutiveTrials)
+            PrevMaxTrials = TrialTypes(i-3:i-1);
+            if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
+                NewSameAsPrevMax = true;
+                while NewSameAsPrevMax
+                    DrawTrialType = unidrnd(2,1,1);       
+                    if ~all(PrevMaxTrials == DrawTrialType)
+                        NewSameAsPrevMax = false;
+                    end
                 end
+                TrialTypes(i) = DrawTrialType;
             end
-            TrialTypes(i) = DrawTrialType;
-        end
+        end   
     end
 end
 
@@ -357,7 +351,7 @@ function [PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
         obj, TrialDifficulty, PerturbInterval, PerturbDurFullRange);
     switch S.GUI.EasyMax
         case 1 % default
-            if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3)
+            if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3 || S.GUI.TrainingLevel == 4)
                 PostPertISI = PerturbDurMax/1000;
                 EasyMaxInfo = 'Activated';
             else
@@ -370,6 +364,28 @@ function [PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
         case 3 % manually deactivated
             PostPertISI = unifrnd(PerturbDurMin, PerturbDurMax, 1, 1)/1000;
             EasyMaxInfo = 'Deactivated';
+    end
+end
+
+
+%% wait duration
+
+
+function [wait_dur] = GetWaitDur( ...
+        obj, BpodSystem, S, wait_dur, currentTrial, VisStimDuration)
+    if currentTrial < (S.GUI.NumHabituationWarmup + S.GUI.NumNaiveWarmup + 1)
+        wait_dur = 0;
+    elseif currentTrial == (S.GUI.NumHabituationWarmup + S.GUI.NumNaiveWarmup + 1)
+        wait_dur = S.GUI.WaitDurOrig_s;
+    else
+        if (currentTrial>1 && ...
+            isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'CenterReward') && ...
+            ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.CenterReward(1)))
+            wait_dur = min(wait_dur + S.GUI.WaitDurStep_s, VisStimDuration);
+        end
+    end
+    if (S.GUI.ResetWaitDur == 1)
+        wait_dur = 0;
     end
 end
 
@@ -392,72 +408,42 @@ end
 
 function [TimeOutPunish] = GetTimeOutPunish( ...
         obj, S)
+    TimeOutPunish = 19961106;
     if (S.GUI.ActTimeOutPunish == 1)
         if (S.GUI.ManuallTimeOutPunish)
-            TimeOutPunish = S.GUI.TimeOutPunish;
+            TimeOutPunishMean = S.GUI.TimeOutPunishMean;
+            while TimeOutPunish < S.GUI.TimeOutPunishMin || TimeOutPunish > S.GUI.TimeOutPunishMax
+                TimeOutPunish = -log(rand) * TimeOutPunishMean;
+            end
         else
             switch S.GUI.TrainingLevel
                 case 1
                     TimeOutPunish = 0;
                 case 2
-                    TimeOutPunish = 1.5;
+                    TimeOutPunish = 0;
                 case 3
-                    TimeOutPunish = 2.0;
+                    TimeOutPunish = 0;
                 case 4
-                    TimeOutPunish = 2.5;
+                    TimeOutPunishMean = 1;
+                    while TimeOutPunish < S.GUI.TimeOutPunishMin || TimeOutPunish > S.GUI.TimeOutPunishMax
+                        TimeOutPunish = -log(rand) * TimeOutPunishMean;
+                    end
                 case 5
-                    TimeOutPunish = 3.0;
+                    TimeOutPunishMean = 2;
+                    while TimeOutPunish < S.GUI.TimeOutPunishMin || TimeOutPunish > S.GUI.TimeOutPunishMax
+                        TimeOutPunish = -log(rand) * TimeOutPunishMean;
+                    end
+                case 6
+                    TimeOutPunishMean = 3;
+                    while TimeOutPunish < S.GUI.TimeOutPunishMin || TimeOutPunish > S.GUI.TimeOutPunishMax
+                        TimeOutPunish = -log(rand) * TimeOutPunishMean;
+                    end
             end
         end
     else
         TimeOutPunish = 0;
     end
 end
-
-
-%% choice window
-
-function [ChoiceWindow] = GetChoiceWindow( ...
-        obj, S)
-    if (S.GUI.ManualChoiceWindow)
-        ChoiceWindow = S.GUI.ChoiceWindow_s;
-    else
-        switch S.GUI.TrainingLevel
-            case 1
-                ChoiceWindow = 0;
-            case 2
-                ChoiceWindow = 15;
-            case 3
-                ChoiceWindow = 10;
-            case 4
-                ChoiceWindow = 5;
-            case 5
-                ChoiceWindow = 5;
-        end
-    end
-end
-
-
-function [ChangeMindDur] = GetChangeMindDur( ...
-        obj, S)
-    if (S.GUI.ManuallChangeMindDur)
-        ChangeMindDur = S.GUI.ChangeMindDur;
-    else
-        switch S.GUI.TrainingLevel
-            case 1
-                ChangeMindDur = 0;
-            case 2
-                ChangeMindDur = 10;
-            case 3
-                ChangeMindDur = 5;
-            case 4
-                ChangeMindDur = 0;
-            case 5
-                ChangeMindDur = 0;
-        end
-    end
-end
-
 
 
 %% moving spouts

@@ -374,7 +374,7 @@ end
 
 
 function [StimAct] = GetStimAct( ...
-        obj, S, EnableOpto)
+        obj, S)
     if S.GUI.VisStimEnable && S.GUI.AudioStimEnable
         StimAct = {'BNC2', 0};
     elseif S.GUI.VisStimEnable
@@ -384,11 +384,12 @@ function [StimAct] = GetStimAct( ...
     else
         StimAct = {'HiFi1', ['P' 1]};
     end
-
-    if EnableOpto
-        StimAct = [StimAct, {'GlobalTimerCancel', 1}];
-    end
 end
+
+
+
+
+
 
     end
 end        
