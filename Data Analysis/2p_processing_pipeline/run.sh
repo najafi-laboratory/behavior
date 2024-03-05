@@ -12,15 +12,9 @@
 cd /storage/coda1/p-fnajafi3/0/yhuang887/Projects/2p_processing_pipeline_202401
 source activate suite2p
 python main.py \
---run_Registration 1 \
---run_Detection 1 \
---run_Extraction 1 \
---run_SyncSignal 1 \
---run_RetrieveResults 1 \
---run_Plotter 1 \
+--run_Plotter 0 \
 --data_path './testdata' \
 --save_path0 './results/crbl' \
 --nchannels 1 \
 --functional_chan 2 \
---diameter 8 \
---brain_region 'crbl' \
+--brain_region 'crbl'

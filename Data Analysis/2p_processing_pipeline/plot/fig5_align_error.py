@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import mode
 from scipy.stats import sem
 
-from modules import RetrieveResults
+from modules import PostProcess
 
 
 #%% utils
@@ -129,13 +129,13 @@ def plot_omi(
         r_frames = 150,
         ):
     print('plotting fig5 omission aligned response')
-    [mask, raw_traces, raw_voltages, neural_trials] = RetrieveResults.run(ops)
+    [mask, raw_traces, raw_voltages, neural_trials] = PostProcess.run(ops)
     ch = 'fluo_ch'+str(ops['functional_chan'])
     label = mask['label']
 
     # find trial id for jitter and fix.
-    fix_idx = np.where(neural_trials['trial_type']==2)[0]
-    jitter_idx = np.where(neural_trials['trial_type']==1)[0]
+    fix_idx = np.where(neural_trials['jitter_flag']==0)[0]
+    jitter_idx = np.where(neural_trials['jitter_flag']==1)[0]
 
     # fix data.
     [fix_neu_seq,  fix_neu_time,
@@ -367,13 +367,13 @@ def plot_prepost(
         ops,
         ):
     print('plotting fig5 prepost aligned response')
-    [mask, raw_traces, raw_voltages, neural_trials] = RetrieveResults.run(ops)
+    [mask, raw_traces, raw_voltages, neural_trials] = PostProcess.run(ops)
     ch = 'fluo_ch'+str(ops['functional_chan'])
     label = mask['label']
     
     # find trial id for jitter and fix.
-    fix_idx = np.where(neural_trials['trial_type']==2)[0]
-    jitter_idx = np.where(neural_trials['trial_type']==1)[0]
+    fix_idx = np.where(neural_trials['jitter_flag']==0)[0]
+    jitter_idx = np.where(neural_trials['jitter_flag']==1)[0]
 
     # find pre perturbation repeatition.
     num_down = get_post_num_grat(neural_trials, fix_idx)
@@ -531,8 +531,8 @@ def plot_fig5(
         ops,
         ):
     try:
-        [_, _, _, neural_trials] = RetrieveResults.run(ops)
-        if len(neural_trials['trial_type']) <= 25:
+        [_, _, _, neural_trials] = PostProcess.run(ops)
+        if len(neural_trials['jitter_flag']) <= 25:
             plot_omi(ops)
         else:
             plot_prepost(ops)

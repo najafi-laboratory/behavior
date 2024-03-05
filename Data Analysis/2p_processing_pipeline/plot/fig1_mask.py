@@ -4,7 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from modules import RetrieveResults
+from modules import PostProcess
 
 
 # automatical adjustment of contrast.
@@ -59,7 +59,7 @@ def plot_fig1(ops):
         print('plotting fig1 masks')
         
         # read mask from in save_path0 in ops.
-        [mask, _, _, _] = RetrieveResults.run(ops)
+        [mask, _, _, _] = PostProcess.run_read_results(ops)
         func_ch    = mask['ch'+str(ops['functional_chan'])]['input_img']
         func_masks = mask['ch'+str(ops['functional_chan'])]['masks']
         anat_ch    = mask['ch'+str(3-ops['functional_chan'])]['input_img']

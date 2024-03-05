@@ -3,17 +3,12 @@
 Run on windows command line window:
 ```
 python main.py `
---run_Registration 1 `
---run_CellDetect 1 `
---run_Extraction 1 `
---run_SyncSignal 1 `
---run_RetrieveResults 1 `
 --run_Plotter 1 `
---data_path './testdata' `
+--data_path './testdata/fn13' `
 --save_path0 './results/testdata' `
 --nchannels 2 `
 --functional_chan 2 `
---diameter 16
+--brain_region 'ppc'
 ```
 Run on linux server:
 ```
@@ -103,3 +98,23 @@ sbatch run.sh
 - Df/f computation and normalization with individual variance completed.
 - Spike triggered average now takes global variance and individual means to find the threshold.
 - Added reading bpod session data mat files.
+
+## 2024.03.01
+- Divided configuration json fiiles for cerebellum and ppc.
+- Added backup folder to save unsued but potentially useful codes.
+- Deleted cellpose for functional ROIs detection and diameter parameters.
+- Turn to suite2p detection instead.
+- Added exception handler for removing registration binary files.
+- Deleted results retrieval in the main process.
+- Deleted normalization on inhibitory neuron identification.
+
+## 2024.03.03
+- Moved spike threshold out of extraction module.
+- Fine tuned parameters for ppc configurations.
+
+## 2024.03.04
+- Rewrite results retrieval module to post process module.
+- Moved spike deconvolution and traces normalization to post process module.
+- Merged signal synchronization to post processing.
+- Deleted argument inputs for controlling individual modules.
+- Removed a slash in sbatch script that may case bus error.

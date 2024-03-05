@@ -16,22 +16,27 @@ def run(args):
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     # read the structured config json file.
-    with open('./config.json', 'r') as file:
-        params = json.load(file)
-
-    # convert it to ops.npy structure by removing the first layer.
+    if args.brain_region not in ['ppc', 'crbl']:
+        raise ValueError('brain_region can only be ppc or crbl')
+    elif args.brain_region == 'ppc':
+        with open('./config_ppc.json', 'r') as file:
+            params = json.load(file)
+    elif args.brain_region == 'crbl':
+        with open('./config_crbl.json', 'r') as file:
+            params = json.load(file)
+            
+    # convert to ops.npy for suite2p by removing the first layer.
     ops = dict()
     for key in params.keys():
         ops.update(params[key])
 
     # set data path and save path specified by command line.
-    ops['data_path'] = args.data_path
-    ops['save_path0'] = args.save_path0
-    ops['nchannels'] = args.nchannels
+    ops['data_path']       = args.data_path
+    ops['save_path0']      = args.save_path0
+    ops['nchannels']       = args.nchannels
     ops['functional_chan'] = args.functional_chan
-    ops['diameter'] = args.diameter
-    ops['align_by_chan'] = 3-args.functional_chan
-    ops['brain_region'] = args.brain_region
+    ops['align_by_chan']   = 3-args.functional_chan
+    ops['brain_region']    = args.brain_region
     print('Search data files in {}'.format(ops['data_path']))
     print('Will save processed data in {}'.format(ops['save_path0']))
     print('Processing {} channel data'.format(ops['nchannels']))
@@ -47,7 +52,7 @@ def run(args):
 
     # save ops.npy to the path.
     np.save(os.path.join(ops['save_path0'], 'ops.npy'), ops)
-    print('Parameters setup completed.')
+    print('Parameters setup for {} completed.'.format(ops['brain_region']))
 
     return ops
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import mode
 from scipy.stats import sem
 
-from modules import RetrieveResults
+from modules import PostProcess
 
 
 # extract response around stimulus.
@@ -95,13 +95,13 @@ def plot_fig4(
         [mask,
          raw_traces,
          raw_voltages,
-         neural_trials] = RetrieveResults.run(ops)
+         neural_trials] = PostProcess.run(ops)
         ch = 'fluo_ch'+str(ops['functional_chan'])
         label = mask['label']
 
         # find trial id for jitter and fix.
-        fix_idx = np.where(neural_trials['trial_type']==2)[0]
-        jitter_idx = np.where(neural_trials['trial_type']==1)[0]
+        fix_idx = np.where(neural_trials['jitter_flag']==0)[0]
+        jitter_idx = np.where(neural_trials['jitter_flag']==1)[0]
 
         # fix data
         [fix_neu_seq,  fix_neu_time,
