@@ -1,4 +1,4 @@
-function Joystick_visual_8
+function Joystick_V1
 try
     global BpodSystem
     global S
@@ -103,12 +103,16 @@ try
     %% Initialize plots
     
     % Press Outcome Plot
-    BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [50 540 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
+    % BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [50 540 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
+    BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [918 808 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off'); 
     BpodSystem.GUIHandles.OutcomePlot = axes('Position', [.075 .35 .89 .55]);
     % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'init',(numTrialTypes+1)-TrialTypes);
     TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'init',TrialTypes);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
-    
+    % BpodSystem.ProtocolFigures.ParameterGUI.Scrollable
+
+    BpodSystem.ProtocolFigures.ParameterGUI.Position = [-1026 51 2324 980];
+     
     %% sequence tester
 
     inx = 1;
@@ -124,8 +128,7 @@ try
         % usr_input = ['inx: ', inx];
         % disp(usr_input);
         S = BpodParameterGUI('sync', S);
-        
-        
+                
         ManualDeactivated = 0;
         updateTrialTypeSequence = 0;
         if (PreviousEnableManualTrialType ~= S.GUI.EnableManualTrialType) 
@@ -159,12 +162,20 @@ try
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0); % this will update the SideOutcomePlot to reflect the current trial type after accounting for any change due to anti-bias control 
     end
     
+    % store trial type params
+    PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
+    PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
+    PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
+    PreviousSelfTimedMode = S.GUI.SelfTimedMode;
+
     %BpodSystem.GUIHandles.TTOP_Ylabel = 'Press'
     
     %-- Last Trial encoder plot (an online plot included in the protocol folder)
-    BpodSystem.ProtocolFigures.EncoderPlotFig = figure('Position', [500 200 1500 600],'name','Encoder plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
+    BpodSystem.ProtocolFigures.EncoderPlotFig = figure('Position', [-2 47 1500 600],'name','Encoder plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
     BpodSystem.GUIHandles.EncoderAxes = axes('Position', [.15 .15 .8 .8]);
     LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'init', S.GUI.Threshold);
+
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [13 56 1232 660]);
     
     %% state timing plot
     useStateTiming = true;  % Initialize state timing plot
@@ -326,10 +337,10 @@ try
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
     
-    PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
-    PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
-    PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
+
     
+
+
     %% check difficulty options and ensure correct setting prior to beginning first trial
     
     % define discrete values in distribution
@@ -357,7 +368,7 @@ try
     
     for currentTrial = 1:MaxTrials
        
-        ExperimenterTrialInfo.TrialNumber = currentTrial;   % capture variable states as field/value struct for experimenter info
+        ExperimenterTrialInfo.TrialNumber = currentTrial;   % check variable states as field/value struct for experimenter info
     
         %% sync trial-specific parameters from GUI
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
@@ -365,6 +376,7 @@ try
         
         %% update trial type and sequencing
         % maybe move some of these into GenTrials function
+        % update gentrials from opto updates
         ManualDeactivated = 0;
         updateTrialTypeSequence = 0;
         if (PreviousEnableManualTrialType ~= S.GUI.EnableManualTrialType) 
@@ -384,6 +396,10 @@ try
             PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
         end
 
+        if PreviousSelfTimedMode ~= S.GUI.SelfTimedMode
+            updateTrialTypeSequence = 1;
+            PreviousSelfTimedMode = S.GUI.SelfTimedMode;
+        end
 
         [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0);
@@ -520,24 +536,34 @@ try
         RewardTime = CenterValveTime;
 
         %% get pre vis stim delay based on trial type gui params, also experimenter info previsdelay/trial type
-        switch TrialTypes(currentTrial)
+        switch S.GUI.SelfTimedMode
+            case 0 
+                ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
+                switch TrialTypes(currentTrial)
+                    case 1
+                        PressVisDelay_s = S.GUI.PressVisDelayShort_s;
+                        ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+                    case 2
+                        PressVisDelay_s = S.GUI.PressVisDelayLong_s;
+                        ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+                end
+                ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
             case 1
-                PressVisDelay_s = S.GUI.PressVisDelayShort_s;
-                ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % capture variable states as field/value struct for experimenter info
-            case 2
-                PressVisDelay_s = S.GUI.PressVisDelayLong_s;
-                ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % capture variable states as field/value struct for experimenter info
+                ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
+                ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
+                ExperimenterTrialInfo.PressVisDelay_s = 'NA';
+                ExperimenterTrialInfo.PrePress2Delay_s = S.GUI.PrePress2Delay_s;                
         end
 
-
-        ExperimenterTrialInfo.PressVisDelay_s = PressVisDelay_s;   % capture variable states as field/value struct for experimenter info        
-
+        
+        
 
         %% update state-flow for number of reps
         LeverRetract1_StateChangeConditions = {};
         LeverRetract2_StateChangeConditions = {};
         LeverRetract3_StateChangeConditions = {};
     
+        VisualStimulus1_OutputActions = audStim;        
         WaitForPress1_StateChangeConditions = {}; 
         Reward1_StateChangeConditions = {'Tup', 'PostReward1Delay'};
         PostReward1Delay_StateChangeConditions = {'Tup', 'LeverRetract1'};
@@ -557,6 +583,8 @@ try
         PostRewardDelay_StateChangeConditions = {};
 
         PreVis2Delay_StateChangeConditions = {};
+
+        PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'WaitForPress2'};
     
         switch S.GUI.Reps
             case 1           
@@ -570,21 +598,30 @@ try
                 else
                     WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
                 end    
-                LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-                if S.GUI.VisStim2Enable
-                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'VisDetect2'};
-                    if PressVisDelay_s == 0
-                        PreVis2Delay_StateChangeConditions = {'Tup', 'VisDetect2'};
+                % if ~S.GUI.SelfTimedMode
+                %     LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+                % else
+                %     LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+                % end
+                if ~S.GUI.SelfTimedMode
+                    LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+                    if S.GUI.VisStim2Enable
+                        % LeverRetract1_StateChangeConditions = {'SoftCode1', 'VisDetect2'};
+                        if PressVisDelay_s == 0
+                            PreVis2Delay_StateChangeConditions = {'Tup', 'VisDetect2'};
+                        else
+                            PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'VisDetect2'};
+                        end                    
                     else
-                        PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'VisDetect2'};
-                    end                    
+                        % LeverRetract1_StateChangeConditions = {'SoftCode1', 'WaitForPress2'};
+                        if PressVisDelay_s == 0
+                            PreVis2Delay_StateChangeConditions = {'Tup', 'WaitForPress2'};
+                        else
+                            PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'WaitForPress2'};
+                        end                                        
+                    end
                 else
-                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'WaitForPress2'};
-                    if PressVisDelay_s == 0
-                        PreVis2Delay_StateChangeConditions = {'Tup', 'WaitForPress2'};
-                    else
-                        PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_1', 'EarlyPress', 'Tup', 'WaitForPress2'};
-                    end                                        
+                    LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
                 end
                 WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'Reward'};
                 % Reward2_StateChangeConditions = {'Tup', 'PostReward2Delay'};
@@ -600,11 +637,11 @@ try
                     WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
                     WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'LeverRetract2'};
                 end            
-                if S.GUI.VisStim2Enable
-                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'VisDetect2'};
-                else
-                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'WaitForPress2'};
-                end
+                % if S.GUI.VisStim2Enable
+                %     % LeverRetract1_StateChangeConditions = {'SoftCode1', 'VisDetect2'};
+                % else
+                %     % LeverRetract1_StateChangeConditions = {'SoftCode1', 'WaitForPress2'};
+                % end
                 Reward2_StateChangeConditions = {'Tup', 'PostReward2Delay'};
                 LeverRetract2_StateChangeConditions = {'SoftCode1', 'VisDetect3'};
                 WaitForPress3_StateChangeConditions = {'Tup', 'DidNotPress3', 'RotaryEncoder1_1', 'Reward'};
@@ -674,15 +711,15 @@ try
         % if warmup trial, increase wait for press by gui param   
         PressWindow_s = S.GUI.PressWindow_s;
         if WarmupTrialsCounter > 0
-            ExperimenterTrialInfo.Warmup = true;   % capture variable states as field/value struct for experimenter info
-            ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % capture variable states as field/value struct for experimenter info
+            ExperimenterTrialInfo.Warmup = true;   % check variable states as field/value struct for experimenter info
+            ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % check variable states as field/value struct for experimenter info
             PressWindow_s = S.GUI.PressWindow_s + S.GUI.PressWindowExtend_s;
             
             TrialDifficulty = 1;  % set warmup trial to easy     
-        else
-            TrialDifficulty = 1;
-            ExperimenterTrialInfo.Warmup = false;   % capture variable states as field/value struct for experimenter info
-            ExperimenterTrialInfo.WarmupTrialsRemaining = 0;   % capture variable states as field/value struct for experimenter info
+        else    
+            TrialDifficulty = 2;
+            ExperimenterTrialInfo.Warmup = false;   % check variable states as field/value struct for experimenter info
+            ExperimenterTrialInfo.WarmupTrialsRemaining = 0;   % check variable states as field/value struct for experimenter info
         end    
     
         ExperimenterTrialInfo.PressWindow = PressWindow_s;
@@ -694,16 +731,22 @@ try
     
     
         %% difficulty-specific state values
+        % switch TrialDifficulty
+        %     case 1
+        %         ExperimenterTrialInfo.Difficulty = 'Easy';   % check variable states as field/value struct for experimenter info
+        %     case 2
+        %         ExperimenterTrialInfo.Difficulty = 'Medium-Easy';   % check variable states as field/value struct for experimenter info
+        %     case 3
+        %         ExperimenterTrialInfo.Difficulty = 'Medium-Hard';   % check variable states as field/value struct for experimenter info
+        %     case 4
+        %         ExperimenterTrialInfo.Difficulty = 'Hard';   % check variable states as field/value struct for experimenter info
+        % end       
         switch TrialDifficulty
             case 1
-                ExperimenterTrialInfo.Difficulty = 'Easy';   % capture variable states as field/value struct for experimenter info
+                ExperimenterTrialInfo.Difficulty = 'EasyWarmup';   % check variable states as field/value struct for experimenter info
             case 2
-                ExperimenterTrialInfo.Difficulty = 'Medium-Easy';   % capture variable states as field/value struct for experimenter info
-            case 3
-                ExperimenterTrialInfo.Difficulty = 'Medium-Hard';   % capture variable states as field/value struct for experimenter info
-            case 4
-                ExperimenterTrialInfo.Difficulty = 'Hard';   % capture variable states as field/value struct for experimenter info
-        end       
+                ExperimenterTrialInfo.Difficulty = 'Normal';   % check variable states as field/value struct for experimenter info
+        end           
                           
         %% After warmup trials, reset wait_dur: with every non early-choice trial, increase it by wait_dur_step
     
@@ -760,7 +803,7 @@ try
         sma = AddState(sma, 'Name', 'VisualStimulus1', ...
             'Timer', S.GUI.GratingDur_s,...
             'StateChangeConditions', VisualStimulus1_StateChangeConditions,...
-            'OutputActions', audStim);
+            'OutputActions', VisualStimulus1_OutputActions);
     
         sma = AddState(sma, 'Name', 'AuToPress', ...
             'Timer', 0,...
@@ -791,6 +834,11 @@ try
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', PreVis2Delay_StateChangeConditions,...
             'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
+
+        sma = AddState(sma, 'Name', 'PrePress2Delay', ...
+            'Timer', S.GUI.PrePress2Delay_s,...
+            'StateChangeConditions', PrePress2Delay_StateChangeConditions,...
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});        
     %% rep 2
     
         sma = AddState(sma, 'Name', 'VisDetect2', ...
@@ -802,7 +850,7 @@ try
             'Timer', S.GUI.GratingDur_s,...
             'StateChangeConditions', {'Tup', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'},...
             'OutputActions', VisualStimulus2_OutputActions);
-    
+   
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', PressWindow_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...
@@ -1007,7 +1055,9 @@ try
     
             RewardTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward;
 
-            EarlyPressTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress;            
+            EarlyPressTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress;  
+
+            PrePress2DelayTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PrePress2Delay;
     
             LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'update', S.GUI.Threshold, BpodSystem.Data.EncoderData{currentTrial},...
                 TrialDuration, ...
@@ -1030,7 +1080,8 @@ try
                 DidNotPress3Times, ...
                 RewardTimes, ...
                 EarlyPressTimes, ...
-                VisualStimulus2Times);
+                VisualStimulus2Times, ...
+                PrePress2DelayTimes);
     
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     
