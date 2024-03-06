@@ -216,7 +216,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 1;
+    MonitorID = 2;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
@@ -536,6 +536,7 @@ try
         RewardTime = CenterValveTime;
 
         %% get pre vis stim delay based on trial type gui params, also experimenter info previsdelay/trial type
+        PressVisDelay_s = -1; % set default, var should only be used when visually guided activated, so err log should indicate if weird state
         switch S.GUI.SelfTimedMode
             case 0 
                 ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
