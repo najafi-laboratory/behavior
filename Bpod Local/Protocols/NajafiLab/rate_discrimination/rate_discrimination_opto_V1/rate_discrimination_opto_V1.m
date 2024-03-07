@@ -22,7 +22,10 @@ try
     %% Turn off Bpod LEDs
     
     BpodSystem.setStatusLED(0);
-    
+
+    % get matlab version
+    v_info = version
+    BpodSystem.Data.MatVer = version;
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
@@ -143,9 +146,9 @@ try
     [VideoGrating] = m_AVstimConfig.GenStimImg(ImgParams, Xsize, Ysize);
     BpodSystem.PluginObjects.V.loadVideo(5, VideoGrating);
     
+    VisStim.orientation = [0 45 90 135];
     VisStim.GratingIdx = [2 3 4 5];
     VisStim.OmiFlag = 'False';
-    
 
     pause(1.0);
     BpodSystem.PluginObjects.V.play(0);
@@ -203,16 +206,9 @@ try
     
         %% duration related configs
     
-        % Draw trial-specific and difficulty-defined TimeOutPunish from exponential distribution
         DURA.TimeOutPunish = m_TrialConfig.GetTimeOutPunish(S);
-        
-        % Draw trial-specific ITI from exponential distribution
         DURA.ITI = m_TrialConfig.GetITI(S);
-    
-        % Draw trial-specific choice window from default or overwrite with gui
         DURA.ChoiceWindow = m_TrialConfig.GetChoiceWindow(S);
-    
-        % changing mind window
         DURA.ChangeMindDur = m_TrialConfig.GetChangeMindDur(S);
         
     
@@ -256,9 +252,6 @@ try
                 BpodSystem.Data.OptoTag(currentTrial) = 1;
         end
 
-        % disp(OptoTrialTypes)
-        % disp(BpodSystem.Data.OptoTag)
-
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
 
         %% construct preperturb vis stim videos and audio stim base for grating and gray if duration parameters changed
@@ -272,6 +265,7 @@ try
         % generate video
         VisStim.ProcessedData.Seq = [];
         VisStim.ProcessedData.PrePost = [];
+        [VisStim] = m_AVstimConfig.GetVisStimImg(S, BpodSystem, FPS, VisStim);
         switch JitterFlag
             case 'False'
                 VisStim = m_AVstimConfig.GetVideoDataPre(S, BpodSystem, FPS, VisStim, 0);
@@ -332,7 +326,11 @@ try
         SCOA.StimAct     = m_AVstimConfig.GetStimAct(S, m_Opto.EnableOpto);
         SCOA.EarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'};
         SCOA.Punish      = {'SoftCode', 255, 'HiFi1', ['P' 2]};
-        SCOA.VisStim     = {'SoftCode', 25};
+        if (S.GUI.VisStimEnable == 1)
+            SCOA.VisStim = {'SoftCode', 25};
+        else
+            SCOA.VisStim = {};
+        end
         SCOA.AudStim     = m_Opto.GetAudStimOpto(OptoTrialTypes(currentTrial));
 
         if (EnableMovingSpouts == 1)
@@ -382,6 +380,7 @@ try
         %% add console print for experimenter trial information
     
         ExperimenterTrialInfo.TrialNumber = currentTrial;
+        ExperimenterTrialInfo.GratingOrientation = VisStim.orientation(VisStim.SampleGratingIdx-1);
         ExperimenterTrialInfo.CorrectChoice = TrialTarget.CorrectChoice;
         ExperimenterTrialInfo.Bias = AntiBiasVar.ValveFlag;
         ExperimenterTrialInfo.LeftValveAmount  = LeftValveAmount_uL;
@@ -399,7 +398,8 @@ try
         ExperimenterTrialInfo.Jitter = JitterFlag;
         ExperimenterTrialInfo.Omission = VisStim.OmiFlag;
         ExperimenterTrialInfo.SessionType = OptoStateExpInfo;
-        ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;        
+        ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
+        ExperimenterTrialInfo.MatlabVer = BpodSystem.Data.MatVer;
     
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
         disp(strExperimenterTrialInfo);
@@ -458,7 +458,6 @@ catch MatlabException
     % save workspace variables associated with session
     Data = BpodSystem.Data;
     save(CrashFileName, 'Data');
-    % add more workspace vars if needed
 
     %open file
     fid = fopen([CrashFileName, '.txt'],'a+');
@@ -469,19 +468,15 @@ catch MatlabException
     % date
     fprintf(fid,'%s\n', num2str(session_date));
 
+    % matlab version    
+    fprintf(fid,'%s\n', BpodSystem.Data.MatVer);
+
     % rig specs
     fprintf(fid,'%s\n', 'Opto Rig - Behavior Room');
-    % fprintf(fid,'%s\n', computer);
-    % fprintf(fid,'%s\n', feature('GetCPU'));
-    % fprintf(fid,'%s\n', getenv('NUMBER_OF_PROCESSORS'));
-    % fprintf(fid,'%s\n', memory); % add code to print memory struct to
-    % file later   
 
     % write the error to file   
     fprintf(fid,'%s\n',MatlabException.identifier);
     fprintf(fid,'%s\n',MatlabException.message);
-    % fprintf(fid,'%s\n',MatlabException.stack);
-    % fprintf(fid,'%s\n',MatlabException.cause);
     fprintf(fid,'%s\n',MatlabException.Correction);
 
     % print stack
@@ -490,19 +485,7 @@ catch MatlabException
     % close file
     fclose(fid);
 
-    % save workspace variables associated with session to file
-    
-
     disp('Resetting encoder and maestro objects...');
     BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
-    % try
-    %     BpodSystem.PluginObjects.R.stopUSBStream; % Stop streaming position data
-    %     BpodSystem.PluginObjects.R.sendThresholdEvents = 'off'; % Stop sending threshold events to state machine
-    %     BpodSystem.PluginObjects.R = [];
-    % catch ME2
-    %     disp(ME2.identifier)
-    %     disp(getReport(ME2));
-    %     disp('Encoder not initialized.');
-    % end
     M = [];
 end    
