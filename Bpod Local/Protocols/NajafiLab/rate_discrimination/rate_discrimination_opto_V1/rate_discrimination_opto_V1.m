@@ -24,7 +24,7 @@ try
     BpodSystem.setStatusLED(0);
 
     % get matlab version
-    v_info = version
+    v_info = version;
     BpodSystem.Data.MatVer = version;
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
@@ -153,7 +153,7 @@ try
     pause(1.0);
     BpodSystem.PluginObjects.V.play(0);
     BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler';
-    BpodSystem.PluginObjects.V.TimerMode = 2;
+    BpodSystem.PluginObjects.V.TimerMode = 1;
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
     
@@ -341,7 +341,7 @@ try
     
         %% construct state matrix
         sma = NewStateMatrix();
-        sma = m_Opto.InsertGlobalTimer(sma, VisStim);
+        sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
     
         switch S.GUI.TrainingLevel
             case 1 % passive

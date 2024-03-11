@@ -103,12 +103,13 @@ function [VisStim] = GetVisStimImg( ...
     VisStim.Img.GrayFrame_SyncBlk  = BpodSystem.PluginObjects.V.Videos{1}.Data(2);
     VisStim.Img.GrayBlank          = BpodSystem.PluginObjects.V.Videos{1}.Data(3);
     if (S.GUI.RandomOrient == 1)
-        idx = VisStim.GratingIdx( randperm(length(VisStim.GratingIdx),1) );
+        SampleGratingIdx = VisStim.GratingIdx( randperm(length(VisStim.GratingIdx),1) );
     else
-        idx = VisStim.GratingIdx(1);
+        SampleGratingIdx = VisStim.GratingIdx(1);
     end
-    VisStim.Img.GratingFrame_SyncW = BpodSystem.PluginObjects.V.Videos{idx}.Data(1);
-    VisStim.Img.GratingBlank       = BpodSystem.PluginObjects.V.Videos{idx}.Data(3);
+    VisStim.SampleGratingIdx = SampleGratingIdx;
+    VisStim.Img.GratingFrame_SyncW = BpodSystem.PluginObjects.V.Videos{SampleGratingIdx}.Data(1);
+    VisStim.Img.GratingBlank       = BpodSystem.PluginObjects.V.Videos{SampleGratingIdx}.Data(3);
     VisStim.Grating.Frames = GetFrames(obj, FPS, S.GUI.GratingDur_s);
     VisStim.Grating.Video  = GetUnitVideo(obj, VisStim.Img.GratingFrame_SyncW, VisStim.Grating.Frames);
     VisStim.Grating.Dur    = GetVideoDur(obj, FPS, VisStim.Grating.Video);
@@ -121,8 +122,6 @@ function [VisStim] = GetVideoDataPre( ...
     PreISIinfo = [];
     LastOmiGrating = 0;
     for CurrentRep = 1:S.GUI.PrePertFlashRep
-        [VisStim] = GetVisStimImg( ...
-            obj, S, BpodSystem, FPS, VisStim);
         if (RandomISI == 1 && S.GUI.ActRandomISI == 1)
             ISI = GetRandomISI(obj, S, S.GUI.ISIOrig_s);
         else
@@ -137,14 +136,14 @@ function [VisStim] = GetVideoDataPre( ...
                 VisStim.GrayPre.Video       = GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.GrayPre.Frames);
                 VisStim.GrayPre.Dur         = GetVideoDur(obj, FPS, VisStim.GrayPre.Video);
                 VisStim.Data.PreUnit.Video  = [VisStim.Grating.Video, VisStim.GrayPre.Video];
-                Seq = [ones(1, length(VisStim.Grating.Video)), zeros(1, length(VisStim.GrayPre.Video))];
+                Seq = [ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx zeros(1, length(VisStim.GrayPre.Video))];
                 Seq(length(VisStim.Grating.Video)+ceil(length(VisStim.GrayPre.Video)/2)) = -1;
             case 'False'
                 VisStim.GrayPre.Frames      = GetFrames(obj, FPS, ISI);
                 VisStim.GrayPre.Video       = GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.GrayPre.Frames);
                 VisStim.GrayPre.Dur         = GetVideoDur(obj, FPS, VisStim.GrayPre.Video);
                 VisStim.Data.PreUnit.Video  = [VisStim.Grating.Video, VisStim.GrayPre.Video];
-                Seq = [ones(1, length(VisStim.Grating.Video)), zeros(1, length(VisStim.GrayPre.Video))];
+                Seq = [ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx zeros(1, length(VisStim.GrayPre.Video))];
         end
         VisStim.Data.PreUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.PreUnit.Video);
         VisStim.Data.PreUnit.Frames = GetFrames(obj, FPS, VisStim.Data.PreUnit.Dur);
@@ -154,7 +153,7 @@ function [VisStim] = GetVideoDataPre( ...
         VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, zeros(1, length(VisStim.Data.PreUnit.Video))];
     end
     VideoSeq = [VideoSeq, VisStim.Grating.Video];
-    VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, ones(1, length(VisStim.Grating.Video))];
+    VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, ones(1, length(VisStim.Grating.Video) * VisStim.SampleGratingIdx)];
     VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, zeros(1, length(VisStim.Grating.Video))];
     VisStim.Data.Pre.Video  = VideoSeq;
     VisStim.Data.Pre.Dur    = GetVideoDur(obj, FPS, VisStim.Data.Pre.Video);
@@ -169,8 +168,6 @@ function [VisStim] = GetVideoDataPost( ...
     VideoSeq = [];
     PostISIinfo = [];
     while (GetVideoDur(obj, FPS, VideoSeq) <= (S.GUI.PostPertDur))
-        [VisStim] = GetVisStimImg( ...
-            obj, S, BpodSystem, FPS, VisStim);
         if (RandomISI == 1 && S.GUI.ActRandomISI == 1)
             ISI = GetRandomISI(obj, S, GrayPerturbISI);
         else
@@ -182,7 +179,7 @@ function [VisStim] = GetVideoDataPost( ...
         VisStim.Data.PostUnit.Video  = [VisStim.GrayPost.Video VisStim.Grating.Video];
         VisStim.Data.PostUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.PostUnit.Video);
         VisStim.Data.PostUnit.Frames = GetFrames(obj, FPS, VisStim.Data.PostUnit.Dur);
-        Seq = [zeros(1, length(VisStim.GrayPost.Video)) ones(1, length(VisStim.Grating.Video))];
+        Seq = [zeros(1, length(VisStim.GrayPost.Video)) ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx];
         VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, Seq];
         VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, ones(1, length(VisStim.Data.PostUnit.Video))];
         VideoSeq = [VideoSeq, VisStim.Data.PostUnit.Video];
@@ -202,8 +199,6 @@ function [VisStim] = GetVideoDataExtra( ...
         VideoSeq = [];
         ExtraISIinfo = [];
         while (GetVideoDur(obj, FPS, VideoSeq) <= VisStim.Data.Extra.Dur)
-            [VisStim] = GetVisStimImg( ...
-                obj, S, BpodSystem, FPS, VisStim);
             if (RandomISI == 1 && S.GUI.ActRandomISI == 1)
                 ISI = GetRandomISI(obj, S, GrayPerturbISI);
             else
@@ -215,7 +210,7 @@ function [VisStim] = GetVideoDataExtra( ...
             VisStim.Data.ExtraUnit.Video  = [VisStim.GrayExtra.Video VisStim.Grating.Video];
             VisStim.Data.ExtraUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.ExtraUnit.Video);
             VisStim.Data.ExtraUnit.Frames = GetFrames(obj, FPS, VisStim.Data.ExtraUnit.Dur);
-            Seq = [zeros(1, length(VisStim.GrayExtra.Video)) ones(1, length(VisStim.Grating.Video))];
+            Seq = [zeros(1, length(VisStim.GrayExtra.Video)) ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx];
             VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, Seq];
             VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, 2*ones(1, length(VisStim.Data.ExtraUnit.Video))];
             VideoSeq = [VideoSeq, VisStim.Data.ExtraUnit.Video];
@@ -384,7 +379,6 @@ function [StimAct] = GetStimAct( ...
     else
         StimAct = {'HiFi1', ['P' 1]};
     end
-
     if EnableOpto
         StimAct = [StimAct, {'GlobalTimerCancel', 1}];
     end

@@ -136,8 +136,10 @@ classdef PsychToolboxVideoPlayer < handle
             
             if obj.ShowViewportBorder
                 Frame = obj.addShowViewportBorder(Frame);
-            end            
-            obj.Timer = timer('TimerFcn','', 'Period', round(1/obj.TimerFPS*1000)/1000, 'ExecutionMode', 'fixedRate', 'Tag', 'PTV');
+            end    
+            AdjustedFPS = obj.TimerFPS + 4;
+            % obj.Timer = timer('TimerFcn','', 'Period', round(1/obj.TimerFPS*1000)/1000, 'ExecutionMode', 'fixedRate', 'Tag', 'PTV');
+            obj.Timer = timer('TimerFcn','', 'Period', round(1/AdjustedFPS*1000)/1000, 'ExecutionMode', 'fixedRate', 'Tag', 'PTV');
             obj.BlankScreen = Screen('MakeTexture', obj.Window, Frame);
             Screen('DrawTexture', obj.Window, obj.BlankScreen);
             Screen('Flip', obj.Window);
@@ -423,6 +425,8 @@ classdef PsychToolboxVideoPlayer < handle
             if nextFrame > obj.Videos{obj.StimulusIndex}.nFrames
                 stop(obj.Timer);
                 set(obj.Timer, 'TimerFcn', '');
+                Screen('DrawTexture', obj.Window, obj.BlankScreen);
+                Screen('Flip', obj.Window);
             end
             obj.CurrentFrame = nextFrame;
         end
