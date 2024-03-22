@@ -1,0 +1,128 @@
+{
+
+	"Main settings":{
+		"nplanes": 1,
+		"nchannels": 1,
+		"functional_chan": 1,
+		"tau": 0.25,
+		"fs": 30.0,
+		"force_sktiff": false,
+		"frames_include": -1,
+		"multiplane_parallel": false,
+		"ignore_flyback": []
+	},
+
+	"File input/output settings":{
+		"look_one_level_down": false,
+		"fast_disk": [],
+		"delete_bin": false,
+		"mesoscan": false,
+		"bruker": false,
+		"bruker_bidirectional": false,
+		"h5py": [],
+		"h5py_key": "data",
+		"nwb_file": "",
+		"nwb_driver": "",
+		"nwb_series": "",
+		"save_path0": "",
+		"save_folder": [],
+		"subfolders": [],
+		"move_bin": false
+	},
+
+	"Output settings":{
+		"preclassify": 0.0,
+		"save_mat": false,
+		"save_NWB": false,
+		"combined": true,
+		"aspect": 1.0
+	},
+
+	"Registration settings":{
+		"do_bidiphase": false,
+		"bidiphase": 0,
+		"bidi_corrected": false,
+		"do_registration": true,
+		"two_step_registration": false,
+		"keep_movie_raw": false,
+		"nimg_init": 512,
+		"batch_size": 500,
+		"maxregshift": 0.1,
+		"align_by_chan": 1,
+		"reg_tif": false,
+		"reg_tif_chan2": false,
+		"subpixel": 10,
+		"smooth_sigma_time": 0,
+		"smooth_sigma": 1.15,
+		"th_badframes": 1.0,
+		"norm_frames": true,
+		"force_refImg": false,
+		"pad_fft": false
+	},
+
+	"1P registration":{
+		"1Preg": false,
+		"spatial_hp_reg": 42,
+		"pre_smooth": 0,
+		"spatial_taper": 40
+	},
+	
+	"Non-rigid registration":{
+		"nonrigid": false,
+		"block_size": [128, 128],
+		"snr_thresh": 1.2,
+		"maxregshiftNR": 5
+	},
+	
+	"ROI detection settings": {
+		"roidetect": true,
+		"sparse_mode": true,
+		"spatial_scale": 1,
+		"connected": true,
+		"nbinned": 19961106,
+		"max_iterations": 20,
+		"threshold_scaling": 1.0,
+		"max_overlap": 0.75,
+		"high_pass": 100,
+		"spatial_hp_detect": 25,
+		"denoise": false
+	},
+
+	"Cellpose Detection": {
+		"anatomical_only": 0,
+		"diameter": 0,
+		"cellprob_threshold": 0.0,
+		"flow_threshold": 1.5,
+		"spatial_hp_cp": 0,
+		"pretrained_model": "cyto"
+	},
+
+	"Signal extraction settings":{
+		"neuropil_extract": true,
+		"inner_neuropil_radius": 2,
+		"min_neuropil_pixels": 350,
+		"lam_percentile": 50.0,
+		"allow_overlap": false
+	},
+
+	"Spike deconvolution settings":{
+		"spikedetect": true,
+		"baseline": "maximin",
+		"win_baseline": 60.0,
+		"sig_baseline": 600.0,
+		"prctile_baseline": 8.0,
+		"neucoeff": 0.7,
+		"spike_thres": 1
+	},
+
+	"Classification settings":{
+		"soma_crop": true,
+		"use_builtin_classifier": false,
+		"classifier_path": ""
+	},
+
+	"Channel 2 specific settings":{
+		"chan2_thres": 0.65
+	}
+
+}
