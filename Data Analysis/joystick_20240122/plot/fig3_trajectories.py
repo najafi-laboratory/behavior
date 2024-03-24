@@ -186,10 +186,11 @@ def plot_fig3(
             bottom_right_trial = top_left_trial + plots_per_page                                                            
             current_page = current_page + 1
             
-            output_pdf_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\trajectories\\'
-            output_pdf_pages_dir = output_pdf_dir + 'trajectories_' + session_date + '\\'
+            output_pdf_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/' +subject+'\\'
+            output_pdf_pages_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\trajectories\\' + 'trajectories_' + session_date + '\\'
+            os.makedirs(output_pdf_dir, exist_ok = True)
             os.makedirs(output_pdf_pages_dir, exist_ok = True)
-            output_pdf_filename = output_pdf_pages_dir + today_string + '_' + subject + '_trajectories_' + session_date + '_' + str(page)
+            output_pdf_filename = output_pdf_pages_dir + subject +  session_date + '_trajectory_all_trs' + str(page)
             pdf_paths.append(output_pdf_filename + '.pdf')
             save_image(output_pdf_filename)        
             plt.close(fig)
@@ -230,7 +231,7 @@ def plot_fig3(
     
     
         # outputStream = open(r'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + today_string + '_'+subject+'_trajectory_combined_'+session_date+'.pdf', "wb")
-        outputStream = open(r'' + output_pdf_dir + today_string + '_' + subject + '_single_trial_trajectory_rewarded_' + session_date + '.pdf', "wb")
+        outputStream = open(r'' + output_pdf_dir + subject + '_' + session_date + '_trajectory_all_trs' + '.pdf', "wb")
         output.write(outputStream)
         outputStream.close()
 

@@ -162,11 +162,13 @@ def plot_fig1(
     # os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
     # fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
     # fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
-    output_figs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'
-    output_imgs_dir = output_figs_dir + 'outcome_imgs\\'
+    output_figs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/' +subject+'\\'
+    # output_imgs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + 'outcome_imgs\\'
+    output_imgs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/'+subject+'\\' + 'outcome_imgs\\'
+    os.makedirs(output_figs_dir, exist_ok = True)
     os.makedirs(output_imgs_dir, exist_ok = True)
-    fig.savefig(output_figs_dir + today_string + '_' + subject + '_trial_outcome.pdf', dpi=300)
-    fig.savefig(output_imgs_dir + today_string + '_' + subject + '_trial_outcome.png', dpi=300)
+    fig.savefig(output_figs_dir + subject + '_Outcome.pdf', dpi=300)
+    fig.savefig(output_imgs_dir + subject + '_Outcome.png', dpi=300)
     # fig.savefig(output_figs_dir + 'fig1_'+subject+'_outcome.pdf', dpi=300)
     # fig.savefig(output_imgs_dir + '\\fig1_'+subject+'_outcome.png', dpi=300)
     

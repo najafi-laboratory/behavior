@@ -22,6 +22,7 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 # session_data_3 = session_data_3
 # session_data_4 = session_data_4
 
+
 if __name__ == "__main__":
 
     
@@ -38,11 +39,16 @@ if __name__ == "__main__":
         file_paths_2 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH5', title='Select YH5 Sessions'))
         file_paths_3 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN10', title='Select FN10 Sessions'))
         file_paths_4 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN13', title='Select FN13 Sessions'))
+        file_paths_5 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN16', title='Select FN16 Sessions'))
+        file_paths_6 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN17', title='Select FN17 Sessions'))       
         
         session_data_1 = DataIO.read_trials('YH4', file_paths_1)
         session_data_2 = DataIO.read_trials('YH5', file_paths_2)
         session_data_3 = DataIO.read_trials('FN10', file_paths_3)
         session_data_4 = DataIO.read_trials('FN13', file_paths_4)
+        session_data_5 = DataIO.read_trials('FN16', file_paths_5)
+        session_data_6 = DataIO.read_trials('FN17', file_paths_6)
+    
 
     if run_plots:
         for plotter in [
@@ -62,8 +68,8 @@ if __name__ == "__main__":
                     session_data_2,
                     session_data_3,
                     session_data_4,
-                    # session_data_5,
-                    # session_data_6
+                    session_data_5,
+                    session_data_6
                     ]:
                 plotter(session_data)
  

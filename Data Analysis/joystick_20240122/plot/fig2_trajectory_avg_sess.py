@@ -140,12 +140,14 @@ def plot_fig2(
         
         
         fig.tight_layout()
-        output_figs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'
-        output_imgs_dir = output_figs_dir + 'avg_trajectory_imgs\\'        
+        output_figs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/' +subject+'\\'
+        # output_imgs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + 'avg_trajectory_imgs\\'        
+        output_imgs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/'+subject+'\\' + 'avg_trajectory_imgs\\'        
+        os.makedirs(output_figs_dir, exist_ok = True)
         os.makedirs(output_imgs_dir, exist_ok = True)
-        output_pdf_filename = output_figs_dir + today_string + '_' + subject+'_avg_trajectory'
+        output_pdf_filename = output_figs_dir + subject + '_all_sess_trajectory_ave_trs'
         save_image(output_pdf_filename)
-        fig.savefig(output_imgs_dir + today_string + '_' + subject + '_avg_trajectory_' + session_date_formatted + '.png', dpi=300)
+        fig.savefig(output_imgs_dir + subject +'_'+ session_date_formatted + '_trajectory_ave_trs' + '.png', dpi=300)
         
         
         
