@@ -1,5 +1,5 @@
 function rate_discrimination_opto_V1
-try
+
     global BpodSystem
     global M
     
@@ -7,7 +7,8 @@ try
     EnablePassive      = 0;
     PassiveSessMode    = 1; %1: omission; 2:ISI
     MonitorID          = 2;
-    EnableOpto         = 1;
+    EnableOpto         = 0;
+
     
     %% Import scripts
     
@@ -150,10 +151,23 @@ try
     VisStim.GratingIdx = [2 3 4 5];
     VisStim.OmiFlag = 'False';
 
+    % added to set reset sync patch so photodiode is low when starting
+    % session
+    % VisStim.ProcessedData.Seq = [];
+    % VisStim.ProcessedData.PrePost = [];
+    [VisStim] = m_AVstimConfig.GetVisStimImg(S, BpodSystem, FPS, VisStim);
+    VisStim.Img.GrayFrame_SyncW;
+    GrayInitBNCSync = [repmat(VisStim.Img.GrayFrame_SyncW, 1, 120) VisStim.Img.GrayFrame_SyncBlk];
+    BpodSystem.PluginObjects.V.Videos{6} = struct;
+    BpodSystem.PluginObjects.V.Videos{6}.nFrames = 121; % + 1 for final frame
+    BpodSystem.PluginObjects.V.Videos{6}.Data = GrayInitBNCSync;
+
     pause(1.0);
-    BpodSystem.PluginObjects.V.play(0);
-    BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler';
     BpodSystem.PluginObjects.V.TimerMode = 1;
+    BpodSystem.PluginObjects.V.play(0);
+    BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler';    
+    % BpodSystem.PluginObjects.V.TimerMode = 0;
+    BpodSystem.PluginObjects.V.play(6);
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
     
@@ -341,7 +355,7 @@ try
     
         %% construct state matrix
         sma = NewStateMatrix();
-        sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
+        %sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
     
         switch S.GUI.TrainingLevel
             case 1 % passive
@@ -436,56 +450,3 @@ try
     clear global M;
     BpodSystem.PluginObjects.V = [];
     BpodSystem.setStatusLED(1);
-
-catch MatlabException
-    disp(MatlabException.identifier);
-    disp(getReport(MatlabException));
-
-    % err report log file
-    % recording error and stack information to file
-    t = datetime;
-    session_date = 10000*(year(t)-2000) + 100*month(t) + day(t);
-    
-    % get session file name
-    [SessionFilepath, SessionFileName, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
-
-    CrashFileDir = 'C:\data analysis\behavior\rig2\error logs\';
-    CrashFileName = [CrashFileDir, num2str(session_date), '_BPod-matlab_crash_log_', SessionFileName];    
-
-    % make crash log folder if it doesn't already exist
-    [status, msg, msgID] = mkdir(CrashFileDir);
-
-    % save workspace variables associated with session
-    Data = BpodSystem.Data;
-    save(CrashFileName, 'Data');
-
-    %open file
-    fid = fopen([CrashFileName, '.txt'],'a+');
-
-    % write session associated with error
-    fprintf(fid,'%s\n', SessionFileName);
-
-    % date
-    fprintf(fid,'%s\n', num2str(session_date));
-
-    % matlab version    
-    fprintf(fid,'%s\n', BpodSystem.Data.MatVer);
-
-    % rig specs
-    fprintf(fid,'%s\n', 'Opto Rig - Behavior Room');
-
-    % write the error to file   
-    fprintf(fid,'%s\n',MatlabException.identifier);
-    fprintf(fid,'%s\n',MatlabException.message);
-    fprintf(fid,'%s\n',MatlabException.Correction);
-
-    % print stack
-    fprintf(fid, '%s', MatlabException.getReport('extended', 'hyperlinks','off'));
-
-    % close file
-    fclose(fid);
-
-    disp('Resetting encoder and maestro objects...');
-    BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
-    M = [];
-end    
