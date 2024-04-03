@@ -1,8 +1,10 @@
-function Joystick_V1
+function Joystick_V2_Opto
 try
     global BpodSystem
     global S
     global M
+    
+    EnableOpto         = 1;
     
     %% init encoder and maestro objects
     BpodSystem.PluginObjects.R = struct;
@@ -13,12 +15,16 @@ try
     m_Plotter = Plotter;
     m_InitGUI = InitGUI;
     m_TrialConfig = TrialConfig;
-    
+    m_Opto = OptoConfig(EnableOpto);
     
     %% Turn off Bpod LEDs
     
     % This code will disable the state machine status LED
     BpodSystem.setStatusLED(0);
+
+    % get matlab version
+    v_info = version;
+    BpodSystem.Data.MatVer = version;
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
@@ -45,6 +51,12 @@ try
     
     
     %% Define trials
+    BpodSystem.Data.OptoTrialTypes = [];    % store opto trial types as 1-off, 2-on (could later generate as arrays of 0 & 1)
+    BpodSystem.Data.OptoTag = [];    % store opto trial types as 1-off, 2-on
+
+    % initial opto trial type generate (random)
+    [OptoTrialTypes] = m_Opto.GenOptoTrials(BpodSystem, S);
+
     BpodSystem.Data.TrialTypes = []; % The trial type of each trial completed will be added here.
     MaxTrials = 1000;
     TrialTypes = [repmat(1, 1, MaxTrials)]; % default trial type array
@@ -107,11 +119,13 @@ try
     BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [918 808 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off'); 
     BpodSystem.GUIHandles.OutcomePlot = axes('Position', [.075 .35 .89 .55]);
     % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'init',(numTrialTypes+1)-TrialTypes);
-    TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'init',TrialTypes);
+    % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'init',TrialTypes);
+    TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
     % BpodSystem.ProtocolFigures.ParameterGUI.Scrollable
 
-    BpodSystem.ProtocolFigures.ParameterGUI.Position = [-1026 51 2324 980];
+    % BpodSystem.ProtocolFigures.ParameterGUI.Position = [-1026 51 2324 980];
+    BpodSystem.ProtocolFigures.ParameterGUI.Position = [9 53 1617 708];
      
     %% sequence tester
 
@@ -162,6 +176,9 @@ try
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0); % this will update the SideOutcomePlot to reflect the current trial type after accounting for any change due to anti-bias control 
     end
     
+    [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
+    m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+
     % store trial type params
     PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
     PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
@@ -175,7 +192,7 @@ try
     BpodSystem.GUIHandles.EncoderAxes = axes('Position', [.15 .15 .8 .8]);
     LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'init', S.GUI.Threshold);
 
-    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [13 56 1232 660]);
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 708]);
     
     %% state timing plot
     useStateTiming = true;  % Initialize state timing plot
@@ -364,6 +381,10 @@ try
     ExperimenterTrialInfo.TrialNumber = 0;
     ExperimenterTrialInfo.VisStimInterruptCount = 0;
     
+    % init auto press delay
+    PressVisDelay_s = S.GUI.AutoDelayStart_s;
+    NumDelaySteps = 0;
+
     %% Main trial loop
     
     for currentTrial = 1:MaxTrials
@@ -371,9 +392,16 @@ try
         ExperimenterTrialInfo.TrialNumber = currentTrial;   % check variable states as field/value struct for experimenter info
     
         %% sync trial-specific parameters from GUI
+        % S.GUI.NumDelaySteps = NumDelaySteps;
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
         S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin    
         
+        if S.GUI.SessionType == 2
+            m_Opto.EnableOpto = 0;
+        else
+            m_Opto.EnableOpto = 1;
+        end
+
         %% update trial type and sequencing
         % maybe move some of these into GenTrials function
         % update gentrials from opto updates
@@ -402,7 +430,7 @@ try
         end
 
         [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0);
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
 
 
         %% update grating and gray videos
@@ -464,7 +492,30 @@ try
             LastIncorrectSoundVolume = S.GUI.IncorrectSoundVolume_percent;
         end
             
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0); % this will update the SideOutcomePlot to reflect the current trial type after accounting for any change due to anti-bias control 
+
+        % update for opto interop
+        [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
+        if ~m_Opto.EnableOpto
+            OptoStateExpInfo = 'Control';
+            OptoTrialExpInfo = 'NA';
+        else
+            OptoStateExpInfo = 'Opto';
+            switch OptoTrialTypes(currentTrial)
+                case 1                    
+                    OptoTrialExpInfo = 'Opto Off';
+                case 2                    
+                    OptoTrialExpInfo = 'Opto On';
+            end
+        end
+
+        switch OptoTrialTypes(currentTrial)
+            case 1
+                BpodSystem.Data.OptoTag(currentTrial) = 0;
+            case 2
+                BpodSystem.Data.OptoTag(currentTrial) = 1;
+        end
+
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
     
         %% Construct trial-specific portion of video and add it to base video
                   
@@ -472,8 +523,8 @@ try
         %% video for joystick stim
         FullVideo = GratingVideo;
         FullVideoFrames = length(FullVideo);
-        VisStimDuration = GratingDur;
-        ExperimenterTrialInfo.VisStimDuration = VisStimDuration;
+        VisStim.VisStimDuration = GratingDur;
+        ExperimenterTrialInfo.VisStim.VisStimDuration = VisStim.VisStimDuration;
     
         % load constructed video into the video object
         BpodSystem.PluginObjects.V.Videos{5} = struct;
@@ -503,10 +554,17 @@ try
     
     
         %% trial specific audio-vis
-        visStim = {'SoftCode', 5};       
-        % audStim = {'HiFi1', ['P', 6], 'BNC1', 1};
-        audStim = {'HiFi1', ['P', 6]};
-    
+        VisDetectOutputAction = {'SoftCode', 5};       
+        audStimOpto = {'HiFi1', ['P', 6]};        % deprecated, use audStimOpto# for separate control of opto segments
+        % SCOA.AudStim     = m_Opto.GetAudStimOpto(OptoTrialTypes(currentTrial));
+
+        % reconsolidate how opto outputs are added to each variable based
+        % on params later (a bit chaotic from modifying 2AFC code)
+        audStimOpto1 = {'HiFi1', ['P', 6]};
+        audStimOpto2 = {'HiFi1', ['P', 6]};
+        audStimOpto1 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 1);
+        audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
+
         %% state matrix values
     
     
@@ -537,42 +595,53 @@ try
         RewardTime = CenterValveTime;
 
         %% get pre vis stim delay based on trial type gui params, also experimenter info previsdelay/trial type
-        PressVisDelay_s = -1; % set default, var should only be used when visually guided activated, so err log should indicate if weird state
-        switch S.GUI.SelfTimedMode
-            case 0 
-                ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
-                switch TrialTypes(currentTrial)
-                    case 1
-                        PressVisDelay_s = S.GUI.PressVisDelayShort_s;
-                        ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
-                    case 2
-                        PressVisDelay_s = S.GUI.PressVisDelayLong_s;
-                        ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
-                end
-                ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
-            case 1
-                ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
-                ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
-                ExperimenterTrialInfo.PressVisDelay_s = 'NA';
-                ExperimenterTrialInfo.PrePress2Delay_s = S.GUI.PrePress2Delay_s;                
-        end
+        % PressVisDelay_s = -1; % set default, var should only be used when visually guided activated, so err log should indicate if weird state
 
-        
+        % [PressVisDelay_s, ExperimenterTrialInfo]  = m_TrialConfig.GetPressVisDelay(BpodSystem, S, TrialTypes, currentTrial, PressVisDelay_s); % set default, var should only be used when visually guided activated, so err log should indicate if weird state
+        [PressVisDelay_s, NumDelaySteps, ExperimenterTrialInfo]  = m_TrialConfig.GetPressVisDelay(BpodSystem, S, TrialTypes, currentTrial, PressVisDelay_s, NumDelaySteps); % set default, var should only be used when visually guided activated, so err log should indicate if weird state
+        % switch S.GUI.SelfTimedMode
+        %     case 0 
+        %         ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
+        %         switch TrialTypes(currentTrial)
+        %             case 1
+        %                 PressVisDelay_s = S.GUI.PressVisDelayShort_s;
+        %                 ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+        %             case 2
+        %                 PressVisDelay_s = S.GUI.PressVisDelayLong_s;
+        %                 ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+        %         end
+        %         ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
+        %     case 1
+        %         PressVisDelay_s = S.GUI.PrePress2Delay_s;
+        %         ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
+        %         ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
+        %         ExperimenterTrialInfo.PressVisDelay_s = 'NA';
+        %         ExperimenterTrialInfo.PrePress2Delay_s = S.GUI.PrePress2Delay_s;
+        % 
+        % end     
+        disp(['PressVisDelay_s: ', num2str(PressVisDelay_s)]);
         
 
         %% update state-flow for number of reps
+        % SCOA.StimAct     = m_AVstimConfig.GetStimAct(S, m_Opto.EnableOpto);
+        % if m_Opto.EnableOpto
+        %         StimAct = [StimAct, {'GlobalTimerCancel', 1}];
+        % end
+
         LeverRetract1_StateChangeConditions = {};
         LeverRetract2_StateChangeConditions = {};
         LeverRetract3_StateChangeConditions = {};
     
-        VisualStimulus1_OutputActions = audStim;        
-        WaitForPress1_StateChangeConditions = {}; 
+        VisualStimulus1_OutputActions = audStimOpto1;        
+        WaitForPress1_StateChangeConditions = {};        
+        WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'], {'GlobalTimerCancel', 1}};
         Reward1_StateChangeConditions = {'Tup', 'PostReward1Delay'};
         PostReward1Delay_StateChangeConditions = {'Tup', 'LeverRetract1'};
         LeverRetract1_StateChangeConditions = {};
     
-        VisualStimulus2_OutputActions = [audStim 'SoftCode', 7,'RotaryEncoder1', ['E']];
+        VisualStimulus2_OutputActions = [audStimOpto2 'SoftCode', 7,'RotaryEncoder1', ['E']];
         WaitForPress2_StateChangeConditions = {};
+        WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'], {'GlobalTimerCancel', 1}};
         Reward2_StateChangeConditions = {};
         PostReward2Delay_StateChangeConditions = {'Tup', 'LeverRetract2'};
         LeverRetract2_StateChangeConditions = {};
@@ -588,6 +657,18 @@ try
 
         PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'WaitForPress2'};
     
+        if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
+            if S.GUI.OptoWaitForPress1 == 1
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 1];
+            end
+                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 1];
+                % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 1}];
+            if S.GUI.OptoWaitForPress2 == 1
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 1}];
+            end
+                Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 1}];
+        end
+
         switch S.GUI.Reps
             case 1           
                 WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'Reward'};                
@@ -692,8 +773,12 @@ try
                                       
         %% Split ITI into Pre-Vis Stim duration and end of trial duration.    
         PreVisStimITI = 0.200;
-        ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI; 
-        EndOfTrialITI = ITI-PreVisStimITI;
+        ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI;
+        if ITI-PreVisStimITI >= 0
+            EndOfTrialITI = ITI-PreVisStimITI;
+        else
+            EndOfTrialITI = 0;
+        end
         ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI; 
     
         %% Draw trial-specific and difficulty-defined TimeOutPunish from exponential distribution
@@ -752,7 +837,7 @@ try
                           
         %% After warmup trials, reset wait_dur: with every non early-choice trial, increase it by wait_dur_step
     
-        %[wait_dur] = m_TrialConfig.GetWaitDur(BpodSystem, S, wait_dur, currentTrial, LastNumEasyWarmupTrials, VisStimDuration);
+        %[wait_dur] = m_TrialConfig.GetWaitDur(BpodSystem, S, wait_dur, currentTrial, LastNumEasyWarmupTrials, VisStim.VisStimDuration);
         wait_dur = 0;
     
     
@@ -760,7 +845,11 @@ try
     
     
         %% add console print for experimenter trial information
-    
+        ExperimenterTrialInfo.SessionType = OptoStateExpInfo;
+        ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
+        ExperimenterTrialInfo.MatlabVer = BpodSystem.Data.MatVer;
+
+
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
         disp(strExperimenterTrialInfo);
     
@@ -770,6 +859,7 @@ try
         %% construct state matrix
     
         sma = NewStateMatrix(); % Assemble state matrix
+        sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
         % needs more conditions here when adding difficulty levels
         % sma = SetCondition(sma, 1, CorrectPort, 1); % Condition 1: Correct Port is high (licking)
         % sma = SetCondition(sma, 2, IncorrectPort, 1); % Condition 2: Incorrect Port is high (licking)
@@ -800,10 +890,10 @@ try
         sma = AddState(sma, 'Name', 'VisDetect1', ...
             'Timer', 0.100,...
             'StateChangeConditions', VisDetect1_StateChangeConditions,...
-            'OutputActions', visStim);
+            'OutputActions', VisDetectOutputAction);
     
         sma = AddState(sma, 'Name', 'VisualStimulus1', ...
-            'Timer', S.GUI.GratingDur_s,...
+            'Timer', VisStim.VisStimDuration,...
             'StateChangeConditions', VisualStimulus1_StateChangeConditions,...
             'OutputActions', VisualStimulus1_OutputActions);
     
@@ -815,7 +905,8 @@ try
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
             'Timer', PressWindow_s,...
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 7,'RotaryEncoder1', ['E']});
+            'OutputActions', WaitForPress1_OutputActions);
+            % 'OutputActions', {'SoftCode', 7,'RotaryEncoder1', ['E']});
     
         % sma = AddState(sma, 'Name', 'Reward1', ...
         %     'Timer', Reward1Time,...
@@ -846,17 +937,18 @@ try
         sma = AddState(sma, 'Name', 'VisDetect2', ...
             'Timer', 0.100,...
             'StateChangeConditions', VisDetect2_StateChangeConditions,...
-            'OutputActions', visStim);  % ~50ms
+            'OutputActions', VisDetectOutputAction);  % ~50ms
     
         sma = AddState(sma, 'Name', 'VisualStimulus2', ...
-            'Timer', S.GUI.GratingDur_s,...
+            'Timer', VisStim.VisStimDuration,...
             'StateChangeConditions', {'Tup', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'},...
             'OutputActions', VisualStimulus2_OutputActions);
    
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', PressWindow_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 7,'RotaryEncoder1', ['E']});  
+            'OutputActions', WaitForPress2_OutputActions);  
+            % 'OutputActions', {'SoftCode', 7,'RotaryEncoder1', ['E']});  
     
         sma = AddState(sma, 'Name', 'Reward2', ...
             'Timer', Reward2Time,...
@@ -878,12 +970,12 @@ try
         sma = AddState(sma, 'Name', 'VisDetect3', ...
             'Timer', 0.100,...
             'StateChangeConditions', VisDetect3_StateChangeConditions,...
-            'OutputActions', visStim);
+            'OutputActions', VisDetectOutputAction);
     
         sma = AddState(sma, 'Name', 'VisualStimulus3', ...
-            'Timer', S.GUI.GratingDur_s,...
+            'Timer', VisStim.VisStimDuration,...
             'StateChangeConditions', {'Tup', 'WaitForPress3'},...
-            'OutputActions', audStim);
+            'OutputActions', audStimOpto);
     
         sma = AddState(sma, 'Name', 'WaitForPress3', ...
             'Timer', PressWindow_s,...
@@ -968,7 +1060,7 @@ try
             BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Computes trial events from raw data
             BpodSystem.Data.TrialSettings(currentTrial) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
             BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial); % Adds the trial type of the current trial to data
-            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 1);
+            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 1);
             if useStateTiming
                 StateTiming();
             end

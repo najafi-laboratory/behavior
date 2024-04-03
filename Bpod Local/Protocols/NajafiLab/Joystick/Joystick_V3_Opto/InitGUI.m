@@ -8,6 +8,7 @@ function [S] = SetParams(obj, BpodSystem)
     if isempty(fieldnames(S))  % If settings file was an empty struct, populate struct with default settings
         S.GUI.currentTrial = 0;
         
+        % joystick params
         S.GUI.Threshold = 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
         S.GUI.PressWindow_s = 1.8; % how long mouse has to press lever
         S.GUI.PressWindowExtend_s = 1; % additional time added for warmup trials
@@ -32,11 +33,19 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.VisStim2Enable.Style = 'checkbox';
         % S.GUI.PressVisDelay_s = 2;
         S.GUI.PressVisDelayShort_s = 0;
-        S.GUI.PressVisDelayLong_s = 0.500;
+        S.GUI.PressVisDelayLong_s = 0.200;
         S.GUI.EarlyPressThreshold = 1;
         S.GUI.SelfTimedMode = 0;
         S.GUIMeta.SelfTimedMode.Style = 'checkbox';
         S.GUI.PrePress2Delay_s = 0.200;
+        S.GUI.EnableAutoLongDelay = 1;
+        S.GUIMeta.EnableAutoLongDelay.Style = 'checkbox';        
+        S.GUI.AutoDelayStart_s = 0.015;
+        S.GUI.AutoDelayStep_s = 0.004;
+        S.GUI.NumDelaySteps = 0;
+        S.GUI.AutoDelayMax_s = 0.500;
+        S.GUI.ResetAutoDelay = 0;
+        S.GUIMeta.ResetAutoDelay.Style = 'checkbox';        
         S.GUI.EnableManualTrialType = 0;
         S.GUIMeta.EnableManualTrialType.Style = 'checkbox';
         S.GUI.ManualTrialType = 1;
@@ -47,7 +56,31 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.TrialTypeSequence.String = {'Random', 'Random First Block', 'Short First Block', 'Long First Block'};
         S.GUI.NumTrialsPerBlock = 50;        
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'PostRewardDelay_s', 'ServoInPos', 'ServoOutPos', 'Reward_Rep', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
-        S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
+        S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoLongDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'NumDelaySteps', 'AutoDelayMax_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
+
+        % Optogentic params
+        S.GUI.SessionType = 2;
+        S.GUIMeta.SessionType.Style = 'popupmenu';
+        S.GUIMeta.SessionType.String = {'Opto', 'Control'};
+        S.GUI.PulseType = 1;
+        S.GUIMeta.PulseType.Style = 'popupmenu';
+        S.GUIMeta.PulseType.String = {'On', 'Square', 'Sinusoidal'};
+        S.GUI.PulseFreq_Hz = 50;
+        S.GUI.PulseOnDur_ms = 5;
+        S.GUI.OptoVis1 = 1;
+        S.GUIMeta.OptoVis1.Style = 'checkbox';
+        S.GUI.OptoWaitForPress1 = 1;
+        S.GUIMeta.OptoWaitForPress1.Style = 'checkbox';
+        S.GUI.OptoVis2 = 1;
+        S.GUIMeta.OptoVis2.Style = 'checkbox';
+        S.GUI.OptoWaitForPress2 = 1;
+        S.GUIMeta.OptoWaitForPress2.Style = 'checkbox';
+        S.GUI.OptoTrialTypeSeq = 1;
+        S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
+        S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
+        S.GUI.OnFraction = 0.5;
+        S.GUI.NumOptoTrialsPerBlock = 50;          
+        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'PulseFreq_Hz', 'PulseOnDur_ms', 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
         % reward
         S.GUI.Reward_Rep = 0; % reward after each press rep?
@@ -80,6 +113,7 @@ function [S] = SetParams(obj, BpodSystem)
         % init cue params
               
         % training level params
+        S.GUI.MaxTrials = 1000;
         S.GUI.TrainingLevel = 5;
         S.GUIMeta.TrainingLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.TrainingLevel.String = {'Habituation', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
@@ -87,7 +121,7 @@ function [S] = SetParams(obj, BpodSystem)
         % S.GUI.WaitDurOrig_s = 0.0; % gui shows PrePertubDur as the default value for wait_dur_orig, because if mouse side licks before this time, it must be all chance, so we want wait_dur to be at least PrePerturbDur
         % S.GUI.WaitDurStep_s = 0.01; % per non early-choice trial, add this much to the original waitDur (ie the dur during the vis stim that the mouse is not allowed to sidelick)
         %S.GUIPanels.Training = {'TrainingLevel', 'NumEasyWarmupTrials', 'WaitDurOrig_s', 'WaitDurStep_s'};
-        S.GUIPanels.Training = {'TrainingLevel', 'NumEasyWarmupTrials'};
+        S.GUIPanels.Training = {'MaxTrials', 'TrainingLevel', 'NumEasyWarmupTrials'};
     
         % difficulty params       
     
