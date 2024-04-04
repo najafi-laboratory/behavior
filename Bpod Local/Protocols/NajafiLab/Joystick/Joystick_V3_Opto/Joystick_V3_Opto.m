@@ -233,7 +233,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 1;
+    MonitorID = 2;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
@@ -634,16 +634,21 @@ try
     
         VisualStimulus1_OutputActions = audStimOpto1;        
         WaitForPress1_StateChangeConditions = {};        
-        WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'], {'GlobalTimerCancel', 1}};
+        WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
+        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'], 'GlobalTimerCancel', 1};
+        LeverRetract1_OutputActions = {'SoftCode', 8};
         Reward1_StateChangeConditions = {'Tup', 'PostReward1Delay'};
         PostReward1Delay_StateChangeConditions = {'Tup', 'LeverRetract1'};
+        DidNotPress1_OutputActions = {'SoftCode', 8};
         LeverRetract1_StateChangeConditions = {};
     
         VisualStimulus2_OutputActions = [audStimOpto2 'SoftCode', 7,'RotaryEncoder1', ['E']];
         WaitForPress2_StateChangeConditions = {};
-        WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'], {'GlobalTimerCancel', 1}};
+        WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
+        % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'], 'GlobalTimerCancel', 1};
         Reward2_StateChangeConditions = {};
         PostReward2Delay_StateChangeConditions = {'Tup', 'LeverRetract2'};
+        DidNotPress2_OutputActions = {'SoftCode', 8};
         LeverRetract2_StateChangeConditions = {};
     
         WaitForPress3_StateChangeConditions = {};
@@ -657,16 +662,44 @@ try
 
         PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'WaitForPress2'};
     
+        % GetAudStimOpto create separate function to abstract global timer
+        % trig/cancel out of audStimOpto function (should only be for adding AV stim, do opto separate)
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
-            if S.GUI.OptoWaitForPress1 == 1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 1];
+            if S.GUI.OptoVis1
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', 1}];
             end
-                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 1];
+
+            if S.GUI.OptoWaitForPress1
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', 2}];
+                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', 2}];
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', 2}];
+                % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 2}];
+            end
+
+            if S.GUI.OptoVis2
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 3}];
+                % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 3}];
+            end
+
+            if S.GUI.OptoWaitForPress2
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', 4}];
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', 4}];
                 % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 1}];
-            if S.GUI.OptoWaitForPress2 == 1
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 1}];
             end
-                Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 1}];
+
+
+            % if S.GUI.OptoWaitForPress1
+            %     % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', 2}];
+            % end
+            %     % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 1];
+            %     % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 1}];
+            % if S.GUI.OptoWaitForPress2
+            %     % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 1}];
+            % end
+            %     % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 1}];
+                % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 1, 'GlobalTimerCancel', 2, 'GlobalTimerCancel', 3, 'GlobalTimerCancel', 4}];
+                % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimer1_End', 'GlobalTimer2_End', 'GlobalTimer3_End', 'GlobalTimer4_End'}];                
+                Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '1111'}];
         end
 
         switch S.GUI.Reps
@@ -849,12 +882,8 @@ try
         ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
         ExperimenterTrialInfo.MatlabVer = BpodSystem.Data.MatVer;
 
-
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
-        disp(strExperimenterTrialInfo);
-    
-    
-    
+        disp(strExperimenterTrialInfo);          
     
         %% construct state matrix
     
@@ -921,7 +950,8 @@ try
         sma = AddState(sma, 'Name', 'LeverRetract1', ...
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
-            'OutputActions', {'SoftCode', 8}); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
+            'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
+            % 'OutputActions', {'SoftCode', 8}); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
        
         sma = AddState(sma, 'Name', 'PreVis2Delay', ...
             'Timer', PressVisDelay_s,...
@@ -1021,12 +1051,12 @@ try
         sma = AddState(sma, 'Name', 'DidNotPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', {'SoftCode', 8});
+            'OutputActions', DidNotPress1_OutputActions);
         
         sma = AddState(sma, 'Name', 'DidNotPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', {'SoftCode', 8});
+            'OutputActions', DidNotPress2_OutputActions);
     
         sma = AddState(sma, 'Name', 'DidNotPress3', ...
             'Timer', 0,...

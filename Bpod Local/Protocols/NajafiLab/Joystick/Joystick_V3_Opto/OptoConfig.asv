@@ -96,14 +96,26 @@ classdef OptoConfig
             end
         end
 
-        function [AudStimOpto] = GetAudStimOpto(obj, S, OptoTrialType, '')
+        function [AudStimOpto] = GetAudStimOpto(obj, S, OptoTrialType, Vis1Vis2)
             switch obj.EnableOpto
                 case 0
                     AudStimOpto = {'HiFi1', ['P', 6]};
                 case 1
                     if OptoTrialType == 2
-                        S.GUI.OptoVis1 == 1)
-                        AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', 1};
+                        switch Vis1Vis2
+                            case 1
+                                if S.GUI.OptoVis1 == 1
+                                    AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', 1};
+                                else
+                                    AudStimOpto = {'HiFi1', ['P', 6]};
+                                end
+                            case 2
+                                if S.GUI.OptoVis2 == 1
+                                    AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', 1};
+                                else
+                                    AudStimOpto = {'HiFi1', ['P', 6]};
+                                end
+                        end
                     else
                         AudStimOpto = {'HiFi1', ['P', 6]};
                     end
@@ -129,10 +141,21 @@ classdef OptoConfig
                 %     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                 %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', VisStim.Grating.Dur,...
                 %     'GlobalTimerEvents', 0, 'OffsetValue', 0);
-                sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', Duration, 'OnsetDelay', 0,...
-                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                    'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
-                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                
+                % 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2'
+                S.GUI.OptoVis1
+                S.GUI.OptoWaitForPress1
+                S.GUI.OptoVis2
+                S.GUI.OptoWaitForPress2
+
+                if S.GUI.OptoVis1
+                    sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', Duration, 'OnsetDelay', 0,...
+                        'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                        'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
+                        'GlobalTimerEvents', 0, 'OffsetValue', 0);                
+                end
+
+
+                
             end
         end
     end

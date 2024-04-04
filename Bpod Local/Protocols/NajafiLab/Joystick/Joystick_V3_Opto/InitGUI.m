@@ -20,7 +20,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ResistanceLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.ResistanceLevel.String = {'0 mA', '30 mA', '91 mA', '122 mA', '152 mA', '183 mA', '214 mA', '244 mA', '900 mA'};
         % S.GUI.PostRewardDelay_s = 0.500; % post reward delay prior to lever return        
-        S.GUI.ServoInPos = 1546.00; % lever start pos
+        S.GUI.ServoInPos = 1502.00; % lever start pos
         S.GUI.ServoOutPos = 24; % can press lever
         S.GUI.RetractThreshold = 0.5;
         % S.GUI.Reward_Rep = 0; % reward after each press rep?
@@ -59,7 +59,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoLongDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'NumDelaySteps', 'AutoDelayMax_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
 
         % Optogentic params
-        S.GUI.SessionType = 2;
+        S.GUI.SessionType = 1;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 1;
@@ -78,7 +78,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoTrialTypeSeq = 1;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
-        S.GUI.OnFraction = 0.5;
+        S.GUI.OnFraction = 0.9;
         S.GUI.NumOptoTrialsPerBlock = 50;          
         S.GUIPanels.Opto = {'SessionType', 'PulseType', 'PulseFreq_Hz', 'PulseOnDur_ms', 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
@@ -137,7 +137,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.VisStimEnable = 1;
         S.GUIMeta.VisStimEnable.Style = 'checkbox';
         S.GUI.GratingDur_s = 0.1; % Duration of grating stimulus in seconds - UPDATE
+        S.GUI.GratingDur_s = 1; % Duration of grating stimulus in seconds - UPDATE
         S.GUI.ISIOrig_s = 0.5; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
+        S.GUI.ISIOrig_s = 1; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
         % S.GUI.NumISIOrigRep = 2; % number of grating/gray repetitions for vis stim first segment prior to perturbation
         % S.GUI.ExtraStimDurPostRew_Naive_s = 5; % naive mouse sees stimulus for this time (sec) after correct lick    
         % S.GUI.PostPerturbDurMultiplier = 2; % scaling factor for post perturbation stimulus (postperturb = preperturb * PostPerturbDurMultiplier)    
