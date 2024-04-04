@@ -484,15 +484,20 @@ function [PressVisDelay_s, NumDelaySteps, ExperimenterTrialInfo] = GetPressVisDe
         % S.GUI.PressVisDelayLong_s = PressVisDelay_s;
         % S.GUI.PrePress2Delay_s = PressVisDelay_s;
     end
-    if S.GUI.EnableAutoLongDelay
+    if S.GUI.EnableAutoLongDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
         % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + S.GUI.NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMax_s);
-        PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMax_s);
+        % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMax_s);
         % S.GUI.NumDelaySteps = S.GUI.NumDelaySteps + 1;
-        S.GUI.PressVisDelayLong_s = PressVisDelay_s;
-        S.GUI.PrePress2Delay_s = PressVisDelay_s;
         if S.GUI.SelfTimedMode == 1
+            PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStepSelf_s, S.GUI.AutoDelayMaxSelf_s);            
+            S.GUI.PrePress2Delay_s = PressVisDelay_s;
             ExperimenterTrialInfo.PrePress2Delay_s = S.GUI.PrePress2Delay_s;
+        else
+            PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStepVis_s, S.GUI.AutoDelayMaxVis_s);
+            S.GUI.PressVisDelayLong_s = PressVisDelay_s;
         end
+        % S.GUI.PressVisDelayLong_s = PressVisDelay_s;
+        % S.GUI.PrePress2Delay_s = PressVisDelay_s;        
     end    
     if (S.GUI.ResetAutoDelay == 1)
         PressVisDelay_s = S.GUI.AutoDelayStart_s;
