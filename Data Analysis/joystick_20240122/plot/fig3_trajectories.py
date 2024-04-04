@@ -29,10 +29,11 @@ def save_image(filename):
 
 def plot_fig3(
         session_data,
-        max_sessions=10
+        online_dir,
+        local_dir
         ):
     
-
+    max_sessions=10,
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']

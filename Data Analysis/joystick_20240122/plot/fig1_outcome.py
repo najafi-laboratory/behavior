@@ -44,9 +44,12 @@ def count_label(session_label, states, norm=True):
 
 
 def plot_fig1(
-        session_data,
-        max_sessions=25
+        session_data,        
+        online_dir,
+        local_dir
         ):
+    
+    max_sessions=25
     fig, axs = plt.subplots(1, figsize=(10, 4))
     plt.subplots_adjust(hspace=0.7)
     subject = session_data['subject']
@@ -162,7 +165,7 @@ def plot_fig1(
     # os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
     # fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
     # fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
-    output_figs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/' +subject+'\\'
+    output_figs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/' +subject+'\\'
     # output_imgs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + 'outcome_imgs\\'
     output_imgs_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Joystick/'+subject+'\\' + 'outcome_imgs\\'
     os.makedirs(output_figs_dir, exist_ok = True)

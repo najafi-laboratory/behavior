@@ -26,7 +26,7 @@ from plot.fig4_trajectory_avg_sess_superimpose import plot_fig4
 if __name__ == "__main__":
 
     
-    extract_data = 1
+    extract_data = 0
     run_plots = 1
     
     if extract_data:
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         window.wm_attributes('-topmost', 1)
         window.withdraw()   # this supress the tk window
         
-        session_data_path = 'C:\\behavior\\session_data'
+        session_data_path = 'C:\behavior\session_data'
         file_paths_1 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH4', title='Select YH4 Sessions'))
         file_paths_2 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\YH5', title='Select YH5 Sessions'))
         file_paths_3 = list(filedialog.askopenfilenames(parent=window, initialdir=session_data_path+'\\FN10', title='Select FN10 Sessions'))
@@ -47,10 +47,14 @@ if __name__ == "__main__":
         session_data_3 = DataIO.read_trials('FN10', file_paths_3)
         session_data_4 = DataIO.read_trials('FN13', file_paths_4)
         session_data_5 = DataIO.read_trials('FN16', file_paths_5)
-        session_data_6 = DataIO.read_trials('FN17', file_paths_6)
+        session_data_6 = DataIO.read_trials('FN17', file_paths_6)        
     
 
     if run_plots:
+        online_dir = 'C:/Users/gtg424h/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/'
+        local_dir = 'C:/data analysis/behavior/joystick/figures/'
+        
+        
         for plotter in [
                 plot_fig1,
                 plot_fig2,

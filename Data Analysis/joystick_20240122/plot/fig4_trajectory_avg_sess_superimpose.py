@@ -38,7 +38,9 @@ def save_image(filename):
 #         ):
     
 def plot_fig4(
-        session_data
+        session_data,
+        online_dir,
+        local_dir
         ):    
     
     
