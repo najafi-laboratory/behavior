@@ -84,14 +84,7 @@ def read_trials(subject, file_names):
     session_encoder_positions_aligned_vis2 = []
     session_encoder_positions_aligned_rew = []
     session_rewarded_trials = []
-        
-    session_encoder_positions_avg_vis1_short_rew = []
-    session_encoder_positions_avg_vis1_long_rew = []    
-    session_encoder_positions_avg_vis2_short_rew = []
-    session_encoder_positions_avg_vis2_long_rew = []    
-    session_encoder_positions_avg_rew_short = []
-    session_encoder_positions_avg_rew_long = []
-        
+    
     # deprecated, these were static when we were using same settings for all sessions/trials
     # session_press_reps = 0
     # session_press_window = 0
@@ -109,10 +102,6 @@ def read_trials(subject, file_names):
     session_isShortDelay = []
     
     session_press_delay = []
-    
-    session_press_delay_avg = []
-    session_press_delay_short_avg = []
-    session_press_delay_long_avg = []
     
     # session_encoder_positions_avg = []
     session_encoder_positions_avg_vis1 = []
@@ -151,20 +140,6 @@ def read_trials(subject, file_names):
         trial_encoder_positions_aligned = []
         trial_encoder_positions_aligned_vis1 = []
         trial_encoder_positions_aligned_vis1_rew = []
-        
-        trial_encoder_positions_aligned_vis1_short = []
-        trial_encoder_positions_aligned_vis1_rew_short = []
-        trial_encoder_positions_aligned_vis1_long = []
-        trial_encoder_positions_aligned_vis1_rew_long = []
-        
-        trial_encoder_positions_aligned_vis2_short = []
-        trial_encoder_positions_aligned_vis2_long = []      
-        trial_encoder_positions_aligned_vis2_rew_short = []
-        trial_encoder_positions_aligned_vis2_rew_long = []
-                
-        trial_encoder_positions_aligned_rew_short = []
-        trial_encoder_positions_aligned_rew_long = []                
-        
         trial_encoder_times_aligned_vis1 = []
         trial_encoder_positions_aligned_vis2 = []
         trial_encoder_positions_aligned_vis2_rew = []
@@ -179,8 +154,6 @@ def read_trials(subject, file_names):
         trial_isShortDelay = []
         
         trial_press_delay = []
-        trial_press_delay_short = []
-        trial_press_delay_long = []
         
         trial_press_reps = []
         trial_press_window = []
@@ -205,7 +178,7 @@ def read_trials(subject, file_names):
         #     trial_states = raw_data['RawEvents']['Trial'][i]['States']    
         
         for i in range(nTrials):
-        # for i in range(0, 100):
+        # for i in range(119, 123):
             # handle key error if only one trial in a session
             if nTrials > 1:
                 trial_states = raw_data['RawEvents']['Trial'][i]['States']
@@ -246,13 +219,10 @@ def read_trials(subject, file_names):
             else:
                 if isShortDelay:
                     press_delay = trial_GUI_Params['PressVisDelayShort_s']
-                    trial_press_delay_short.append(press_delay)
                 else:
                     press_delay = trial_GUI_Params['PressVisDelayLong_s']
-                    trial_press_delay_long.append(press_delay)
                     
             trial_press_delay.append(press_delay)
-                        
         
             # press reps 
             press_reps = trial_GUI_Params['Reps']
@@ -327,24 +297,8 @@ def read_trials(subject, file_names):
                 trial_encoder_positions_aligned_VisStim1 = encoder_data_aligned[left_idx_VisStim1:right_idx_VisStim1]
             
             trial_encoder_positions_aligned_vis1.append(trial_encoder_positions_aligned_VisStim1)
-            
-            # get separate short and long delay avgs
-            if not isSelfTimedMode:
-                if isShortDelay:
-                    trial_encoder_positions_aligned_vis1_short.append(trial_encoder_positions_aligned_VisStim1)
-                else:               
-                    # print("long delay trial", i)
-                    trial_encoder_positions_aligned_vis1_long.append(trial_encoder_positions_aligned_VisStim1)
-            
             if outcome == 'Reward':
                 trial_encoder_positions_aligned_vis1_rew.append(trial_encoder_positions_aligned_VisStim1)
-                # get separate short and long delay avgs - rewarded
-                if not isSelfTimedMode:
-                    if isShortDelay:
-                        trial_encoder_positions_aligned_vis1_rew_short.append(trial_encoder_positions_aligned_VisStim1)
-                    else:                    
-                        trial_encoder_positions_aligned_vis1_rew_long.append(trial_encoder_positions_aligned_VisStim1)            
-            
             
             # plt.plot(trial_encoder_times_aligned_VisStim1, trial_encoder_positions_aligned_VisStim1)
             # plt.plot(session_encoder_times_aligned_VisStim1, trial_encoder_positions_aligned_VisStim1)
@@ -392,43 +346,16 @@ def read_trials(subject, file_names):
                     trial_encoder_positions_aligned_VisStim2 = encoder_data_aligned[left_idx_VisStim2:right_idx_VisStim2]
                 
                 trial_encoder_positions_aligned_vis2.append(trial_encoder_positions_aligned_VisStim2)
-                
-                if not isSelfTimedMode:
-                    if isShortDelay:
-                        trial_encoder_positions_aligned_vis2_short.append(trial_encoder_positions_aligned_VisStim2)
-                    else:
-                        trial_encoder_positions_aligned_vis2_long.append(trial_encoder_positions_aligned_VisStim2)
-                
                 if outcome == 'Reward':
-                    trial_encoder_positions_aligned_vis2_rew.append(trial_encoder_positions_aligned_VisStim2)
-                    
-                    if not isSelfTimedMode:
-                        if isShortDelay:
-                            trial_encoder_positions_aligned_vis2_rew_short.append(trial_encoder_positions_aligned_VisStim2)
-                        else:
-                            trial_encoder_positions_aligned_vis2_rew_long.append(trial_encoder_positions_aligned_VisStim2)
+                    trial_encoder_positions_aligned_vis2_rew.append(trial_encoder_positions_aligned_VisStim2)    
             else:
                 trial_encoder_positions_aligned_VisStim2 = np.zeros(session_encoder_times_aligned_VisStim2.size)
                 trial_encoder_positions_aligned_VisStim2[:] = np.nan
                 trial_encoder_positions_aligned_vis2.append(trial_encoder_positions_aligned_VisStim2)
-               
-                if not isSelfTimedMode:
-                    if isShortDelay:
-                        trial_encoder_positions_aligned_vis2_short.append(trial_encoder_positions_aligned_VisStim2)
-                    else:
-                        trial_encoder_positions_aligned_vis2_long.append(trial_encoder_positions_aligned_VisStim2)
-                
                 if outcome == 'Reward':
                     trial_encoder_positions_aligned_vis2_rew.append(trial_encoder_positions_aligned_VisStim2)  
-                   
-                    if not isSelfTimedMode:
-                        if isShortDelay:
-                            trial_encoder_positions_aligned_vis2_rew_short.append(trial_encoder_positions_aligned_VisStim2)
-                        else:
-                            trial_encoder_positions_aligned_vis2_rew_long.append(trial_encoder_positions_aligned_VisStim2)
+
                 
-
-
                 # print(i)
                 # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
                 #plt.plot(session_encoder_times_aligned_VisStim2, trial_encoder_positions_aligned_VisStim2)
@@ -465,19 +392,10 @@ def read_trials(subject, file_names):
                 #     print()
                 trial_encoder_positions_aligned_rew.append(trial_encoder_positions_aligned_Reward)
                 
-                if not isSelfTimedMode:
-                    if isShortDelay:
-                        trial_encoder_positions_aligned_rew_short.append(trial_encoder_positions_aligned_Reward)
-                    else:
-                        trial_encoder_positions_aligned_rew_long.append(trial_encoder_positions_aligned_Reward)
-                
                 
                 # index of rewarded trials
                 trial_num_rewarded.append(i)
-            
-                
-            # e
-            
+                      
             
             # plt.plot(session_encoder_times_aligned[0:5000], encoder_data_aligned[0:5000])
             #plt.plot(session_encoder_times_aligned_Reward, trial_encoder_positions_aligned_Reward)
@@ -492,20 +410,7 @@ def read_trials(subject, file_names):
            
         # vis 1 session average - rewarded
         pos_vis1 = np.sum(trial_encoder_positions_aligned_vis1_rew[0:], axis=0)        
-        sess_enc_avg_vis1 = pos_vis1/len(trial_num_rewarded)
-        
-        sess_enc_avg_vis1_short_rew = 0
-        sess_enc_avg_vis1_long_rew = 0
-        if not isSelfTimedMode:
-            # if isShortDelay:
-                # vis 1 session average - short - rewarded
-                pos_vis1_short_rew = np.sum(trial_encoder_positions_aligned_vis1_rew_short[0:], axis=0)        
-                sess_enc_avg_vis1_short_rew = pos_vis1_short_rew/len(trial_encoder_positions_aligned_vis1_rew_short[0:])
-            # else:        
-                # vis 1 session average - long - rewarded
-                print('len(trial_encoder_positions_aligned_vis1_rew_long)', len(trial_encoder_positions_aligned_vis1_rew_long))
-                pos_vis1_long_rew = np.sum(trial_encoder_positions_aligned_vis1_rew_long[0:], axis=0)        
-                sess_enc_avg_vis1_long_rew = pos_vis1_long_rew/len(trial_encoder_positions_aligned_vis1_rew_long[0:])
+        sess_enc_avg_vis1 = pos_vis1/len(trial_num_rewarded)        
         
         if 0:        
             for i in range(len(trial_encoder_positions_aligned[0:4])):
@@ -518,20 +423,6 @@ def read_trials(subject, file_names):
         # encoder trajectory average across session for rewarded trials, vis stim 2 aligned
         pos_vis2 = np.sum(trial_encoder_positions_aligned_vis2_rew, axis=0)        
         sess_enc_avg_vis2 = pos_vis2/len(trial_num_rewarded)
-        
-        
-        
-        sess_enc_avg_vis2_short_rew = 0
-        sess_enc_avg_vis2_long_rew = 0
-        if not isSelfTimedMode:
-            # if isShortDelay:
-                # vis 2 session average - short - rewarded
-                pos_vis2_short_rew = np.sum(trial_encoder_positions_aligned_vis2_rew_short[0:], axis=0)        
-                sess_enc_avg_vis2_short_rew = pos_vis2_short_rew/len(trial_encoder_positions_aligned_vis2_rew_short[0:]) 
-            # else:
-                # vis 2 session average - long - rewarded
-                pos_vis2_long_rew = np.sum(trial_encoder_positions_aligned_vis2_rew_long[0:], axis=0)        
-                sess_enc_avg_vis2_long_rew = pos_vis2_long_rew/len(trial_encoder_positions_aligned_vis2_rew_long[0:])         
         
         if 0:
             plt.plot(session_encoder_times_aligned_VisStim2, sess_enc_avg_vis2)
@@ -554,19 +445,6 @@ def read_trials(subject, file_names):
         pos_rew = np.sum(trial_encoder_positions_aligned_rew, axis=0)
         sess_enc_avg_rew = pos_rew/len(trial_num_rewarded)
         
-        
-        sess_enc_avg_rew_short = 0
-        sess_enc_avg_rew_long = 0
-        if not isSelfTimedMode:
-            # if isShortDelay:
-                # rew session average - short
-                pos_rew_short = np.sum(trial_encoder_positions_aligned_rew_short[0:], axis=0)        
-                sess_enc_avg_rew_short = pos_rew_short/len(trial_encoder_positions_aligned_rew_short[0:]) 
-            # else:
-                # rew session average - long
-                pos_rew_long = np.sum(trial_encoder_positions_aligned_rew_long[0:], axis=0)        
-                sess_enc_avg_rew_long = pos_vis2_long_rew/len(trial_encoder_positions_aligned_rew_long[0:])         
-        
         if 0:
             for i in range(len(trial_encoder_positions_aligned[0:4])):
                 plt.plot(session_encoder_times_aligned_Reward,trial_encoder_positions_aligned_rew[i], label=i)
@@ -574,24 +452,6 @@ def read_trials(subject, file_names):
             
             
             plt.plot(session_encoder_times_aligned_Reward, sess_enc_avg_rew)
-        
-        
-        # press delay averages
-        sess_press_delay_avg = np.sum(trial_press_delay, axis=0)/len(trial_press_delay)
-        
-        
-        if len(trial_press_delay_short) > 0:
-            sess_press_delay_short_avg = np.sum(trial_press_delay_short , axis=0)/len(trial_press_delay_short)
-        else:
-            sess_press_delay_short_avg = 0
-        
-        if len(trial_press_delay_long) > 0:
-            sess_press_delay_long_avg = np.sum(trial_press_delay_long , axis=0)/len(trial_press_delay_long)
-        else:
-            sess_press_delay_long_avg = 0
-        
-        
-        
         
         session_target_thresh.append(trial_target_thresh)
         # session_press_reps = trial_reps
@@ -607,29 +467,6 @@ def read_trials(subject, file_names):
         session_encoder_positions_avg_vis1.append(sess_enc_avg_vis1)
         session_encoder_positions_avg_vis2.append(sess_enc_avg_vis2)
         session_encoder_positions_avg_rew.append(sess_enc_avg_rew)
-        
-        session_encoder_positions_avg_vis1_short_rew.append(sess_enc_avg_vis1_short_rew)
-        session_encoder_positions_avg_vis1_long_rew.append(sess_enc_avg_vis1_long_rew)
-        
-        session_encoder_positions_avg_vis2_short_rew.append(sess_enc_avg_vis2_short_rew)
-        session_encoder_positions_avg_vis2_long_rew.append(sess_enc_avg_vis2_long_rew)
-        
-        session_encoder_positions_avg_rew_short.append(sess_enc_avg_rew_short)
-        session_encoder_positions_avg_rew_long.append(sess_enc_avg_rew_long)
-        
-        session_press_delay.append(trial_press_delay)
-        
-        session_press_delay_avg.append(sess_press_delay_avg)
-        session_press_delay_short_avg.append(sess_press_delay_short_avg)
-        session_press_delay_long_avg.append(sess_press_delay_long_avg)        
-        # sess_enc_avg_vis1_short_rew = 0
-        # sess_enc_avg_vis1_long_rew = 0
-        
-        # sess_enc_avg_vis2_short_rew = 0
-        # sess_enc_avg_vis2_long_rew = 0
-        
-        # sess_enc_avg_rew_short = 0
-        # sess_enc_avg_rew_long = 0
         
         # session_encoder_positions_avg.append(sess_enc_avg)
         session_choice.append(trial_choice)
@@ -684,17 +521,7 @@ def read_trials(subject, file_names):
         'vis_stim_2_enable' : VisStim2Enable,
         'encoder_pos_avg_vis1' : session_encoder_positions_avg_vis1,        
         'encoder_pos_avg_vis2' : session_encoder_positions_avg_vis2,        
-        'encoder_pos_avg_rew' : session_encoder_positions_avg_rew,         
-        'encoder_pos_avg_vis1_short' : session_encoder_positions_avg_vis1_short_rew,
-        'encoder_pos_avg_vis1_long' : session_encoder_positions_avg_vis1_long_rew,        
-        'encoder_pos_avg_vis2_short' : session_encoder_positions_avg_vis2_short_rew,
-        'encoder_pos_avg_vis2_long' : session_encoder_positions_avg_vis2_long_rew,        
-        'encoder_pos_avg_rew_short' : session_encoder_positions_avg_rew_short,
-        'encoder_pos_avg_rew_long' : session_encoder_positions_avg_rew_long,
-        'session_press_delay' : session_press_delay,
-        'session_press_delay_avg' : session_press_delay_avg,
-        'session_press_delay_short_avg' : session_press_delay_short_avg,
-        'session_press_delay_long_avg' : session_press_delay_long_avg,
+        'encoder_pos_avg_rew' : session_encoder_positions_avg_rew, 
         'com' : session_com,
         'post_lick' : session_post_lick,
         'isi' : session_isi,
