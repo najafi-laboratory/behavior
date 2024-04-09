@@ -205,7 +205,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 1;
+    MonitorID = 2;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
@@ -543,7 +543,6 @@ try
         PostReward1Delay_StateChangeConditions = {'Tup', 'LeverRetract1'};
         LeverRetract1_StateChangeConditions = {};
     
-        VisualStimulus2_OutputActions = [audStim 'SoftCode', 7,'RotaryEncoder1', ['E']];
         WaitForPress2_StateChangeConditions = {};
         Reward2_StateChangeConditions = {};
         PostReward2Delay_StateChangeConditions = {'Tup', 'LeverRetract2'};
@@ -679,8 +678,7 @@ try
             PressWindow_s = S.GUI.PressWindow_s + S.GUI.PressWindowExtend_s;
             
             TrialDifficulty = 1;  % set warmup trial to easy     
-        else
-            TrialDifficulty = 1;
+        else                
             ExperimenterTrialInfo.Warmup = false;   % capture variable states as field/value struct for experimenter info
             ExperimenterTrialInfo.WarmupTrialsRemaining = 0;   % capture variable states as field/value struct for experimenter info
         end    
@@ -800,8 +798,8 @@ try
     
         sma = AddState(sma, 'Name', 'VisualStimulus2', ...
             'Timer', S.GUI.GratingDur_s,...
-            'StateChangeConditions', {'Tup', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'},...
-            'OutputActions', VisualStimulus2_OutputActions);
+            'StateChangeConditions', {'Tup', 'WaitForPress2'},...
+            'OutputActions', audStim);
     
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', PressWindow_s,...
@@ -1090,7 +1088,7 @@ catch MatlabException
     fprintf(fid,'%s\n', num2str(session_date));
 
     % rig specs
-    fprintf(fid,'%s\n', 'Joystick Rig - Behavior Room');
+    fprintf(fid,'%s\n', 'Joystick Rig - Imaging');
     % fprintf(fid,'%s\n', computer);
     % fprintf(fid,'%s\n', feature('GetCPU'));
     % fprintf(fid,'%s\n', getenv('NUMBER_OF_PROCESSORS'));

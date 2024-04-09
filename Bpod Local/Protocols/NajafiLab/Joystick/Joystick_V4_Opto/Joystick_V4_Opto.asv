@@ -384,8 +384,10 @@ try
     % init auto press delay    
     PressVisDelay_s = 0;
     PrevPressVisDelay_s = PressVisDelay_s;
-    AutoPressVisDelay_s = S.GUI.AutoDelayStart_s;
-    PrevAutoPressVisDelay_s = AutoPressVisDelay_s;    
+    % AutoPressVisDelay_s = S.GUI.AutoDelayStart_s;
+    AutoPressVisDelay_s = PressVisDelay_s;
+    PrevAutoPressVisDelay_s = AutoPressVisDelay_s;
+    PreviousEnableAutoLongDelay = 0;  % start zero in case enabled by default, then still get start value for delay
 
     % NumDelaySteps = 0;
 
@@ -605,55 +607,47 @@ try
                 ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
                 switch TrialTypes(currentTrial)
                     case 1
-                        % PressVisDelay_s = S.GUI.PressVisDelayShort_s;
                         ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
                     case 2
-                        % PressVisDelay_s = S.GUI.PressVisDelayLong_s;
                         ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
                 end
-                % ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
+                ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
             case 1
-                % PressVisDelay_s = S.GUI.PrePress2Delay_s;
                 ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
                 ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
                 ExperimenterTrialInfo.PressVisDelay_s = 'NA';
-                % ExperimenterTrialInfo.PrePress2Delay_s = S.GUI.PrePress2Delay_s;
         end
 
 
         % [PressVisDelay_s, ExperimenterTrialInfo]  = m_TrialConfig.GetPressVisDelay(BpodSystem, S, TrialTypes, currentTrial, PressVisDelay_s); % set default, var should only be used when visually guided activated, so err log should indicate if weird state
         % [PressVisDelay_s, ExperimenterTrialInfo]  = m_TrialConfig.GetPressVisDelay(BpodSystem, S, TrialTypes, currentTrial, PressVisDelay_s); % set default, var should only be used when visually guided activated, so err log should indicate if weird state
 
-        
+        if S.GUI.EnableAutoLongDelay ~= PreviousEnableAutoLongDelay
+            PreviousEnableAutoLongDelay = S.GUI.EnableAutoLongDelay;
+            if S.GUI.EnableAutoLongDelay
+                if S.GUI.SelfTimedMode
+                    disp('set auto to self timed start')
+                    AutoPressVisDelay_s = S.GUI.PrePress2Delay_s;
+                else
+                    disp('set auto to vis guided start')
+                    AutoPressVisDelay_s = S.GUI.PressVisDelayLong_s;
+                end
+            end
+        end
         if  (currentTrial>1 && ...      
             S.GUI.EnableAutoLongDelay && ...
             ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
             isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
-            % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + S.GUI.NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMax_s);
-            % S.GUI.NumDelaySteps = S.GUI.NumDelaySteps + 1;
-            % NumDelaySteps = NumDelaySteps + 1;
             AutoPressVisDelay_s = AutoPressVisDelay_s + S.GUI.AutoDelayStep_s;
-            
-            % S.GUI.PressVisDelayLong_s = PressVisDelay_s;
-            % S.GUI.PrePress2Delay_s = PressVisDelay_s;
         end
         if S.GUI.EnableAutoLongDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
-            % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + S.GUI.NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMax_s);
-            % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMax_s);
-            % S.GUI.NumDelaySteps = S.GUI.NumDelaySteps + 1;
-            if S.GUI.SelfTimedMode == 1
-                % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxSelf_s);            
-                % PressVisDelay_s = min(PrevPressVisDelay_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxSelf_s);            
+            ExperimenterTrialInfo.EnableAutoLongDelay = 'Auto Long Delay Enabled';
+            if S.GUI.SelfTimedMode == 1          
                 PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxSelf_s);            
                 S.GUI.PrePress2Delay_s = PressVisDelay_s;
-                % ExperimenterTrialInfo.PrePress2Delay_s = PressVisDelay_s;
-            else
-                % PressVisDelay_s = min(S.GUI.AutoDelayStart_s + NumDelaySteps * S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxVis_s);
-                % PressVisDelay_s = min(PrevPressVisDelay_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxVis_s);            
+            else           
                 PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxVis_s);            
-                % S.GUI.PressVisDelayLong_s = PressVisDelay_s;
-                % BpodSystem.GUIData.ParameterGUI.LastParamValues.PressVisDelayLong_s = PressVisDelay_s;
             end
             S.GUI.PressVisDelayLong_s = PressVisDelay_s;
             S.GUI.PrePress2Delay_s = PressVisDelay_s;   
@@ -664,10 +658,10 @@ try
                     switch TrialTypes(currentTrial)
                         case 1
                             PressVisDelay_s = S.GUI.PressVisDelayShort_s;
-                            ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+                            % ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
                         case 2
                             PressVisDelay_s = S.GUI.PressVisDelayLong_s;
-                            ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+                            % ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
                     end
                     % ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
                 case 1
@@ -679,10 +673,10 @@ try
             end
         end    
         if (S.GUI.ResetAutoDelay == 1)
-            PressVisDelay_s = S.GUI.AutoDelayStart_s;
-            AutoPressVisDelay_s = S.GUI.AutoDelayStart_s;
-            S.GUI.PressVisDelayLong_s = PressVisDelay_s;
-            S.GUI.PrePress2Delay_s = PressVisDelay_s;            
+            % PressVisDelay_s = S.GUI.AutoDelayStart_s;
+            % AutoPressVisDelay_s = S.GUI.AutoDelayStart_s;
+            % S.GUI.PressVisDelayLong_s = PressVisDelay_s;
+            % S.GUI.PrePress2Delay_s = PressVisDelay_s;            
             % S.GUI.NumDelaySteps = 0;
             % NumDelaySteps = 0;
         end

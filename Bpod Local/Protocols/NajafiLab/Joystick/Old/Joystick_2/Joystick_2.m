@@ -243,7 +243,7 @@ LastPunishSoundDuration = S.GUI.PunishSoundDuration_s;
 if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
     BpodSystem.PluginObjects.V = [];
 end
-MonitorID = 1;
+MonitorID = 2;
 BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
 BpodSystem.PluginObjects.V.SyncPatchIntensity = 140;
 % Indicate loading
@@ -821,7 +821,6 @@ for currentTrial = 1:MaxTrials
     end
 end
 R.stopUSBStream;
-clear R;
 %BpodSystem.PluginObjects.Gabor = [];
 BpodSystem.PluginObjects.V = [];
 

@@ -46,7 +46,7 @@ function [S] = SetParams(obj, BpodSystem)
         % S.GUI.NumDelaySteps = 0;
         S.GUI.AutoDelayMaxVis_s = 0.500;
         S.GUI.AutoDelayMaxSelf_s = 0.800;
-        S.GUI.ResetAutoDelay = 0;
+        % S.GUI.ResetAutoDelay = 0;
         S.GUIMeta.ResetAutoDelay.Style = 'checkbox';        
         S.GUI.EnableManualTrialType = 0;
         S.GUIMeta.EnableManualTrialType.Style = 'checkbox';
@@ -58,7 +58,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.TrialTypeSequence.String = {'Random', 'Random First Block', 'Short First Block', 'Long First Block'};
         S.GUI.NumTrialsPerBlock = 50;        
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'PostRewardDelay_s', 'ServoInPos', 'ServoOutPos', 'Reward_Rep', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
-        S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoLongDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
+        % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoLongDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
+        S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoLongDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
 
         % Optogentic params
         S.GUI.SessionType = 1;
