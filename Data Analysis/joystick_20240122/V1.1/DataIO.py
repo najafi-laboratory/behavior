@@ -112,7 +112,24 @@ def read_trials(subject, file_names):
     
     session_press_delay_avg = []
     session_press_delay_short_avg = []
-    session_press_delay_long_avg = []
+    session_press_delay_long_avg = []    
+    
+    session_short_delay_hit_rate = []
+    session_long_delay_hit_rate = []
+    
+    session_short_delay_pun_rate = []
+    session_long_delay_pun_rate = []
+    
+    session_num_short = []
+    session_num_long = []
+    
+    session_short_num_rew = []      
+    session_short_num_pun = []
+    session_long_num_rew = []
+    session_long_num_pun = []
+    
+    session_short_num= []
+    session_long_num = []
     
     # session_encoder_positions_avg = []
     session_encoder_positions_avg_vis1 = []
@@ -165,14 +182,25 @@ def read_trials(subject, file_names):
         trial_encoder_positions_aligned_rew_short = []
         trial_encoder_positions_aligned_rew_long = []                
         
+        
+        
+        
         trial_encoder_times_aligned_vis1 = []
         trial_encoder_positions_aligned_vis2 = []
         trial_encoder_positions_aligned_vis2_rew = []
         trial_encoder_times_aligned_vis2 = []
         trial_encoder_positions_aligned_rew = []
         trial_num_rewarded = []
+        
+        trial_num_short_pun = []
+        trial_num_long_pun = []
+
+        trial_short_num = []
+        trial_long_num = []
+        
         trial_reps = 0
         trial_InterruptedVisStimTrials = []
+        
         
         # mode and delay vars
         trial_isSelfTimedMode = []
@@ -238,7 +266,7 @@ def read_trials(subject, file_names):
                 trial_type = raw_data['TrialTypes'][i]
                 if trial_type == 1:
                     isShortDelay = 1
-                                      
+                                  
             trial_isShortDelay.append(isShortDelay)
                 
             if isSelfTimedMode:
@@ -247,9 +275,11 @@ def read_trials(subject, file_names):
                 if isShortDelay:
                     press_delay = trial_GUI_Params['PressVisDelayShort_s']
                     trial_press_delay_short.append(press_delay)
+                    trial_short_num.append(i)
                 else:
                     press_delay = trial_GUI_Params['PressVisDelayLong_s']
                     trial_press_delay_long.append(press_delay)
+                    trial_long_num.append(i)
                     
             trial_press_delay.append(press_delay)
                         
@@ -470,10 +500,20 @@ def read_trials(subject, file_names):
                         trial_encoder_positions_aligned_rew_short.append(trial_encoder_positions_aligned_Reward)
                     else:
                         trial_encoder_positions_aligned_rew_long.append(trial_encoder_positions_aligned_Reward)
-                
-                
                 # index of rewarded trials
                 trial_num_rewarded.append(i)
+           
+            elif outcome == 'Punish':
+                if not isSelfTimedMode:
+                    if isShortDelay:
+                        # trial_encoder_positions_aligned_rew_short.append(trial_encoder_positions_aligned_Reward)                        
+                        # index of punished short delay trials
+                        trial_num_short_pun.append(i)
+                    else:
+                        # trial_encoder_positions_aligned_rew_long.append(trial_encoder_positions_aligned_Reward)                
+                        # index of punished long delay trials
+                        trial_num_long_pun.append(i)
+            # elif outcome == 'Punish':
             
                 
             # e
@@ -494,18 +534,74 @@ def read_trials(subject, file_names):
         pos_vis1 = np.sum(trial_encoder_positions_aligned_vis1_rew[0:], axis=0)        
         sess_enc_avg_vis1 = pos_vis1/len(trial_num_rewarded)
         
+        
+        numTrials = len(trial_outcomes)
+        numRewPunTrials = numTrials - trial_outcomes.count('Other')    
+        
         sess_enc_avg_vis1_short_rew = 0
         sess_enc_avg_vis1_long_rew = 0
+        sess_short_hit_rate = 0
+        sess_long_hit_rate = 0
         if not isSelfTimedMode:
             # if isShortDelay:
                 # vis 1 session average - short - rewarded
-                pos_vis1_short_rew = np.sum(trial_encoder_positions_aligned_vis1_rew_short[0:], axis=0)        
-                sess_enc_avg_vis1_short_rew = pos_vis1_short_rew/len(trial_encoder_positions_aligned_vis1_rew_short[0:])
+                if len(trial_encoder_positions_aligned_vis1_rew_short[0:]) > 0:
+                    pos_vis1_short_rew = np.sum(trial_encoder_positions_aligned_vis1_rew_short[0:], axis=0)       
+                    sess_enc_avg_vis1_short_rew = pos_vis1_short_rew/len(trial_encoder_positions_aligned_vis1_rew_short[0:])
+                
+                # short delay hit rate
+                if len(trial_encoder_positions_aligned_vis1_short[0:]) > 0:
+                    sess_short_num_rew = len(trial_encoder_positions_aligned_vis1_rew_short[0:])
+                    
+                    # sess_short_num_pun = len(trial_encoder_positions_aligned_vis1_short[0:]) - sess_short_num_rew
+                    sess_short_num_pun = len(trial_num_short_pun)
+                    
+                    # sess_short_hit_rate = round(sess_short_num_rew/len(trial_encoder_positions_aligned_vis1_short[0:]), 2)
+                    # sess_short_hit_rate = round(sess_short_num_rew/len(trial_short_num), 2)
+                    sess_short_hit_rate = round(sess_short_num_rew/(sess_short_num_rew + sess_short_num_pun), 2)
+                   
+                    # sess_short_pun_rate = round(1 - sess_short_hit_rate, 2)
+                    # sess_short_pun_rate = round(sess_short_num_pun/len(trial_short_num), 2)
+                    sess_short_pun_rate = round(sess_short_num_pun/(sess_short_num_rew + sess_short_num_pun), 2)
+                   
+                    print('sess_short_num_rew', sess_short_num_rew)
+                    print('sess_short_num_pun', sess_short_num_pun)                     
+                    
+                    # print('trial_num_short_pun', len(trial_num_short_pun))
+                    
+                    print('sess_short_hit_rate', sess_short_hit_rate)
+                    print('sess_short_pun_rate', sess_short_pun_rate)
+                    print('sess_short_hit_rate + sess_short_pun_rate', round(sess_short_hit_rate + sess_short_pun_rate, 2))
             # else:        
                 # vis 1 session average - long - rewarded
-                print('len(trial_encoder_positions_aligned_vis1_rew_long)', len(trial_encoder_positions_aligned_vis1_rew_long))
-                pos_vis1_long_rew = np.sum(trial_encoder_positions_aligned_vis1_rew_long[0:], axis=0)        
-                sess_enc_avg_vis1_long_rew = pos_vis1_long_rew/len(trial_encoder_positions_aligned_vis1_rew_long[0:])
+                # print('len(trial_encoder_positions_aligned_vis1_rew_long)', len(trial_encoder_positions_aligned_vis1_rew_long))
+                if len(trial_encoder_positions_aligned_vis1_rew_long[0:]) > 0:
+                    pos_vis1_long_rew = np.sum(trial_encoder_positions_aligned_vis1_rew_long[0:], axis=0)        
+                    sess_enc_avg_vis1_long_rew = pos_vis1_long_rew/len(trial_encoder_positions_aligned_vis1_rew_long[0:])
+                                
+                # long delay hit rate
+                if len(trial_encoder_positions_aligned_vis1_long[0:]) > 0:
+                    sess_long_num_rew = len(trial_encoder_positions_aligned_vis1_rew_long[0:])
+                    # sess_long_num_pun = len(trial_encoder_positions_aligned_vis1_long[0:]) - sess_long_num_rew                    
+                    sess_long_num_pun = len(trial_num_long_pun)   
+                    
+                    # sess_long_hit_rate = round(sess_long_num_rew/len(trial_encoder_positions_aligned_vis1_long[0:]), 2)
+                    # sess_long_hit_rate = round(sess_long_num_rew/len(trial_long_num), 2)
+                    sess_long_hit_rate = round(sess_long_num_rew/(sess_long_num_rew + sess_long_num_pun), 2)
+                    
+                    # sess_long_pun_rate = round(1 - sess_long_hit_rate, 2)
+                    # sess_long_pun_rate = round(sess_long_num_pun/len(trial_long_num), 2)
+                    sess_long_pun_rate = round(sess_long_num_pun/(sess_long_num_rew + sess_long_num_pun), 2)
+                    
+                    print('sess_long_num_rew', sess_long_num_rew)
+                    print('sess_long_num_pun', sess_long_num_pun)  
+                    
+                    
+                    # print('trial_num_long_pun', len(trial_num_long_pun))
+                    
+                    print('sess_long_hit_rate', sess_long_hit_rate)                    
+                    print('sess_long_pun_rate', sess_long_pun_rate)        
+                    print('sess_long_hit_rate + sess_long_pun_rate', round(sess_long_hit_rate + sess_long_pun_rate, 2))   
         
         if 0:        
             for i in range(len(trial_encoder_positions_aligned[0:4])):
@@ -528,11 +624,12 @@ def read_trials(subject, file_names):
                 # vis 2 session average - short - rewarded
                 pos_vis2_short_rew = np.sum(trial_encoder_positions_aligned_vis2_rew_short[0:], axis=0)        
                 sess_enc_avg_vis2_short_rew = pos_vis2_short_rew/len(trial_encoder_positions_aligned_vis2_rew_short[0:]) 
+                
             # else:
                 # vis 2 session average - long - rewarded
                 pos_vis2_long_rew = np.sum(trial_encoder_positions_aligned_vis2_rew_long[0:], axis=0)        
-                sess_enc_avg_vis2_long_rew = pos_vis2_long_rew/len(trial_encoder_positions_aligned_vis2_rew_long[0:])         
-        
+                sess_enc_avg_vis2_long_rew = pos_vis2_long_rew/len(trial_encoder_positions_aligned_vis2_rew_long[0:])
+                        
         if 0:
             plt.plot(session_encoder_times_aligned_VisStim2, sess_enc_avg_vis2)
                 
@@ -621,7 +718,25 @@ def read_trials(subject, file_names):
         
         session_press_delay_avg.append(sess_press_delay_avg)
         session_press_delay_short_avg.append(sess_press_delay_short_avg)
-        session_press_delay_long_avg.append(sess_press_delay_long_avg)        
+        session_press_delay_long_avg.append(sess_press_delay_long_avg)   
+        
+        session_short_delay_hit_rate.append(sess_short_hit_rate)
+        session_short_delay_pun_rate.append(sess_short_pun_rate)
+        session_long_delay_hit_rate.append(sess_long_hit_rate)
+        session_long_delay_pun_rate.append(sess_long_pun_rate)
+        
+        session_short_num_rew.append(sess_short_num_rew)        
+        session_short_num_pun.append(sess_short_num_pun)
+        session_long_num_rew.append(sess_long_num_rew)
+        session_long_num_pun.append(sess_long_num_pun)
+                        
+        # session_short_num_pun.append(trial_num_short_pun)
+        # session_long_num_pun.append(trial_num_long_pun)        
+
+                    
+        session_short_num.append(trial_short_num)
+        session_long_num.append(trial_long_num)
+
         # sess_enc_avg_vis1_short_rew = 0
         # sess_enc_avg_vis1_long_rew = 0
         
@@ -695,6 +810,20 @@ def read_trials(subject, file_names):
         'session_press_delay_avg' : session_press_delay_avg,
         'session_press_delay_short_avg' : session_press_delay_short_avg,
         'session_press_delay_long_avg' : session_press_delay_long_avg,
+        'session_short_delay_hit_rate' : session_short_delay_hit_rate,
+        'session_long_delay_hit_rate' : session_long_delay_hit_rate,           
+        'session_short_delay_pun_rate' : session_short_delay_pun_rate,
+        'session_long_delay_pun_rate' : session_long_delay_pun_rate,        
+        'session_short_num_rew' : session_short_num_rew,
+        'session_short_num_pun' : session_short_num_pun,
+        'session_long_num_rew' : session_long_num_rew,
+        'session_long_num_pun' : session_long_num_pun,   
+        
+        # 'session_short_num_pun' : session_short_num_pun,
+        # 'session_long_num_pun' : session_num_short_pun,  
+        
+        'session_short_num' : session_short_num,
+        'session_long_num' : session_long_num,        
         'com' : session_com,
         'post_lick' : session_post_lick,
         'isi' : session_isi,

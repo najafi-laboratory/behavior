@@ -609,10 +609,10 @@ def plot_fig5(
 
 # debugging
 
-session_data = session_data_1
-plot_fig5(session_data,         
-          output_dir_onedrive,
-          output_dir_local)
+# session_data = session_data_1
+# plot_fig5(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_2
 # plot_fig5(session_data,         
