@@ -14,8 +14,8 @@ if __name__ == "__main__":
     
     subject_list = [
         'FN11', 'FN12', 'FN14',
-        'VM5',
-        'YH6', 'YH7', 'YH8', 'YH9', 'YH10', 'YH11']
+        'VM1', 'VM5',
+        'YH7', 'YH8', 'YH9', 'YH10']
 
     session_data = DataIO.run(subject_list)
     
@@ -24,7 +24,7 @@ if __name__ == "__main__":
             plot_fig2,
             plot_fig3,
             plot_fig4,
-            plot_fig5,
+            #plot_fig5,
             plot_fig6,
             plot_fig7,
             plot_fig8,
