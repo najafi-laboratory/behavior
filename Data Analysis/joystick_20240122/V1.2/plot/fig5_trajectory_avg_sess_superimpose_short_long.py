@@ -227,25 +227,33 @@ def plot_fig5(
 
         # type(encoder_pos_avg_vis1_short) is np.ndarray
         if not isSelfTimedMode:
-            # if len(encoder_pos_avg_vis1_short) < 2:
-            if not (type(encoder_pos_avg_vis1_short) is np.ndarray):
+            # encoder_pos_avg_vis1_short[0].shape
+            # if not (len(encoder_pos_avg_vis1_short) > 2):
+            # if not (type(encoder_pos_avg_vis1_short) is np.ndarray):
+            # if not (type(encoder_pos_avg_vis1_short) is np.ndarray):
+            hasShort = 0 in isShortDelay
+            hasLong = 1 in isShortDelay
+            if hasShort and hasLong:
                 # isOnlyLong = 1
                 # singleRow = 1
-                isOnlyLong.append(1)
                 isOnlyShort.append(0)
-                singleRow.append(1)
-            # elif len(encoder_pos_avg_vis1_long) < 2:
-            elif not (type(encoder_pos_avg_vis1_long) is np.ndarray):
+                isOnlyLong.append(0)
+                singleRow.append(0)
+                sessionIdxsToPlot.append(i)                
+            # elif not (len(encoder_pos_avg_vis1_long) > 2):
+            # elif not (type(encoder_pos_avg_vis1_long) is np.ndarray):
+            # elif not (type(encoder_pos_avg_vis1_long) is np.ndarray):                
+            elif hasShort:
                 # isOnlyShort = 1
                 # singleRow = 1
                 isOnlyShort.append(1)
                 isOnlyLong.append(0)
                 singleRow.append(1)
             else:
+                isOnlyLong.append(1)
                 isOnlyShort.append(0)
-                isOnlyLong.append(0)
-                singleRow.append(0)
-                sessionIdxsToPlot.append(i)
+                singleRow.append(1)
+
         else:
             # singleRow = 1  
             isOnlyShort.append(0)
@@ -467,144 +475,146 @@ def plot_fig5(
     
     
     # vis 1 aligned short delay
-        
-    stop_idx = sessionIdxsToPlot[-1]
-    # for i in sessions_idxs:
-    for i in sessionIdxsToPlot:
-        # isSelfTimedMode = session_data['isSelfTimedMode'][i]
-        # isShortDelay = session_data['isShortDelay'][i]
-        # press_reps = session_data['press_reps'][i]
-        # press_window = session_data['press_window'][i]  
-        
-        # print('session', i)
-        # print('isSelfTimedMode', isSelfTimedMode)
-        # print('isShortDelay', isShortDelay)
-        # print('press_reps', press_reps)
-        # print('press_window', press_window)
-        
-        # if (i == 0) or (i == (session_data['total_sessions'] - 1)):
 
-        # needs enough sessions so that vis1_short > 1 length
-        if (i == 0) or (i == stop_idx):            
-            axs[0, 0].plot(encoder_times_vis1, encoder_pos_avg_vis1_short[i],'-', color=palette[i], label=dates[i][2:])
-        else:
-            axs[0, 0].plot(encoder_times_vis1, encoder_pos_avg_vis1_short[i],'-', color=palette[i])
-        
-    y_top = 3.5
-    
-    
-    
-    # print(subject)
-    axs[0, 0].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
-    
-    # update to get average threshold across range of sessions superimposed
-    # temp thresh
-    target_thresh = 2.0
-    # axs[0, 0].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
-    axs[0, 0].axhline(y = 'add avg thresh', color = '0.6', label = 'Target Threshold', linestyle='--')
-    
-    
-    axs[0, 0].set_title('VisStim1 Aligned.\n')        
-    axs[0, 0].legend(loc='upper right')
-    axs[0, 0].set_xlim(time_left_VisStim1, 4.0)
-    # axs[0, 0].set_ylim(-0.2, target_thresh+1.25)
-    axs[0, 0].set_ylim(-0.2, target_thresh+1.25)
-    axs[0, 0].spines['right'].set_visible(False)
-    axs[0, 0].spines['top'].set_visible(False)
-    axs[0, 0].set_xlabel('Time from VisStim1 (s)')
-    axs[0, 0].set_ylabel('Joystick deflection (deg)')
-        
-    
-    # vis 2 or waitforpress aligned - short delay
-    
-    
-    # for i in sessions_idxs:
-    for i in sessionIdxsToPlot:      
-        # if (i == 0) or (i == (session_data['total_sessions'] - 1)):
-        if (i == 0) or (i == (len(list(sessions_idxs))-1)):                
-            axs[0, 1].plot(encoder_times_vis2, encoder_pos_avg_vis2_short[i],'-', color=palette[i], label=dates[i][2:])
-        else:
-            axs[0, 1].plot(encoder_times_vis2, encoder_pos_avg_vis2_short[i],'-', color=palette[i])
+
+    if len(sessionIdxsToPlot) > 0:
+        stop_idx = sessionIdxsToPlot[-1]
+        # for i in sessions_idxs:
+        for i in sessionIdxsToPlot:
+            # isSelfTimedMode = session_data['isSelfTimedMode'][i]
+            # isShortDelay = session_data['isShortDelay'][i]
+            # press_reps = session_data['press_reps'][i]
+            # press_window = session_data['press_window'][i]  
             
-    if vis_stim_2_enable:
-        axs[0, 1].axvline(x = 0, color = 'r', label = 'VisStim2', linestyle='--')
-        axs[0, 1].set_title('VisStim2 Aligned.\n')
-        axs[0, 1].set_xlabel('Time from VisStim2 (s)')
-    else:
-        axs[0, 1].axvline(x = 0, color = 'r', label = 'WaitForPress2', linestyle='--')
-        axs[0, 1].set_title('WaitForPress2 Aligned.\n')
-        axs[0, 1].set_xlabel('Time from WaitForPress2 (s)')
+            # print('session', i)
+            # print('isSelfTimedMode', isSelfTimedMode)
+            # print('isShortDelay', isShortDelay)
+            # print('press_reps', press_reps)
+            # print('press_window', press_window)
+            
+            # if (i == 0) or (i == (session_data['total_sessions'] - 1)):
+    
+            # needs enough sessions so that vis1_short > 1 length
+            if (i == 0) or (i == stop_idx):            
+                axs[0, 0].plot(encoder_times_vis1, encoder_pos_avg_vis1_short[i],'-', color=palette[i], label=dates[i][2:])
+            else:
+                axs[0, 0].plot(encoder_times_vis1, encoder_pos_avg_vis1_short[i],'-', color=palette[i])
+            
+        y_top = 3.5
         
-    axs[0, 1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
-    axs[0, 1].legend(loc='upper right')
-    axs[0, 1].set_xlim(-1, 2.0)
-    # axs[0, 1].set_ylim(-0.2, target_thresh+1.25)
-    axs[0, 1].set_ylim(-0.2, y_top)
-    axs[0, 1].spines['right'].set_visible(False)
-    axs[0, 1].spines['top'].set_visible(False)
-    axs[0, 1].set_ylabel('Joystick deflection (deg)')
-    
-    # reward aligned - short delay
-    # fig3, axs3 = plt.subplots(1, figsize=(10, 4))
-    # axs[0, 2].subplots_adjust(hspace=0.7)
-    
-    
-    
-    # for i in sessions_idxs:
-    for i in sessionIdxsToPlot:       
-        # if (i == 0) or (i == (session_data['total_sessions'] - 1)): 
-        if (i == 0) or (i == (len(list(sessions_idxs))-1)):    
-            axs[0, 2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i], label=dates[i][2:])
+        
+        
+        # print(subject)
+        axs[0, 0].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
+        
+        # update to get average threshold across range of sessions superimposed
+        # temp thresh
+        target_thresh = 2.0
+        # axs[0, 0].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
+        axs[0, 0].axhline(y = 'add avg thresh', color = '0.6', label = 'Target Threshold', linestyle='--')
+        
+        
+        axs[0, 0].set_title('VisStim1 Aligned.\n')        
+        axs[0, 0].legend(loc='upper right')
+        axs[0, 0].set_xlim(time_left_VisStim1, 4.0)
+        # axs[0, 0].set_ylim(-0.2, target_thresh+1.25)
+        axs[0, 0].set_ylim(-0.2, target_thresh+1.25)
+        axs[0, 0].spines['right'].set_visible(False)
+        axs[0, 0].spines['top'].set_visible(False)
+        axs[0, 0].set_xlabel('Time from VisStim1 (s)')
+        axs[0, 0].set_ylabel('Joystick deflection (deg)')
+            
+        
+        # vis 2 or waitforpress aligned - short delay
+        
+        
+        # for i in sessions_idxs:
+        for i in sessionIdxsToPlot:      
+            # if (i == 0) or (i == (session_data['total_sessions'] - 1)):
+            if (i == 0) or (i == (len(list(sessions_idxs))-1)):                
+                axs[0, 1].plot(encoder_times_vis2, encoder_pos_avg_vis2_short[i],'-', color=palette[i], label=dates[i][2:])
+            else:
+                axs[0, 1].plot(encoder_times_vis2, encoder_pos_avg_vis2_short[i],'-', color=palette[i])
+                
+        if vis_stim_2_enable:
+            axs[0, 1].axvline(x = 0, color = 'r', label = 'VisStim2', linestyle='--')
+            axs[0, 1].set_title('VisStim2 Aligned.\n')
+            axs[0, 1].set_xlabel('Time from VisStim2 (s)')
         else:
-            axs[0, 2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i])       
+            axs[0, 1].axvline(x = 0, color = 'r', label = 'WaitForPress2', linestyle='--')
+            axs[0, 1].set_title('WaitForPress2 Aligned.\n')
+            axs[0, 1].set_xlabel('Time from WaitForPress2 (s)')
+            
+        axs[0, 1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
+        axs[0, 1].legend(loc='upper right')
+        axs[0, 1].set_xlim(-1, 2.0)
+        # axs[0, 1].set_ylim(-0.2, target_thresh+1.25)
+        axs[0, 1].set_ylim(-0.2, y_top)
+        axs[0, 1].spines['right'].set_visible(False)
+        axs[0, 1].spines['top'].set_visible(False)
+        axs[0, 1].set_ylabel('Joystick deflection (deg)')
         
-    axs[0, 2].axvline(x = 0, color = 'r', label = 'Reward', linestyle='--')
-    axs[0, 2].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
-    # axs[0, 2].set_title(subject + ' - ' + session_date)
-    axs[0, 2].set_title('Reward Aligned.\n')    
-    axs[0, 2].legend(loc='upper right')               
-    axs[0, 2].set_xlim(-1.0, 1.5)
-    # axs[0, 2].set_ylim(-0.2, target_thresh+1.25)
-    axs[0, 2].set_ylim(-0.2, y_top)
-    axs[0, 2].spines['right'].set_visible(False)
-    axs[0, 2].spines['top'].set_visible(False)
-    axs[0, 2].set_xlabel('Time from Reward (s)')
-    axs[0, 2].set_ylabel('Joystick deflection (deg)')    
-    
-    fig.tight_layout()
-    # filename = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'+'fig4_'+subject+'_avg_trajectory_superimpose'    
-    
-    # img_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\fig4_' + today_string
-    # os.makedirs(img_dir, exist_ok = True)
-    # save_image(filename)
-    # fig.savefig(img_dir + '\\fig4_'+subject+'_avg_trajectory_superimpose.png', dpi=300)
-    # plt.close(fig)
-    
-    
-    # output_imgs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + 'avg_trajectory_superimpose_imgs\\'        
-    
-    
-    # output_figs_dir = 'C:/Users/timst/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/' +subject+'\\'
-    # output_imgs_dir = 'C:/Users/timst/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/'+subject+'\\' + 'avg_trajectory_superimpose_imgs\\'        
-    
-    if savefiles:
-        output_figs_dir = output_dir_onedrive + subject + '/'            
-        output_imgs_dir = output_dir_local + subject + '/avg_trajectory_superimpose_imgs/'
-        os.makedirs(output_figs_dir, exist_ok = True)
-        os.makedirs(output_imgs_dir, exist_ok = True)
-        output_pdf_filename = output_figs_dir + subject+'_Trajectory_sup_short_long'
-        save_image(output_pdf_filename)
-        fig.savefig(output_imgs_dir + subject + '_Trajectory_sup_short_long' + '.png', dpi=300)
-    
-    # output_figs_dir = output_dir_onedrive + subject + '/'            
-    # output_imgs_dir = output_dir_local + subject + '/avg_trajectory_imgs/'        
-    
-    
-    print('Completed fig5 trajectories superimposed short/long for ' + subject)
-    print()
-    
-    if savefiles:
-        plt.close("all")
+        # reward aligned - short delay
+        # fig3, axs3 = plt.subplots(1, figsize=(10, 4))
+        # axs[0, 2].subplots_adjust(hspace=0.7)
+        
+        
+        
+        # for i in sessions_idxs:
+        for i in sessionIdxsToPlot:       
+            # if (i == 0) or (i == (session_data['total_sessions'] - 1)): 
+            if (i == 0) or (i == (len(list(sessions_idxs))-1)):    
+                axs[0, 2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i], label=dates[i][2:])
+            else:
+                axs[0, 2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i])       
+            
+        axs[0, 2].axvline(x = 0, color = 'r', label = 'Reward', linestyle='--')
+        axs[0, 2].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
+        # axs[0, 2].set_title(subject + ' - ' + session_date)
+        axs[0, 2].set_title('Reward Aligned.\n')    
+        axs[0, 2].legend(loc='upper right')               
+        axs[0, 2].set_xlim(-1.0, 1.5)
+        # axs[0, 2].set_ylim(-0.2, target_thresh+1.25)
+        axs[0, 2].set_ylim(-0.2, y_top)
+        axs[0, 2].spines['right'].set_visible(False)
+        axs[0, 2].spines['top'].set_visible(False)
+        axs[0, 2].set_xlabel('Time from Reward (s)')
+        axs[0, 2].set_ylabel('Joystick deflection (deg)')    
+        
+        fig.tight_layout()
+        # filename = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\'+'fig4_'+subject+'_avg_trajectory_superimpose'    
+        
+        # img_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\fig4_' + today_string
+        # os.makedirs(img_dir, exist_ok = True)
+        # save_image(filename)
+        # fig.savefig(img_dir + '\\fig4_'+subject+'_avg_trajectory_superimpose.png', dpi=300)
+        # plt.close(fig)
+        
+        
+        # output_imgs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + 'avg_trajectory_superimpose_imgs\\'        
+        
+        
+        # output_figs_dir = 'C:/Users/timst/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/' +subject+'\\'
+        # output_imgs_dir = 'C:/Users/timst/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/'+subject+'\\' + 'avg_trajectory_superimpose_imgs\\'        
+        
+        if savefiles:
+            output_figs_dir = output_dir_onedrive + subject + '/'            
+            output_imgs_dir = output_dir_local + subject + '/avg_trajectory_superimpose_imgs/'
+            os.makedirs(output_figs_dir, exist_ok = True)
+            os.makedirs(output_imgs_dir, exist_ok = True)
+            output_pdf_filename = output_figs_dir + subject+'_Trajectory_sup_short_long'
+            save_image(output_pdf_filename)
+            fig.savefig(output_imgs_dir + subject + '_Trajectory_sup_short_long' + '.png', dpi=300)
+        
+        # output_figs_dir = output_dir_onedrive + subject + '/'            
+        # output_imgs_dir = output_dir_local + subject + '/avg_trajectory_imgs/'        
+        
+        
+        print('Completed fig5 trajectories superimposed short/long for ' + subject)
+        print()
+        
+        if savefiles:
+            plt.close("all")
 
 
 # debugging
@@ -616,15 +626,25 @@ def plot_fig5(
 
 # session_data = session_data_2
 # plot_fig5(session_data,         
-          # output_dir_onedrive,
-          # output_dir_local)
+#            output_dir_onedrive,
+#            output_dir_local)
     
 # session_data = session_data_3
 # plot_fig5(session_data,         
-          # output_dir_onedrive,
-          # output_dir_local)
+#             output_dir_onedrive,
+#             output_dir_local)
 
 # session_data = session_data_4
 # plot_fig5(session_data,         
           # output_dir_onedrive,
           # output_dir_local)
+
+# session_data = session_data_5
+# plot_fig5(session_data,         
+#            output_dir_onedrive,
+#            output_dir_local)
+
+# session_data = session_data_6
+# plot_fig5(session_data,         
+#             output_dir_onedrive,
+#             output_dir_local)

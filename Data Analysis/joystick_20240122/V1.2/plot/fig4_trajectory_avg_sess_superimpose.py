@@ -123,7 +123,8 @@ def plot_fig4(
     time_left_rew = session_data['time_left_rew']
     time_right_rew = session_data['time_right_rew']
     
-    target_thresh = session_data['session_target_thresh']
+    # target_thresh = session_data['session_target_thresh'][i]
+    # target_thresh_avg = round(target_thresh/len(target_thresh), 2)
     
     encoder_pos_avg_vis1 = []
     encoder_pos_avg_vis2 = []
@@ -175,7 +176,8 @@ def plot_fig4(
 
         encoder_pos_avg_rew.append(session_data['encoder_pos_avg_rew'][i])
         
-        
+        target_thresh = session_data['session_target_thresh'][i]
+        target_thresh_avg = round(np.sum(target_thresh)/len(target_thresh), 2)
         
         # fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(20, 4))
         # fig.subplots_adjust(hspace=0.7)
@@ -259,12 +261,12 @@ def plot_fig4(
         
     # print(subject)
     axs[0].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
-    axs[0].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
+    axs[0].axhline(y = target_thresh_avg, color = '0.6', label = 'Target Threshold', linestyle='--')    
     axs[0].set_title('VisStim1 Aligned.\n')        
     axs[0].legend(loc='upper right')
     axs[0].set_xlim(time_left_VisStim1, 4.0)
     # axs[0].set_ylim(-0.2, target_thresh+1.25)
-    axs[0].set_ylim(-0.2, target_thresh+1.25)
+    axs[0].set_ylim(-0.2, target_thresh_avg+1.25)
     axs[0].spines['right'].set_visible(False)
     axs[0].spines['top'].set_visible(False)
     axs[0].set_xlabel('Time from VisStim1 (s)')
@@ -287,7 +289,7 @@ def plot_fig4(
         axs[1].set_title('WaitForPress2 Aligned.\n')
         axs[1].set_xlabel('Time from WaitForPress2 (s)')
         
-    axs[1].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
+    axs[1].axhline(y = target_thresh_avg, color = '0.6', label = 'Target Threshold', linestyle='--')
     axs[1].legend(loc='upper right')
     axs[1].set_xlim(-1, 2.0)
     # axs[1].set_ylim(-0.2, target_thresh+1.25)
@@ -307,7 +309,7 @@ def plot_fig4(
             axs[2].plot(encoder_times_rew, encoder_pos_avg_rew[i],'-', color=palette[i])       
         
     axs[2].axvline(x = 0, color = 'r', label = 'Reward', linestyle='--')
-    axs[2].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')
+    axs[2].axhline(y = target_thresh_avg, color = '0.6', label = 'Target Threshold', linestyle='--')
     # axs[2].set_title(subject + ' - ' + session_date)
     axs[2].set_title('Reward Aligned.\n')    
     axs[2].legend(loc='upper right')               
@@ -355,14 +357,33 @@ def plot_fig4(
 
 # debugging
 
+
 # session_data = session_data_1
-# plot_fig4(session_data)
+# plot_fig4(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_2
-# plot_fig4(session_data)
-    
+# plot_fig4(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
 # session_data = session_data_3
-# plot_fig4(session_data)
+# plot_fig4(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_4
-# plot_fig4(session_data)
+# plot_fig4(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
+# session_data = session_data_5
+# plot_fig4(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
+# session_data = session_data_6
+# plot_fig4(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)

@@ -191,7 +191,10 @@ def plot_fig1_2(
     axs.yaxis.grid(True)
     axs.set_xlabel('Training session')
     
-    axs.set_ylabel('Outcome percentages')
+    if usePercent:
+        axs.set_ylabel('Outcome percentages')
+    else:
+        axs.set_ylabel('Outcome counts')
     
     tick_index = np.arange(len(outcomes))+1
     # axs.set_xticks((tick_index + width)/2)
@@ -205,7 +208,12 @@ def plot_fig1_2(
     
     axs.set_title(subject)
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    fig.suptitle('Reward/punish percentage for completed trials across sessions')
+    
+    if usePercent:
+        fig.suptitle('Reward/punish percentage for completed trials across sessions')
+    else:
+        fig.suptitle('Reward/punish counts for completed trials across sessions')
+    
     fig.tight_layout()
     print('Completed fig1 outcome percentages for ' + subject)
     print()

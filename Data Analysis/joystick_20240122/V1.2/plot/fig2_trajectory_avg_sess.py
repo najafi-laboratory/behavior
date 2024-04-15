@@ -62,7 +62,11 @@ def plot_fig2(
         isSelfTimedMode = session_data['isSelfTimedMode'][i][0]
         isShortDelay = session_data['isShortDelay'][i]
         press_reps = session_data['press_reps'][i]
-        press_window = session_data['press_window'][i]  
+        
+        # press_window = session_data['press_window'][i]
+        press_window = session_data['session_press_window'][i]
+        press_window_avg = round(np.sum(press_window)/len(press_window), 2)
+        
         press_delay_avg = session_data['session_press_delay_avg'][i]
         press_delay_short_avg = session_data['session_press_delay_short_avg'][i]
         press_delay_long_avg = session_data['session_press_delay_long_avg'][i]
@@ -73,7 +77,9 @@ def plot_fig2(
         print('isSelfTimedMode', isSelfTimedMode)
         print('isShortDelay', isShortDelay)
         print('press_reps', press_reps)
-        print('press_window', press_window)
+        # print('press_window', press_window)
+        print('press_window_avg', press_window_avg)
+        
         
         print('press_delay_avg', press_delay_avg)
         print('press_delay_short_avg', press_delay_short_avg)
@@ -86,7 +92,8 @@ def plot_fig2(
         
         # temp, update with press window averaging
         # press_window = session_data['session_press_window']
-        press_window = press_window[1]
+        # press_window = press_window[1]
+        press_window_avg
         
         vis_stim_2_enable = session_data['vis_stim_2_enable']
         
@@ -181,14 +188,14 @@ def plot_fig2(
             fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(20, 4))
             fig.subplots_adjust(hspace=0.7)
             if isSelfTimedMode:
-                fig.suptitle(subject + ' Self Timed - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
+                fig.suptitle(subject + ' Self Timed - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's')
             else:
                 if isOnlyShort:
-                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's' + '\nShort Delay Only ' + str(round(press_delay_short_avg, 3)) + 'ms')    
+                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's' + '\nShort Delay Only ' + str(round(press_delay_short_avg, 3)) + 'ms')    
                 elif isOnlyLong:
-                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's' + '\nLong Delay Only ' + str(round(press_delay_long_avg, 3)) + 'ms')        
+                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's' + '\nLong Delay Only ' + str(round(press_delay_long_avg, 3)) + 'ms')        
                 else:
-                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
+                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's')
                                 
                 
             y_top = 3.5
@@ -366,14 +373,14 @@ def plot_fig2(
             fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(20, 4))
             fig.subplots_adjust(hspace=0.7)
             if isSelfTimedMode:
-                fig.suptitle(subject + ' Self Timed - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
+                fig.suptitle(subject + ' Self Timed - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's')
             else:
                 if isOnlyShort:
-                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's' + '\nShort Delay Only ' + str(round(press_delay_short_avg, 3)) + 'ms')    
+                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's' + '\nShort Delay Only ' + str(round(press_delay_short_avg, 3)) + 'ms')    
                 elif isOnlyLong:
-                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's' + '\nLong Delay Only ' + str(round(press_delay_long_avg, 3)) + 'ms')        
+                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's' + '\nLong Delay Only ' + str(round(press_delay_long_avg, 3)) + 'ms')        
                 else:
-                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's')
+                    fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's')
                 
             y_top = 3.5
             
@@ -473,7 +480,7 @@ def plot_fig2(
             
             fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(20, 8))
             fig.subplots_adjust(hspace=0.7)
-            fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's' + '\nTop - Short Delay ' + str(round(press_delay_short_avg, 3)) + 'ms\nBottom - Long Delay ' + str(round(press_delay_long_avg, 3)) + 'ms')
+            fig.suptitle(subject + ' Visually Guided - ' + session_date_formatted + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window_avg) + 's' + '\nTop - Short Delay ' + str(round(press_delay_short_avg, 3)) + 'ms\nBottom - Long Delay ' + str(round(press_delay_long_avg, 3)) + 'ms')
             
             y_top = 3.5
             
@@ -649,20 +656,20 @@ def plot_fig2(
 
 # debugging
 
-session_data = session_data_1
-plot_fig2(session_data,         
-          output_dir_onedrive,
-          output_dir_local)
+# session_data = session_data_1
+# plot_fig2(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_2
 # plot_fig2(session_data,         
 #           output_dir_onedrive,
 #           output_dir_local)
 
-session_data = session_data_3
-plot_fig2(session_data,         
-          output_dir_onedrive,
-          output_dir_local)
+# session_data = session_data_3
+# plot_fig2(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_4
 # plot_fig2(session_data,         

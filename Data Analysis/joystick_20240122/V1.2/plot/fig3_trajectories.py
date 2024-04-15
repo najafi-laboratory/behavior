@@ -67,7 +67,8 @@ def plot_fig3(
         RewardedTrials = session_data['rewarded_trials'][i]
         numRewardedTrials = len(RewardedTrials)
                 
-        press_window = session_data['session_press_window']
+        press_window = session_data['session_press_window'][i]
+        press_window_avg = round(np.sum(press_window)/len(press_window), 2)
         
         vis_stim_2_enable = session_data['vis_stim_2_enable']
         
@@ -87,7 +88,7 @@ def plot_fig3(
         time_left_rew = session_data['time_left_rew']
         time_right_rew = session_data['time_right_rew']
         
-        target_thresh = session_data['session_target_thresh']
+        target_thresh = session_data['session_target_thresh'][i]
         
         num_rows = 10
         num_columns = 3
@@ -122,7 +123,7 @@ def plot_fig3(
             fig, axs = plt.subplots(nrows=num_rows, ncols=num_columns, figsize=(20, 30))
             
             # fig.suptitle(subject + ' - ' + session_date + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's\nVisStim1 Aligned.')
-            fig.suptitle(subject + ' - ' + session_date + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nPress Window:' + ' ' + str(press_window) + 's\nVisStim1 Aligned.')            
+            fig.suptitle(subject + ' - ' + session_date + '  ' + str(numRewardedTrials) + '/' + str(numTrials) + ' Trials Rewarded.\nMean Press Window:' + ' ' + str(press_window_avg) + 's\nVisStim1 Aligned.')            
             
             # fig.tight_layout(rect=[0, 0.03, 1, 0.98]) # [left, bottom, right, top]
             fig.tight_layout(rect=[0.01, 0.03, 1, 0.98]) # [left, bottom, right, top]
@@ -167,8 +168,9 @@ def plot_fig3(
                 else:
                     axs[row, col].plot(encoder_times_vis1, encoder_positions_aligned_vis1,'-', color = '#e377c2', label='Trajectory')
                     
+                # target_thresh[1] = 1    
                 axs[row, col].axvline(x = 0, color = 'r', label = 'VisStim1', linestyle='--')
-                axs[row, col].axhline(y = target_thresh, color = '0.6', label = 'Target Threshold', linestyle='--')    
+                axs[row, col].axhline(y = target_thresh[trial], color = '0.6', label = 'Target Threshold', linestyle='--')    
                 axs[row, col].set_title('Trial ' + str(trial + 1))        
                 axs[row, col].legend(loc='upper right')
                 axs[row, col].set_xlim(time_left_VisStim1, 7.0)
@@ -247,13 +249,32 @@ def plot_fig3(
 # debugging
 
 # session_data = session_data_1
-# plot_fig3(session_data)
+# plot_fig3(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_2
-# plot_fig3(session_data)
-    
+# plot_fig3(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
 # session_data = session_data_3
-# plot_fig3(session_data)
+# plot_fig3(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
 
 # session_data = session_data_4
-# plot_fig3(session_data)
+# plot_fig3(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
+# session_data = session_data_5
+# plot_fig3(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
+# session_data = session_data_6
+# plot_fig3(session_data,         
+#           output_dir_onedrive,
+#           output_dir_local)
+
