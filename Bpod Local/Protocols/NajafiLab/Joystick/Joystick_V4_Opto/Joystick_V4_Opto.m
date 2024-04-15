@@ -233,7 +233,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 2;
+    MonitorID = 1;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
@@ -387,7 +387,7 @@ try
     % AutoPressVisDelay_s = S.GUI.AutoDelayStart_s;
     AutoPressVisDelay_s = PressVisDelay_s;
     PrevAutoPressVisDelay_s = AutoPressVisDelay_s;
-    PreviousEnableAutoLongDelay = 0;  % start zero in case enabled by default, then still get start value for delay
+    PreviousEnableAutoDelay = 0;  % start zero in case enabled by default, then still get start value for delay
 
     % NumDelaySteps = 0;
 
@@ -615,16 +615,16 @@ try
             case 1
                 ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
                 ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
-                ExperimenterTrialInfo.PressVisDelay_s = 'NA';
+                % ExperimenterTrialInfo.PressVisDelay_s = 'NA';
         end
 
 
         % [PressVisDelay_s, ExperimenterTrialInfo]  = m_TrialConfig.GetPressVisDelay(BpodSystem, S, TrialTypes, currentTrial, PressVisDelay_s); % set default, var should only be used when visually guided activated, so err log should indicate if weird state
         % [PressVisDelay_s, ExperimenterTrialInfo]  = m_TrialConfig.GetPressVisDelay(BpodSystem, S, TrialTypes, currentTrial, PressVisDelay_s); % set default, var should only be used when visually guided activated, so err log should indicate if weird state
 
-        if S.GUI.EnableAutoLongDelay ~= PreviousEnableAutoLongDelay
-            PreviousEnableAutoLongDelay = S.GUI.EnableAutoLongDelay;
-            if S.GUI.EnableAutoLongDelay
+        if S.GUI.EnableAutoDelay ~= PreviousEnableAutoDelay
+            PreviousEnableAutoDelay = S.GUI.EnableAutoDelay;
+            if S.GUI.EnableAutoDelay
                 if S.GUI.SelfTimedMode
                     disp('set auto to self timed start')
                     AutoPressVisDelay_s = S.GUI.PrePress2Delay_s;
@@ -635,14 +635,17 @@ try
             end
         end
         if  (currentTrial>1 && ...      
-            S.GUI.EnableAutoLongDelay && ...
+            S.GUI.EnableAutoDelay && ...
             ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
             isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
             AutoPressVisDelay_s = AutoPressVisDelay_s + S.GUI.AutoDelayStep_s;
         end
-        if S.GUI.EnableAutoLongDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
-            ExperimenterTrialInfo.EnableAutoLongDelay = 'Auto Long Delay Enabled';
+        if S.GUI.EnableAutoDelay
+            ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
+        end
+        if S.GUI.EnableAutoDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
+            % ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
             if S.GUI.SelfTimedMode == 1          
                 PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxSelf_s);            
                 S.GUI.PrePress2Delay_s = PressVisDelay_s;
@@ -668,7 +671,7 @@ try
                     PressVisDelay_s = S.GUI.PrePress2Delay_s;
                     ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
                     ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
-                    ExperimenterTrialInfo.PressVisDelay_s = 'NA';
+                    % ExperimenterTrialInfo.PressVisDelay_s = 'NA';
                     % ExperimenterTrialInfo.PrePress2Delay_s = S.GUI.PrePress2Delay_s;
             end
         end    
