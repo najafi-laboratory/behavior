@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 """
     use this file to define constants, and adjust values that are constant between all graphs.
 """
@@ -14,6 +13,10 @@ FRAME_RATE = 60
 
 # This is the mask value. Any probability below this value is not graphed.
 MASK_VALUE = 0.90
+
+# Value that decides whether to filter data. If set to true, outliers are filtered.
+# only implemented in polygonArea for now.
+FILTER = True
 
 
 def get_color(likelihoods):
