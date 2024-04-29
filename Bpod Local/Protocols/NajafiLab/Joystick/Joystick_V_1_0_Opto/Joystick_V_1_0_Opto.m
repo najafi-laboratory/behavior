@@ -235,7 +235,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 1;
+    MonitorID = 2;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
@@ -569,7 +569,7 @@ try
     
     
         %% trial specific audio-vis
-        VisDetectOutputAction = {'SoftCode', 5};       
+        VisDetectOutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};       
         audStimOpto = {'HiFi1', ['P', 6]};        % deprecated, use audStimOpto# for separate control of opto segments
         % SCOA.AudStim     = m_Opto.GetAudStimOpto(OptoTrialTypes(currentTrial));
 
@@ -581,13 +581,7 @@ try
         audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
 
         %% state matrix values
-    
-    
-        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1'};
        
-        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2'}; 
-        
-        VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3'};
     
         Reward_OutputActions = {'Valve2', 1, 'SoftCode', 9};
     
@@ -739,6 +733,22 @@ try
         % if m_Opto.EnableOpto
         %         StimAct = [StimAct, {'GlobalTimerCancel', 1}];
         % end
+
+        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1'};
+
+        if PressVisDelay_s == 0
+            % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1'};
+            VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2'};
+            VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3'};
+        else
+            % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress'};
+            VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress'};
+            VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3', 'RotaryEncoder1_2', 'EarlyPress'};
+        end
+
+        % VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress'};
+        
+        % VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3', 'RotaryEncoder1_2', 'EarlyPress'};
 
         LeverRetract1_StateChangeConditions = {};
         LeverRetract2_StateChangeConditions = {};
