@@ -113,8 +113,17 @@ switch op
 
         %set(BpodSystem.GUIHandles.EncoderPlotSetLeverBeforePressStartLine,'value',PreVisStimITITimes(1), 'LineStyle', ':');     
         %set(BpodSystem.GUIHandles.EncoderPlotVisStimTrigger1StartLine,'value',VisStimTrigger1Times(1), 'LineStyle', ':'); 
-        set(BpodSystem.GUIHandles.EncoderPlotVisualStimulus11StartLine,'value',VisualStimulus1Times(1), 'LineStyle', ':'); 
-        set(BpodSystem.GUIHandles.EncoderPlotWaitForPress1StartLine,'value',WaitForPress1Times(1), 'LineStyle', ':'); 
+        if ~isnan(VisualStimulus1Times(1))
+            set(BpodSystem.GUIHandles.EncoderPlotVisualStimulus11StartLine,'value',VisualStimulus1Times(1), 'LineStyle', ':');
+        else
+            set(BpodSystem.GUIHandles.EncoderPlotVisualStimulus11StartLine,'LineStyle', 'none'); 
+        end
+
+        if ~isnan(VisualStimulus1Times(1))
+            set(BpodSystem.GUIHandles.EncoderPlotWaitForPress1StartLine,'value',WaitForPress1Times(1), 'LineStyle', ':'); 
+        else
+            set(BpodSystem.GUIHandles.EncoderPlotWaitForPress1StartLine,'LineStyle', 'none'); 
+        end
         
         % if ~isnan(LeverRetract1Times(1)) && ~isnan(Reward1Times(1))
         %     set(BpodSystem.GUIHandles.EncoderPlotLeverRetract1StartLine,'value',LeverRetract1Times(1), 'LineStyle', ':'); 
@@ -239,8 +248,11 @@ switch op
         end
 
         %% ITI
-
-        set(BpodSystem.GUIHandles.EncoderPlotITIStartLine,'value',ITITimes(1), 'LineStyle', ':');
+        if ~isnan(RewardTimes(1))
+            set(BpodSystem.GUIHandles.EncoderPlotITIStartLine,'value',ITITimes(1), 'LineStyle', ':');
+        else
+            set(BpodSystem.GUIHandles.EncoderPlotITIStartLine,'LineStyle', 'none'); 
+        end
 
 
         % BpodSystem.GUIHandles.EncoderPlotSetLeverBeforePressStartLine = xline(PreVisStimITITimes(1), '-', 'SetLeverBeforePress Start', 'Color', 'k', 'LineStyle', ':');

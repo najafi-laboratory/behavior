@@ -984,10 +984,11 @@ try
         
 
         BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
-        pause(.05);
+        % pause(0.05);
         % BpodSystem.PluginObjects.R.thresholds = [S.GUI.Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
         BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
-        BpodSystem.PluginObjects.R;
+        % BpodSystem.PluginObjects.R;
+        % pause(0.05);
         BpodSystem.PluginObjects.R.startUSBStream;  % restart encoder USB streaming
     
         BpodSystem.Data.TrialData{1, S.GUI.currentTrial}.LeverResetPos = []; % array for lever reset positions
@@ -1242,17 +1243,23 @@ try
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', Punish_OutputActions); 
     
+        % sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', {'Tup', '>exit'},...
+        %     'OutputActions', {});
+
         sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {});
+            'StateChangeConditions', {'Tup', 'ITI'},...
+            'OutputActions', {});        
         
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
             'OutputActions', {'GlobalCounterReset', 1}); 
     
-        SendStateMachine(sma); % Send the state matrix to the Bpod device        
+        SendStateMachine(sma); % Send the state matrix to the Bpod device   
+        % pause(2);
         RawEvents = RunStateMachine; % Run the trial and return events
        
         if ~isempty(fieldnames(RawEvents)) % If trial data was returned (i.e. if not final trial, interrupted by user)
