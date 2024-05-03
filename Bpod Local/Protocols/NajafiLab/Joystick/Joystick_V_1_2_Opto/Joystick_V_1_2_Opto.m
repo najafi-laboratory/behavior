@@ -638,9 +638,15 @@ try
                 end
             end
         end
+            %     if  (currentTrial>1 && ...      
+            % S.GUI.EnableAutoDelay && ...
+            % ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
+            % isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
+            % ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
+            % disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
         if  (currentTrial>1 && ...      
             S.GUI.EnableAutoDelay && ...
-            ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
+            (((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
             isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
             disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
@@ -649,7 +655,11 @@ try
             end
         end
         if S.GUI.EnableAutoDelay
-            ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
+            if WarmupTrialsCounter <= 0
+                ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
+            else
+                ExperimenterTrialInfo.EnableAutoDelay = 'Warmup - No Auto Delay';
+            end
         end
         if S.GUI.EnableAutoDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
             % ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
@@ -984,7 +994,7 @@ try
         
 
         BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
-        % pause(0.05);
+        pause(0.05);
         % BpodSystem.PluginObjects.R.thresholds = [S.GUI.Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
         BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
         % BpodSystem.PluginObjects.R;
