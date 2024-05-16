@@ -105,8 +105,7 @@ classdef OptoConfig
                         switch Vis1Vis2
                             case 1
                                 if S.GUI.OptoVis1 == 1
-                                    % AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', '000001'};
-                                    AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', '010001'};
+                                    AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', '000001'};
                                 else
                                     AudStimOpto = {'HiFi1', ['P', 6]};
                                 end
@@ -154,8 +153,7 @@ classdef OptoConfig
                         'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                         'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
                         'GlobalTimerEvents', 0, 'OffsetValue', 0);  
-                    % update these later for different opto segment timings
-                    pmtDur = VisStim.VisStimDuration + 0.002;
+                    pmtDur = 30;
                     sma = SetGlobalTimer(sma, 'TimerID', 5, 'Duration', pmtDur, 'OnsetDelay', 0,...
                         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
                         'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...

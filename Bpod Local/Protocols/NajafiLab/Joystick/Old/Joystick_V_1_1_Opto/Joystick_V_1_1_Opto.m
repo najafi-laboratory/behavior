@@ -1,4 +1,4 @@
-function Joystick_V_1_2_Opto
+function Joystick_V_1_1_Opto
 try
     global BpodSystem
     global S
@@ -194,7 +194,7 @@ try
     BpodSystem.GUIHandles.EncoderAxes = axes('Position', [.15 .15 .8 .8]);
     LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'init', S.GUI.Threshold);
 
-    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 818]);
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 708]);
     
     %% state timing plot
     useStateTiming = true;  % Initialize state timing plot
@@ -355,9 +355,9 @@ try
 
 
         % update gui positions
-    % if updateGUIPos
-    %     BpodSystem.ProtocolFigures.ParameterGUI.Position
-    % end
+    if updateGUIPos
+        BpodSystem.ProtocolFigures.ParameterGUI.Position
+    end
     % wait for parameter update and confirm before beginning trial loop
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
@@ -539,7 +539,7 @@ try
         FullVideo = GratingVideo;
         FullVideoFrames = length(FullVideo);
         VisStim.VisStimDuration = GratingDur;
-        ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;
+        ExperimenterTrialInfo.VisStim.VisStimDuration = VisStim.VisStimDuration;
     
         % load constructed video into the video object
         BpodSystem.PluginObjects.V.Videos{5} = struct;
@@ -556,20 +556,20 @@ try
         end
                 
         %% update encoder threshold from params
-        % BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
-        % pause(.05);
-        % BpodSystem.PluginObjects.R.thresholds = [S.GUI.Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
-        % BpodSystem.PluginObjects.R;
-        % BpodSystem.PluginObjects.R.startUSBStream;  % restart encoder USB streaming
-        % 
-        % BpodSystem.Data.TrialData{1, S.GUI.currentTrial}.LeverResetPos = []; % array for lever reset positions
+        BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
+        pause(.05);
+        BpodSystem.PluginObjects.R.thresholds = [S.GUI.Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
+        BpodSystem.PluginObjects.R;
+        BpodSystem.PluginObjects.R.startUSBStream;  % restart encoder USB streaming
+    
+        BpodSystem.Data.TrialData{1, S.GUI.currentTrial}.LeverResetPos = []; % array for lever reset positions
         
         
         %% resistance level -> actuator
     
     
         %% trial specific audio-vis
-        VisDetectOutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};       
+        VisDetectOutputAction = {'SoftCode', 5};       
         audStimOpto = {'HiFi1', ['P', 6]};        % deprecated, use audStimOpto# for separate control of opto segments
         % SCOA.AudStim     = m_Opto.GetAudStimOpto(OptoTrialTypes(currentTrial));
 
@@ -581,7 +581,13 @@ try
         audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
 
         %% state matrix values
+    
+    
+        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1'};
        
+        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2'}; 
+        
+        VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3'};
     
         Reward_OutputActions = {'Valve2', 1, 'SoftCode', 9};
     
@@ -638,15 +644,9 @@ try
                 end
             end
         end
-            %     if  (currentTrial>1 && ...      
-            % S.GUI.EnableAutoDelay && ...
-            % ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
-            % isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
-            % ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
-            % disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
         if  (currentTrial>1 && ...      
             S.GUI.EnableAutoDelay && ...
-            (((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
+            ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
             isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
             disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
@@ -655,11 +655,7 @@ try
             end
         end
         if S.GUI.EnableAutoDelay
-            if WarmupTrialsCounter <= 0
-                ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
-            else
-                ExperimenterTrialInfo.EnableAutoDelay = 'Warmup - No Auto Delay';
-            end
+            ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
         end
         if S.GUI.EnableAutoDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
             % ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
@@ -744,22 +740,6 @@ try
         %         StimAct = [StimAct, {'GlobalTimerCancel', 1}];
         % end
 
-        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
-        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
-        VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3', 'RotaryEncoder1_2', 'EarlyPress'};
-        % if PressVisDelay_s == 0
-        %     % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1'};
-        %     VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2'};
-        %     VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3'};
-        % else
-            % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress'};
-            
-        % end
-
-        % VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress'};
-        
-        % VisDetect3_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus3', 'RotaryEncoder1_2', 'EarlyPress'};
-
         LeverRetract1_StateChangeConditions = {};
         LeverRetract2_StateChangeConditions = {};
         LeverRetract3_StateChangeConditions = {};
@@ -792,17 +772,20 @@ try
 
         PreVis2Delay_StateChangeConditions = {};
 
-        PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'};
+        PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'WaitForPress2'};
     
         % GetAudStimOpto create separate function to abstract global timer
         % trig/cancel out of audStimOpto function (should only be for adding AV stim, do opto separate)
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
             if S.GUI.OptoVis1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', 1}];
+                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', 1}];
+                VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '010000'}];
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '010001'}];
             end
 
             if S.GUI.OptoWaitForPress1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', 2}];
+                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', 2}];
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '100010'}];
                 LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', 2}];
                 DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', 2}];
                 % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 2}];
@@ -831,7 +814,8 @@ try
             %     % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 1}];
                 % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', 1, 'GlobalTimerCancel', 2, 'GlobalTimerCancel', 3, 'GlobalTimerCancel', 4}];
                 % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimer1_End', 'GlobalTimer2_End', 'GlobalTimer3_End', 'GlobalTimer4_End'}];                
-                Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '1111'}];
+                % Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '1111'}];
+                Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '11111111'}];
         end
 
         switch S.GUI.Reps
@@ -855,18 +839,18 @@ try
                     LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
                     if S.GUI.VisStim2Enable
                         % LeverRetract1_StateChangeConditions = {'SoftCode1', 'VisDetect2'};
-                        % if PressVisDelay_s == 0
-                        %     PreVis2Delay_StateChangeConditions = {'Tup', 'VisDetect2'};
-                        % else
-                        PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'};
-                        % end                    
+                        if PressVisDelay_s == 0
+                            PreVis2Delay_StateChangeConditions = {'Tup', 'VisDetect2'};
+                        else
+                            PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'VisDetect2'};
+                        end                    
                     else
                         % LeverRetract1_StateChangeConditions = {'SoftCode1', 'WaitForPress2'};
-                        % if PressVisDelay_s == 0
-                        %     PreVis2Delay_StateChangeConditions = {'Tup', 'WaitForPress2'};
-                        % else
-                        PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'};
-                        % end                                        
+                        if PressVisDelay_s == 0
+                            PreVis2Delay_StateChangeConditions = {'Tup', 'WaitForPress2'};
+                        else
+                            PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress', 'Tup', 'WaitForPress2'};
+                        end                                        
                     end
                 else
                     LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
@@ -967,41 +951,16 @@ try
             ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % check variable states as field/value struct for experimenter info
             PressWindow_s = S.GUI.PressWindow_s + S.GUI.PressWindowExtend_s;
             
-            % half press delays for warmup
-            if S.GUI.SelfTimedMode
-                PressVisDelay_s = PressVisDelay_s /2;
-            else
-                PressVisDelay_s = min(S.GUI.PressVisDelayShort_s, PressVisDelay_s);
-            end
 
+            
 
-
-            Threshold = S.GUI.WarmupThreshold;
 
             TrialDifficulty = 1;  % set warmup trial to easy     
         else    
-            Threshold = S.GUI.Threshold;
-
-
-
             TrialDifficulty = 2;
             ExperimenterTrialInfo.Warmup = false;   % check variable states as field/value struct for experimenter info
             ExperimenterTrialInfo.WarmupTrialsRemaining = 0;   % check variable states as field/value struct for experimenter info
-        end   
-
-        %% update encoder threshold from params
-
-        
-
-        BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
-        pause(0.05);
-        % BpodSystem.PluginObjects.R.thresholds = [S.GUI.Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
-        BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
-        % BpodSystem.PluginObjects.R;
-        % pause(0.05);
-        BpodSystem.PluginObjects.R.startUSBStream;  % restart encoder USB streaming
-    
-        BpodSystem.Data.TrialData{1, S.GUI.currentTrial}.LeverResetPos = []; % array for lever reset positions
+        end    
     
         ExperimenterTrialInfo.PressWindow = PressWindow_s;
     
@@ -1067,11 +1026,18 @@ try
 
         sma = SetGlobalCounter(sma, CounterNumber, TargetEventName, Threshold);
 
+        % sma = AddState(sma, 'Name', 'Start', ...
+        %     'Timer', 0.068,...
+        %     'StateChangeConditions', {'Tup', 'PreVisStimITI'},...
+        %     'OutputActions', {'HiFi1','*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1, 'PWM3', 255}); % Code to push newly uploaded waves to front (playback) buffers
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
             'StateChangeConditions', {'Tup', 'PreVisStimITI'},...
-            'OutputActions', {'HiFi1','*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1, 'PWM3', 255}); % Code to push newly uploaded waves to front (playback) buffers
-        
+            'OutputActions', {'HiFi1','*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to push newly uploaded waves to front (playback) buffers
+            % 'OutputActions', {'HiFi1','*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1, 'PWM1', 255}); % Code to push newly uploaded waves to front (playback) buffers
+            
+
+
         sma = AddState(sma, 'Name', 'PreVisStimITI', ...
             'Timer', PreVisStimITI,...
             'StateChangeConditions', {'Tup', 'VisDetect1'},...
@@ -1122,15 +1088,9 @@ try
             'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
 
         sma = AddState(sma, 'Name', 'PrePress2Delay', ...
-            'Timer', PressVisDelay_s,...
+            'Timer', S.GUI.PrePress2Delay_s,...
             'StateChangeConditions', PrePress2Delay_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});
-
-
-        % sma = AddState(sma, 'Name', 'PrePress2Delay', ...
-        %     'Timer', S.GUI.PrePress2Delay_s,...
-        %     'StateChangeConditions', PrePress2Delay_StateChangeConditions,...
-        %     'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});        
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});        
     %% rep 2
     
         sma = AddState(sma, 'Name', 'VisDetect2', ...
@@ -1232,18 +1192,7 @@ try
             'StateChangeConditions', {'Tup', 'Punish'},...
             'OutputActions', {'SoftCode', 8});    
     
-        %%
         sma = AddState(sma, 'Name', 'EarlyPress', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', {'SoftCode', 8});
-        %%
-        sma = AddState(sma, 'Name', 'EarlyPress1', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', {'SoftCode', 8});
-
-        sma = AddState(sma, 'Name', 'EarlyPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
             'OutputActions', {'SoftCode', 8});
@@ -1253,23 +1202,18 @@ try
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', Punish_OutputActions); 
     
-        % sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
-        %     'Timer', 0,...
-        %     'StateChangeConditions', {'Tup', '>exit'},...
-        %     'OutputActions', {});
-
         sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});        
+            'StateChangeConditions', {'Tup', '>exit'},...
+            'OutputActions', {});
         
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'GlobalCounterReset', 1}); 
+            'OutputActions', {'GlobalCounterReset', '11111111'}); 
+            % 'OutputActions', {'GlobalCounterReset', 1}); 
     
-        SendStateMachine(sma); % Send the state matrix to the Bpod device   
-        % pause(2);
+        SendStateMachine(sma); % Send the state matrix to the Bpod device        
         RawEvents = RunStateMachine; % Run the trial and return events
        
         if ~isempty(fieldnames(RawEvents)) % If trial data was returned (i.e. if not final trial, interrupted by user)
@@ -1365,15 +1309,10 @@ try
     
             RewardTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward;
 
-            % UPDATE
-            % EarlyPressTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress;  
-
-            EarlyPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress1;  
+            EarlyPressTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress;  
 
             PrePress2DelayTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PrePress2Delay;
-
-            EarlyPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress2;  
-                
+    
             LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'update', S.GUI.Threshold, BpodSystem.Data.EncoderData{currentTrial},...
                 TrialDuration, ...
                 PreVisStimITITimes, ...
@@ -1394,16 +1333,9 @@ try
                 Reward3Times, ...
                 DidNotPress3Times, ...
                 RewardTimes, ...
-                EarlyPress1Times, ...
+                EarlyPressTimes, ...
                 VisualStimulus2Times, ...
-                PrePress2DelayTimes, ...
-                EarlyPress2Times);
-
-
-
-                % EarlyPressTimes, ...
-                % VisualStimulus2Times, ...
-                % PrePress2DelayTimes);
+                PrePress2DelayTimes);
     
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     

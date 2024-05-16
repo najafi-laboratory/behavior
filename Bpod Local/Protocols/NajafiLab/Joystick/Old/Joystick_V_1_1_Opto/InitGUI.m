@@ -1,3 +1,4 @@
+
 classdef InitGUI
     methods
 
@@ -10,7 +11,6 @@ function [S] = SetParams(obj, BpodSystem)
         
         % joystick params
         S.GUI.Threshold = 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
-        S.GUI.WarmupThreshold = S.GUI.Threshold / 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
         S.GUI.PressWindow_s = 1.8; % how long mouse has to press lever
         S.GUI.PressWindowExtend_s = 1; % additional time added for warmup trials
         S.GUI.Reps = 2;   % number of required repeated lever presses in a trial
@@ -21,8 +21,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ResistanceLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.ResistanceLevel.String = {'0 mA', '30 mA', '91 mA', '122 mA', '152 mA', '183 mA', '214 mA', '244 mA', '900 mA'};
         % S.GUI.PostRewardDelay_s = 0.500; % post reward delay prior to lever return        
-        S.GUI.ServoInPos = 1135.00; % lever start pos
-        S.GUI.ServoOutPos = 27; % can press lever
+        S.GUI.ServoInPos = 1501.00; % lever start pos
+        S.GUI.ServoOutPos = 24; % can press lever
         S.GUI.RetractThreshold = 0.5;
         % S.GUI.Reward_Rep = 0; % reward after each press rep?
         % S.GUIMeta.Reward_Rep.Style = 'checkbox';
@@ -42,7 +42,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.EnableAutoDelay = 1;
         S.GUIMeta.EnableAutoDelay.Style = 'checkbox';        
         % S.GUI.AutoDelayStart_s = 0.015;
-        S.GUI.AutoDelayStep_s = 0.0001;
+        S.GUI.AutoDelayStep_s = 0.004;
         % S.GUI.AutoDelayStepSelf_s = 0.002;
         % S.GUI.NumDelaySteps = 0;
         S.GUI.AutoDelayMaxVis_s = 0.500;
@@ -60,10 +60,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumTrialsPerBlock = 50;        
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'PostRewardDelay_s', 'ServoInPos', 'ServoOutPos', 'Reward_Rep', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
-        S.GUIPanels.Joystick = {'Threshold', 'WarmupThreshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
+        S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
 
         % Optogentic params
-        S.GUI.SessionType = 2;
+        S.GUI.SessionType = 1;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 1;
@@ -82,7 +82,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoTrialTypeSeq = 1;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
-        S.GUI.OnFraction = 0.35;
+        S.GUI.OnFraction = 0.9;
         S.GUI.NumOptoTrialsPerBlock = 50;          
         S.GUIPanels.Opto = {'SessionType', 'PulseType', 'PulseFreq_Hz', 'PulseOnDur_ms', 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
