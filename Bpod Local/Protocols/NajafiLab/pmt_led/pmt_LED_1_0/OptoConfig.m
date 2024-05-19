@@ -123,7 +123,7 @@ classdef OptoConfig
             end
         end
 
-        function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
+        function [sma] = InsertGlobalTimer(obj, sma, S, PulseDur)
             if obj.EnableOpto 
                 switch S.GUI.PulseType
                     case 1
@@ -160,7 +160,7 @@ classdef OptoConfig
                         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
                         'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
                         'GlobalTimerEvents', 0, 'OffsetValue', 0, 'PulseWidthByte', 256);                    
-                   0 % sma = SetGlobalTimer(sma, 'TimerID', 6, 'Duration', Duration, 'OnsetDelay', 0, 'Channel', 'PWM1', 'Loop', 1, 'PulseWidthByte', 256);
+                   % sma = SetGlobalTimer(sma, 'TimerID', 6, 'Duration', Duration, 'OnsetDelay', 0, 'Channel', 'PWM1', 'Loop', 1, 'PulseWidthByte', 256);
                     disp(['Duration Vis1 timer:' num2str(pmtDur)])                    
                 end
                 if S.GUI.OptoWaitForPress1
