@@ -534,6 +534,32 @@ try
             PrevAutoPressVisDelay_s = AutoPressVisDelay_s;
         end
 
+        %% Draw trial-specific ITI from exponential distribution
+    
+        [ITI] = m_TrialConfig.GetITI(S);
+    
+        ExperimenterTrialInfo.ITI = ITI;
+
+        [TimeOutPunish] = m_TrialConfig.GetTimeOutPunish(S);
+    
+        ExperimenterTrialInfo.TimeOutPunish = TimeOutPunish;
+                                      
+        %% Split ITI into Pre-Vis Stim duration and end of trial duration.
+            
+        PreVisStimITI = 0.200;
+        ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI;
+        if ITI-PreVisStimITI >= 0
+            EndOfTrialITI = ITI-PreVisStimITI;
+        else
+            EndOfTrialITI = 0;
+        end
+        ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI; 
+    
+        %% Draw trial-specific and difficulty-defined TimeOutPunish from exponential distribution
+            
+        EndOfTrialITI = EndOfTrialITI + TimeOutPunish;
+        ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI;
+
         %% set state matrix variables
 
         
@@ -542,6 +568,8 @@ try
 
         LeverRetract3_StateChangeConditions = {};
     
+        PreVisStimITI_StateChangeConditions = {'Tup', 'VisDetect1'};
+        PreVisStimITI_OutputActions = {};
         VisDetectOutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
         audStimOpto1 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 1);
         audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
@@ -576,16 +604,19 @@ try
 
         PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'};
     
+
+        
         % update after opto proto is defined to create separate function to abstract global timer
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
             if S.GUI.OptoVis1
-                VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '010000'}];
+                PreVisStimITI_OutputActions = [PreVisStimITI_OutputActions, {'GlobalTimerTrig', '100000000'}];
+                VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '000010000'}];
                 % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '010001'}];
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '000001'}];
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '000000001'}];
             end
 
             if S.GUI.OptoWaitForPress1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '100010'}];
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000100010'}];
                 LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', 2}];
                 DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', 2}];
             end
@@ -599,7 +630,7 @@ try
                 DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', 4}];
             end
 
-            Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '11111111'}];
+            Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '111111111'}];
         end
 
         switch S.GUI.Reps
@@ -658,31 +689,6 @@ try
         %     case 5 % well trained
         % end
     
-        %% Draw trial-specific ITI from exponential distribution
-    
-        [ITI] = m_TrialConfig.GetITI(S);
-    
-        ExperimenterTrialInfo.ITI = ITI;
-
-        [TimeOutPunish] = m_TrialConfig.GetTimeOutPunish(S);
-    
-        ExperimenterTrialInfo.TimeOutPunish = TimeOutPunish;
-                                      
-        %% Split ITI into Pre-Vis Stim duration and end of trial duration.    
-        
-        PreVisStimITI = 0.200;
-        ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI;
-        if ITI-PreVisStimITI >= 0
-            EndOfTrialITI = ITI-PreVisStimITI;
-        else
-            EndOfTrialITI = 0;
-        end
-        ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI; 
-    
-        %% Draw trial-specific and difficulty-defined TimeOutPunish from exponential distribution
-            
-        EndOfTrialITI = EndOfTrialITI + TimeOutPunish;
-        ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI;
             
         %% adjust for warmup trials
         % For warmup trials, wait for press is extended by additional warmup param, after warmup wait for press is S.GUI.PressWindow_s
@@ -760,6 +766,19 @@ try
         sma = NewStateMatrix(); % Assemble state matrix
         
         sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
+
+        %% Opto - use shutter close delay of 10ms + 12.1ms = 22.1ms
+        % shutter close delay, add to opto global timer function later
+        ShutterCloseDelay = 0.0221;
+        TimerBuffer = 0; % provide overlap between states
+        if m_Opto.EnableOpto
+            if S.GUI.OptoVis1
+                sma = SetGlobalTimer(sma, 'TimerID', 9, 'Duration', ShutterCloseDelay + TimerBuffer, 'OnsetDelay', PreVisStimITI - ShutterCloseDelay,...
+                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);
+            end
+        end
       
         CounterNumber = 1;
         TargetEventName = 'Port3In';
@@ -774,9 +793,9 @@ try
         
         sma = AddState(sma, 'Name', 'PreVisStimITI', ...
             'Timer', PreVisStimITI,...
-            'StateChangeConditions', {'Tup', 'VisDetect1'},...
-            'OutputActions', {});
-    
+            'StateChangeConditions', PreVisStimITI_StateChangeConditions,...
+            'OutputActions', PreVisStimITI_OutputActions);
+        
         %% rep 1
         
         sma = AddState(sma, 'Name', 'VisDetect1', ...

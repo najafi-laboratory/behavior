@@ -137,12 +137,6 @@ classdef OptoConfig
                         LoopInterval = OffDur;
                 end
               
-                % sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', VisStim.VisStimDuration, 'OnsetDelay', 0,...
-                %     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', VisStim.Grating.Dur,...
-                %     'GlobalTimerEvents', 0, 'OffsetValue', 0);
-                % 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2'
-
                 % Use separate global timers for each state that opto could
                 % be enabled.  Easier to keep track of which need to be
                 % triggered and canceled. Also easier to keep
@@ -172,8 +166,6 @@ classdef OptoConfig
                         'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
                         'GlobalTimerEvents', 0, 'OffsetValue', 0);                
                 end                
-
-
             end
         end
     end

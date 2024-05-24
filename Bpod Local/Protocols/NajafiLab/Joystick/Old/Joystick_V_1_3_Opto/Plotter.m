@@ -1,7 +1,6 @@
 classdef Plotter
     methods
 
-
 function UpdateOutcomePlot(obj, BpodSystem, TrialTypes, OptoTrialTypes, isEndOfTrial)
     Data = BpodSystem.Data;
     if isfield(Data, 'nTrials')
