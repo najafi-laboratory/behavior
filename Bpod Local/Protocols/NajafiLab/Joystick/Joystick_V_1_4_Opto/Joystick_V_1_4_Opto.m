@@ -610,24 +610,24 @@ try
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
             if S.GUI.OptoVis1
                 PreVisStimITI_OutputActions = [PreVisStimITI_OutputActions, {'GlobalTimerTrig', '100000000'}];
-                VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '000010000'}];
+                % VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '000010000'}];
                 % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '010001'}];
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '000000001'}];
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];
             end
 
             if S.GUI.OptoWaitForPress1
                 WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000100010'}];
-                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', 2}];
-                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', 2}];
+                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000000010'}];
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000000010'}];
             end
 
             if S.GUI.OptoVis2
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', 3}];
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
             end
 
             if S.GUI.OptoWaitForPress2
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', 4}];
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', 4}];
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '000001000'}];
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '000001000'}];
             end
 
             Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '111111111'}];
@@ -769,16 +769,16 @@ try
 
         %% Opto - use shutter close delay of 10ms + 12.1ms = 22.1ms
         % shutter close delay, add to opto global timer function later
-        ShutterCloseDelay = 0.0221;
-        TimerBuffer = 0; % provide overlap between states
-        if m_Opto.EnableOpto
-            if S.GUI.OptoVis1
-                sma = SetGlobalTimer(sma, 'TimerID', 9, 'Duration', ShutterCloseDelay + TimerBuffer, 'OnsetDelay', PreVisStimITI - ShutterCloseDelay,...
-                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                    'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
-                    'GlobalTimerEvents', 0, 'OffsetValue', 0);
-            end
-        end
+        % ShutterCloseDelay = 0.0221;
+        % TimerBuffer = 0; % provide overlap between states
+        % if m_Opto.EnableOpto
+        %     if S.GUI.OptoVis1
+        %         sma = SetGlobalTimer(sma, 'TimerID', 9, 'Duration', ShutterCloseDelay + TimerBuffer, 'OnsetDelay', PreVisStimITI - ShutterCloseDelay,...
+        %             'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+        %             'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+        %             'GlobalTimerEvents', 0, 'OffsetValue', 0);
+        %     end
+        % end
       
         CounterNumber = 1;
         TargetEventName = 'Port3In';

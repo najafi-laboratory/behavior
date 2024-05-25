@@ -9,6 +9,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.currentTrial = 0;
         
         % joystick params
+        S.GUI.ChemogeneticSession = 0;
+        S.GUIMeta.ChemogeneticSession.Style = 'checkbox';
         S.GUI.Threshold = 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
         S.GUI.WarmupThreshold = S.GUI.Threshold / 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
         S.GUI.PressWindow_s = 1.8; % how long mouse has to press lever
@@ -60,10 +62,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumTrialsPerBlock = 50;        
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'PostRewardDelay_s', 'ServoInPos', 'ServoOutPos', 'Reward_Rep', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
-        S.GUIPanels.Joystick = {'Threshold', 'WarmupThreshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
+        S.GUIPanels.Joystick = {'ChemogeneticSession', 'Threshold', 'WarmupThreshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PressVisDelayShort_s', 'PressVisDelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
 
         % Optogentic params
-        S.GUI.SessionType = 2;
+        S.GUI.SessionType = 1;  % S.GUI.SessionType = 2;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 1;
@@ -82,7 +84,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoTrialTypeSeq = 1;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
-        S.GUI.OnFraction = 0.35;
+        S.GUI.OnFraction = 1;    % S.GUI.OnFraction = 0.35;
         S.GUI.NumOptoTrialsPerBlock = 50;          
         S.GUIPanels.Opto = {'SessionType', 'PulseType', 'PulseFreq_Hz', 'PulseOnDur_ms', 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
@@ -95,7 +97,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Reward = {'Reward_Rep', 'PostRewardDelay_s', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent'};        
         
         % ITI params
-        S.GUI.SetManualITI = 0;
+        S.GUI.SetManualITI = 1; % S.GUI.SetManualITI = 0;
         S.GUIMeta.SetManualITI.Style = 'checkbox';
         S.GUI.ManualITI = '0';
         S.GUI.ForceITIZero = 0;

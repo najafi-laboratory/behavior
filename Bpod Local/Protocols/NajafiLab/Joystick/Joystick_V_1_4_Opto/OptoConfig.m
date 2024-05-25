@@ -111,7 +111,7 @@ classdef OptoConfig
                                 end
                             case 2
                                 if S.GUI.OptoVis2 == 1
-                                    AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', '000000100'};
+                                    AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', '001000100'};
                                 else
                                     AudStimOpto = {'HiFi1', ['P', 6]};
                                 end
@@ -124,18 +124,45 @@ classdef OptoConfig
 
         function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
             if obj.EnableOpto 
+                % switch S.GUI.PulseType
+                %     case 1
+                %         Duration = VisStim.VisStimDuration;
+                %         % OffDur = VisStim.Grating.Dur;
+                %         OffDur = 0;
+                %     case 2
+                %         T = 1/S.GUI.PulseFreq_Hz;
+                %         OnDur = S.GUI.PulseOnDur_ms/1000;
+                %         OffDur = abs(OnDur - T);
+                %         Duration = OnDur;
+                %         LoopInterval = OffDur;
+                % end
+
+                % shutter close delays
+                PMTStartCloseDelay = 0.010;
+                PMTCloseTransferDelay = 0.0121;
+                PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay;
+
+                % shutter open delays
+                PMTStartOpenDelay = 0.0078;
+                PMTCloseDur = VisStim.VisStimDuration - PMTStartOpenDelay;
                 switch S.GUI.PulseType
                     case 1
-                        Duration = VisStim.VisStimDuration;
-                        % OffDur = VisStim.Grating.Dur;
+                        OnDur = VisStim.VisStimDuration - PMTCloseDelay;
                         OffDur = 0;
+                        LoopLED = 0;
+
+                        WaitForPressDur = 30;
+                        WaitForPressLoopLED = 0;
                     case 2
                         T = 1/S.GUI.PulseFreq_Hz;
                         OnDur = S.GUI.PulseOnDur_ms/1000;
                         OffDur = abs(OnDur - T);
-                        Duration = OnDur;
-                        LoopInterval = OffDur;
-                end
+
+                        LoopLED = floor((VisStim.VisStimDuration - PMTCloseDelay)/(OnDur + OffDur));
+
+                        WaitForPressDur = OnDur;
+                        WaitForPressLoopLED = 1;
+                end 
               
                 % Use separate global timers for each state that opto could
                 % be enabled.  Easier to keep track of which need to be
@@ -143,37 +170,75 @@ classdef OptoConfig
                 % trigger/cancel of same timer from both occuring as output
                 % of same state.
                 if S.GUI.OptoVis1
-                    sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', Duration, 'OnsetDelay', 0,...
+                    % vis 1 led
+                    % sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', Duration, 'OnsetDelay', 0,...
+                    %     'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
+                    %     'GlobalTimerEvents', 0, 'OffsetValue', 0);  
+                    % opto LED  
+                    % onset delay of shutter close delay
+                    sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', OnDur, 'OnsetDelay', PMTCloseDelay,...
                         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
-                        'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
-                        'GlobalTimerEvents', 0, 'OffsetValue', 0);  
+                        'Loop', LoopLED, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
+                        'GlobalTimerEvents', 0, 'OffsetValue', 0);
+
+
                     % update these later for different opto segment timings
-                    pmtDur = VisStim.VisStimDuration + 0.0125; % + 12.5ms for shutter open
+                    % pmtDur = VisStim.VisStimDuration + 0.0125; % + 12.5ms for shutter open
                     % sma = SetGlobalTimer(sma, 'TimerID', 5, 'Duration', pmtDur, 'OnsetDelay', 0,...
                     %     'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
                     %     'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
                     %     'GlobalTimerEvents', 0, 'OffsetValue', 0, 'PulseWidthByte', 256);                      
-                    sma = SetGlobalTimer(sma, 'TimerID', 5, 'Duration', pmtDur, 'OnsetDelay', 0,...
+                   
+                    
+                    % sma = SetGlobalTimer(sma, 'TimerID', 5, 'Duration', pmtDur, 'OnsetDelay', 0,...
+                    %     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    %     'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                    %     'GlobalTimerEvents', 0, 'OffsetValue', 0);
+
+                    % shutter close delay - start close at start of vis
+                    % stim, start opening 7.8 ms before LED off
+                    sma = SetGlobalTimer(sma, 'TimerID', 5, 'Duration', PMTCloseDur, 'OnsetDelay', 0,...
                         'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                         'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
-                        'GlobalTimerEvents', 0, 'OffsetValue', 0);
-                    % sma = SetGlobalTimer(sma, 'TimerID', 5, 'Duration', pmtDur, 'OnsetDelay', 0, 'Channel', 'Valve4',...
-                    %  'OnMessage', 1, 'OffMessage', 0); 
-                    disp(['Duration Vis1 timer:' num2str(pmtDur)])                    
+                        'GlobalTimerEvents', 0, 'OffsetValue', 0);                   
                 end
+                % wait for press 1 led
                 if S.GUI.OptoWaitForPress1
-                    sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', Duration, 'OnsetDelay', 0,...
+                    sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', OnDur, 'OnsetDelay', PMTCloseDelay,...
+                        'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                        'Loop', LoopLED, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
+                        'GlobalTimerEvents', 0, 'OffsetValue', 0);
+
+
+                    sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', WaitForPressDur, 'OnsetDelay', 0,...
                         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
                         'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
                         'GlobalTimerEvents', 0, 'OffsetValue', 0);                                       
                     disp(['Duration OptoWaitForPress1 timer:' num2str(Duration)])
                 end
+                % vis 2 led
                 if S.GUI.OptoVis2
-                    sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', Duration, 'OnsetDelay', 0,...
+                    % sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', Duration, 'OnsetDelay', 0,...
+                    %     'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
+                    %     'GlobalTimerEvents', 0, 'OffsetValue', 0);
+                    % opto LED  
+                    % onset delay of shutter close delay
+                    sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', OnDur, 'OnsetDelay', PMTCloseDelay,...
                         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
-                        'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
-                        'GlobalTimerEvents', 0, 'OffsetValue', 0);                
+                        'Loop', LoopLED, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
+                        'GlobalTimerEvents', 0, 'OffsetValue', 0);
+
+
+                    % shutter close delay - start close at start of vis
+                    % stim, start opening 7.8 ms before LED off
+                    sma = SetGlobalTimer(sma, 'TimerID', 7, 'Duration', PMTCloseDur, 'OnsetDelay', 0,...
+                        'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                        'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                        'GlobalTimerEvents', 0, 'OffsetValue', 0);                        
                 end
+                % wait for press 2 led
                 if S.GUI.OptoWaitForPress2
                     sma = SetGlobalTimer(sma, 'TimerID', 4, 'Duration', Duration, 'OnsetDelay', 0,...
                         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
