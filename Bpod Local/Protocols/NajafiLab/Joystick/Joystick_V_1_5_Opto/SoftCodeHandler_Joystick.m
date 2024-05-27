@@ -5,10 +5,7 @@ global BpodSystem
 
 switch true
     case code == 7
-        % disp('code 7');
-        % disp(['S.GUI.ServoInPos:', num2str(S.GUI.ServoInPos)])
-        % disp(['S.GUI.ServoOutPos:', num2str(S.GUI.ServoOutPos)])
-        % disp(['S.GUI.ServoInPos - S.GUI.ServoOutPos:', num2str(S.GUI.ServoInPos - S.GUI.ServoOutPos)])
+        % disp('code 7');        
         M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos - S.GUI.ServoOutPos));        
         SendBpodSoftCode(1); % Indicate to the state machine that the horiz bar is open for press
     case code == 8
@@ -44,5 +41,4 @@ function SetMotorPos = ConvertMaestroPos(MaestroPosition)
     m = 0.002;
     b = -3;
     SetMotorPos = MaestroPosition * m + b;
-    % disp(['SetMotorPos:', num2str(SetMotorPos)])
 end

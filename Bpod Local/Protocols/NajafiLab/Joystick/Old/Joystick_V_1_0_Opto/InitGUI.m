@@ -1,4 +1,3 @@
-
 classdef InitGUI
     methods
 
@@ -21,8 +20,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ResistanceLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.ResistanceLevel.String = {'0 mA', '30 mA', '91 mA', '122 mA', '152 mA', '183 mA', '214 mA', '244 mA', '900 mA'};
         % S.GUI.PostRewardDelay_s = 0.500; % post reward delay prior to lever return        
-        S.GUI.ServoInPos = 1501.00; % lever start pos
-        S.GUI.ServoOutPos = 24; % can press lever
+        S.GUI.ServoInPos = 1604.00; % lever start pos
+        S.GUI.ServoOutPos = 27; % can press lever
         S.GUI.RetractThreshold = 0.5;
         % S.GUI.Reward_Rep = 0; % reward after each press rep?
         % S.GUIMeta.Reward_Rep.Style = 'checkbox';
@@ -42,7 +41,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.EnableAutoDelay = 1;
         S.GUIMeta.EnableAutoDelay.Style = 'checkbox';        
         % S.GUI.AutoDelayStart_s = 0.015;
-        S.GUI.AutoDelayStep_s = 0.004;
+        S.GUI.AutoDelayStep_s = 0.0005;
         % S.GUI.AutoDelayStepSelf_s = 0.002;
         % S.GUI.NumDelaySteps = 0;
         S.GUI.AutoDelayMaxVis_s = 0.500;
