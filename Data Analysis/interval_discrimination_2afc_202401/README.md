@@ -1,3 +1,8 @@
+# Usage
+
+To plot all figires for a subject, in main.py at the subject name into subject_list, and then run main.py.
+
+
 # file structure
 
 - interval_discrimination_2afc_202401
