@@ -99,7 +99,7 @@ try
         S.GUI.ITI_Post = 1;
 
         S.GUI.LED_OnsetDelay = 0;
-        S.GUI.LED_Dur = 5;
+        S.GUI.LED_Dur = 4;
 
         S.GUI.AirPuff_OnsetDelay = 1;
         S.GUI.AirPuff_Dur = 2;
