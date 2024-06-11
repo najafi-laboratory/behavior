@@ -60,6 +60,8 @@ function createGUI()
         % Configure Video Source Properties
         src = getselectedsource(vid);
 
+
+
         % Set GPIO Line3 as Output (if needed)
         % src.LineSelector = "Line3";
         % src.LineMode = "Output";
