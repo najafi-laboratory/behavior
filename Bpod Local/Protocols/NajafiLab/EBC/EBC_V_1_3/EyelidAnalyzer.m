@@ -20,6 +20,7 @@ classdef EyelidAnalyzer < handle
         fecData        
         fecPlot
         fecTimes
+        fps
         frame
 
         guiSettings
@@ -52,6 +53,7 @@ classdef EyelidAnalyzer < handle
         vidTimer
 
         startTime  % To store the start time of the video
+        stopTime
     end
     
     methods
@@ -84,12 +86,12 @@ classdef EyelidAnalyzer < handle
             title(obj.axThresholded, 'Thresholded Video');
             
             % Create a plot for Fraction of Eyelid Closure (FEC)
-            % obj.axFEC = subplot(2, 1, 2, 'Parent', obj.hFig);
-            % title(obj.axFEC, 'Fraction of Eyelid Closure Over Time');
-            % xlabel(obj.axFEC, 'Time (s)');
-            % ylabel(obj.axFEC, 'FEC (%)');
-            % hold(obj.axFEC, 'on');
-            % obj.fecPlot = plot(obj.axFEC, NaN, NaN, 'b-'); % Initialize FEC plot
+            obj.axFEC = subplot(2, 1, 2, 'Parent', obj.hFig);
+            title(obj.axFEC, 'Fraction of Eyelid Closure Over Time');
+            xlabel(obj.axFEC, 'Time (s)');
+            ylabel(obj.axFEC, 'FEC (%)');
+            hold(obj.axFEC, 'on');
+            obj.fecPlot = plot(obj.axFEC, NaN, NaN, 'b-'); % Initialize FEC plot
             
             % % Add controls and buttons
             obj.sliderThreshold = uicontrol('Style', 'slider', 'Min', 0, 'Max', 255, 'Value', 100, ...
@@ -129,7 +131,7 @@ classdef EyelidAnalyzer < handle
             disp(['Video Input Connected']);
             % Configure Video Source Properties
             obj.src = getselectedsource(obj.vid);
-            obj.src.LineSelector
+            obj.src.LineSelector = 'Line3';
            
             
             % Set trigger config
@@ -176,7 +178,7 @@ classdef EyelidAnalyzer < handle
             disp(['Video Input Disconnected']);
         end  
 
-        function startVideo(obj, ~, ~)
+        function startVideo(obj, ~, ~)          
             % Find available hardware
             info = imaqhwinfo;
             
@@ -185,6 +187,18 @@ classdef EyelidAnalyzer < handle
             
             % Configure Video Source Properties
             obj.src = getselectedsource(obj.vid);
+
+            % check fps of camera
+            obj.fps = obj.src.AcquisitionFrameRate;
+            if ~((obj.fps > 30) && (obj.fps < 31))
+                %disp(['Set camera FPS = 30']);
+                obj.onGUIClose;
+                MatExc = MException('MyComponent:noSuchVariable','Set camera FPS to 30 fps. fps = %s', num2str(obj.fps));
+                throw(MatExc);               
+            end
+            %IMAQHELP(obj.src, 'AcquisitionFrameRate')
+            % Determine the device specific frame rates (frames per second) available.
+            % frameRates = set(obj.src, 'FrameRate')
             
             % Configure the logging mode to disk
             % obj.vid.LoggingMode = 'disk';
@@ -201,6 +215,10 @@ classdef EyelidAnalyzer < handle
             % Start the acquisition
             start(obj.vid);
 
+            while ~isrunning(obj.vid)
+                disp(['vid not started']);
+            end
+
             pause(.1);
             warning('off','imaq:getdata:infFramesPerTrigger')
 
@@ -208,7 +226,7 @@ classdef EyelidAnalyzer < handle
 
             obj.isPaused = false;        
 
-            % Record the start time
+            % % Record the start time
             obj.startTime = datetime('now');
             
             % Create and start a timer to update the video display
@@ -273,16 +291,18 @@ classdef EyelidAnalyzer < handle
             % 
             % open(obj.EBC_vid_log_trial);
             % Start the acquisition
-            start(obj.vid);
-
             warning('off','imaq:getdata:infFramesPerTrigger')
-
-            obj.isPaused = false;        
+            obj.isPaused = false;
+            disp(['Video Trial Started']);
+            start(obj.vid);
+            
+            % while obj.vid.FramesAvailable < 1
+            %     disp(['vid not started']);
+            % end
 
             % Record the start time
-            obj.startTime = datetime('now');
-            
-            disp(['Video Trial Started']);
+            % obj.startTime = datetime('now');
+                        
             % Create and start a timer to update the video display
             % if isempty(obj.vidTimer) || ~isvalid(obj.vidTimer)
             %     obj.vidTimer = timer('TimerFcn','', 'ExecutionMode', 'fixedRate', 'Period', 1);
@@ -294,6 +314,10 @@ classdef EyelidAnalyzer < handle
 
         function stopVideoTrial(obj, ~, ~) 
             stop(obj.vid);
+            % Record the stop time
+            % obj.stopTime = datetime('now');
+            % % vidTime = obj.startTime - obj.stopTime;
+            % % vidTime
         end
 
         function processVideoTrial(obj, currentTrial)
@@ -302,9 +326,8 @@ classdef EyelidAnalyzer < handle
                 disp(['FramesAvailable', num2str(obj.vid.FramesAvailable)]);
                 [data, time, metadata] = getdata(obj.vid);
                 obj.frame = data(:,:,:,end);
-
-
-                videoFilename = [obj.trialVideoDir, 'Trial_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.mp4'];
+                currentTrial = sprintf( '%03d', currentTrial);
+                videoFilename = [obj.trialVideoDir, 'TrialVid_', datestr(now, 'yyyy-mm-dd_HHMMSS'), currentTrial, '.mp4'];
                 obj.EBC_vid_log_trial = VideoWriter(videoFilename, 'MPEG-4');         
                 % obj.EBC_vid_log_trial = VideoWriter('EBC_vid.mp4', 'MPEG-4');            
                 open(obj.EBC_vid_log_trial);
@@ -325,6 +348,7 @@ classdef EyelidAnalyzer < handle
                     imshow(obj.frame, 'Parent', obj.axOriginal);
                 end
                 close(obj.EBC_vid_log_trial);
+                obj.calculateFEC;
             end
              
             % flushdata(obj.vid);                   

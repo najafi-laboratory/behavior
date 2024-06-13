@@ -3,9 +3,11 @@ try
     global BpodSystem
     global S
     % global M
+    global MEV
     
     EnableOpto         = 1;
     updateGUIPos       = 0;
+    exitProto          = 0;
     
     %% Import scriptsBpod
     
@@ -56,8 +58,13 @@ try
     end
     
     MEV = EyelidAnalyzer;
+    % MEV.startVideo();
+    % if ~MEV.startVideo
+    %     MatExc = MException('Set camera FPS to 30 fps.');
+    %     throw(MatExc);
+    % end
 
-
+    BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_EBC';
 
     % wait for parameter update and confirm before beginning trial loop
     input('Set parameters and press enter to continue >', 's'); 
@@ -83,9 +90,9 @@ try
         ExperimenterTrialInfo.TrialNumber = currentTrial;   % check variable states as field/value struct for experimenter info
     
         % wait for parameter update and confirm before beginning trial loop
-        input('Set parameters and press enter to continue >', 's'); 
+        % input('Set parameters and press enter to continue >', 's'); 
 
-        MEV.startVideoTrial;
+        % MEV.startVideoTrial;
 
         %% sync trial-specific parameters from GUI
       
@@ -143,14 +150,9 @@ try
 
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI_Pre'},...
-            'OutputActions', {}); % Start state sync signal
+            'StateChangeConditions', {'SoftCode1', 'ITI_Pre'},...
+            'OutputActions', {'SoftCode', 7}); % Start state sync signal
        
-        % sma = AddState(sma, 'Name', 'OptoPulse', ...
-        %     'Timer', OptoTimerDuration,...
-        %     'StateChangeConditions', {'Tup', 'ITI'},...
-        %     'OutputActions', {'GlobalTimerTrig', 1}); % Trigger opto pulse timer
-
         sma = AddState(sma, 'Name', 'ITI_Pre', ...
             'Timer', S.GUI.ITI_Pre,...
             'StateChangeConditions', {'Tup', 'Stimulus'},...
@@ -163,15 +165,21 @@ try
 
         sma = AddState(sma, 'Name', 'ITI_Post', ...
             'Timer', S.GUI.ITI_Post,...
-            'StateChangeConditions', {'Tup', '>exit'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {'GlobalTimerCancel', '11'});         
  
+        sma = AddState(sma, 'Name', 'ITI', ...
+            'Timer', 0,...
+            'StateChangeConditions', {'SoftCode1', '>exit'},...
+            'OutputActions', {'SoftCode', 8}); 
+
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         % pause(2);
 
         RawEvents = RunStateMachine; % Run the trial and return events
 
-        MEV.stopVideoTrial;
+        % MEV.stopVideoTrial;
+        disp(['vid proc']);
         MEV.processVideoTrial(currentTrial);
        
         if ~isempty(fieldnames(RawEvents)) % If trial data was returned (i.e. if not final trial, interrupted by user)
