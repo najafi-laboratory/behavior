@@ -94,7 +94,8 @@ classdef PsychToolboxVideoPlayer < handle
                 end
             end
             obj.AllFonts = listfonts;
-            Screen('Preference','SkipSyncTests', 0);
+            % Screen('Preference','SkipSyncTests', 0);
+            Screen('Preference','SkipSyncTests', 1);
             obj.Videos = cell(1,obj.MaxVideos);
             obj.TextStrings = cell(1,obj.MaxVideos);
             obj.TextStringStartPos = cell(1,obj.MaxVideos);

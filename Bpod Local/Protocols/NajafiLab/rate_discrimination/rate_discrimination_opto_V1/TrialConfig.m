@@ -24,79 +24,11 @@ end
 
 
 function [JitterFlag] = GetJitterFlag( ...
-        obj, S, TrialTypes, currentTrial, EnablePassive)
-    if (EnablePassive == 1)
-        switch TrialTypes(currentTrial)
-            case 1 % jitter
-                JitterFlag = 'True';
-            case 2 % fixed
-                JitterFlag = 'False';
-        end
-    else
-        if (S.GUI.ActRandomISI == 1)
-            JitterFlag = 'True';
-        else
-            JitterFlag = 'False';
-        end
-    end
-end
-
-
-%% passive
-
-
-% trial generation
-function [TrialTypes] = GenPassiveTrials( ...
         obj, S)
-    b1 = GenPassiveBlock(obj, S.GUI.TrialPerBlock, 1);
-    b2 = GenPassiveBlock(obj, S.GUI.TrialPerBlock, 2);
-    r = rand();
-    if (r < 0.5)
-        TrialTypes = repmat([b1 b2], 1, 1106);
+    if (S.GUI.ActRandomISI == 1)
+        JitterFlag = 1;
     else
-        TrialTypes = repmat([b2 b1], 1, 1106);
-    end
-    TrialTypes = TrialTypes(1:1106);
-end
-
-
-% block generation
-function [block] = GenPassiveBlock( ...
-        obj, TrialPerBlock, BlockType)
-    block = repmat(BlockType, 1, TrialPerBlock);
-end
-
-
-function [PostPertISI, EasyMaxInfo] = GetPostPertISIPassive( ...
-        obj, S, TrialTypes, currentTrial, PerturbInterval)
-    PerturbDurFullRange = S.GUI.ISIOrig_s * 1000 - S.GUI.MinISIPerturb_ms;
-    EasyMax = (PerturbInterval.EasyMaxPercent*PerturbDurFullRange)/1000;
-    switch TrialTypes(currentTrial)
-        case 1 % baseline ISI
-            PostPertISI = EasyMax;
-            EasyMaxInfo = 'Activated';
-        case 2 % long ISI
-            PostPertISI = EasyMax;
-            EasyMaxInfo = 'Activated';
-    end
-end
-
-
-function [GrayPerturbISI] = SetPostPertISIPassive( ...
-        obj, S, PostPertISI)
-    switch S.GUI.SessionMode
-        case 1 % Omission
-            GrayPerturbISI = PostPertISI;
-        case 2 % PrePost
-            GrayPerturbISI = S.GUI.ISIOrig_s + PostPertISI;
-    end
-end
-
-
-function [] = PassiveBlockSleep( ...
-        obj, S, TrialTypes, currentTrial)
-    if TrialTypes(currentTrial) ~= TrialTypes(currentTrial+1)
-        pause(S.GUI.SpontSilenceTime)
+        JitterFlag = 0;
     end
 end
 
@@ -398,14 +330,12 @@ function [TimeOutPunish] = GetTimeOutPunish( ...
         else
             switch S.GUI.TrainingLevel
                 case 1
-                    TimeOutPunish = 0;
-                case 2
                     TimeOutPunish = 1.5;
-                case 3
+                case 2
                     TimeOutPunish = 2.0;
-                case 4
+                case 3
                     TimeOutPunish = 2.5;
-                case 5
+                case 4
                     TimeOutPunish = 3.0;
             end
         end
@@ -424,14 +354,12 @@ function [ChoiceWindow] = GetChoiceWindow( ...
     else
         switch S.GUI.TrainingLevel
             case 1
-                ChoiceWindow = 0;
-            case 2
                 ChoiceWindow = 15;
-            case 3
+            case 2
                 ChoiceWindow = 10;
-            case 4
+            case 3
                 ChoiceWindow = 5;
-            case 5
+            case 4
                 ChoiceWindow = 5;
         end
     end
@@ -445,14 +373,12 @@ function [ChangeMindDur] = GetChangeMindDur( ...
     else
         switch S.GUI.TrainingLevel
             case 1
-                ChangeMindDur = 0;
-            case 2
                 ChangeMindDur = 10;
-            case 3
+            case 2
                 ChangeMindDur = 5;
-            case 4
+            case 3
                 ChangeMindDur = 0;
-            case 5
+            case 4
                 ChangeMindDur = 0;
         end
     end

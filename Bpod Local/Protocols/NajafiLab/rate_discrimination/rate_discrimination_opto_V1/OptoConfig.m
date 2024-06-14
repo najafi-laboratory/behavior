@@ -109,29 +109,5 @@ classdef OptoConfig
             end
         end
 
-        function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
-            if obj.EnableOpto 
-                switch S.GUI.PulseType
-                    case 1
-                        Duration = VisStim.VisStimDuration;
-                        OffDur = VisStim.Grating.Dur;
-                    case 2
-                        T = 1/S.GUI.PulseFreq_Hz;
-                        OnDur = S.GUI.PulseOnDur_ms/1000
-                        OffDur = abs(OnDur - T);
-                        Duration = OnDur;
-                        LoopInterval = OffDur;
-                end
-              
-                % sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', VisStim.VisStimDuration, 'OnsetDelay', 0,...
-                %     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', VisStim.Grating.Dur,...
-                %     'GlobalTimerEvents', 0, 'OffsetValue', 0);
-                sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', Duration, 'OnsetDelay', 0,...
-                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                    'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', OffDur,...
-                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                
-            end
-        end
     end
 end
