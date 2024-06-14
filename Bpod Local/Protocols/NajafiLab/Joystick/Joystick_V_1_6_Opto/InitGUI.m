@@ -25,7 +25,7 @@ function [S] = SetParams(obj, BpodSystem)
         % S.GUI.PostRewardDelay_s = 0.500; % post reward delay prior to lever return        
         S.GUI.ServoInPos = 1603.00; % lever start pos
         S.GUI.ServoOutPos = 34; % can press lever
-        S.GUI.RetractThreshold = 0.3;
+        S.GUI.RetractThreshold = 0.5;
         % S.GUI.Reward_Rep = 0; % reward after each press rep?
         % S.GUIMeta.Reward_Rep.Style = 'checkbox';
         % S.GUI.CenterValveTime_s = 0.06;
@@ -134,7 +134,7 @@ function [S] = SetParams(obj, BpodSystem)
         % audio stim
         S.GUI.AudioStimEnable = 1;
         S.GUIMeta.AudioStimEnable.Style = 'checkbox';
-        S.GUI.AudioStimVolume_percent = 0;  % volume control
+        S.GUI.AudioStimVolume_percent = 1;  % volume control
         %S.GUI.AudioStimFreq_Hz = 15000; % Frequency of audio stim
         S.GUI.AudioStimFreq_Hz = 11025; % Frequency of audio stim, even multiple of SF = 44100
         S.GUIPanels.AudioStim = {'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz'};
