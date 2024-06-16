@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2012-06" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2012-06 http://www.openmicroscopy.org/Schemas/OME/2012-06/ome.xsd" UUID="urn:uuid:684e9c6a-499b-4cfc-ab81-bc3b5309386a">
+	<BinaryOnly MetadataFile="orig test 1-601.companion.ome" UUID="urn:uuid:3142e792-a6df-43d5-80b8-f5bb13e5d1a7" />
+	<Image ID="Image:1" Name="Sequence:1">
+		<AcquisitionDate>2024-06-08T15:16:32</AcquisitionDate>
+		<Pixels DimensionOrder="XYZCT" ID="Pixels:1" PhysicalSizeX="1.1144462450097266" PhysicalSizeY="1.1144462450097266" PhysicalSizeZ="1" SizeC="1" SizeT="37" SizeX="512" SizeY="512" SizeZ="1" Type="uint16">
+			<Channel ID="Channel:1:0" Name="Ch2" SamplesPerPixel="1" />
+			<TiffData FirstC="0" FirstT="0" FirstZ="0" PlaneCount="1" IFD="0">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="1" FirstZ="0" PlaneCount="1" IFD="1">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="2" FirstZ="0" PlaneCount="1" IFD="2">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="3" FirstZ="0" PlaneCount="1" IFD="3">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="4" FirstZ="0" PlaneCount="1" IFD="4">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="5" FirstZ="0" PlaneCount="1" IFD="5">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="6" FirstZ="0" PlaneCount="1" IFD="6">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="7" FirstZ="0" PlaneCount="1" IFD="7">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="8" FirstZ="0" PlaneCount="1" IFD="8">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="9" FirstZ="0" PlaneCount="1" IFD="9">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="10" FirstZ="0" PlaneCount="1" IFD="10">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="11" FirstZ="0" PlaneCount="1" IFD="11">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="12" FirstZ="0" PlaneCount="1" IFD="12">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="13" FirstZ="0" PlaneCount="1" IFD="13">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="14" FirstZ="0" PlaneCount="1" IFD="14">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="15" FirstZ="0" PlaneCount="1" IFD="15">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="16" FirstZ="0" PlaneCount="1" IFD="16">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="17" FirstZ="0" PlaneCount="1" IFD="17">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="18" FirstZ="0" PlaneCount="1" IFD="18">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="19" FirstZ="0" PlaneCount="1" IFD="19">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="20" FirstZ="0" PlaneCount="1" IFD="20">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="21" FirstZ="0" PlaneCount="1" IFD="21">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="22" FirstZ="0" PlaneCount="1" IFD="22">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="23" FirstZ="0" PlaneCount="1" IFD="23">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="24" FirstZ="0" PlaneCount="1" IFD="24">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="25" FirstZ="0" PlaneCount="1" IFD="25">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="26" FirstZ="0" PlaneCount="1" IFD="26">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="27" FirstZ="0" PlaneCount="1" IFD="27">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="28" FirstZ="0" PlaneCount="1" IFD="28">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="29" FirstZ="0" PlaneCount="1" IFD="29">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="30" FirstZ="0" PlaneCount="1" IFD="30">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="31" FirstZ="0" PlaneCount="1" IFD="31">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="32" FirstZ="0" PlaneCount="1" IFD="32">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="33" FirstZ="0" PlaneCount="1" IFD="33">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="34" FirstZ="0" PlaneCount="1" IFD="34">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="35" FirstZ="0" PlaneCount="1" IFD="35">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<TiffData FirstC="0" FirstT="36" FirstZ="0" PlaneCount="1" IFD="36">
+				<UUID FileName="orig test 1-601_Cycle00001_Ch2_000001.ome.tif">urn:uuid:d5b4546a-6f5a-4b2c-8ebe-6251082c93cd</UUID>
+			</TiffData>
+			<Plane DeltaT="0" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="0" TheZ="0" />
+			<Plane DeltaT="0.033474221999999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="1" TheZ="0" />
+			<Plane DeltaT="0.066948443999999996" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="2" TheZ="0" />
+			<Plane DeltaT="0.10042266599999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="3" TheZ="0" />
+			<Plane DeltaT="0.13389688799999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="4" TheZ="0" />
+			<Plane DeltaT="0.16737110999999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="5" TheZ="0" />
+			<Plane DeltaT="0.20084533199999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="6" TheZ="0" />
+			<Plane DeltaT="0.23431955399999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="7" TheZ="0" />
+			<Plane DeltaT="0.26779377599999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="8" TheZ="0" />
+			<Plane DeltaT="0.30126799799999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="9" TheZ="0" />
+			<Plane DeltaT="0.33474221999999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="10" TheZ="0" />
+			<Plane DeltaT="0.36821644199999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="11" TheZ="0" />
+			<Plane DeltaT="0.40169066399999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="12" TheZ="0" />
+			<Plane DeltaT="0.43516488599999997" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="13" TheZ="0" />
+			<Plane DeltaT="0.46863910799999997" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="14" TheZ="0" />
+			<Plane DeltaT="0.50211333000000002" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="15" TheZ="0" />
+			<Plane DeltaT="0.53558755199999997" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="16" TheZ="0" />
+			<Plane DeltaT="0.56906177399999991" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="17" TheZ="0" />
+			<Plane DeltaT="0.60253599599999996" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="18" TheZ="0" />
+			<Plane DeltaT="0.63601021800000002" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="19" TheZ="0" />
+			<Plane DeltaT="0.66948443999999996" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="20" TheZ="0" />
+			<Plane DeltaT="0.7029586619999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="21" TheZ="0" />
+			<Plane DeltaT="0.73643288399999995" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="22" TheZ="0" />
+			<Plane DeltaT="0.76990710600000001" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="23" TheZ="0" />
+			<Plane DeltaT="0.80338132799999995" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="24" TheZ="0" />
+			<Plane DeltaT="0.83685554999999989" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="25" TheZ="0" />
+			<Plane DeltaT="0.87032977199999995" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="26" TheZ="0" />
+			<Plane DeltaT="0.903803994" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="27" TheZ="0" />
+			<Plane DeltaT="0.93727821599999994" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="28" TheZ="0" />
+			<Plane DeltaT="0.97075243799999988" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="29" TheZ="0" />
+			<Plane DeltaT="1.00422666" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="30" TheZ="0" />
+			<Plane DeltaT="1.037700882" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="31" TheZ="0" />
+			<Plane DeltaT="1.0711751039999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="32" TheZ="0" />
+			<Plane DeltaT="1.1046493259999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="33" TheZ="0" />
+			<Plane DeltaT="1.1381235479999998" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="34" TheZ="0" />
+			<Plane DeltaT="1.17159777" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="35" TheZ="0" />
+			<Plane DeltaT="1.2050719919999999" PositionX="142.761" PositionXUnit="µm" PositionY="-688.08000000000004" PositionYUnit="µm" PositionZ="130.37" PositionZUnit="µm" TheC="0" TheT="36" TheZ="0" />
+		</Pixels>
+	</Image>
+</OME>

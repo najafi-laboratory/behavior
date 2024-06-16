@@ -1,0 +1,208 @@
+<VRecSessionEntry>
+  <Experiment>
+    <Name>Current</Name>
+    <ColorInteger>-16777216</ColorInteger>
+    <SignalList>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 0</Name>
+        <ColorAsARGB>-256</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>0</Channel>
+        <Enabled>true</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 1</Name>
+        <ColorAsARGB>-7876870</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>1</Channel>
+        <Enabled>true</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 2</Name>
+        <ColorAsARGB>-38476</ColorAsARGB>
+        <Gain>-5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>2</Channel>
+        <Enabled>true</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 3</Name>
+        <ColorAsARGB>-8586240</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>3</Channel>
+        <Enabled>true</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 4</Name>
+        <ColorAsARGB>-16776961</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>4</Channel>
+        <Enabled>false</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 5</Name>
+        <ColorAsARGB>-65536</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>5</Channel>
+        <Enabled>true</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 6</Name>
+        <ColorAsARGB>-23296</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>6</Channel>
+        <Enabled>false</Enabled>
+      </VRecSignal>
+      <VRecSignal>
+        <Type>Physical</Type>
+        <Name>Input 7</Name>
+        <ColorAsARGB>-7077677</ColorAsARGB>
+        <Gain>-0.5</Gain>
+        <Unit>
+          <UnitName>Volt</UnitName>
+          <Multiplier>1</Multiplier>
+          <Divisor>1</Divisor>
+          <PatchclampDevice />
+          <PatchclampChannel>0</PatchclampChannel>
+        </Unit>
+        <Card>1</Card>
+        <Channel>7</Channel>
+        <Enabled>false</Enabled>
+      </VRecSignal>
+    </SignalList>
+    <Rate>2000</Rate>
+    <Divider>20000</Divider>
+    <AcquisitionTime>2700031</AcquisitionTime>
+    <AutomaticallyAdjustTimeWhenSynchronized>true</AutomaticallyAdjustTimeWhenSynchronized>
+    <NumxPlots>1</NumxPlots>
+    <NumyPlots>1</NumyPlots>
+    <PlotConfigList>
+      <VRPlotConfig>
+        <Average>0</Average>
+        <Previous>0</Previous>
+        <History>1</History>
+        <VisibleSignals>
+          <VRecSignalPerPlotProperties>
+            <SignalId>
+              <Value>AI(1,1)</Value>
+            </SignalId>
+            <SignalType>Physical</SignalType>
+            <Axis>0</Axis>
+          </VRecSignalPerPlotProperties>
+          <VRecSignalPerPlotProperties>
+            <SignalId>
+              <Value>AI(1,2)</Value>
+            </SignalId>
+            <SignalType>Physical</SignalType>
+            <Axis>0</Axis>
+          </VRecSignalPerPlotProperties>
+          <VRecSignalPerPlotProperties>
+            <SignalId>
+              <Value>AI(1,3)</Value>
+            </SignalId>
+            <SignalType>Physical</SignalType>
+            <Axis>0</Axis>
+          </VRecSignalPerPlotProperties>
+          <VRecSignalPerPlotProperties>
+            <SignalId>
+              <Value>AI(1,0)</Value>
+            </SignalId>
+            <SignalType>Physical</SignalType>
+            <Axis>0</Axis>
+          </VRecSignalPerPlotProperties>
+          <VRecSignalPerPlotProperties>
+            <SignalId>
+              <Value>AI(1,5)</Value>
+            </SignalId>
+            <SignalType>Physical</SignalType>
+            <Axis>0</Axis>
+          </VRecSignalPerPlotProperties>
+        </VisibleSignals>
+        <Axis0>
+          <AutoscaleY>false</AutoscaleY>
+          <YMin>-1</YMin>
+          <YMax>7</YMax>
+        </Axis0>
+        <Axis1>
+          <AutoscaleY>true</AutoscaleY>
+          <YMin>0</YMin>
+          <YMax>5</YMax>
+        </Axis1>
+        <ShownAxis>0</ShownAxis>
+      </VRPlotConfig>
+    </PlotConfigList>
+    <Trigger>None</Trigger>
+    <TriggerCount>1</TriggerCount>
+    <XAxisFit>true</XAxisFit>
+    <XAxisPeriod>25000</XAxisPeriod>
+  </Experiment>
+  <SamplesAcquired>2683</SamplesAcquired>
+  <DataFile>orig test 1-601_Cycle00001_VoltageRecording_001</DataFile>
+  <DateTime>2024-06-08T15:16:29.6407998-04:00</DateTime>
+  <IsCSV>false</IsCSV>
+  <AssociatedLinescanProfileFile />
+  <LostData>false</LostData>
+  <LostDataBeyond>0</LostDataBeyond>
+</VRecSessionEntry>

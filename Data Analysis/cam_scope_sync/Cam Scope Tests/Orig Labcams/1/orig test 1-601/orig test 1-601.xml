@@ -1,0 +1,390 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PVScan version="5.8.64.500" date="6/8/2024 3:16:29 PM" notes="">
+  <SystemIDs SystemID="DDD0-B3FC-E685-13D4-0754-2273-5BEE-79E7">
+    <SystemID SystemID="5074421" Description="GEORGIA TECH" />
+  </SystemIDs>
+  <PVStateShard>
+    <PVStateValue key="activeMode" value="ResonantGalvo" />
+    <PVStateValue key="bitDepth" value="13" />
+    <PVStateValue key="currentScanAmplitude">
+      <IndexedValue index="XAxis" value="4.24071582" />
+      <IndexedValue index="YAxis" value="4.636140912" />
+    </PVStateValue>
+    <PVStateValue key="currentScanCenter">
+      <IndexedValue index="XAxis" value="0.02658756" />
+      <IndexedValue index="YAxis" value="-0.03009504" />
+    </PVStateValue>
+    <PVStateValue key="daqGain">
+      <IndexedValue index="0" value="0" description="±0.625V" />
+      <IndexedValue index="1" value="-1" description="±1.25V" />
+    </PVStateValue>
+    <PVStateValue key="dwellTime" value="0.4" />
+    <PVStateValue key="framePeriod" value="0.033474222" />
+    <PVStateValue key="interlacedScanTrackCount" value="0" />
+    <PVStateValue key="laserPower">
+      <IndexedValue index="0" value="0" description="Tunable " />
+      <IndexedValue index="1" value="0" description="Axon" />
+    </PVStateValue>
+    <PVStateValue key="laserWavelength">
+      <IndexedValue index="0" value="920" description="Excitation 1" />
+    </PVStateValue>
+    <PVStateValue key="linesPerFrame" value="512" />
+    <PVStateValue key="maxVoltage">
+      <IndexedValue index="XAxis" value="2.112439965" />
+      <IndexedValue index="YAxis" value="2.287975416" />
+    </PVStateValue>
+    <PVStateValue key="micronsPerPixel">
+      <IndexedValue index="XAxis" value="1.11444624500973" />
+      <IndexedValue index="YAxis" value="1.11444624500973" />
+      <IndexedValue index="ZAxis" value="1" />
+    </PVStateValue>
+    <PVStateValue key="minVoltage">
+      <IndexedValue index="XAxis" value="-2.059264845" />
+      <IndexedValue index="YAxis" value="-2.348165496" />
+    </PVStateValue>
+    <PVStateValue key="objectiveLens" value="16x" />
+    <PVStateValue key="objectiveLensMag" value="16" />
+    <PVStateValue key="objectiveLensNA" value="0.8" />
+    <PVStateValue key="opticalZoom" value="2" />
+    <PVStateValue key="pixelsPerLine" value="512" />
+    <PVStateValue key="pmtGain">
+      <IndexedValue index="0" value="0" description="Red PMT" />
+      <IndexedValue index="1" value="0" description="Green PMT" />
+    </PVStateValue>
+    <PVStateValue key="positionCurrent">
+      <SubindexedValues index="XAxis">
+        <SubindexedValue subindex="0" value="142.761" />
+      </SubindexedValues>
+      <SubindexedValues index="YAxis">
+        <SubindexedValue subindex="0" value="-688.08" />
+      </SubindexedValues>
+      <SubindexedValues index="ZAxis">
+        <SubindexedValue subindex="0" value="105.925" description="Z Focus" />
+        <SubindexedValue subindex="1" value="24.445" description="Bruker 400 μm Piezo" />
+      </SubindexedValues>
+    </PVStateValue>
+    <PVStateValue key="preampFilter" value="NoFilter" description="None" />
+    <PVStateValue key="preampOffset">
+      <SubindexedValues index="0">
+        <SubindexedValue subindex="0" value="-0.02" description="Ch1" />
+        <SubindexedValue subindex="1" value="-0.02" description="Ch2" />
+      </SubindexedValues>
+    </PVStateValue>
+    <PVStateValue key="rastersPerFrame" value="1" />
+    <PVStateValue key="rotation" value="0" />
+    <PVStateValue key="samplesPerPixel" value="3" />
+    <PVStateValue key="scanLinePeriod" value="6.3124E-05" />
+    <PVStateValue key="twophotonLaserDispersion">
+      <IndexedValue index="0" value="76.25" description="DeepSee" />
+    </PVStateValue>
+    <PVStateValue key="twophotonLaserPower">
+      <IndexedValue index="0" value="1829.64" />
+    </PVStateValue>
+    <PVStateValue key="useInterlacedScanPattern" value="False" />
+    <PVStateValue key="xYStageGridIndex" value="-1" />
+    <PVStateValue key="xYStageGridXIndex" value="-1" />
+    <PVStateValue key="xYStageGridYIndex" value="-1" />
+    <PVStateValue key="yAspectExpansion" value="1" />
+    <PVStateValue key="zDevice" value="0" />
+  </PVStateShard>
+  <Sequence type="TSeries Timed Element" cycle="1" time="15:16:29.6497754" xYStageGridDefined="False" xYStageGridNumXPositions="0" xYStageGridNumYPositions="0" xYStageGridOverlapPercentage="10" xYStageGridXOverlap="10" xYStageGridYOverlap="10">
+    <PVStateShard />
+    <VoltageRecording name="Current" triggerMode="Start with next scan (PFI0)" cycle="1" index="1" configurationFile="orig test 1-601_Cycle00001_VoltageRecording_001.xml" dataFile="orig test 1-601_Cycle00001_VoltageRecording_001.csv" relativeTime="0" absoluteTime="0.18999999999869" />
+    <Frame relativeTime="0" absoluteTime="1.70099999999911" index="1" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="1" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.033477618" absoluteTime="1.73447761799911" index="2" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="2" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.066955236" absoluteTime="1.76795523599911" index="3" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="3" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.100432854" absoluteTime="1.80143285399911" index="4" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="4" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.133910472" absoluteTime="1.83491047199911" index="5" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="5" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.16738809" absoluteTime="1.86838808999911" index="6" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="6" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.200865708" absoluteTime="1.90186570799911" index="7" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="7" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.234343326" absoluteTime="1.93534332599911" index="8" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="8" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.267820944" absoluteTime="1.96882094399911" index="9" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="9" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.301298562" absoluteTime="2.00229856199911" index="10" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="10" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.33477618" absoluteTime="2.03577617999911" index="11" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="11" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.368253798" absoluteTime="2.06925379799911" index="12" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="12" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.401731416" absoluteTime="2.10273141599911" index="13" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="13" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.435209034" absoluteTime="2.13620903399911" index="14" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="14" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.468686652" absoluteTime="2.16968665199911" index="15" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="15" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.50216427" absoluteTime="2.20316426999911" index="16" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="16" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.535641888" absoluteTime="2.23664188799911" index="17" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="17" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.569119506" absoluteTime="2.27011950599911" index="18" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="18" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.602597124" absoluteTime="2.30359712399911" index="19" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="19" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.636074742" absoluteTime="2.33707474199911" index="20" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="20" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.66955236" absoluteTime="2.37055235999911" index="21" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="21" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.703029978" absoluteTime="2.40402997799911" index="22" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="22" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.736507596" absoluteTime="2.43750759599911" index="23" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="23" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.769985214" absoluteTime="2.47098521399911" index="24" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="24" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.803462832" absoluteTime="2.50446283199911" index="25" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="25" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.83694045" absoluteTime="2.53794044999911" index="26" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="26" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.870418068" absoluteTime="2.57141806799911" index="27" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="27" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.903895686" absoluteTime="2.60489568599911" index="28" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="28" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.937373304" absoluteTime="2.63837330399911" index="29" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="29" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="0.970850922" absoluteTime="2.67185092199911" index="30" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="30" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.00432854" absoluteTime="2.70532853999911" index="31" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="31" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.037806158" absoluteTime="2.73880615799911" index="32" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="32" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.071283776" absoluteTime="2.77228377599911" index="33" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="33" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.104761394" absoluteTime="2.80576139399911" index="34" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="34" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.138239012" absoluteTime="2.83923901199911" index="35" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="35" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.17171663" absoluteTime="2.87271662999911" index="36" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="36" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+    <Frame relativeTime="1.205194248" absoluteTime="2.90619424799911" index="37" parameterSet="CurrentSettings">
+      <File channel="2" channelName="Green" page="37" filename="orig test 1-601_Cycle00001_Ch2_000001.ome.tif" />
+      <ExtraParameters lastGoodFrame="0" />
+      <PVStateShard>
+        <PVStateValue key="framePeriod" value="0.033477618" />
+        <PVStateValue key="scanLinePeriod" value="6.312E-05" />
+      </PVStateShard>
+    </Frame>
+  </Sequence>
+</PVScan>
