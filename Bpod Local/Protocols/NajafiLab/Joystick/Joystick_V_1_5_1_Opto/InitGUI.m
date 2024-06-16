@@ -40,8 +40,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.EarlyPressThreshold = 1;
         S.GUI.SelfTimedMode = 0;
         S.GUIMeta.SelfTimedMode.Style = 'checkbox';
-        S.GUI.PrePress2DelayShort_s = 2;    % added version 1_5_1, self-timed now has short/long blocks like vis guided
-        S.GUI.PrePress2DelayLong_s = 5;
+        S.GUI.PrePress2DelayShort_s = 0.010;    % added version 1_5_1, self-timed now has short/long blocks like vis guided
+        S.GUI.PrePress2DelayLong_s = 0.500;
         S.GUI.EnableAutoDelay = 1;
         S.GUIMeta.EnableAutoDelay.Style = 'checkbox';        
         % S.GUI.AutoDelayStart_s = 0.015;
@@ -133,7 +133,7 @@ function [S] = SetParams(obj, BpodSystem)
         % difficulty params       
     
         % audio stim
-        S.GUI.AudioStimEnable = 1;
+        S.GUI.AudioStimEnable = 0;
         S.GUIMeta.AudioStimEnable.Style = 'checkbox';
         S.GUI.AudioStimVolume_percent = 1;  % volume control
         %S.GUI.AudioStimFreq_Hz = 15000; % Frequency of audio stim
