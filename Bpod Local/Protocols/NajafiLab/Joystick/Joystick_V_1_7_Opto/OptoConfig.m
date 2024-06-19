@@ -109,7 +109,7 @@ classdef OptoConfig
                     if OptoTrialType == 2
                         switch Vis1Vis2
                             case 1
-                                if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1 == 1
+                                if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
                                     % AudStimOpto = {'HiFi1', ['P', 6], 'GlobalTimerTrig', '000010001'};
                                     AudStimOpto = [AudStimOpto , {'GlobalTimerTrig', '000010001'}];
                                 elseif S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
@@ -222,7 +222,7 @@ classdef OptoConfig
                 % vis2/wait2
 
                 % if first segment only has vis1, then same as 2afc opto
-                if S.GUI.OptoVis1
+                if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
                     % vis 1 led
                     % sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', Duration, 'OnsetDelay', 0,...
                     %     'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...

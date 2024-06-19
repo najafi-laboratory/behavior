@@ -627,7 +627,7 @@ try
         
         % update after opto proto is defined to create separate function to abstract global timer
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
-            if (S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1) || 
+            if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
                 % PreVisStimITI_OutputActions = [PreVisStimITI_OutputActions, {'labTimergTriloG', '100000000'}];
                 % VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '000010000'}];
                 % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '010001'}];
