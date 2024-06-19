@@ -473,7 +473,6 @@ try
                 ExperimenterTrialInfo.PrePress2Delay_s = 'NA';
             case 1
                 ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
-                % ExperimenterTrialInfo.TrialType = 'NA';   % check variable states as field/value struct for experimenter info                
                 switch TrialTypes(currentTrial)
                     case 1
                         ExperimenterTrialInfo.TrialType = 'Short Pre Press Delay';   % check variable states as field/value struct for experimenter info
@@ -500,8 +499,7 @@ try
             S.GUI.EnableAutoDelay && ...
             (TrialTypes(currentTrial) == 2) && (TrialTypes(currentTrial-1) == 2) && ...
             isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
-            ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
-            % ((TrialTypes(currentTrial) == 2) && ((TrialTypes(currentTrial-1) == 2)) || (S.GUI.SelfTimedMode == 1)) && ...
+            ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))            
             disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
             if WarmupTrialsCounter <= 0
                 AutoPressVisDelay_s = AutoPressVisDelay_s + S.GUI.AutoDelayStep_s;
@@ -510,16 +508,13 @@ try
         if S.GUI.EnableAutoDelay
             ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
         end
-        % if S.GUI.EnableAutoDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
         if S.GUI.EnableAutoDelay && (TrialTypes(currentTrial) == 2)
             if S.GUI.SelfTimedMode == 1          
                 PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxSelf_s);            
-                % S.GUI.PrePress2Delay_s = PressVisDelay_s;
             else           
                 PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxVis_s);            
             end
-            S.GUI.PressVisDelayLong_s = PressVisDelay_s;
-            % S.GUI.PrePress2Delay_s = PressVisDelay_s;   
+            S.GUI.PressVisDelayLong_s = PressVisDelay_s;  
             S.GUI.PrePress2DelayLong_s = PressVisDelay_s;
         else
             switch S.GUI.SelfTimedMode
@@ -622,42 +617,53 @@ try
         PreVis2Delay_StateChangeConditions = {};
 
         PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'};
-    
-
-        
+          
         % update after opto proto is defined to create separate function to abstract global timer
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
-            if (S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1) || 
-                % PreVisStimITI_OutputActions = [PreVisStimITI_OutputActions, {'labTimergTriloG', '100000000'}];
-                % VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '000010000'}];
-                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '010001'}];
+            if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
                 WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];
             end
 
             if S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-                
+                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000010001'}];
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];
             end
 
             if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000010001'}];
+                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000010001'}];
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];                
             end
 
-            if S.GUI.OptoWaitForPress1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000100010'}];
-                % LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000000010'}];
-                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000100010'}];
-                % DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000000010'}];
-                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000100010'}];
-            end
-
-            if S.GUI.OptoVis2
+            if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
                 WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
             end
 
-            if S.GUI.OptoWaitForPress2
-                % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '000001000'}];
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '010001000'}];
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '010001000'}];
+            if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
+            end
+
+            if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '001000100'}];
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];                
+            end
+
+
+            if 0
+                if S.GUI.OptoWaitForPress1
+                    WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000100010'}];
+                    LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000100010'}];
+                    DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000100010'}];
+                end
+    
+                if S.GUI.OptoVis2
+                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
+                end
+    
+                if S.GUI.OptoWaitForPress2
+                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '010001000'}];
+                    DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '010001000'}];
+                end
             end
 
             Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '111111111'}];
@@ -809,25 +815,6 @@ try
         
         sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
 
-        %% Opto - use shutter close delay of 10ms + 12.1ms = 22.1ms
-        % shutter close delay, add to opto global timer function later
-        % ShutterCloseDelay = 0.0221;
-        % TimerBuffer = 0; % provide overlap between states
-        % if m_Opto.EnableOpto
-        %     if S.GUI.OptoVis1
-        %         sma = SetGlobalTimer(sma, 'TimerID', 9, 'Duration', ShutterCloseDelay + TimerBuffer, 'OnsetDelay', PreVisStimITI - ShutterCloseDelay,...
-        %             'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-        %             'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
-        %             'GlobalTimerEvents', 0, 'OffsetValue', 0);
-        %     end
-        % end
-      
-        % CounterNumber = 1;
-        % TargetEventName = 'Port3In';
-        % Counter1Threshold = 3;
-
-        % sma = SetGlobalCounter(sma, CounterNumber, TargetEventName, Counter1Threshold);
-
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
             'StateChangeConditions', {'Tup', 'PreVisStimITI'},...
@@ -957,7 +944,7 @@ try
         sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});        
+            'OutputActions', {'SoftCode', 8});        
         
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...

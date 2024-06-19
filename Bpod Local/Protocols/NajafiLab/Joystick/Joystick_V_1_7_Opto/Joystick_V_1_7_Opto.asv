@@ -635,29 +635,53 @@ try
             end
 
             if S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-                
+                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000010001'}];
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];
             end
 
             if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-
+                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000010001'}];
+                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000010001'}];
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];                
             end
 
-            if S.GUI.OptoWaitForPress1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000100010'}];
-                % LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000000010'}];
-                LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000100010'}];
-                % DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000000010'}];
-                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000100010'}];
-            end
-
-            if S.GUI.OptoVis2
+            if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
+                % PreVisStimITI_OutputActions = [PreVisStimITI_OutputActions, {'labTimergTriloG', '100000000'}];
+                % VisDetectOutputAction = [VisDetectOutputAction, {'GlobalTimerTrig', '000010000'}];
+                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerCancel', '010001'}];
                 WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
             end
 
-            if S.GUI.OptoWaitForPress2
-                % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '000001000'}];
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '010001000'}];
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '010001000'}];
+            if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
+                % LeverRetract2_OutputActions = [LeverRetract2_OutputActions, {'GlobalTimerCancel', '001000100'}];
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
+            end
+
+            if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
+                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '001000100'}];
+                % LeverRetract2_OutputActions = [LeverRetract2_OutputActions, {'GlobalTimerCancel', '001000100'}];
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];                
+            end
+
+
+            if 0
+                if S.GUI.OptoWaitForPress1
+                    WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000100010'}];
+                    % LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000000010'}];
+                    LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000100010'}];
+                    % DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000000010'}];
+                    DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000100010'}];
+                end
+    
+                if S.GUI.OptoVis2
+                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];
+                end
+    
+                if S.GUI.OptoWaitForPress2
+                    % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '000001000'}];
+                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '010001000'}];
+                    DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '010001000'}];
+                end
             end
 
             Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '111111111'}];
