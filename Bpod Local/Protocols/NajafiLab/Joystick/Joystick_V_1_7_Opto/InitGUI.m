@@ -129,7 +129,7 @@ function [S] = SetParams(obj, BpodSystem)
         % punish params
         S.GUI.IncorrectSoundVolume_percent = 0.07;  % volume control
         S.GUI.PunishSoundDuration_s = 1; % Seconds to wait on errors before next trial can start
-        S.GUI.IncorrectSound = 0; % if 1, plays a white noise pulse on error. if 0, no sound is played.
+        S.GUI.IncorrectSound = 1; % if 1, plays a white noise pulse on error. if 0, no sound is played.
         S.GUIMeta.IncorrectSound.Style = 'checkbox';
         S.GUIPanels.Punish = {'IncorrectSoundVolume_percent', 'PunishSoundDuration_s', 'IncorrectSound'}; 
     
