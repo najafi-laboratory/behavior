@@ -55,9 +55,10 @@ def read_trials(subject):
     session_decision = []
     session_stim_start = []
     session_stim_seq = []
-    session_pre_isi = []
-    session_post_isi = []
-    session_post_isi_mean = []
+    session_isi_pre_perc = []
+    session_isi_pre_emp = []
+    session_isi_post_perc = []
+    session_isi_post_emp = []
     session_jitter_flag = []
     for f in tqdm(range(len(file_names))):
         fname = file_names[f]
@@ -80,9 +81,10 @@ def read_trials(subject):
         trial_decision = []
         trial_stim_start = []
         trial_stim_seq = []
-        trial_pre_isi = []
-        trial_post_isi = []
-        trial_post_isi_mean = []
+        trial_isi_pre_perc = []
+        trial_isi_pre_emp = []
+        trial_isi_post_perc = []
+        trial_isi_post_emp = []
         for i in range(nTrials):
             trial_states = raw_data['RawEvents']['Trial'][i]['States']
             trial_events = raw_data['RawEvents']['Trial'][i]['Events']
@@ -106,15 +108,18 @@ def read_trials(subject):
                 stim_seq = np.array([[np.nan], [np.nan]])
             trial_stim_seq.append(stim_seq)
             # pre prerturbation isi.
-            stim_pre_isi = np.median(stim_seq[0,1:3] - stim_seq[1,0:2])
-            trial_pre_isi.append(stim_pre_isi)
+            pre_isi_perc = np.mean(stim_seq[0,1:3] - stim_seq[1,0:2])
+            pre_isi_emp = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PreISI'])
+            trial_isi_pre_perc.append(pre_isi_perc)
+            trial_isi_pre_emp.append(pre_isi_emp)
             # post perturbation isi.
             if stim_seq.shape[1]<4:
-                stim_post_isi = np.nan
+                isi_post_perc = np.nan
             else:
-                stim_post_isi = np.median(stim_seq[0,3:] - stim_seq[1,2:-1])
-            trial_post_isi.append(stim_post_isi)
-            trial_post_isi_mean.append(1000*np.array([raw_data['ProcessedSessionData'][i]['trial_isi']['PostMeanISI']]))
+                isi_post_perc = np.mean(stim_seq[0,3:] - stim_seq[1,2:-1])
+            isi_post_emp = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+            trial_isi_post_perc.append(isi_post_perc)
+            trial_isi_post_emp.append(isi_post_emp)
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
                 not np.isnan(trial_states['VisStimTrigger'][1])):
@@ -152,8 +157,10 @@ def read_trials(subject):
                     else:
                         trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
                     # effective licking to outcome.
-                    decision_idx = np.where(lick[0]>1000*trial_states['WindowChoice'][0])[0]
-                    if len(decision_idx)>0:
+                    decision_idx = np.where(lick[0]>1000*trial_states['WindowChoice'][1])[0]
+                    if (len(decision_idx)>0 and
+                        stim_seq.shape[1]>3
+                        ):
                         lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
                         trial_decision.append(lick_decision)
                     else:
@@ -173,9 +180,10 @@ def read_trials(subject):
         session_decision.append(trial_decision)
         session_stim_start.append(trial_stim_start)
         session_stim_seq.append(trial_stim_seq)
-        session_pre_isi.append(trial_pre_isi)
-        session_post_isi.append(trial_post_isi)
-        session_post_isi_mean.append(trial_post_isi_mean)
+        session_isi_pre_perc.append(trial_isi_pre_perc)
+        session_isi_pre_emp.append(trial_isi_pre_emp)
+        session_isi_post_perc.append(trial_isi_post_perc)
+        session_isi_post_emp.append(trial_isi_post_emp)
         session_jitter_flag.append(trial_jitter_flag)
     # merge all session data
     data = {
@@ -190,9 +198,10 @@ def read_trials(subject):
         'decision' : session_decision,
         'stim_start' : session_stim_start,
         'stim_seq' : session_stim_seq,
-        'pre_isi' : session_pre_isi,
-        'post_isi' : session_post_isi,
-        'post_isi_mean' : session_post_isi_mean,
+        'isi_pre_perc' : session_isi_pre_perc,
+        'isi_pre_emp' : session_isi_pre_emp,
+        'isi_post_perc' : session_isi_post_perc,
+        'isi_post_emp' : session_isi_post_emp,
         'jitter_flag' : session_jitter_flag,
     }
     return data

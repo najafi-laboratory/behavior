@@ -28,7 +28,12 @@ To plot all figires for a subject, in main.py at the subject name into subject_l
 
 # update note
 
-## 2023.05.30
+## 2024.05.30
 - Separated from old analysis code.
 - First release.
+
+## 2024.06.19
+- Added psychometric function for both empirical mean and perceptual mean.
+- Now empirical mean is set to the mean of isi that was planned to play but not the continuous sampling value.
+- Aborted trials when decision was made before the 1st perturbation stimuli.
 
