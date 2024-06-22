@@ -669,7 +669,7 @@ try
             end
 
             if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000010001'}];
+                % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, {'GlobalTimerTrig', '000010001'}];
                 LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerCancel', '000010001'}];
                 DidNotPress1_OutputActions = [DidNotPress1_OutputActions, {'GlobalTimerCancel', '000010001'}];                
             end
@@ -683,7 +683,7 @@ try
             end
 
             if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '001000100'}];
+                % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, {'GlobalTimerTrig', '001000100'}];
                 DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];                
             end
 
