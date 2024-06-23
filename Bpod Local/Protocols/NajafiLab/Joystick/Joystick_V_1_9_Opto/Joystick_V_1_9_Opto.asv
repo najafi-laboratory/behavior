@@ -467,7 +467,7 @@ try
             Punish_OutputActions = {};
         end
         
-        Punish_OutputActions = [Punish_OutputActions, {'GlobalTimerTrig', '000000010'}];
+        Punish_OutputActions = [Punish_OutputActions, {'GlobalTimerCancel', '000000010'}];
                  
         %% update trial-specific valve times using calibration table according to set reward amount    
         CenterValveTime = GetValveTimes(S.GUI.CenterValveAmount_uL, [2]); 
@@ -690,8 +690,7 @@ try
                 DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];                
             end
 
-            LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerTrig', '000000010'}];
-            Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerTrig', '000000010', 'GlobalTimerCancel', '111111101'}];
+            Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '111111111'}];
         end
 
         switch S.GUI.Reps
@@ -984,7 +983,7 @@ try
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'GlobalCounterReset', '111111111'}); 
+            'OutputActions', {'GlobalCounterReset', '11111111'}); 
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events

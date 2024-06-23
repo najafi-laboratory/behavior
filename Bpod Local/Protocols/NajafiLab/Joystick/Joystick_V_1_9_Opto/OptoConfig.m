@@ -123,9 +123,10 @@ classdef OptoConfig
         function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
             if obj.EnableOpto 
                 % shutter close delays
+                ShutterPulseWidthAdd = 0.003; % add 3ms to PMTCloseDelay for shutter to re-open
                 PMTStartCloseDelay = 0.010;
                 PMTCloseTransferDelay = 0.0121;
-                PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay;
+                PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay + ShutterPulseWidthAdd;
 
                 % shutter open delays
                 PMTStartOpenDelay = 0.0078;
@@ -136,8 +137,9 @@ classdef OptoConfig
 
                 % initial gray frame vis stim offset, statistical delay of
                 % 2 frames at 60fps
-                VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
-                VisStimDurationOffset = 0.0015; % ~1.5ms measured vis stim offset
+                %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
+                VisStimShift = 0.0353098; % f2,f3
+                VisStimDurationOffset = 0.0015; % ~1.5ms measured vis stim offset                
 
                 LED1OnsetDelay = PMTCloseDelay;
                 LED2OnsetDelay = PMTCloseDelay;
@@ -210,11 +212,9 @@ classdef OptoConfig
                         end
                        
                         PMTCloseDur = PMTCloseDelay;
-                        PMTOffDur = OnDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay;
+                        PMTOffDur = OnDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay - ShutterPulseWidthAdd;
                 end 
 
-                % onset delay for vis1/2 35.3098
-              
                 % LED timers
                 % seg 1
                 sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', OnDur, 'OnsetDelay', LED1OnsetDelay,...
@@ -240,6 +240,12 @@ classdef OptoConfig
                     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                     'Loop', LoopPMT2, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0); 
+
+                % shutter reset timer
+                sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', 0.030, 'OnsetDelay', 0,...
+                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                 
             end
         end
     end
