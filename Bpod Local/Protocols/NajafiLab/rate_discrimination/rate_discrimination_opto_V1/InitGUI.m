@@ -63,7 +63,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PercentEasy = 100;
         S.GUI.PercentMediumEasy = 0;
         S.GUI.PercentMediumHard = 0;
-        S.GUI.PercentHard = 0;    
+        S.GUI.PercentHard = 0;
         S.GUIPanels.Difficulty = {'PercentEasy', 'PercentMediumEasy', 'PercentMediumHard', 'PercentHard'};
 
         % audio stim params
@@ -113,10 +113,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.RepeatedProb = 1.0;
         S.GUI.AdjustValve = 1;
         S.GUIMeta.AdjustValve.Style = 'checkbox';
-        S.GUI.NumMonitorTrials = 5;
+        S.GUI.NumMonitorTrials = 3;
         S.GUI.BiasIndexThres = 0.5;
         S.GUI.AdjustValvePercent = 0.25;
-        S.GUI.AdjustFraction = 0.65;
+        S.GUI.AdjustFraction = 0.9;
         S.GUI.FarMoveSpout = 1;
         S.GUIMeta.FarMoveSpout.Style = 'checkbox';
         S.GUI.FarMoveSpoutPos = 12;

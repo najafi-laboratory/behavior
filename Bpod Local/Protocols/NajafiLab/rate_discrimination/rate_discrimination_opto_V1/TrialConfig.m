@@ -96,6 +96,9 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
             elseif (isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
                     ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
                 [AntiBiasVar] = AddLastCorrectness(AntiBiasVar, TrialTypes, currentTrial, 1);
+            elseif (isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'ChangingMindReward') && ...
+                    ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.ChangingMindReward(1)))
+                [AntiBiasVar] = AddLastCorrectness(AntiBiasVar, TrialTypes, currentTrial, 0);
             else
                 AntiBiasVar.CompletedHist = AntiBiasVar.CompletedHist;
             end
