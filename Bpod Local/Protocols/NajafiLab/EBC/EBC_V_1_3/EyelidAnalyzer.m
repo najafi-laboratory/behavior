@@ -126,8 +126,10 @@ classdef EyelidAnalyzer < handle
         function connectVideo(obj, ~, ~)            
             % Connect to a Video Input Camera
             % vid = videoinput('winvideo', 2, 'YUY2_640x480');
+            %imaqhwinfo
 
             obj.vid = videoinput('gentl', 1);     
+            % obj.vid = videoinput('pointgrey', 1);
             disp(['Video Input Connected']);
             % Configure Video Source Properties
             obj.src = getselectedsource(obj.vid);

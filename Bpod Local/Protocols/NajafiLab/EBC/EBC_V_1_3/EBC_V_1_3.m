@@ -207,6 +207,7 @@ try
             % BpodSystem.PluginObjects.R.sendThresholdEvents = 'off'; % Stop sending threshold events to state machine
             % BpodSystem.PluginObjects.R = [];      
             % M = [];
+            MEV.onGUIClose;
             MEV = [];
             return
         end
@@ -288,6 +289,8 @@ catch MatlabException
     %     disp('Encoder not initialized.');
     % end
     % M = [];
+    MEV.onGUIClose;
+    MEV = [];
 end
 end
 
