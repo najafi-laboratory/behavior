@@ -1,0 +1,386 @@
+classdef MouseEyeVideoAnalysis < handle
+    properties
+        hFig
+        axOriginal
+        axThresholded
+        axFEC
+        EBC_vid_log
+        fecPlot
+        frame
+        sliderThreshold
+        sliderEyeOpen
+        src
+        vidTimer
+        vid
+        
+        video
+        eyeOpenMax
+        thresholdEyeOpen
+        fec
+        fecData
+        fecTimes
+        binaryVideos
+        guiSettings
+
+        % Variables to store video and ROI data
+        videoData = struct;
+
+        isPaused = true;
+
+        roiPosition
+
+        binFrame
+
+        maxOpen = 0;
+
+        mask
+    end
+    
+    methods
+        function obj = MouseEyeVideoAnalysis()
+            obj.createGUI();
+            % obj.startVideo();
+            obj.videoData = struct('videoObject', [], 'currentFrame', [], 'roiHandle', [], 'threshold', 100, 'isPlaying', false);
+        end
+        
+        function createGUI(obj)
+            % Create the main figure
+            obj.hFig = figure('Name', 'Mouse Eye Video Analysis', 'NumberTitle', 'off', 'Resize', 'on', 'CloseRequestFcn', @obj.onGUIClose);
+            
+            % Create axes for displaying the original and thresholded videos
+            obj.axOriginal = subplot(2, 2, 1, 'Parent', obj.hFig);
+            title(obj.axOriginal, 'Original Video');
+            obj.axThresholded = subplot(2, 2, 2, 'Parent', obj.hFig);
+            title(obj.axThresholded, 'Thresholded Video');
+            
+            % Create a plot for Fraction of Eyelid Closure (FEC)
+            obj.axFEC = subplot(2, 1, 2, 'Parent', obj.hFig);
+            title(obj.axFEC, 'Fraction of Eyelid Closure Over Time');
+            xlabel(obj.axFEC, 'Time (s)');
+            ylabel(obj.axFEC, 'FEC (%)');
+            hold(obj.axFEC, 'on');
+            obj.fecPlot = plot(obj.axFEC, NaN, NaN, 'b-'); % Initialize FEC plot
+            
+            % Add controls and buttons
+            obj.sliderThreshold = uicontrol('Style', 'slider', 'Min', 0, 'Max', 255, 'Value', 100, ...
+                'Position', [150 50 120 20], 'Callback', @obj.adjustThreshold);
+            obj.sliderEyeOpen = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, 'Value', 0.7, ...
+                'Position', [150 30 120 20], 'Callback', @obj.adjustEyeOpenThreshold);
+            uicontrol('Style', 'text', 'Position', [20 50 120 20], 'String', 'Adjust Threshold:');
+            uicontrol('Style', 'text', 'Position', [20 30 200 20], 'String', 'Minimum Eye Openness Threshold:');
+            uicontrol('Style', 'pushbutton', 'String', 'Start', ...
+                'Position', [300 20 50 20], 'Callback', @obj.startVideo);
+            uicontrol('Style', 'pushbutton', 'String', 'Stop', ...
+                'Position', [360 20 50 20], 'Callback', @obj.stopVideo);
+            uicontrol('Style', 'pushbutton', 'String', 'Load Video & Draw ROI', ...
+                'Position', [420 20 150 20], 'Callback', @obj.loadVideoAndDrawROI);
+            
+            uicontrol('Style', 'pushbutton', 'String', 'Select ROI', 'Units', 'normalized',...
+                'Position', [0.25, 0.25, 0.15, 0.05], 'Callback', @obj.selectROI);
+            % btnSelectROI = uicontrol('Parent', hFig, 'Style', 'pushbutton', 'String', 'Select ROI', 'Units', 'normalized', 'Position', [0.25, 0.25, 0.15, 0.05], 'Callback', @selectROI);
+            
+            % Initialize data storage
+            obj.fecData = [];
+            obj.fecTimes = [];
+            obj.binaryVideos = {};
+            
+            % Load GUI settings if exist
+            if exist('guiSettings.mat', 'file')
+                load('guiSettings.mat', 'guiSettings');
+                obj.guiSettings = guiSettings;
+                % Set the GUI components to last saved states
+                set(obj.sliderThreshold, 'Value', obj.guiSettings.thresholdValue);
+                set(obj.sliderEyeOpen, 'Value', obj.guiSettings.eyeOpenThreshold);
+            end
+        end
+
+
+        % Function to select ROI
+    
+        function selectROI(obj, ~, ~)
+            obj.pauseVideo;
+            if isempty(obj.vid)
+                msgbox('Load a video first!');
+                return;
+            end
+            obj.videoData.roiHandle = imellipse(obj.axOriginal); % Let user draw an ellipse
+            obj.roiPosition = getPosition(obj.videoData.roiHandle);  % Get ROI position before playing  
+            % wait(obj.videoData.roiHandle);
+            % wait(obj.videoData.roiHandle); % Optional: wait for user to finalize the ellipse
+            obj.pauseVideo;
+        end
+
+        function pauseVideo(obj, ~, ~)             
+            if obj.isPaused
+                start(obj.vidTimer)
+            else                
+                stop(obj.vidTimer);
+            end
+            obj.isPaused = ~obj.isPaused; % Toggle pause state
+        end
+
+        function startVideo(obj, ~, ~)
+            % Find available hardware
+            info = imaqhwinfo;
+            
+            % Connect to a Video Input Camera
+            obj.vid = videoinput('gentl', 1);
+            
+            % Configure Video Source Properties
+            obj.src = getselectedsource(obj.vid);
+            
+            % Configure the logging mode to disk
+            obj.vid.LoggingMode = 'disk';
+            obj.EBC_vid_log = VideoWriter('EBC_vid.mp4', 'MPEG-4');
+            obj.vid.DiskLogger = obj.EBC_vid_log;
+            
+            % Set trigger config
+            obj.vid.FramesPerTrigger = 100;
+
+            % Set video input timeout
+            set(obj.vid,'Timeout',720); %set the Timeout property of VIDEOINPUT object 'vid' to 50 seconds
+
+            % Start the acquisition
+            start(obj.vid);
+
+            obj.isPaused = false;
+            
+            disp(['Debug 1']);
+
+            % Create and start a timer to update the video display
+            if isempty(obj.vidTimer) || ~isvalid(obj.vidTimer)
+                obj.vidTimer = timer('TimerFcn','', 'ExecutionMode', 'fixedRate', 'Period', 1);
+                set(obj.vidTimer, 'TimerFcn', @(x,y)obj.updateVideo());
+                start(obj.vidTimer);
+            end
+        end
+        
+        function stopVideo(obj, ~, ~)
+            if ~isempty(obj.vidTimer) && isvalid(obj.vidTimer)
+                stop(obj.vidTimer);
+                delete(obj.vidTimer);
+                obj.vidTimer = [];
+            end
+            
+            if ~isempty(obj.vid) && isvalid(obj.vid)
+                stop(obj.vid);
+                delete(obj.vid);
+            end
+            
+            imaqreset; % Reset Image Acquisition Toolbox
+            clear obj.vid; % Clear the video object
+        end
+        
+        function updateVideo(obj, ~, ~)
+            % disp(['Debug updateVideo']);
+            % obj.vid.FramesAcquired
+            % isrunning(obj.vid)
+            %islogging(obj.vid)
+            % obj.vid.FramesPerTrigger 
+            %obj.vid.TriggerRepeat
+            %triggerinfo(obj.vid)
+            %obj.vid.TriggerType
+            % obj.vid.TriggerCondition
+            % obj.vid.TriggerSource
+            obj.frame = getsnapshot(obj.vid); % Capture the current frame
+            % binFrame = imbinarize(im2gray(frame), graythresh(im2gray(frame)));
+            % obj.roiPosition = [];
+            if isobject(obj.videoData.roiHandle) && isvalid(obj.videoData.roiHandle)  
+                obj.roiPosition = getPosition(obj.videoData.roiHandle);  % Get ROI position before playing  
+            end
+            imshow(obj.frame, 'Parent', obj.axOriginal); % Display the frame in the original video axes                     
+            % videoData.currentFrame = readFrame(videoData.videoObject);
+            % imshow(videoData.currentFrame, 'Parent', axOriginal);
+            if isobject(obj.videoData.roiHandle) && isvalid(obj.videoData.roiHandle)
+                setPosition(obj.videoData.roiHandle, obj.roiPosition);  % Reset the position for consistency
+            elseif ~isempty(obj.roiPosition)
+                obj.videoData.roiHandle = imellipse(obj.axOriginal, obj.roiPosition);  % Recreate ROI if not valid
+            end
+
+            % obj.binFrame = imbinarize(im2gray(obj.frame), graythresh(im2gray(obj.frame)));            
+            % imshow(obj.binFrame, 'Parent', obj.axThresholded); % Display the frame in the original video axes                     
+            obj.updateBinaryVideo;
+
+            if obj.vid.FramesAvailable > 0
+                % disp(['Debug updateVideo has frames']);
+                obj.frame = getsnapshot(obj.vid); % Capture the current frame
+                imshow(obj.frame, 'Parent', obj.axOriginal); % Display the frame in the original video axes
+            end
+        end
+
+        % Function to update binary video
+    
+        function updateBinaryVideo(obj)
+            % if isempty(videoData.currentFrame)
+            %     return;
+            % end
+
+            
+            if isobject(obj.videoData.roiHandle) && isvalid(obj.videoData.roiHandle)
+                obj.mask = createMask(obj.videoData.roiHandle); % Create a mask from the ROI
+                grayFrame = im2gray(obj.frame);
+                grayFrame(~obj.mask) = 0; % Apply mask to the frame
+                obj.binFrame = imbinarize(grayFrame, obj.videoData.threshold / 255);
+                imshow(obj.binFrame, 'Parent', obj.axThresholded); % Display the frame in the original video axes                     
+                obj.calculateFEC;
+            else
+                disp('ROI object is invalid or deleted.');
+            end
+        end        
+        
+        % Function to adjust threshold
+    
+        function adjustThreshold(obj, ~, ~)          
+            obj.videoData.threshold = obj.sliderThreshold.Value;
+            txtThreshold.String = ['Threshold: ', num2str(obj.videoData.threshold, '%.0f')];
+            if isfield(obj.videoData, 'roiHandle') && isvalid(obj.videoData.roiHandle)
+                obj.updateBinaryVideo;
+            end
+            disp(['thresh', num2str(obj.videoData.threshold)]);
+        end
+
+        function onGUIClose(obj, ~, ~)
+            obj.stopVideo(); % Ensure the live video is stopped
+            obj.saveSettings(); % Save settings before closing
+            delete(obj.hFig); % Close the figure
+
+            % delete(timerfindall)
+        end
+        
+        % function initializeSession(obj)
+        %     % Assuming video initialization for a pre-recorded video
+        %     obj.video = VideoReader('sampleVideo.mp4');
+        %     obj.eyeOpenMax = obj.calculateMaxOpenness(obj.video);
+        %     obj.thresholdEyeOpen = get(obj.sliderEyeOpen, 'Value'); % Initial threshold
+        % end
+        
+        % Function to calculate Fraction of Eyelid Closure
+        function calculateFEC(obj)
+            % mask has 1's in the ellipse
+            numZeros = numel(find(obj.mask == 0));
+            numOnes = numel(find(obj.mask == 1));
+            totalPixels = numel(obj.binFrame);
+            totalEllipsePixels = numel(find(obj.mask == 1));
+            closedPixels = sum(obj.binFrame(:) == 0); % Assuming closed eye corresponds to 0
+            obj.fec = (closedPixels / totalPixels) * 100; % FEC percentage
+            disp(['fec', num2str(obj.fec)]);
+        end
+
+        function maxOpen = calculateMaxOpenness(obj, videoObj)
+            % maxOpen = 0; % Initialize maximum openness
+            % videoObj.CurrentTime = 0;
+            while videoObj.CurrentTime < 60 % First 60 seconds
+                obj.frame = readFrame(videoObj);
+                binFrame = imbinarize(rgb2gray(obj.frame), graythresh(rgb2gray(obj.frame)));
+                openPixels = sum(binFrame(:));
+                maxOpen = max(maxOpen, openPixels);
+            end
+        end
+        
+        function saveSettings(obj)
+            obj.guiSettings.thresholdValue = get(obj.sliderThreshold, 'Value');
+            obj.guiSettings.eyeOpenThreshold = get(obj.sliderEyeOpen, 'Value');
+            % save('guiSettings.mat', 'obj.guiSettings');
+            disp('GUI settings saved.');
+        end
+    end
+end
+
+
+
+% % Function to calculate Fraction of Eyelid Closure
+%     function fec = calculateFEC(binaryImage)
+%         totalPixels = numel(binaryImage);
+%         closedPixels = sum(binaryImage(:) == 0); % Assuming closed eye corresponds to 0
+%         fec = (closedPixels / totalPixels) * 100; % FEC percentage
+%     end
+% 
+% 
+% 
+% 
+% 
+% 3:42
+% % Calculate FEC
+%             currentFEC = calculateFEC(binFrame);
+%             currentTrialData = [currentTrialData, currentFEC];
+%             currentTrialTimes = [currentTrialTimes, currentTime];
+%             % Update FEC plot
+%            set(fecPlot, 'XData', currentTrialTimes, 'YData', currentTrialData);
+%             drawnow; % Update plot in real-time
+% 
+% 
+
+
+
+% load video part :
+% ---------------------------
+% function loadVideo(obj, ~, ~)
+%             [file, path] = uigetfile({'*.avi;*.mp4', 'Video Files (*.avi, *.mp4)'});
+%             if isequal(file, 0)
+%                 return;
+%             end
+%             obj.videoData.videoObject = VideoReader(fullfile(path, file));
+%             obj.videoData.currentFrame = readFrame(obj.videoData.videoObject);
+%             imshow(obj.videoData.currentFrame, 'Parent', obj.axOriginal);
+%             if isobject(obj.videoData.roiHandle) && isvalid(obj.videoData.roiHandle)
+%                 delete(obj.videoData.roiHandle); % Remove previous ROI if it exists
+%             end
+%         end
+% ---------------------------------------------------
+% select ROI
+% function selectROI(obj, ~, ~)
+%             if isempty(obj.videoData.videoObject)
+%                 msgbox('Load a video first!');
+%                 return;
+%             end
+%             obj.videoData.roiHandle = imellipse(obj.axOriginal); % Let user draw an ellipse
+%             wait(obj.videoData.roiHandle); % Optional: wait for user to finalize the ellipse
+%         end
+
+
+
+
+% classdef VideoSnapshot < handle
+%     properties
+%         VideoReader
+%         Snapshot
+%         EllipseParams
+%         IsPaused
+%     end
+%     methods
+%         function obj = VideoSnapshot(videoFile)
+%             % Constructor
+%             obj.VideoReader = VideoReader(videoFile);
+%             obj.Snapshot = [];
+%             obj.EllipseParams = [];
+%             obj.IsPaused = false;
+%         end
+%         function startCapture(obj)
+%             % Display live video
+%             while hasFrame(obj.VideoReader)
+%                 frame = readFrame(obj.VideoReader);
+%                 imshow(frame);
+%                 hold on;
+%                 if ~obj.IsPaused
+%                     % Detect and highlight elliptical ROI
+%                     % (You need to implement this part)
+%                 end
+%                 hold off;
+%                 % Check for key press
+%                 if obj.IsPaused
+%                     % Display the snapshot
+%                     imshow(obj.Snapshot);
+%                     % Continue if any key is pressed
+%                     waitforbuttonpress;
+%                     obj.IsPaused = false;
+%                 end
+%             end
+%         end
+%         function pauseCapture(obj)
+%             % Pause the video
+%             obj.IsPaused = true;
+%             % Capture snapshot
+%             obj.Snapshot = readFrame(obj.VideoReader);
+%         end
+%     end
+% end
