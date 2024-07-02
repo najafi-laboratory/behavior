@@ -278,7 +278,7 @@ classdef EyelidAnalyzer < handle
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');            
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
-            obj.EBC_vid_log_trial.FrameRate = 400; % err for framerate too high
+            obj.EBC_vid_log_trial.FrameRate = 250; %400; % err for framerate too high
             % obj.EBC_vid_log_trial.Quality = 90;
             % obj.vid.DiskLogger = obj.EBC_vid_log_trial;
             open(obj.EBC_vid_log_trial);

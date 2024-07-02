@@ -107,9 +107,9 @@ try
         % fCam = 400;
         % T = 1 / fCam;
         % Dur = T / 2;
-        % Set timer pulses for 400 fps video trigger
+        % Set timer pulses for 250 fps video trigger
         CamTrigOnDur = 0.0005;
-        CamTrigOffDur = 0.0025 - CamTrigOnDur;
+        CamTrigOffDur = 0.004 - CamTrigOnDur; %0.0025 - CamTrigOnDur;
 
         % Cam Trigger
         % Camera Trigger generated using BNC1 output.  400Hz signal.
@@ -164,7 +164,19 @@ try
 
         disp(['Processing Trial Video...']);
        
-        vidDur = S.GUI.ITI_Pre + S.GUI.LED_OnsetDelay + S.GUI.LED_Dur + 2;
+
+        LED_offset = S.GUI.LED_OnsetDelay + S.GUI.LED_Dur;
+        ISI = S.GUI.AirPuff_OnsetDelay - LED_offset;
+        
+        if ISI <=0 % classical conditioning: no gap between led offset and puff onset
+	        LED_puff = LED_dur;
+
+        else % trace conditioning: puff onset happens after led offset
+	        LED_puff = LED_dur + ISI + Puff_dur;
+        end
+
+
+        vidDur = S.GUI.ITI_Pre + LED_puff + S.GUI.LED_Dur + S.GUI.ITI_Post;
 
         MEV.processTrialsVideo(vidDur);
 
