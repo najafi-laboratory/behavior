@@ -670,11 +670,7 @@ try
 
                 if ~S.GUI.SelfTimedMode
                     LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-                    if S.GUI.VisStim2Enable
-                        PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'};                
-                    else
-                        PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'};                                      
-                    end
+                    PreVis2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'};
                 else
                     LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
                 end
@@ -722,11 +718,13 @@ try
         end
         
         % if warmup trial, increase wait for press by gui param PressWindowExtend_s
-        PressWindow_s = S.GUI.PressWindow_s;
+        Press1Window_s = S.GUI.Press1Window_s;
+        Press2Window_s = S.GUI.Press2Window_s;
         if WarmupTrialsCounter > 0
             ExperimenterTrialInfo.Warmup = true;   % check variable states as field/value struct for experimenter info
             ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % check variable states as field/value struct for experimenter info
-            PressWindow_s = S.GUI.PressWindow_s + S.GUI.PressWindowExtend_s;
+            Press1Window_s = S.GUI.Press1Window_s + S.GUI.PressWindowExtend_s;
+            Press2Window_s = S.GUI.Press2Window_s + S.GUI.PressWindowExtend_s;
             
             % half press delays for warmup
             if S.GUI.SelfTimedMode
@@ -759,7 +757,8 @@ try
 	        WarmupTrialsCounter = WarmupTrialsCounter - 1;
         end
         
-        ExperimenterTrialInfo.PressWindow = PressWindow_s;
+        ExperimenterTrialInfo.Press1Window = Press1Window_s;
+        ExperimenterTrialInfo.Press2Window = Press2Window_s;
 
         %% update encoder threshold from params
 
@@ -843,7 +842,7 @@ try
             'OutputActions', VisualStimulus1_OutputActions);
 
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
-            'Timer', PressWindow_s,...
+            'Timer', Press1Window_s,...
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
             'OutputActions', WaitForPress1_OutputActions);
         
@@ -880,7 +879,7 @@ try
             'OutputActions', VisualStimulus2_OutputActions);        
    
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
-            'Timer', PressWindow_s,...
+            'Timer', Press2Window_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...
             'OutputActions', WaitForPress2_OutputActions);  
     
@@ -949,7 +948,7 @@ try
         sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});        
+            'OutputActions', {'SoftCode', 8});        
         
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
