@@ -4,6 +4,20 @@ import matplotlib.pyplot as plt
 from datetime import date
 from scipy.signal import savgol_filter
 from scipy.signal import find_peaks
+import re
+
+def deduplicate_chemo(strings):
+    result = []
+    for string in strings:
+        # Find all occurrences of (chemo)
+        chemo_occurrences = re.findall(r'\(chemo\)', string)
+        # If more than one (chemo) found, replace all but the first with empty string
+        if len(chemo_occurrences) > 1:
+            # Keep only one (chemo)
+            string = re.sub(r'\(chemo\)', '', string)
+            string = string + '(chemo)'
+        result.append(string)
+    return result
 
 def plot_time_analysis(
         session_data,
@@ -151,21 +165,12 @@ def plot_time_analysis(
             
             return onset4velocity
 
-
-    all_onset_press1 = []
-    all_stimulations1_peak = []
-    all_onset_press2 = []
-    all_stimulations2_peak = []
-    all_onset_to_peak_1 = []
-    all_onset_to_peak_2 = []
     mean_targetTime_press1 = []
     mean_targetTime_press2_reward = []
     mean_targetTime_press2_early = []
     std_targetTime_press1 = []
     std_targetTime_press2_reward = []
     std_targetTime_press2_early = []
-    all_vis1_to_press1 = []
-    all_vis2_to_press2 = []
     mean_amp_press1 = []
     mean_amp_press2_reward = []
     mean_amp_press2_early = []
@@ -197,6 +202,7 @@ def plot_time_analysis(
             if chemo_labels[i] == 1:
                 dates[i] = dates[i] + '(chemo)'
 
+    dates = deduplicate_chemo(dates)
     offset = 0.15
     numeric_dates = np.arange(len(dates))
 
@@ -209,14 +215,12 @@ def plot_time_analysis(
         for i in range(0 , len(session_id)):
             TrialOutcomes = session_data['outcomes'][i]
             
-            reward_count = TrialOutcomes.count('Reward')
             onset_press1 = []
             onset_press2 = []
             targetTime_press1 = []
             targetTime_press2 = []
             targetTime_press2_reward = []
             targetTime_press2_early = []
-            press_vis_2 = []
             amp_press1 = []
             amp_press2 = []
             amp_press2_reward = []
@@ -237,11 +241,9 @@ def plot_time_analysis(
             raw_data = session_data['raw'][i]
             session_date = dates[i][2:]
             
-            pdf_paths = []
             # Creating figures for each session
             fig, axs = plt.subplots(nrows=8, ncols=2, figsize=(10, 32))   # should be changed
             fig.suptitle(subject + ' - ' + session_date + ' \n ' + 'Time analysis for Reward, Earlypress2 and Didnotpress2 trials' + '\n')
-            step_size = 0.5
             
             print('time analysis of session:' + session_date)
             # The loop for each session
@@ -271,6 +273,11 @@ def plot_time_analysis(
                     base_line = encoder_positions_aligned_vis1[:VisualStimulus1]
                     base_line = base_line[~np.isnan(base_line)]
                     base_line = np.mean(base_line)
+                    
+                    if base_line >= 0.8:
+                        print('trial starts with larger value:', trial + 1)
+                        continue
+                    
                     
                     threshold_press1 = base_line + 0.1
                     rotatory1 = int(trial_states['LeverRetract1'][0]*1000) 
@@ -342,6 +349,10 @@ def plot_time_analysis(
                     base_line = base_line[~np.isnan(base_line)]
                     base_line = np.mean(base_line)
                     
+                    if base_line >= 0.8:
+                        print('trial starts with larger value:', trial + 1)
+                        continue
+                    
                     threshold_press1 = base_line + 0.1
                     rotatory1 = int(trial_states['LeverRetract1'][0]*1000)  
                     
@@ -385,6 +396,10 @@ def plot_time_analysis(
                     base_line = encoder_positions_aligned_vis1[:VisualStimulus1]
                     base_line = base_line[~np.isnan(base_line)]
                     base_line = np.mean(base_line)
+                    
+                    if base_line >= 0.8:
+                        print('trial starts with larger value:', trial + 1)
+                        continue
                     
                     threshold_press1 = base_line + 0.1
                     rotatory1 = int(trial_states['LeverRetract1'][0]*1000) #
@@ -791,6 +806,10 @@ def plot_time_analysis(
                     base_line = base_line[~np.isnan(base_line)]
                     base_line = np.mean(base_line)
                     
+                    if base_line >= 0.8:
+                        print('trial starts with larger value:', trial + 1)
+                        continue
+                    
                     threshold_press1 = base_line + 0.1
                     rotatory1 = int(trial_event['RotaryEncoder1_1'][0]*1000) 
                     rotatory2 = int(trial_states['Reward'][0]*1000) 
@@ -857,6 +876,10 @@ def plot_time_analysis(
                     base_line = base_line[~np.isnan(base_line)]
                     base_line = np.mean(base_line)
                     
+                    if base_line >= 0.8:
+                        print('trial starts with larger value:', trial + 1)
+                        continue
+                    
                     threshold_press1 = base_line + 0.1
                     rotatory1 = int(trial_states['LeverRetract1'][0]*1000)  
                     
@@ -900,6 +923,10 @@ def plot_time_analysis(
                     base_line = encoder_positions_aligned_vis1[:VisualStimulus1]
                     base_line = base_line[~np.isnan(base_line)]
                     base_line = np.mean(base_line)
+                    
+                    if base_line >= 0.8:
+                        print('trial starts with larger value:', trial + 1)
+                        continue
                     
                     threshold_press1 = base_line + 0.1
                     rotatory1 = int(trial_states['LeverRetract1'][0]*1000) #
