@@ -98,7 +98,7 @@ try
 	        LED_puff = S.GUI.LED_Dur + ISI + S.GUI.AirPuff_Dur;
         end
 
-         vidDur = S.GUI.ITI_Pre + S.GUI.LED_OnsetDelay + LED_puff + S.GUI.ITI_Post; % unless LED dur is later than puff offset
+         vidDur = S.GUI.ITI_Pre + S.GUI.AirPuff_OnsetDelay + S.GUI.AirPuff_Dur + S.GUI.ITI_Post; % unless LED dur is later than puff offset
 
         % LED Timer
         % LED Timer generated using behavior port 1 Pulse Width Modulation 
