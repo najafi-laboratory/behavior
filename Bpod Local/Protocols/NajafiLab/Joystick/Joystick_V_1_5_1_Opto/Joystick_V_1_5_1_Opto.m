@@ -492,7 +492,7 @@ try
                     AutoPressVisDelay_s = S.GUI.PrePress2DelayLong_s;
                 else
                     disp('set auto to vis guided start')
-                    AutoPressVisDelay_s = S.GUI.PressVisDelayLong_s;
+                    AutoPressVisDelay_s = S.GUI.PreVis2DelayLong_s;
                 end
             end
         end
@@ -512,14 +512,8 @@ try
         end
         % if S.GUI.EnableAutoDelay && (((TrialTypes(currentTrial) == 2)) || (S.GUI.SelfTimedMode == 1))
         if S.GUI.EnableAutoDelay && (TrialTypes(currentTrial) == 2)
-            if S.GUI.SelfTimedMode == 1          
-                PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxSelf_s);            
-                % S.GUI.PrePress2Delay_s = PressVisDelay_s;
-            else           
-                PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxVis_s);            
-            end
-            S.GUI.PressVisDelayLong_s = PressVisDelay_s;
-            % S.GUI.PrePress2Delay_s = PressVisDelay_s;   
+            PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxVis_s);            
+            S.GUI.PreVis2DelayLong_s = PressVisDelay_s;
             S.GUI.PrePress2DelayLong_s = PressVisDelay_s;
         else
             switch S.GUI.SelfTimedMode
@@ -527,18 +521,16 @@ try
                     ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
                     switch TrialTypes(currentTrial)
                         case 1
-                            PressVisDelay_s = S.GUI.PressVisDelayShort_s;
+                            PressVisDelay_s = S.GUI.PreVis2DelayShort_s;
                         case 2
-                            PressVisDelay_s = S.GUI.PressVisDelayLong_s;
+                            PressVisDelay_s = S.GUI.PreVis2DelayLong_s;
                     end
                 case 1                    
                     ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
                     switch TrialTypes(currentTrial)
                         case 1
-                            % PressVisDelay_s = S.GUI.PressVisDelayShort_s;
                             PressVisDelay_s = S.GUI.PrePress2DelayShort_s;
                         case 2
-                            % PressVisDelay_s = S.GUI.PressVisDelayLong_s;
                             PressVisDelay_s = S.GUI.PrePress2DelayLong_s;
                     end
                     % ExperimenterTrialInfo.TrialType = 'NA';
@@ -726,12 +718,7 @@ try
             Press1Window_s = S.GUI.Press1Window_s + S.GUI.PressWindowExtend_s;
             Press2Window_s = S.GUI.Press2Window_s + S.GUI.PressWindowExtend_s;
             
-            % half press delays for warmup
-            if S.GUI.SelfTimedMode
-                PressVisDelay_s = PressVisDelay_s /2;
-            else
-                PressVisDelay_s = min(S.GUI.PressVisDelayShort_s, PressVisDelay_s);
-            end
+            PressVisDelay_s = min(S.GUI.PreVis2DelayShort_s, PressVisDelay_s);
 
             Threshold = S.GUI.WarmupThreshold;
 

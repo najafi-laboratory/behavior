@@ -13,7 +13,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ChemogeneticSession.Style = 'checkbox';
         S.GUI.Threshold = 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
         S.GUI.WarmupThreshold = S.GUI.Threshold / 2; % Threshold for completion of a lever press, units = degrees of shaft rotation        
-        S.GUI.PressWindow_s = 1.8; % how long mouse has to press lever
+        S.GUI.Press1Window_s = 1.8; % how long mouse has to press lever
+        S.GUI.Press2Window_s = 1.8; % how long mouse has to press lever
         S.GUI.PressWindowExtend_s = 1; % additional time added for warmup trials
         S.GUI.Reps = 2;   % number of required repeated lever presses in a trial
         S.GUIMeta.Reps.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
@@ -63,7 +64,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumTrialsPerBlock = 50;        
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'PostRewardDelay_s', 'ServoInPos', 'ServoOutPos', 'Reward_Rep', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent', 'VisStim2Enable', 'PreVis2DelayShort_s', 'PreVis2DelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2Delay_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};                
         % S.GUIPanels.Joystick = {'Threshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'VisStim2Enable', 'PreVis2DelayShort_s', 'PreVis2DelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayStart_s', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'ResetAutoDelay', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
-        S.GUIPanels.Joystick = {'ChemogeneticSession', 'Threshold', 'WarmupThreshold', 'PressWindow_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'PreVis2DelayShort_s', 'PreVis2DelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
+        S.GUIPanels.Joystick = {'ChemogeneticSession', 'Threshold', 'WarmupThreshold', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'PreVis2DelayShort_s', 'PreVis2DelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
 
         % Optogentic params
         S.GUI.SessionType = 2;  % S.GUI.SessionType = 2;
