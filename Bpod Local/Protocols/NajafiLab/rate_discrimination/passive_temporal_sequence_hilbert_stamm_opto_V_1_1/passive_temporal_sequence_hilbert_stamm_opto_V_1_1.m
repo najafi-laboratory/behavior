@@ -1,4 +1,4 @@
-function passive_temporal_sequence_hilbert_opto_V_1
+function passive_temporal_sequence_hilbert_stamm_opto_V_1_1
     global BpodSystem
     MonitorID  = 2;
     
@@ -8,7 +8,7 @@ function passive_temporal_sequence_hilbert_opto_V_1
     m_InitGUI      = InitGUI;
     m_TrialConfig  = TrialConfig;
     m_AVstimConfig = AVstimConfig;
-    m_Opto = OptoConfig;
+    % m_Opto = OptoConfig;
     
     
     %% Turn off Bpod LEDs
@@ -229,7 +229,7 @@ function passive_temporal_sequence_hilbert_opto_V_1
             PMTOnsetDelay = LEDOnsetDelay - PMTCloseDelay;
 
             % 10Hz pulsed shutter/opto, 7.8ms LED
-            LEDPulseDur = PMTStartOpenDelay;
+            LEDPulseDur = 0.0078;
             LEDOffDur = PMTOpenTransferDelay + 2*ScopeFrameDuration + PMTCloseTransferDelay;
             
             PMTCloseDur = PMTCloseDelay;
@@ -265,12 +265,6 @@ function passive_temporal_sequence_hilbert_opto_V_1
 
         %% add opto timer triggers
         AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4]};
-
-        if mod(currentTrial, 2)
-            OptoTypes(currentTrial) = 1;
-        else
-            OptoTypes(currentTrial) = 0;
-        end
 
         if OptoTypes(currentTrial)
             AudVisStimPlay_OutputActions = [AudVisStimPlay_OutputActions, {'GlobalTimerTrig', '011'}];

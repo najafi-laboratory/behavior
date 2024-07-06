@@ -1,4 +1,4 @@
-function passive_temporal_sequence_hilbert_opto_V_1
+function passive_temporal_sequence_hilbert_stamm_opto_V_1
     global BpodSystem
     MonitorID  = 2;
     
