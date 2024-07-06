@@ -165,13 +165,7 @@ function [VisStim] = GetVideoData( ...
     VisStim.Gray.Video           = GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.Gray.Frames);    
     VisStim.Gray.Dur             = GetVideoDur(obj, FPS, VisStim.Gray.Video);
     % VisStim.Data.Unit.Video  = [VisStim.Grating.Video, VisStim.Gray.Video];
-    % if OptoType
-    %     % for opto, gray needs to have white sync patch
-    %     VisStim.GrayOpto.Video   = [VisStim.Img.GrayFrame_SyncW, GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.Gray.Frames-1)];
-    %     VisStim.Data.Unit.Video  = [VisStim.GrayOpto.Video, VisStim.Grating.Video, VisStim.Gray.Video];
-    % else
-    %     VisStim.Data.Unit.Video  = [VisStim.Gray.Video, VisStim.Grating.Video, VisStim.Gray.Video];
-    % end
+    % for opto, gray needs to have white sync patch for first ISI image
     VisStim.GrayOpto.Video   = [VisStim.Img.GrayFrame_SyncW, GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.Gray.Frames-1)];
     VisStim.Data.Unit.Video  = [VisStim.GrayOpto.Video, VisStim.Grating.Video, VisStim.Gray.Video];
     VisStim.Data.Unit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.Unit.Video);

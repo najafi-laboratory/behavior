@@ -14,7 +14,6 @@ function passive_temporal_sequence_hilbert_stamm_opto_V_1_1
     %% Turn off Bpod LEDs
     
     BpodSystem.setStatusLED(0);
-
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
@@ -204,63 +203,64 @@ function passive_temporal_sequence_hilbert_stamm_opto_V_1_1
 
         if OptoTypes(currentTrial)
             % pmt shutter delay timings are from Bruker specs, the actual
-            % timings are a bit different, and vary between green/red PMTs, but these work for pulsing opto
-            
+            % timings are a bit different, and vary between green/red PMTs, but these work for pulsing opto            
+
             % shutter close delays
-            ShutterPulseWidthAdd = 0.003;   % add 3ms to PMTCloseDelay for shutter to re-open (22.1ms pulse is too short, and shutter sticks closed)
             PMTStartCloseDelay = 0.010;     % ~10ms for shutter to start closing after setting shutter signal to 5V
             PMTCloseTransferDelay = 0.0121; % ~12.1ms
-            PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay + ShutterPulseWidthAdd;
-    
+            PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay;          
+            PMTMin5VSignalDur = PMTCloseDelay + 0.003; % ~25.1ms, minimum measured duration of 5V shutter signal for shutter to re-open 
+                       
             % shutter open delays
             PMTStartOpenDelay = 0.0078;     % ~7.8ms for shutter to start opening after setting shutter signal to 0V
             PMTOpenTransferDelay = 0.0125;  % ~12.5ms for shutter to open after the 7.8ms open transfer delay
             
             % 2p scope image dur for 30Hz Resonant Galvo
-            ScopeFrameDuration = 0.033;     % ~33ms
-    
-            % initial gray frame vis stim offset, statistical delay of
-            % 2 frames at 60fps
-            %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
-            VisStimShift = 0.0353098; % f2,f3
-            VisStimDurationOffset = 0.0015; % ~1.5ms measured vis stim offset                
-    
+            % ScopeFrameDuration = 0.033;     % ~33ms, in case need to make
+            % any calculations to adjust for scope image duration
+                      
+            % opto cycle timing is defined by the onset of the LED
             LEDOnsetDelay = ISIseq(currentTrial) - S.GUI.OptoPreVisOnset; 
             PMTOnsetDelay = LEDOnsetDelay - PMTCloseDelay;
 
             % 10Hz pulsed shutter/opto, 7.8ms LED
-            LEDPulseDur = 0.0078;
-            LEDOffDur = PMTOpenTransferDelay + 2*ScopeFrameDuration + PMTCloseTransferDelay;
+            LEDOnPulseDur = S.GUI.LEDOnPulseDur;
+            LEDOffDur = S.GUI.OptoFreq - LEDOnPulseDur;
+          
+            % PMT shutter signal 5V and 0V durations           
+            PMT5VDur = PMTCloseDelay; % set PMT5V dur initially to shutter close delay
             
-            PMTCloseDur = PMTCloseDelay;
-            PMTOffDur = LEDPulseDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay - ShutterPulseWidthAdd;
+            % if the LED is on for longer than the shutter StartOpenDelay,
+            % then increase shutter 5V duration by the difference (LEDOnPulseDur - PMTStartOpenDelay)
+            if LEDOnPulseDur > PMTStartOpenDelay
+                PMT5VDur = PMT5VDur + (LEDOnPulseDur - PMTStartOpenDelay);
+            end
 
-            % cycle period of pmt/led 
-            PMTLEDCycleTime = PMTCloseDur + PMTOffDur;
+            % if shutter duration is less than the minimum dur for the
+            % shutter to re-open, set it to minimum shutter pulse dur
+            PMT5VDur = max(PMT5VDur, PMTMin5VSignalDur);
+
+            % PMT0VDur = LEDOnPulseDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay - ShutterPulseWidthAdd;
+            % duration of LED pulse 0V is cycle period minus 5V dur
+            PMT0VDur =  S.GUI.OptoFreq - PMT5VDur;
 
             % integer number of pmt/led cycles within pre + post grating onset
-            numPMTLEDCycles = floor((S.GUI.OptoPreVisOnset + S.GUI.OptoPostVisOnset) / PMTLEDCycleTime);
+            numPMTLEDCycles = floor((S.GUI.OptoPreVisOnset + S.GUI.OptoPostVisOnset) / S.GUI.OptoFreq);
 
             LoopLED = numPMTLEDCycles;
             LoopPMT = numPMTLEDCycles;
             
             % LED timers
-            sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LEDPulseDur, 'OnsetDelay', LEDOnsetDelay,...
+            sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LEDOnPulseDur, 'OnsetDelay', LEDOnsetDelay,...
                 'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
                 'Loop', LoopLED, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
                 'GlobalTimerEvents', 0, 'OffsetValue', 0);
 
             % PMT shutter timers
-            sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', PMTCloseDur, 'OnsetDelay', PMTOnsetDelay,...
+            sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', PMT5VDur, 'OnsetDelay', PMTOnsetDelay,...
                 'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                'Loop', LoopPMT, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
-                'GlobalTimerEvents', 0, 'OffsetValue', 0);     
-
-            % shutter reset timer
-            % sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', 0.030, 'OnsetDelay', 0,...
-            %     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-            %     'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
-            %     'GlobalTimerEvents', 0, 'OffsetValue', 0);             
+                'Loop', LoopPMT, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMT0VDur,...
+                'GlobalTimerEvents', 0, 'OffsetValue', 0);                 
         end
 
         %% add opto timer triggers

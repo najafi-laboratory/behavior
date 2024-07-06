@@ -17,7 +17,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.AudVisStim = {'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz', 'VisStimEnable', 'GratingDur_s'};
 
         % passive general
-        S.GUI.MaxImg = 10; % 1000 1500 2000 2500
+        S.GUI.MaxImg = 100; % 1000 1500 2000 2500
         S.GUI.OrienBlockNumMin = 1;
         S.GUI.OrienBlockNumMax = 2;
         S.GUI.SpontSilenceTimeSess = 0;
@@ -59,7 +59,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.EnableOpto.Style = 'checkbox';
         S.GUI.OptoPreVisOnset = 0.2;
         S.GUI.OptoPostVisOnset = 0.4;
-        S.GUIPanels.Opto = {'EnableOpto'};    
+        S.GUI.LEDOnPulseDur = 0.0078;
+        S.GUI.OptoFreq = 0.1;
+        S.GUIPanels.Opto = {'EnableOpto', 'OptoPreVisOnset', 'OptoPostVisOnset', 'LEDOnPulseDur', 'OptoFreq'};    
     end
 end
 

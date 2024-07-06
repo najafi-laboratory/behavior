@@ -123,9 +123,9 @@ function [OptoTypes] = GenOptoTypes( ...
         obj, S)
     switch S.GUI.EnableOpto
         case 0
-            OptoTypes = zeros(1:S.GUI.MaxImg);
+            OptoTypes = zeros(1, S.GUI.MaxImg);
         case 1
-            OptoTypes = ones(1:S.GUI.MaxImg);
+            OptoTypes = ones(1, S.GUI.MaxImg);
     end
     %     case 1
     %         OptoTypes = zeros(1, S.GUI.MaxImg);
