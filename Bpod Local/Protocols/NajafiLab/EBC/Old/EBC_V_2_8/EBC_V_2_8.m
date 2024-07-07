@@ -86,7 +86,16 @@ try
         sma = NewStateMatrix(); % Assemble state matrix
                
         S.GUI.AirPuff_OnsetDelay = S.GUI.LED_Dur - S.GUI.AirPuff_Dur;        
-        StimDur = max(S.GUI.LED_Dur, S.GUI.AirPuff_OnsetDelay + S.GUI.AirPuff_Dur);
+        % StimDur = max(S.GUI.LED_Dur, S.GUI.AirPuff_OnsetDelay + S.GUI.AirPuff_Dur);
+
+        LED_offset = S.GUI.LED_OnsetDelay + S.GUI.LED_Dur;
+        ISI = S.GUI.AirPuff_OnsetDelay - LED_offset;
+        
+        if ISI < 0
+            ISI = 0;
+        end
+
+        vidDur = S.GUI.ITI_Pre + S.GUI.AirPuff_OnsetDelay + S.GUI.AirPuff_Dur + S.GUI.ITI_Post; % unless LED dur is later than puff offset
 
         % LED Timer
         % LED Timer generated using behavior port 1 Pulse Width Modulation 
@@ -145,7 +154,7 @@ try
         sma = AddState(sma, 'Name', 'AirPuff', ...
             'Timer', S.GUI.AirPuff_Dur,...
             'StateChangeConditions', {'Tup', 'ITI_Post'},...
-            'OutputActions', {});        
+            'OutputActions', {});
 
         sma = AddState(sma, 'Name', 'ITI_Post', ...
             'Timer', S.GUI.ITI_Post,...
@@ -161,28 +170,11 @@ try
 
         RawEvents = RunStateMachine; % Run the trial and return events
 
-
-        disp(['Processing Trial Video...']);
-       
-
-        LED_offset = S.GUI.LED_OnsetDelay + S.GUI.LED_Dur;
-        ISI = S.GUI.AirPuff_OnsetDelay - LED_offset;
-        
-        if ISI <=0 % classical conditioning: no gap between led offset and puff onset
-	        LED_puff = LED_dur;
-
-        else % trace conditioning: puff onset happens after led offset
-	        LED_puff = LED_dur + ISI + Puff_dur;
-        end
-
-
-        vidDur = S.GUI.ITI_Pre + LED_puff + S.GUI.LED_Dur + S.GUI.ITI_Post;
+        disp(['Processing Trial Video...']);      
 
         MEV.processTrialsVideo(vidDur);
 
         disp(['Trial Video Processed...']);
-
-
 
         if ~isempty(fieldnames(RawEvents)) % If trial data was returned (i.e. if not final trial, interrupted by user)
             BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Computes trial events from raw data
@@ -192,8 +184,16 @@ try
                 StateTiming();
             end
 
+            % save FEC session data
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.FECRaw = MEV.fecDataRaw;
             BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.FEC = MEV.fecData;
-            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.FECTimes = MEV.fecTimes;            
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.FECTimes = MEV.fecTimes;    
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.eyeAreaPixels = MEV.arrEyeAreaPixels;
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.totalEllipsePixels = MEV.arrTotalEllipsePixels;            
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.FECTrialStartThresh = MEV.arrFECTrialStartThresh;
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.minFur = MEV.minFur; % max eye open threshold
+
+            BpodSystem.Data.RawEvents.Trial{1, currentTrial}.Data.ISI = ISI;
     
             % Update rotary encoder plot
             % might reduce this section to pass

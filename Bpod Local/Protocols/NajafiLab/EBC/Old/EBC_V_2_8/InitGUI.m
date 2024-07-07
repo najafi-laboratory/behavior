@@ -17,6 +17,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.AirPuff_Dur = 0.02;
         S.GUI.AirPuff_OnsetDelay = S.GUI.LED_Dur - S.GUI.AirPuff_Dur;
         
+        
 
         S.GUIPanels.EBC = {'ITI_Pre', 'ITI_Post', 'LED_OnsetDelay', 'LED_Dur', 'AirPuff_OnsetDelay', 'AirPuff_Dur'};
 

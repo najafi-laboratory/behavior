@@ -3,6 +3,10 @@ classdef EyelidAnalyzer < handle
         AirPuffOnsetTime
         AirPuffLine
 
+        arrTotalEllipsePixels = []; 
+        arrEyeAreaPixels = [];
+        arrFECTrialStartThresh = [];        
+
         axOriginal
         axThresholded
         axFEC
@@ -21,17 +25,18 @@ classdef EyelidAnalyzer < handle
         currentFrame
 
         EBC_vid_log_trial
+        eyeAreaPixels            
         eyeOpen
         
         fec
         fecData = [];
-        fecDataHist = [];
-        fecRaw;
+
+        fecDataRaw = [];
         fecNorm;
         fecPlot
         FECStartSlider;
         FECStartThreshLine
-        FECTrialStartThresh;
+        FECTrialStartThresh = 0.4;
         FECTrialStartThreshPercent;
         fecTimes = [];
         fecTimesHist = [];
@@ -69,10 +74,11 @@ classdef EyelidAnalyzer < handle
         tFECThresh
         tFECThreshVal
         tFECTrialStartThresh
-        tFECTrialStartThreshVal
-        threshold = 100;
+        tFECTrialStartThreshVal;
+        binarizationThreshold = 100;
         thresholdEyeOpen
         tMinThresh
+        totalEllipsePixels
         trialVideoDir = 'C:\behavior\video_data\';
         trialStartTime
         trialVidStartTime
@@ -134,11 +140,13 @@ classdef EyelidAnalyzer < handle
             % % Add controls and buttons
             obj.binarizationThresholdSlider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 255, 'Value', 100, 'Units', 'normalized',...
                 'Position', [0.64,0.51,0.18,0.03], 'Callback', @obj.adjustBinarizationThreshold);
-            obj.FECStartSlider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, 'Value', 0.2, 'Units', 'normalized',...
+            obj.FECStartSlider = uicontrol('Style', 'slider', 'Min', 0, 'Max', 1, 'Value', obj.FECTrialStartThresh, 'Units', 'normalized',...
                 'Position', [0.72,0.47,0.10,0.03], 'Callback', @obj.adjustFECStartThreshold);
            
             obj.tAdjustThresh = uicontrol('Style', 'text', 'Position', [423,337.5,171.5,20], ...
                 'String', 'Adjust FEC Binarization Threshold');
+            
+            
             obj.tMinThresh = uicontrol('Style', 'text', 'Position', [489.5,310.5,191.5,20], ...
                 'String', 'Adjust FEC Start Threshold');
            
@@ -331,7 +339,7 @@ classdef EyelidAnalyzer < handle
                 numFrames = min(obj.vid.FramesAvailable, round(vidDur * obj.EBC_vid_log_trial.FrameRate));
                 [data, time, metadata] = getdata(obj.vid, numFrames);
                 % obj.frame = data(:,:,:,end);
-                checkFps = 1;
+                checkFps = 0;
                 if checkFps == 1
                     timeCheck = time - time(1);
                     Ts = diff(time);
@@ -418,9 +426,13 @@ classdef EyelidAnalyzer < handle
 
         % add other session/trial vars here to set at trial start
         function setTrialData(obj)
+            obj.eyeAreaPixels = 0;
+            obj.fecDataRaw = [];
             obj.fecData = [];
             obj.fecTimes = [];
-
+            obj.arrTotalEllipsePixels = []; 
+            obj.arrEyeAreaPixels = [];
+            obj.arrFECTrialStartThresh = [];   
         end
 
         function setEventTimes(obj, LEDOnsetTime, AirPuffOnsetTime, ITI_pre)
@@ -434,7 +446,7 @@ classdef EyelidAnalyzer < handle
                 obj.mask = createMask(obj.roiHandle); % Create a mask from the ROI
                 grayFrame = im2gray(obj.frame);
                 grayFrame(~obj.mask) = 0; % Apply mask to the frame
-                obj.binFrame = imbinarize(grayFrame, obj.threshold / 255);
+                obj.binFrame = imbinarize(grayFrame, obj.binarizationThreshold / 255);
             end
         end
 
@@ -444,13 +456,12 @@ classdef EyelidAnalyzer < handle
         end
 
         function calculateFEC(obj, mode)
-            totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
-            eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
+            obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
+            obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
-            furPixels = totalEllipsePixels - eyeAreaPixels;
-            % obj.minFur = min(obj.minFur, furPixels);
+            furPixels = obj.totalEllipsePixels - obj.eyeAreaPixels;
                         
-            fec = 1 - (eyeAreaPixels / (totalEllipsePixels-obj.minFur));
+            fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels-obj.minFur));
             
             set(obj.tFECVal, 'String', num2str(fec, '%.3f'));
 
@@ -462,53 +473,37 @@ classdef EyelidAnalyzer < handle
                     currentTime = seconds(datetime('now') - obj.trialVidStartTime);
             end
             
-
-            % Append current FEC value to fecRaw array
-            % if isempty(obj.fecRaw)
-            %     obj.fecRaw = obj.fec;  % Initialize if empty
-            % else
-            %     obj.fecRaw = [obj.fecRaw, obj.fec];
-            % end
-
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];
-            % 
-            % obj.fecDataHist = [obj.fecDataHist obj.fec];
-            % obj.fecTimesHist = [obj.fecTimesHist currentTime];
 
             set(obj.fecPlot, 'XData', obj.fecTimes, 'YData', obj.fecData);
-            % set(obj.fecPlot, 'XData', obj.fecTimesHist, 'YData', obj.fecDataHist);
 
-            % obj.FECStartThreshLine = line(obj.axFEC, xlim, [obj.FECTrialStartThreshPercent  obj.FECTrialStartThreshPercent], 'Color', 'r', 'LineStyle', ':', 'LineWidth', 2);
             set(obj.FECStartThreshLine,'xdata', [0 currentTime], 'ydata', [obj.FECTrialStartThreshPercent  obj.FECTrialStartThreshPercent]);
         end
 
         function calculatePostFEC(obj, currentTime)
-            totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
-            eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
+            obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
+            obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
-            furPixels = totalEllipsePixels - eyeAreaPixels;
-            % obj.minFur = min(obj.minFur, furPixels);
+            furPixels = obj.totalEllipsePixels - obj.eyeAreaPixels;
                         
-            fec = 1 - (eyeAreaPixels / (totalEllipsePixels-obj.minFur));
-            
+            obj.arrTotalEllipsePixels = [obj.arrTotalEllipsePixels obj.totalEllipsePixels];
+            obj.arrEyeAreaPixels = [obj.arrEyeAreaPixels obj.eyeAreaPixels];            
+            obj.arrFECTrialStartThresh = [obj.arrFECTrialStartThresh obj.FECTrialStartThresh];            
+
+            % calculate raw fec
+            fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels));
+
+            % get raw fec data
+            obj.fecDataRaw = [obj.fecDataRaw, obj.fec];
+
+            % calculate fec adjusted by max_eye_open_baseline
+            fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels-obj.minFur));            
+
             set(obj.tFECVal, 'String', num2str(fec, '%.3f'));
 
             obj.fec = fec * 100;  % Convert to percentage
-            % switch mode
-            %     case 'pretrial'
-            %         currentTime = seconds(datetime('now') - obj.startTime);
-            %     case 'trial'
-            %         currentTime = seconds(datetime('now') - obj.trialVidStartTime);
-            % end
-
-            % Append current FEC value to fecRaw array
-            if isempty(obj.fecRaw)
-                obj.fecRaw = obj.fec;  % Initialize if empty
-            else
-                obj.fecRaw = [obj.fecRaw, obj.fec];
-            end
-
+                     
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];
         end
@@ -531,15 +526,15 @@ classdef EyelidAnalyzer < handle
         % set max eye open to current number of white pixels as baseline
         function setEyeOpenMax(obj, ~, ~)
             if isobject(obj.roiHandle) && isvalid(obj.roiHandle)
-                totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
-                eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse                
-                obj.minFur = totalEllipsePixels - eyeAreaPixels;     
+                obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
+                obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse                
+                obj.minFur = obj.totalEllipsePixels - obj.eyeAreaPixels;     
             end            
         end
 
         function adjustBinarizationThreshold(obj, ~, ~)
-            obj.threshold = obj.binarizationThresholdSlider.Value;
-            set(obj.tFECThreshVal, 'String', num2str(obj.threshold, '%.3f'));
+            obj.binarizationThreshold = obj.binarizationThresholdSlider.Value;
+            set(obj.tFECThreshVal, 'String', num2str(obj.binarizationThreshold, '%.3f'));
             obj.updateBinaryVideo;
         end
 
