@@ -54,8 +54,8 @@ function [S] = SetParams(obj, BpodSystem)
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
         S.GUIMeta.EnableMovingSpouts.Style = 'checkbox';
-        S.GUI.RightServoInPos = 1175.50;
-        S.GUI.LeftServoInPos = 1868.00;
+        S.GUI.RightServoInPos = 1131.00;
+        S.GUI.LeftServoInPos = 1933.00;
         S.GUI.ServoDeflection = -122.5;
         S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
