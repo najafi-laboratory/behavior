@@ -141,7 +141,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 1;
+    MonitorID = 2;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
@@ -466,8 +466,9 @@ try
         else
             Punish_OutputActions = {};
         end
-                    
-                 
+        
+        Punish_OutputActions = [Punish_OutputActions, {'GlobalTimerTrig', '000000010'}];
+
         %% update trial-specific valve times using calibration table according to set reward amount    
         CenterValveTime = GetValveTimes(S.GUI.CenterValveAmount_uL, [2]); 
         CenterValveTimeRep = CenterValveTime * S.GUI.CenterValveAmountRep_percent;
@@ -614,9 +615,10 @@ try
         audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
 
         % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
-        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
+        %VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
+        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1Low', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
         VisDetectGray1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
-        VisualStimulus1_StateChangeConditions = {'Tup', 'WaitForPress1'};
+        VisualStimulus1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1Low', 'WaitForPress1'};
         VisualStimulus1_OutputActions = audStimOpto1;        
         WaitForPress1_StateChangeConditions = {};        
         WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
@@ -627,9 +629,10 @@ try
         LeverRetract1_StateChangeConditions = {};
     
         % VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
-        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
+        %VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
+        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1Low', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
         VisDetectGray2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
-        VisualStimulus2_StateChangeConditions = {'Tup', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'};
+        VisualStimulus2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'};
         VisualStimulus2_OutputActions = [audStimOpto2 'SoftCode', 7,'RotaryEncoder1', ['E']];
         WaitForPress2_StateChangeConditions = {};
         WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
@@ -646,7 +649,7 @@ try
         PreVis2Delay_StateChangeConditions = {};
 
         PrePress2Delay_StateChangeConditions = {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'};
-        
+          
         % update after opto proto is defined to create separate function to abstract global timer
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
             if S.GUI.OptoVis1
@@ -685,7 +688,8 @@ try
                 DidNotPress2_OutputActions = [DidNotPress2_OutputActions, {'GlobalTimerCancel', '001000100'}];                
             end
 
-            Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerCancel', '111111111'}];
+            LeverRetract1_OutputActions = [LeverRetract1_OutputActions, {'GlobalTimerTrig', '000000010'}];
+            Reward_OutputActions = [Reward_OutputActions, {'GlobalTimerTrig', '000000010', 'GlobalTimerCancel', '111111101'}];
         end
 
         switch S.GUI.Reps
@@ -851,7 +855,7 @@ try
             'OutputActions', VisDetectGray1OutputAction);        
     
         sma = AddState(sma, 'Name', 'VisualStimulus1', ...
-            'Timer', VisStim.VisStimDuration,...
+            'Timer', VisStim.VisStimDuration + 0.020,...
             'StateChangeConditions', VisualStimulus1_StateChangeConditions,...
             'OutputActions', VisualStimulus1_OutputActions);
 
@@ -893,7 +897,7 @@ try
             'OutputActions', VisDetectGray2OutputAction);          
     
         sma = AddState(sma, 'Name', 'VisualStimulus2', ...
-            'Timer', VisStim.VisStimDuration,...
+            'Timer', VisStim.VisStimDuration + 0.020,...
             'StateChangeConditions', VisualStimulus2_StateChangeConditions,...
             'OutputActions', VisualStimulus2_OutputActions);        
    
@@ -972,7 +976,7 @@ try
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'GlobalCounterReset', '11111111'}); 
+            'OutputActions', {'GlobalCounterReset', '111111111'}); 
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events

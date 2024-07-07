@@ -123,9 +123,12 @@ classdef OptoConfig
         function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
             if obj.EnableOpto 
                 % shutter close delays
+                ShutterPulseWidthAdd = 0.003; % add 3ms to PMTCloseDelay for shutter to re-open
                 PMTStartCloseDelay = 0.010;
                 PMTCloseTransferDelay = 0.0121;
+                % PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay + ShutterPulseWidthAdd;
                 PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay;
+                PMTMin5VSignalDur = PMTCloseDelay + 0.003; % ~25.1ms, minimum measured duration of 5V shutter signal for shutter to re-open 
 
                 % shutter open delays
                 PMTStartOpenDelay = 0.0078;
@@ -136,33 +139,43 @@ classdef OptoConfig
 
                 % initial gray frame vis stim offset, statistical delay of
                 % 2 frames at 60fps
-                VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
-                VisStimDurationOffset = 0.0015; % ~1.5ms measured vis stim offset
+                %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
+                VisStimShift = 0.0363000; % f2,f3
+                VisStimDurationOffset = 0.003; % ~1.5ms measured vis stim offset                
 
-                LED1OnsetDelay = PMTCloseDelay;
-                LED2OnsetDelay = PMTCloseDelay;
+                % LED1OnsetDelay = PMTCloseDelay;
+                % LED2OnsetDelay = PMTCloseDelay;
+
+                LED1OnsetDelay = 0;
+                LED2OnsetDelay = 0;                
 
                 PMT1OnsetDelay = 0;
                 PMT2OnsetDelay = 0;
 
                 if S.GUI.OptoVis1
-                    LED1OnsetDelay = LED1OnsetDelay + VisStimShift - PMTCloseDelay;
-                    PMT1OnsetDelay = PMT1OnsetDelay + VisStimShift - PMTCloseDelay;
+                    % LED1OnsetDelay = LED1OnsetDelay + VisStimShift - PMTCloseDelay;
+                    LED1OnsetDelay = VisStimShift;
+                    % PMT1OnsetDelay = PMT1OnsetDelay + VisStimShift - PMTCloseDelay;
+                    PMT1OnsetDelay = LED1OnsetDelay - PMTCloseDelay;
                 end
 
                 if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
                     LED1OnsetDelay = VisStim.VisStimDuration - VisStimDurationOffset;
-                    PMT1OnsetDelay = VisStim.VisStimDuration - PMTCloseDelay - VisStimDurationOffset;
+                    % PMT1OnsetDelay = VisStim.VisStimDuration - PMTCloseDelay - VisStimDurationOffset;
+                    PMT1OnsetDelay = LED1OnsetDelay - PMTCloseDelay;
                 end
 
                 if S.GUI.OptoVis2
-                    LED2OnsetDelay = LED2OnsetDelay + VisStimShift - PMTCloseDelay;
-                    PMT2OnsetDelay = PMT2OnsetDelay + VisStimShift - PMTCloseDelay;
+                    % LED2OnsetDelay = LED2OnsetDelay + VisStimShift - PMTCloseDelay;
+                    LED2OnsetDelay = VisStimShift;
+                    % PMT2OnsetDelay = PMT2OnsetDelay + VisStimShift - PMTCloseDelay;
+                    PMT2OnsetDelay = LED2OnsetDelay - PMTCloseDelay;
                 end
 
                 if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
                     LED2OnsetDelay = VisStim.VisStimDuration - VisStimDurationOffset;
-                    PMT2OnsetDelay = VisStim.VisStimDuration - PMTCloseDelay - VisStimDurationOffset;
+                    % PMT2OnsetDelay = VisStim.VisStimDuration - PMTCloseDelay - VisStimDurationOffset;
+                    PMT2OnsetDelay = LED2OnsetDelay - PMTCloseDelay;
                 end
 
                 switch S.GUI.PulseType
@@ -178,8 +191,8 @@ classdef OptoConfig
                         PMTCloseDur = VisStim.VisStimDuration;
                         PMTOffDur = 0;
                     case 2
-                        T = 1/S.GUI.PulseFreq_Hz;
-                        OnDur = S.GUI.PulseOnDur_ms/1000;
+                        T = 1/S.GUI.SquareFreq_Hz;
+                        OnDur = S.GUI.SquareOnDur_ms/1000;
                         LEDOffDur = abs(OnDur - T);
 
                         LoopLED1 = 1;
@@ -190,8 +203,9 @@ classdef OptoConfig
                         PMTCloseDur = VisStim.VisStimDuration;
                         PMTOffDur = 0;                        
                     case 3
-                        OnDur = PMTStartOpenDelay;
-                        LEDOffDur = PMTOpenTransferDelay + 2*ScopeFrameDuration + PMTCloseTransferDelay;
+                        OnDur = S.GUI.LEDOnPulseDur;
+                        % LEDOffDur = PMTOpenTransferDelay + 2*ScopeFrameDuration + PMTCloseTransferDelay;
+                        LEDOffDur = S.GUI.OptoFreq - OnDur;
                         
                         if ~S.GUI.OptoWaitForPress1
                             LoopLED1 = 0;
@@ -210,11 +224,22 @@ classdef OptoConfig
                         end
                        
                         PMTCloseDur = PMTCloseDelay;
-                        PMTOffDur = OnDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay;
+                        % if the LED is on for longer than the shutter StartOpenDelay,
+                        % then increase shutter 5V duration by the difference (LEDOnPulseDur - PMTStartOpenDelay)
+                        if OnDur > PMTStartOpenDelay
+                            PMTCloseDur = PMTCloseDur + (OnDur - PMTStartOpenDelay);
+                        end
+                         % if shutter duration is less than the minimum dur for the
+                        % shutter to re-open, set it to minimum shutter pulse dur
+                        PMTCloseDur = max(PMTCloseDur, PMTMin5VSignalDur);
+
+                        % PMTOffDur = OnDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay - ShutterPulseWidthAdd;
+                        % PMTOffDur = OnDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay - ShutterPulseWidthAdd;
+
+                        % duration of LED pulse 0V is cycle period minus 5V dur
+                        PMTOffDur =  S.GUI.OptoFreq - PMTCloseDur;
                 end 
 
-                % onset delay for vis1/2 35.3098
-              
                 % LED timers
                 % seg 1
                 sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', OnDur, 'OnsetDelay', LED1OnsetDelay,...
@@ -240,6 +265,12 @@ classdef OptoConfig
                     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                     'Loop', LoopPMT2, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0); 
+
+                % shutter reset timer
+                sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', 0.030, 'OnsetDelay', 0,...
+                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                 
             end
         end
     end

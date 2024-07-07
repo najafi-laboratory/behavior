@@ -23,7 +23,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ResistanceLevel = 1;
         S.GUIMeta.ResistanceLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.ResistanceLevel.String = {'0 mA', '30 mA', '91 mA', '122 mA', '152 mA', '183 mA', '214 mA', '244 mA', '900 mA'};
-        S.GUI.ServoInPos = 1604.00; % lever start pos
+        S.GUI.ServoInPos = 1569.00; % lever start pos
         S.GUI.ServoOutPos = 34; % can press lever
         S.GUI.RetractThreshold = 0.3;
         % S.GUI.VisStim2Enable = 1;
@@ -60,8 +60,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PulseType = 3;
         S.GUIMeta.PulseType.Style = 'popupmenu';
         S.GUIMeta.PulseType.String = {'On', 'Square', 'Pulsed 7.8'};
-        S.GUI.PulseFreq_Hz = 50;
-        S.GUI.PulseOnDur_ms = 5;
+        S.GUI.SquareFreq_Hz = 50;
+        S.GUI.SquareOnDur_ms = 5;
+        S.GUI.LEDOnPulseDur = 0.0078;
+        S.GUI.OptoFreq = 0.1;
         S.GUI.OptoVis1 = 1;
         S.GUIMeta.OptoVis1.Style = 'checkbox';
         S.GUI.OptoWaitForPress1 = 1;
@@ -75,7 +77,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
         S.GUI.OnFraction = 1;    % S.GUI.OnFraction = 0.35;
         S.GUI.NumOptoTrialsPerBlock = 50;          
-        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'PulseFreq_Hz', 'PulseOnDur_ms', 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
+        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'SquareFreq_Hz', 'SquareOnDur_ms', 'LEDOnPulseDur', 'OptoFreq', 'OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
         % reward
         S.GUI.Reward_Rep = 0; % reward after each press rep?
