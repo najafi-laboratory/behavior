@@ -54,8 +54,8 @@ function [S] = SetParams(obj, BpodSystem)
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
         S.GUIMeta.EnableMovingSpouts.Style = 'checkbox';
-        S.GUI.RightServoInPos = 1131.00;
-        S.GUI.LeftServoInPos = 1933.00;
+        S.GUI.RightServoInPos = 1130.50;
+        S.GUI.LeftServoInPos = 1711.00;
         S.GUI.ServoDeflection = -122.5;
         S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
@@ -97,14 +97,14 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ExtraStim.Style = 'popupmenu';
         S.GUIMeta.ExtraStim.String = {'Default', 'Manual', 'Zero'};
         S.GUI.PostPertDurExtra = 3;
-        S.GUI.PostRewardDelay_s = 2;
+        S.GUI.PostOutcomeDelay = 2;
         S.GUI.MinISIPerturb_ms = 100;
         S.GUI.PreVisStimDelay_s = 0;
         S.GUI.PreGoCueDelay_s = 0;
         S.GUI.EasyMax = 1;
         S.GUIMeta.EasyMax.Style = 'popupmenu';
         S.GUIMeta.EasyMax.String = {'Default', 'Activated', 'Deactivated'};
-        S.GUIPanels.VisStim = {'VisStimEnable', 'RandomOrient', 'PostPertDur', 'ExtraStim', 'PostPertDurExtra', 'GratingDur_s', 'ISIOrig_s', 'PrePertFlashRep', 'PostRewardDelay_s', 'MinISIPerturb_ms', 'PreVisStimDelay_s', 'PreGoCueDelay_s', 'EasyMax'}; 
+        S.GUIPanels.VisStim = {'VisStimEnable', 'RandomOrient', 'PostPertDur', 'ExtraStim', 'PostPertDurExtra', 'GratingDur_s', 'ISIOrig_s', 'PrePertFlashRep', 'PostOutcomeDelay', 'MinISIPerturb_ms', 'PreVisStimDelay_s', 'PreGoCueDelay_s', 'EasyMax'}; 
 
         % contingency and bias params
         S.GUI.ShortISIFraction = 0.5;
@@ -123,7 +123,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFraction', 'FarMoveSpout', 'FarMoveSpoutPos'};
 
         % choice params
-        S.GUI.ChoiseWindowStartDelay = 0.5;
+        S.GUI.ChoiseWindowStartDelay = 0.1;
         S.GUI.ManualChoiceWindow = 0;
         S.GUIMeta.ManualChoiceWindow.Style = 'checkbox';
         S.GUI.ChoiceWindow_s = 5;

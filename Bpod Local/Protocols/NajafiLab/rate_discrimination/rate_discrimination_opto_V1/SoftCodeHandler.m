@@ -11,7 +11,7 @@ function HandleVideo(code)
             BpodSystem.PluginObjects.V.stop;
         case code == 254 % stop video
             BpodSystem.PluginObjects.V.stop;     
-        case code >= 0 && code <= 253 % play video
+        case code == 25 % play video
             BpodSystem.PluginObjects.V.play(code);
     end
 end

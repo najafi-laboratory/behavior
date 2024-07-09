@@ -40,7 +40,7 @@ function rate_discrimination_opto_V1
     %% Connect Maestro
     
     if (EnableMovingSpouts == 1)
-        M = PololuMaestro('COM13');
+        M = PololuMaestro('COM5');
         M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection));
         M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));
     end
@@ -304,7 +304,7 @@ function rate_discrimination_opto_V1
         SCOA.InitCue     = {'HiFi1', ['P' 0]};
         SCOA.StimAct     = m_AVstimConfig.GetStimAct(S, m_Opto.EnableOpto);
         SCOA.EarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'};
-        SCOA.Punish      = {'SoftCode', 255, 'HiFi1', ['P' 2]};
+        SCOA.Punish      = {'HiFi1', ['P' 2]};
         if (S.GUI.VisStimEnable == 1)
             SCOA.VisStim = {'SoftCode', 25};
         else
