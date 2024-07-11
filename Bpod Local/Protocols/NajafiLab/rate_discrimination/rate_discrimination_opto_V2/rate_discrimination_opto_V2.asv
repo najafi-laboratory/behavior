@@ -147,7 +147,7 @@ function rate_discrimination_opto_V2
     BpodSystem.PluginObjects.V.Videos{6}.Data = GrayInitBNCSync;
 
     pause(1.0);
-    BpodSystem.PluginObjects.V.TimerMode = 1;
+    BpodSystem.PluginObjects.V.TimerMode = 0;
     BpodSystem.PluginObjects.V.play(0);
     BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler';    
     BpodSystem.PluginObjects.V.play(6); 
@@ -288,14 +288,14 @@ function rate_discrimination_opto_V2
         % shift audio to account for opto gray frames
         % VideoOptoDelayDur = (length(VideoOptoDelay) - 1) * (1/FramesPerSecond); % for audio sync, subtract variable start frame 
         % VideoOptoDelayDur = VisStim.Data.OptoGrayDur;
-        % fps-based frame dur is inaccurate, measure dur per rig
-        % measured gray f1, f2 duration, also used for led/pmt onset
-        VideoOptoDelayDur = 0.032292;
+        % fps c
+        % measured gray f1, f2 duration
+        VideoOptoDelayDur = OptoGrayDurMeas = 0.032292;
         % m_AVstimConfig.GetVideoDur(FPS, OptoGrayFrames);
 
         OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF; % get duration of gray opto delay in number of audio samples for period between audio stim 
     
-        OptoAudioStimOffset = zeros(1, floor(OptoAudioStimOffsetNumSamples));
+        OptoAudioStimOffset = zeros(1, OptoAudioStimOffsetNumSamples);
 
         OptoAudioStimSound = [OptoAudioStimOffset FullAudio];       
 

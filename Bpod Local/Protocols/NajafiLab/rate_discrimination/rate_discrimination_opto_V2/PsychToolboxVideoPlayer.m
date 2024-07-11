@@ -138,7 +138,7 @@ classdef PsychToolboxVideoPlayer < handle
             if obj.ShowViewportBorder
                 Frame = obj.addShowViewportBorder(Frame);
             end    
-            AdjustedFPS = obj.TimerFPS + 4;
+            AdjustedFPS = obj.TimerFPS + 8;
             % obj.Timer = timer('TimerFcn','', 'Period', round(1/obj.TimerFPS*1000)/1000, 'ExecutionMode', 'fixedRate', 'Tag', 'PTV');
             obj.Timer = timer('TimerFcn','', 'Period', round(1/AdjustedFPS*1000)/1000, 'ExecutionMode', 'fixedRate', 'Tag', 'PTV');
             obj.BlankScreen = Screen('MakeTexture', obj.Window, Frame);

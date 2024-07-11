@@ -61,7 +61,7 @@ end
 % generate unit video from frames and image
 function [UnitVideo] = GetUnitVideo( ...
         obj, Frame_Sync, Frames)
-    UnitVideo = [repmat([Frame_Sync Frame_Sync], 1, Frames/2)];
+    UnitVideo = [repmat([Frame_Sync], 1, Frames)];
 end
 
 
@@ -216,6 +216,7 @@ function [SoundWithEnvelope] = ApplySoundEnvelope( ...
     IdxsBetweenTheEnvelope = length(Sound) - 2 * length(Envelope);
     FullEnvelope = [Envelope ones(1, IdxsBetweenTheEnvelope) BackOfTheEnvelope];
     SoundWithEnvelope = Sound .* FullEnvelope;
+    SoundWithEnvelope = Sound;
 end
 
 
