@@ -216,7 +216,7 @@ function [SoundWithEnvelope] = ApplySoundEnvelope( ...
     IdxsBetweenTheEnvelope = length(Sound) - 2 * length(Envelope);
     FullEnvelope = [Envelope ones(1, IdxsBetweenTheEnvelope) BackOfTheEnvelope];
     SoundWithEnvelope = Sound .* FullEnvelope;
-    SoundWithEnvelope = Sound;
+    % SoundWithEnvelope = Sound;  % toggle envelope to align aud/vis
 end
 
 
