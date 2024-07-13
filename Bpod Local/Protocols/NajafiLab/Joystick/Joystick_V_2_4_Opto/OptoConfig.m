@@ -22,6 +22,8 @@ classdef OptoConfig
             switch obj.ComputerHostName
                 case 'COS-3A11406'
                     obj.Rig = 'ImagingRig';
+                case 'COS-3A11427'
+                    obj.Rig = 'JoystickRig';
             end            
         end
 
@@ -152,10 +154,12 @@ classdef OptoConfig
                 %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
                 % VisStimShift = 0.0363000; % f2,f3
                 % VisStimShift = 0.031698; % f1,f2 - joystick rig
-                VisStimShift = 0.0329645; % f1,f2 - imaging rig
-                % VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset
-                VisStimDurationOffset = 0.0014; % ~1.5ms measured vis stim offset 
+                % VisStimShift = 0.0329645; % f1,f2 - imaging rig
+                % % VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset
+                % VisStimDurationOffset = 0.0014; % ~1.5ms measured vis stim offset 
 
+                % initial gray frame vis stim offset, statistical delay of
+                % 2 frames at 60fps
                 switch obj.Rig
                     case 'ImagingRig'
                         VisStimShift = 0.0329645; % f1 + f2 - imaging rig

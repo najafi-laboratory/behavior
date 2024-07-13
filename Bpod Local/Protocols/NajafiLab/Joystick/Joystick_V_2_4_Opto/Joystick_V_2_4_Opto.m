@@ -32,6 +32,7 @@ try
 
     % get computer host name
     % 'COS-3A11406' - Imaging Rig
+    % 'COS-3A11427' - Joystick Rig
     BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
     m_Opto.ComputerHostName = BpodSystem.Data.ComputerHostName;
     
@@ -146,7 +147,7 @@ try
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
         BpodSystem.PluginObjects.V = [];
     end
-    MonitorID = 2;
+    MonitorID = 1;
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
     
     BpodSystem.PluginObjects.V.SyncPatchIntensity = 255; % increased, seems 140 doesn't always trigger BNC high
