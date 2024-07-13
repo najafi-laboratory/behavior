@@ -14,6 +14,7 @@ AudioStartOffsetFromF23_samples = [];
 
 missing_state_offset = 0;
 
+
 for trial = 1:SessionData.nTrials
     
     % trial = 5; % test individual trial
@@ -36,12 +37,17 @@ for trial = 1:SessionData.nTrials
     % BNC1Low for trial
     BNC1Low = Events.BNC1Low;
 
+    if (numel(BNC1High) ~= 2) || (numel(BNC1Low) ~= 2)
+        missing_state_offset = missing_state_offset + 1;
+        continue;
+    end
+
     %% BNC2
 
     % BNC2High for trial
-    BNC2High = Events.BNC2High;
+    % BNC2High = Events.BNC2High;
     % BNC2Low for trial
-    BNC2Low = Events.BNC2Low;    
+    % BNC2Low = Events.BNC2Low;    
 
     %% Vis1
     % First gray frame
@@ -60,8 +66,8 @@ for trial = 1:SessionData.nTrials
     VisDetectDur = VisDetect1(2) - VisDetect1(1);
 
     % AV
-    AudioDurationAsMeasuredByBNC = BNC2Low(1) - BNC2High(1);
-    AudioStartOffsetFromF23 = BNC2High(1) - BNC1Low(1);
+    % AudioDurationAsMeasuredByBNC = BNC2Low(1) - BNC2High(1);
+    % AudioStartOffsetFromF23 = BNC2High(1) - BNC1Low(1);
 
     disp(['F1 ' num2str(F1)]);
     disp(['F23 ' num2str(F23)]);
@@ -98,8 +104,8 @@ for trial = 1:SessionData.nTrials
     Stim_BNC_Diff_samples= [Stim_BNC_Diff_samples Stim_BNC_Diff];
     VisDetectDur_samples = [VisDetectDur_samples VisDetectDur];
 
-    AudioDurationAsMeasuredByBNC_samples = [AudioDurationAsMeasuredByBNC_samples AudioDurationAsMeasuredByBNC];
-    AudioStartOffsetFromF23_samples = [AudioStartOffsetFromF23_samples AudioStartOffsetFromF23];
+    % AudioDurationAsMeasuredByBNC_samples = [AudioDurationAsMeasuredByBNC_samples AudioDurationAsMeasuredByBNC];
+    % AudioStartOffsetFromF23_samples = [AudioStartOffsetFromF23_samples AudioStartOffsetFromF23];
 end
 
 F1_samples = SToMillis(F1_samples);
@@ -108,14 +114,16 @@ Vis1AsMeasuredByBNC_samples = SToMillis(Vis1AsMeasuredByBNC_samples);
 Grating_samples = SToMillis(Grating_samples);
 Stim_BNC_Diff_samples = SToMillis(Stim_BNC_Diff_samples);
 VisDetectDur_samples = SToMillis(VisDetectDur_samples);
-AudioDurationAsMeasuredByBNC_samples = SToMillis(AudioDurationAsMeasuredByBNC_samples);
-AudioStartOffsetFromF23_samples = SToMillis(AudioStartOffsetFromF23_samples);
+% AudioDurationAsMeasuredByBNC_samples = SToMillis(AudioDurationAsMeasuredByBNC_samples);
+% AudioStartOffsetFromF23_samples = SToMillis(AudioStartOffsetFromF23_samples);
 
 x = [1:SessionData.nTrials - missing_state_offset]';
 
 figure
-boxplot([F1_samples', F23_samples', Vis1AsMeasuredByBNC_samples', Grating_samples', Stim_BNC_Diff_samples', AudioDurationAsMeasuredByBNC_samples', AudioStartOffsetFromF23_samples', VisDetectDur_samples'],...
-    'Labels',{'Frame 1','Frame 2,3','Vis1 BNC','Grating','Vis1StateDur - Vis1 BNC','AudioDur BNC','AudioStartOffsetFromF23', 'VisDetectDur'})
+% boxplot([F1_samples', F23_samples', Vis1AsMeasuredByBNC_samples', Grating_samples', Stim_BNC_Diff_samples', AudioDurationAsMeasuredByBNC_samples', AudioStartOffsetFromF23_samples', VisDetectDur_samples'],...
+%     'Labels',{'Frame 1','Frame 2,3','Vis1 BNC','Grating','Vis1StateDur - Vis1 BNC','AudioDur BNC','AudioStartOffsetFromF23', 'VisDetectDur'})
+boxplot([F1_samples', F23_samples', Vis1AsMeasuredByBNC_samples', Grating_samples', Stim_BNC_Diff_samples' VisDetectDur_samples'],...
+    'Labels',{'Frame 1','Frame 2,3','Vis1 BNC','Grating','Vis1StateDur - Vis1 BNC','VisDetectDur'})
 title('Compare State and Event Timing')
 
 figure
@@ -125,15 +133,15 @@ plot(x, F23_samples)
 plot(x, Vis1AsMeasuredByBNC_samples)
 plot(x, Grating_samples)
 plot(x, Stim_BNC_Diff_samples)
-plot(x, AudioDurationAsMeasuredByBNC_samples)
-plot(x, AudioStartOffsetFromF23_samples)
+% plot(x, AudioDurationAsMeasuredByBNC_samples)
+% plot(x, AudioStartOffsetFromF23_samples)
 plot(x, VisDetectDur_samples)
 
 title('State and Event Sync/Timing')
 xlabel('Trial Number') 
 ylabel('Time (ms)')
 legend({'Frame 1','Frame 2,3','Vis1 BNC','Grating','Vis1StateDur - Vis1 BNC',...
-    'AudioDur BNC','AudioStartOffsetFromF23', 'VisDetectDur'})
+    'VisDetectDur'})
 
 disp([' ']);
 
@@ -177,19 +185,19 @@ disp(['var(Stim_BNC_Diff_samples) ' num2str(var(abs(Stim_BNC_Diff_samples)))]);
 
 disp([' ']);
 
-disp(['max(AudioDurationAsMeasuredByBNC_samples) ' num2str(max(abs(AudioDurationAsMeasuredByBNC_samples)))]);
-disp(['min(AudioDurationAsMeasuredByBNC_samples) ' num2str(min(abs(AudioDurationAsMeasuredByBNC_samples)))]);
-disp(['mean(AudioDurationAsMeasuredByBNC_samples) ' num2str(mean(abs(AudioDurationAsMeasuredByBNC_samples)))]);
-disp(['std(AudioDurationAsMeasuredByBNC_samples) ' num2str(std(abs(AudioDurationAsMeasuredByBNC_samples)))]);
-disp(['var(AudioDurationAsMeasuredByBNC_samples) ' num2str(var(abs(AudioDurationAsMeasuredByBNC_samples)))]); 
+% disp(['max(AudioDurationAsMeasuredByBNC_samples) ' num2str(max(abs(AudioDurationAsMeasuredByBNC_samples)))]);
+% disp(['min(AudioDurationAsMeasuredByBNC_samples) ' num2str(min(abs(AudioDurationAsMeasuredByBNC_samples)))]);
+% disp(['mean(AudioDurationAsMeasuredByBNC_samples) ' num2str(mean(abs(AudioDurationAsMeasuredByBNC_samples)))]);
+% disp(['std(AudioDurationAsMeasuredByBNC_samples) ' num2str(std(abs(AudioDurationAsMeasuredByBNC_samples)))]);
+% disp(['var(AudioDurationAsMeasuredByBNC_samples) ' num2str(var(abs(AudioDurationAsMeasuredByBNC_samples)))]); 
 
 disp([' ']);
 
-disp(['max(AudioStartOffsetFromF23_samples) ' num2str(max(abs(AudioStartOffsetFromF23_samples)))]);
-disp(['min(AudioStartOffsetFromF23_samples) ' num2str(min(abs(AudioStartOffsetFromF23_samples)))]);
-disp(['mean(AudioStartOffsetFromF23_samples) ' num2str(mean(abs(AudioStartOffsetFromF23_samples)))]);
-disp(['std(AudioStartOffsetFromF23_samples) ' num2str(std(abs(AudioStartOffsetFromF23_samples)))]);
-disp(['var(AudioStartOffsetFromF23_samples) ' num2str(var(abs(AudioStartOffsetFromF23_samples)))]); 
+% disp(['max(AudioStartOffsetFromF23_samples) ' num2str(max(abs(AudioStartOffsetFromF23_samples)))]);
+% disp(['min(AudioStartOffsetFromF23_samples) ' num2str(min(abs(AudioStartOffsetFromF23_samples)))]);
+% disp(['mean(AudioStartOffsetFromF23_samples) ' num2str(mean(abs(AudioStartOffsetFromF23_samples)))]);
+% disp(['std(AudioStartOffsetFromF23_samples) ' num2str(std(abs(AudioStartOffsetFromF23_samples)))]);
+% disp(['var(AudioStartOffsetFromF23_samples) ' num2str(var(abs(AudioStartOffsetFromF23_samples)))]); 
 
 disp([' ']);
 
@@ -210,6 +218,7 @@ disp(['var(VisDetectDur_samples) ' num2str(var(abs(VisDetectDur_samples)))]);
 % figure('Name', 'Stim_BNC_Diff_samples', 'NumberTitle', 'off')
 % histogram(Stim_BNC_Diff_samples)
 
+disp(['interrupt_count ' num2str(missing_state_offset)]);
 
 
 
