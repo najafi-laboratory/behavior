@@ -47,7 +47,6 @@ for trial = 1:SessionData.nTrials
     % First gray frame
     F1 = BNC1Low(1) - BNC1High(1);
     % Second gray frame
-    disp(num2str(trial))
     F23 = BNC1High(2) - BNC1Low(1);
     % BNC measured duration of gray frames
     GrayShift = F23;
