@@ -299,7 +299,7 @@ function rate_discrimination_opto_V2
 
         OptoAudioStimSound = [OptoAudioStimOffset FullAudio];       
 
-        H.load(7, OptoAudioStimSound);
+        H.load(5, OptoAudioStimSound);
         % H.load(7, OptoAudioStimSound);
         
         %% trial target
