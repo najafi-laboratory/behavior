@@ -1,4 +1,4 @@
-function Joystick_V_2_4_Opto
+function Joystick_V_2_5_Opto
 try
     % using try/catch for protocol code to allow for disconnecting from
     % modules and logging crash reports when exceptions thrown
