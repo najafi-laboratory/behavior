@@ -1,6 +1,8 @@
 classdef OptoConfig
    properties
       EnableOpto = 0;
+      ComputerHostName = '';
+      Rig = '';
    end
 
     methods   
@@ -13,6 +15,14 @@ classdef OptoConfig
 
         function obj = set.EnableOpto(obj, EnableOpto)
             obj.EnableOpto = EnableOpto;
+        end
+
+        function obj = set.ComputerHostName(obj, HostName)
+            obj.ComputerHostName = HostName;
+            switch obj.ComputerHostName
+                case 'COS-3A11406'
+                    obj.Rig = 'ImagingRig';
+            end            
         end
 
         function [OptoTrialTypes] = GenOptoTrials(obj, BpodSystem, S)
@@ -141,8 +151,19 @@ classdef OptoConfig
                 % 2 frames at 60fps
                 %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
                 % VisStimShift = 0.0363000; % f2,f3
-                VisStimShift = 0.031698; % f1,f2
-                VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset                
+                % VisStimShift = 0.031698; % f1,f2 - joystick rig
+                VisStimShift = 0.0329645; % f1,f2 - imaging rig
+                % VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset
+                VisStimDurationOffset = 0.0014; % ~1.5ms measured vis stim offset 
+
+                switch obj.Rig
+                    case 'ImagingRig'
+                        VisStimShift = 0.0329645; % f1 + f2 - imaging rig
+                        VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+                    case 'JoystickRig'
+                        VisStimShift = 0.031698; % f1 + f2 - joystick rig
+                        VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+                end
 
                 % LED1OnsetDelay = PMTCloseDelay;
                 % LED2OnsetDelay = PMTCloseDelay;

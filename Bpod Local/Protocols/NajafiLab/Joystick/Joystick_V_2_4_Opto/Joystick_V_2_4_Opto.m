@@ -29,6 +29,11 @@ try
     % get matlab version
     v_info = version;
     BpodSystem.Data.MatVer = version;
+
+    % get computer host name
+    % 'COS-3A11406' - Imaging Rig
+    BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
+    m_Opto.ComputerHostName = BpodSystem.Data.ComputerHostName;
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
