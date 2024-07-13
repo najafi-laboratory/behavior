@@ -33,8 +33,9 @@ try
     % get computer host name
     % 'COS-3A11406' - Imaging Rig
     % 'COS-3A11427' - Joystick Rig
-    BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
-    m_Opto.ComputerHostName = BpodSystem.Data.ComputerHostName;
+    SetRigID(BpodSystem)
+    %     BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
+    % m_Opto.ComputerHostName = BpodSystem.Data.ComputerHostName;
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
@@ -837,7 +838,7 @@ try
     
         sma = NewStateMatrix(); % Assemble state matrix
         
-        sma = m_Opto.InsertGlobalTimer(sma, S, VisStim);
+        sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim);
       
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
@@ -1212,9 +1213,21 @@ function [SoundWithEnvelope] = ApplySoundEnvelope(Sound, Envelope)
     SoundWithEnvelope = Sound .* FullEnvelope;    % apply envelope element-wise
 end
 
+% convert maestro motor position from [992 2000] to [-1 1]
 function SetMotorPos = ConvertMaestroPos(MaestroPosition)
     m = 0.002;
     b = -3;
     SetMotorPos = MaestroPosition * m + b;
+end
+
+function SetRigID(BpodSystem)
+    BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
+    BpodSystem.Data.RigName = '';
+    switch BpodSystem.Data.ComputerHostName
+        case 'COS-3A11406'
+            BpodSystem.Data.RigName = 'ImagingRig';
+        case 'COS-3A11427'
+            BpodSystem.Data.RigName = 'JoystickRig';
+    end
 end
 

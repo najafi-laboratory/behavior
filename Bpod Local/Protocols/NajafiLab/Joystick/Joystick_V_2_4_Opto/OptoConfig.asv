@@ -1,6 +1,8 @@
 classdef OptoConfig
    properties
       EnableOpto = 0;
+      ComputerHostName = '';
+      Rig = '';
    end
 
     methods   
@@ -14,6 +16,16 @@ classdef OptoConfig
         function obj = set.EnableOpto(obj, EnableOpto)
             obj.EnableOpto = EnableOpto;
         end
+
+        % function obj = set.ComputerHostName(obj, HostName)
+        %     obj.ComputerHostName = HostName;
+        %     switch obj.ComputerHostName
+        %         case 'COS-3A11406'
+        %             obj.Rig = 'ImagingRig';
+        %         case 'COS-3A11427'
+        %             obj.Rig = 'JoystickRig';
+        %     end            
+        % end
 
         function [OptoTrialTypes] = GenOptoTrials(obj, BpodSystem, S)
             BpodSystem.Data.PreviousSessionType = S.GUI.SessionType;
@@ -120,7 +132,7 @@ classdef OptoConfig
             end
         end
 
-        function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
+        function [sma] = InsertGlobalTimer(obj, BpodSystem, sma, S, VisStim)
             if obj.EnableOpto 
                 % shutter close delays
                 ShutterPulseWidthAdd = 0.003; % add 3ms to PMTCloseDelay for shutter to re-open
@@ -141,8 +153,24 @@ classdef OptoConfig
                 % 2 frames at 60fps
                 %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
                 % VisStimShift = 0.0363000; % f2,f3
-                VisStimShift = 0.031698; % f1,f2
-                VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset                
+                % VisStimShift = 0.031698; % f1,f2 - joystick rig
+                % VisStimShift = 0.0329645; % f1,f2 - imaging rig
+                % % VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset
+                % VisStimDurationOffset = 0.0014; % ~1.5ms measured vis stim offset 
+
+                % initial gray frame vis stim offset, statistical delay of
+                % 2 frames at 60fps
+                switch BpodSystem.Data.RigName
+                    case 'ImagingRig'
+                        VisStimShift = 0.0329645; % f1 + f2 - imaging rig
+                        VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+                    case 'JoystickRig'
+                        % VisStimShift = 0.031698; % f1 + f2 - joystick rig
+                        f1 = 15.5476 / 1000; % 
+                        f2 = 17.3329;
+                        VisStimShift = f1 + f2; % f1 + f2 - joystick rig
+                        VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+                end
 
                 % LED1OnsetDelay = PMTCloseDelay;
                 % LED2OnsetDelay = PMTCloseDelay;
@@ -214,30 +242,28 @@ classdef OptoConfig
                         PMTCloseDur = round(S.GUI.MaxOptoDur + PMTCloseDelay - PMTStartOpenDelay, 4);
 
                     case 2
-                        T = 1/S.GUI.SquareFreq_Hz;
-                        OnDur = S.GUI.SquareOnDur_ms/1000;
+                        T = 1/S.GUI.CS_SquareFreq_Hz;
+                        OnDur = S.GUI.CS_SquareOnDur_ms/1000;
                         LEDOffDur = abs(OnDur - T);
 
-                        % LoopLED1 = 1;
-                        % LoopLED2 = 1;
-                        LoopPMT1 = 0;
-                        LoopPMT2 = 0;
+                        % add fix to calculation for square wave shutter close dur 
 
-                        S.GUI.MaxOptoDur = 0.05;
+                        % S.GUI.MaxOptoDur = 0.05;
                         % get integer number of loops for LED cycles to be
                         % within max opto dur
                         LoopLED1 = floor((S.GUI.MaxOptoDur/(OnDur+LEDOffDur)));
                         LoopLED2 = LoopLED1;
+                        LoopPMT1 = 0;
+                        LoopPMT2 = 0;
+                       
+                        TimeFromLEDOffset = S.GUI.MaxOptoDur - ((T * LoopLED1) - LEDOffDur);
 
-                        S.GUI.MaxOptoDur - ((T * LoopLED1) - LEDOffDur)
-
-                        % PMTCloseDur = VisStim.VisStimDuration;
-                        PMTCloseDur = round(S.GUI.MaxOptoDur + PMTCloseDelay - PMTStartOpenDelay, 4);
+                        PMTCloseDur = round(S.GUI.MaxOptoDur + PMTCloseDelay - PMTStartOpenDelay - TimeFromLEDOffset, 4);
                         PMTOffDur = 0;                        
                     case 3
-                        OnDur = S.GUI.LEDOnPulseDur;
+                        OnDur = S.GUI.PS_LEDOnPulseDur;
                         % LEDOffDur = PMTOpenTransferDelay + 2*ScopeFrameDuration + PMTCloseTransferDelay;
-                        LEDOffDur = S.GUI.OptoFreq - OnDur;
+                        LEDOffDur = S.GUI.PS_SquareFreq_s - OnDur;
                         
                         if ~S.GUI.OptoWaitForPress1
                             LoopLED1 = 0;
@@ -257,7 +283,7 @@ classdef OptoConfig
                        
                         PMTCloseDur = PMTCloseDelay;
                         % if the LED is on for longer than the shutter StartOpenDelay,
-                        % then increase shutter 5V duration by the difference (LEDOnPulseDur - PMTStartOpenDelay)
+                        % then increase shutter 5V duration by the difference (PS_LEDOnPulseDur - PMTStartOpenDelay)
                         if OnDur > PMTStartOpenDelay
                             PMTCloseDur = PMTCloseDur + (OnDur - PMTStartOpenDelay);
                         end
@@ -269,7 +295,7 @@ classdef OptoConfig
                         % PMTOffDur = OnDur + PMTOpenTransferDelay + 2*ScopeFrameDuration - PMTStartCloseDelay - ShutterPulseWidthAdd;
 
                         % duration of LED pulse 0V is cycle period minus 5V dur
-                        PMTOffDur =  S.GUI.OptoFreq - PMTCloseDur;
+                        PMTOffDur =  S.GUI.PS_SquareFreq_s - PMTCloseDur;
                 end 
 
                 % LED timers

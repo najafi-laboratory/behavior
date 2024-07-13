@@ -23,12 +23,17 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ResistanceLevel = 1;
         S.GUIMeta.ResistanceLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.ResistanceLevel.String = {'0 mA', '30 mA', '91 mA', '122 mA', '152 mA', '183 mA', '214 mA', '244 mA', '900 mA'};
-        S.GUI.ServoInPos = 1601.00; % lever start pos
-        S.GUI.ServoOutPos = 34; % can press lever
+        % set servo positions per rig, allows consistent code version
+        % updates
+        switch BpodSystem.Data.RigName
+            case 'ImagingRig'
+                S.GUI.ServoInPos = 1570.00; % lever start pos
+                S.GUI.ServoOutPos = 34; % can press lever
+            case 'JoystickRig'
+                S.GUI.ServoInPos = 1601.00; % lever start pos
+                S.GUI.ServoOutPos = 34; % can press lever
+        end
         S.GUI.RetractThreshold = 0.3;
-        % S.GUI.VisStim2Enable = 1;
-        % S.GUIMeta.VisStim2Enable.Style = 'checkbox';
-        % S.GUI.PressVisDelay_s = 2;
         S.GUI.PreVis2DelayShort_s = 0;
         S.GUI.PreVis2DelayLong_s = 0.050;
         S.GUI.EarlyPressThreshold = 1;

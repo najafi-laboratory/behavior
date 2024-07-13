@@ -17,15 +17,15 @@ classdef OptoConfig
             obj.EnableOpto = EnableOpto;
         end
 
-        function obj = set.ComputerHostName(obj, HostName)
-            obj.ComputerHostName = HostName;
-            switch obj.ComputerHostName
-                case 'COS-3A11406'
-                    obj.Rig = 'ImagingRig';
-                case 'COS-3A11427'
-                    obj.Rig = 'JoystickRig';
-            end            
-        end
+        % function obj = set.ComputerHostName(obj, HostName)
+        %     obj.ComputerHostName = HostName;
+        %     switch obj.ComputerHostName
+        %         case 'COS-3A11406'
+        %             obj.Rig = 'ImagingRig';
+        %         case 'COS-3A11427'
+        %             obj.Rig = 'JoystickRig';
+        %     end            
+        % end
 
         function [OptoTrialTypes] = GenOptoTrials(obj, BpodSystem, S)
             BpodSystem.Data.PreviousSessionType = S.GUI.SessionType;
@@ -132,7 +132,7 @@ classdef OptoConfig
             end
         end
 
-        function [sma] = InsertGlobalTimer(obj, sma, S, VisStim)
+        function [sma] = InsertGlobalTimer(obj, BpodSystem, sma, S, VisStim)
             if obj.EnableOpto 
                 % shutter close delays
                 ShutterPulseWidthAdd = 0.003; % add 3ms to PMTCloseDelay for shutter to re-open
@@ -160,12 +160,15 @@ classdef OptoConfig
 
                 % initial gray frame vis stim offset, statistical delay of
                 % 2 frames at 60fps
-                switch obj.Rig
+                switch BpodSystem.Data.RigName
                     case 'ImagingRig'
                         VisStimShift = 0.0329645; % f1 + f2 - imaging rig
                         VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
                     case 'JoystickRig'
-                        VisStimShift = 0.031698; % f1 + f2 - joystick rig
+                        % VisStimShift = 0.031698; % f1 + f2 - joystick rig
+                        f1 = 0.0155476; % gray f1 dur
+                        f2 = 0.0173329; % gray f2 dur
+                        VisStimShift = f1 + f2; % f1 + f2 - joystick rig
                         VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
                 end
 
