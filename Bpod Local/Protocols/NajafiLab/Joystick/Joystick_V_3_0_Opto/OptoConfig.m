@@ -166,8 +166,8 @@ classdef OptoConfig
                         VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
                     case 'JoystickRig'
                         % VisStimShift = 0.031698; % f1 + f2 - joystick rig
-                        f1 = 0.0155476; % gray f1 dur
-                        f2 = 0.0173329; % gray f2 dur
+                        f1 = 0.0153655; % gray f1 dur
+                        f2 = 0.0176069; % gray f2 dur
                         VisStimShift = f1 + f2; % f1 + f2 - joystick rig
                         VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
                 end
