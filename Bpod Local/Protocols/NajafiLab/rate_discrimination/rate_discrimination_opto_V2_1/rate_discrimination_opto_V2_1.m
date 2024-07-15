@@ -457,5 +457,7 @@ function SetRigID(BpodSystem)
             BpodSystem.Data.RigName = 'ImagingRig';
         case 'COS-3A11427'
             BpodSystem.Data.RigName = 'JoystickRig';
+        case 'COS-3A11264'
+            BpodSystem.Data.RigName = 'Rig2';
     end
 end

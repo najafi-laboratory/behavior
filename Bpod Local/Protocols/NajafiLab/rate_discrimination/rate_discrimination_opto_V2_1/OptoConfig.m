@@ -115,18 +115,20 @@ function [sma] = SetOpto(obj, BpodSystem, S, sma, VisStim, OptoTypes, currentTri
 % VisStim.Data.VisStimDuration
         % initial gray frame vis stim offset, statistical delay of
         % 2 frames at 60fps
+        VisStimShift = 0;
         switch BpodSystem.Data.RigName
             case 'ImagingRig'
                 % % measured gray f1, f2 duration
                 % VisStimShift = 0.032292;
-                VisStimShift = 0.0329645; % f1 + f2 - imaging rig
-                VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+                VisStimShift = 0.0329645; % f1 + f2 - imaging rig              
             case 'JoystickRig'
                 % VisStimShift = 0.031698; % f1 + f2 - joystick rig
                 f1 = 0.0153655; % gray f1 dur
                 f2 = 0.0176069; % gray f2 dur
                 VisStimShift = f1 + f2; % f1 + f2 - joystick rig
-                VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+            case 'Rig2'
+                % % measured gray f1, f2 duration
+                VisStimShift = 0.0325; % f1 + f2 - imaging rig
         end
 
 
