@@ -34,8 +34,6 @@ try
     % 'COS-3A11406' - Imaging Rig
     % 'COS-3A11427' - Joystick Rig
     SetRigID(BpodSystem)
-    %     BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
-    % m_Opto.ComputerHostName = BpodSystem.Data.ComputerHostName;
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     

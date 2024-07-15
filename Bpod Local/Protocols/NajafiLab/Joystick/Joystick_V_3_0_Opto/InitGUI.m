@@ -59,7 +59,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Joystick = {'ChemogeneticSession', 'Threshold', 'WarmupThreshold', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'PreVis2DelayShort_s', 'PreVis2DelayLong_s', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxVis_s', 'AutoDelayMaxSelf_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock'};
 
         % Optogentic params
-        S.GUI.SessionType = 1;  % S.GUI.SessionType = 2;
+        S.GUI.SessionType = 2;  % S.GUI.SessionType = 2;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 3;
@@ -79,7 +79,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoTrialTypeSeq = 1;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
-        S.GUI.OnFraction = 1;    % S.GUI.OnFraction = 0.35;
+        S.GUI.OnFraction = 0.35;    % S.GUI.OnFraction = 0.35;
         S.GUI.NumOptoTrialsPerBlock = 50;          
         S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
 
@@ -92,7 +92,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Reward = {'Reward_Rep', 'PostRewardDelay_s', 'CenterValveAmount_uL', 'CenterValveAmountRep_percent'};        
         
         % ITI params
-        S.GUI.SetManualITI = 1; % S.GUI.SetManualITI = 0;
+        S.GUI.SetManualITI = 0; % S.GUI.SetManualITI = 0;
         S.GUIMeta.SetManualITI.Style = 'checkbox';
         S.GUI.ManualITI = '0';
         S.GUI.ForceITIZero = 0;
