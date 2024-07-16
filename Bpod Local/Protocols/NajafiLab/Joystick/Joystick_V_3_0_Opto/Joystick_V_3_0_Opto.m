@@ -620,7 +620,7 @@ try
 
         LeverRetract3_StateChangeConditions = {};
     
-        PreVisStimITI_StateChangeConditions = {'Tup', 'VisDetect1'};
+        PreVisStimITI_StateChangeConditions = {'Tup', 'VisDetect1', 'RotaryEncoder1_2', 'EarlyPress'};
         PreVisStimITI_OutputActions = {};
         VisDetectOutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
         VisDetectGray1OutputAction = {'RotaryEncoder1', ['E']};
@@ -848,7 +848,7 @@ try
       
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
-            'StateChangeConditions', {'Tup', 'PreVisStimITI'},...
+            'StateChangeConditions', {'Tup', 'PreVisStimITI', 'RotaryEncoder1_2', 'EarlyPress'},...
             'OutputActions', {'HiFi1','*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to push newly uploaded waves to front (playback) buffers
         
         sma = AddState(sma, 'Name', 'PreVisStimITI', ...
