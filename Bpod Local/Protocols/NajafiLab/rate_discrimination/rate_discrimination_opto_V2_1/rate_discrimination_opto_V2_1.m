@@ -280,7 +280,9 @@ function rate_discrimination_opto_V2_1
             VisStim.Data.VisStimDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
         end
 
-    
+        % Set duration of opto to match visual stimulus duration
+        OptoDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
+
         %% Generate audio stim based on vis stim for this trial, account for shift due to gray frames
         
         % m_AVstimConfig.ConfigFullAudioStim( ...
@@ -359,7 +361,7 @@ function rate_discrimination_opto_V2_1
 
         %% set opto pmt shutter and LED timers
         % sma = m_Opto.SetOpto(S, sma, VisStimDuration, OptoTypes, currentTrial);
-        sma = m_Opto.SetOpto(BpodSystem, S, sma, VisStim, OptoTypes, currentTrial);
+        sma = m_Opto.SetOpto(BpodSystem, S, sma, OptoDuration, OptoTypes, currentTrial);
 
         switch S.GUI.TrainingLevel
             case 1 % naive

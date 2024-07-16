@@ -110,7 +110,7 @@ function [AudStimOpto] = GetAudStimOpto(obj, OptoTrialType)
     end
 end
 
-function [sma] = SetOpto(obj, BpodSystem, S, sma, VisStim, OptoTypes, currentTrial)
+function [sma] = SetOpto(obj, BpodSystem, S, sma, OptoDuration, OptoTypes, currentTrial)
     if OptoTypes(currentTrial)
 % VisStim.Data.VisStimDuration
         % initial gray frame vis stim offset, statistical delay of
@@ -167,7 +167,8 @@ function [sma] = SetOpto(obj, BpodSystem, S, sma, VisStim, OptoTypes, currentTri
         PMT0VDur =  T - PMT5VDur;
         % integer number of pmt/led cycles within pre + post grating onset
         % numPMTLEDCycles = floor((S.GUI.OptoPreVisOnset + S.GUI.GratingDur_s + S.GUI.OptoPostVisOnset) / S.GUI.OptoFreq);     
-        numPMTLEDCycles = min(S.GUI.MaxOptoDur_s, VisStim.Data.VisStimDuration)/T;
+        % numPMTLEDCycles = min(S.GUI.MaxOptoDur_s, VisStim.Data.VisStimDuration)/T;
+        numPMTLEDCycles = floor(min(S.GUI.MaxOptoDur_s, OptoDuration)/T);
 
         % LED timers
         sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LEDOnDur, 'OnsetDelay', LEDOnsetDelay,...
