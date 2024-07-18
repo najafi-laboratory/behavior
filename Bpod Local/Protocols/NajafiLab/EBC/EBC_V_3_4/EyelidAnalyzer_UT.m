@@ -1,3 +1,0 @@
-MEV = EyelidAnalyzer('subject name');
-
-
