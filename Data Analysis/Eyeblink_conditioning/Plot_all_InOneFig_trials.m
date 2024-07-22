@@ -14,7 +14,8 @@ colors = [linspace(0.6, 0, numTrials)', linspace(0.6 , 0,numTrials)', linspace(1
 
 figure('units','centimeters','position',[2 2 24 26])
 numCurves = 0;
-
+leg_str = cell(1,2);
+legend_handles = [];
 % Initialize an empty array to store all eyeAreaPixels values
 allEyeAreaPixels = [];
 
@@ -33,13 +34,19 @@ FECTime{numCurves} = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
 
 FEC_norm{numCurves} = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
+h(numCurves) = plot(FECTime{numCurves},FEC_norm{numCurves}, 'Color', colors(ctr_trial, :)); hold on
 
-plot(FECTime{numCurves},FEC_norm{numCurves}, 'Color', colors(ctr_trial, :)); hold on
+if ctr_trial==1 
+    leg_str{1} = sprintf('Trial  %03.0f ',ctr_trial);
+    legend_handles(1) = h(numCurves);
+
 
 end
-leg_str_1 = sprintf('Trial  %03.0f ',1);
-leg_str_2 = sprintf('...');
-leg_str_3 = sprintf('Trial  %03.0f ',numTrials);
+
+end
+
+    leg_str{2} = sprintf('Trial  %03.0f ',numTrials);
+    legend_handles(2) = h(numCurves);
 
 % taking average
 FECTime_sum = zeros(size(FECTime{1}));
@@ -52,8 +59,9 @@ FECTime_avg = FECTime_sum/numCurves;
 FEC_norm_avg = FEC_norm_sum/numCurves;
 
 % plotting average curve
-plot(FECTime_avg,FEC_norm_avg, 'Color', 'g','LineStyle','-','LineWidth',1.7)
-leg_str{numCurves+1} = 'Average';
+h_avg = plot(FECTime_avg,FEC_norm_avg, 'Color', 'g','LineStyle','-','LineWidth',1.7)
+leg_str{3} = 'Average';
+legend_handles(3) = h_avg;
 
 for ctr_trial = 1:numTrials
 
@@ -61,7 +69,7 @@ for ctr_trial = 1:numTrials
 x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1),...
           SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1) SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1)];         % x values for the filled area
 y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-fill(x_fill, y_fill, 'k', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
+fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 end
 
 for ctr_trial = 1:numTrials
@@ -69,7 +77,7 @@ for ctr_trial = 1:numTrials
 x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2),...
           SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2) SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1)];         % x values for the filled area
 y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-fill(x_fill, y_fill, 'k', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
+fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
 end
 
 ylim([0 1])
@@ -78,7 +86,7 @@ ylabel_text(1) = {'Eyelid closure (norm)'};
 ylabel(ylabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
 xlabel_text(1) = {'Time from Trial start (s)'};
 xlabel(xlabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
-h_legend = legend(leg_str_1,leg_str_2,leg_str_3, 'Interpreter','latex','fontsize',13,'location','southeast','Box','off');
+h_legend = legend(legend_handles, leg_str, 'Interpreter','latex','fontsize',13,'location','southeast','Box','off');
 h_legend.NumColumns = 1;
 h_legend_pos = h_legend.Position;
 h_legend.Position = [0.98*h_legend_pos(1) 0.99*h_legend_pos(2) h_legend_pos(3) h_legend_pos(4)];
