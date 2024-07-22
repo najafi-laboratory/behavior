@@ -1,9 +1,16 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date
 import random
+
 
 states = [
     'Reward' , 
@@ -12,7 +19,7 @@ states = [
     'EarlyPress' , 
     'EarlyPress1' , 
     'EarlyPress2' , 
-    'Others']
+    'Other']
 states_name = [
     'Reward' , 
     'DidNotPress1' , 
@@ -34,23 +41,28 @@ colors = [
     'deeppink',
     'grey']
 
-def count_label(session_label, states, norm=True):
+def count_label(opto_tag, session_label, states, norm=True):
     num_session = len(session_label)
-    counts = np.zeros((num_session, len(states)))
+    counts = np.zeros((2 , num_session, len(states)))
+    numtrials = np.zeros((2 , num_session))
     for i in range(num_session):
-        for j in range(len(states)):
+        for j in range(len(session_label[i])):
             if norm:
-                counts[i,j] = np.sum(
-                    np.array(session_label[i]) == states[j]
-                    ) / len(session_label[i])
-            else:
-                counts[i,j] = np.sum(
-                    np.array(session_label[i]) == states[j]
-                    )
+                k = states.index(session_label[i][j])
+                if opto_tag[i][j] == 0:
+                    counts[0 , i , k] = counts[0 , i , k] + 1
+                    numtrials[0 , i] = numtrials[0 , i] + 1
+                else: 
+                    counts[1 , i , k] = counts[1 , i , k] + 1
+                    numtrials[1 , i] = numtrials[1 , i] + 1
+                    
+        for j in range(len(states)):
+            counts[0 , i , j] = counts[0 , i , j]/numtrials[0 , i]
+            counts[1 , i , j] = counts[1 , i , j]/numtrials[1 , i]
     return counts
 
 
-def plot_fig1(
+def plot_fig1_3(
         session_data,
         output_dir_onedrive, 
         output_dir_local
@@ -62,31 +74,55 @@ def plot_fig1(
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']
+    opto_tag = session_data['session_opto_tag']
     chemo_labels = session_data['chemo']
+    
+    
+    
+    
     start_idx = 0
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
     outcomes = outcomes[start_idx:]
-    dates = dates[start_idx:]  
+    dates = dates[start_idx:]    
     new_dates = []
     for date_item in dates:
         new_dates.append(date_item[2:])
     dates = new_dates
-      
-    counts = count_label(outcomes, states)
+        
+    counts = count_label(opto_tag, outcomes, states)
     session_id = np.arange(len(outcomes)) + 1
-    bottom = np.cumsum(counts, axis=1)
-    bottom[:,1:] = bottom[:,:-1]
-    bottom[:,0] = 0
-    width = 0.5
+    short_bottom = np.cumsum(counts[0 , : , :], axis=1)
+    short_bottom[:,1:] = short_bottom[:,:-1]
+    short_bottom[:,0] = 0
+    long_bottom = np.cumsum(counts[1 , : , :], axis=1)
+    long_bottom[:,1:] = long_bottom[:,:-1]
+    long_bottom[:,0] = 0
+    width = 0.4
+    
+    top_ticks = []
+    for i in range(len(session_id)):
+        top_ticks.append('C|O')
+    
     for i in range(len(states)):
         axs.bar(
-            session_id, counts[:,i],
-            bottom=bottom[:,i],
+            session_id, counts[0,:,i],
+            bottom=short_bottom[:,i],
             edgecolor='white',
             width=width,
             color=colors[i],
             label=states_name[i])
+        axs.bar(
+            session_id + width, counts[1,:,i],
+            bottom=long_bottom[:,i],
+            edgecolor='white',
+            width=width,
+            color=colors[i])
+            
+            
+        
+        
+        
     axs.tick_params(tick1On=False)
     axs.spines['left'].set_visible(False)
     axs.spines['right'].set_visible(False)
@@ -95,8 +131,8 @@ def plot_fig1(
     
     axs.set_ylabel('Outcome percentages')
     
-    axs.set_xticks(np.arange(len(outcomes))+1)
-    
+    tick_index = np.arange(len(outcomes))+1
+    axs.set_xticks(tick_index + width/2)
     dates_label = dates
     for i in range(0 , len(chemo_labels)):
         if chemo_labels[i] == 1:
@@ -107,6 +143,12 @@ def plot_fig1(
         if chemo_labels[ind] == 1:
             xtick.set_color('r')
         ind = ind + 1
+    
+    secax = axs.secondary_xaxis('top')
+    secax.set_xticks(tick_index + width/2)
+    secax.set_xticklabels(top_ticks)
+    
+    
     axs.set_title(subject)
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('Reward percentage for completed trials across sessions')
@@ -127,41 +169,22 @@ def plot_fig1(
     output_logs_fname = output_logs_dir + subject + 'outcome_log_' + today_string + '.txt'
     os.makedirs(output_logs_dir, exist_ok = True)
     
-    Trials = []
-    Reward = []
-    Punish = []
-    HitRate = []
-    
-    for i in range(len(session_id)):
-        if 'Other' in outcomes[i]:
-            Trials.append(len(outcomes[i]) - outcomes[i].count('Other'))
-            Punish.append(len(outcomes[i]) - outcomes[i].count('Reward') - outcomes[i].count('Other'))
-        else:
-            Trials.append(len(outcomes[i]))
-            Punish.append(len(outcomes[i])-outcomes[i].count('Reward'))
-        Reward.append(outcomes[i].count('Reward'))
-        HitRate.append(Reward[i]/Trials[i])
     
     with open(output_logs_fname, 'w') as f:
         sys.stdout = f
+
            
     # Reset the standard output
     sys.stdout = original_stdout 
 
-    for i in range(len(session_id)):
-        print(subject, dates[i], 'Counts')
-        print('Trials:', Trials[i])
-        print('Reward:', Reward[i])
-        print('NonRewarded:', Punish[i])
-        print('Hit Rate:', format(HitRate[i], ".2%"))
-        print()
     
-         
     output_figs_dir = output_dir_onedrive + subject + '/'    
     output_imgs_dir = output_dir_local + subject + '/outcome_imgs/'    
     os.makedirs(output_figs_dir, exist_ok = True)
     os.makedirs(output_imgs_dir, exist_ok = True)
-    fig.savefig(output_figs_dir + subject + '_Outcome.pdf', dpi=300)
-    fig.savefig(output_imgs_dir + subject + '_Outcome.png', dpi=300)
+    fig.savefig(output_figs_dir + subject + '_Outcome_control_opto.pdf', dpi=300)
+    fig.savefig(output_imgs_dir + subject + '_Outcome_control_opto.png', dpi=300)
+    
     plt.close()
     
+

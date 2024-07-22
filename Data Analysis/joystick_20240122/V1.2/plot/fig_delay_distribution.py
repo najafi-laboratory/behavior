@@ -3,9 +3,21 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from PyPDF2 import PdfFileReader, PdfFileWriter, PdfWriter, PdfReader
 from datetime import date
+import re
 
+def deduplicate_chemo(strings):
+    result = []
+    for string in strings:
+        # Find all occurrences of (chemo)
+        chemo_occurrences = re.findall(r'\(chemo\)', string)
+        # If more than one (chemo) found, replace all but the first with empty string
+        if len(chemo_occurrences) > 1:
+            # Keep only one (chemo)
+            string = re.sub(r'\(chemo\)', '', string)
+            string = string + '(chemo)'
+        result.append(string)
+    return result
 
 
 def process_matrix(matrix):
@@ -89,6 +101,7 @@ def plot_delay_distribution(
             if chemo_labels[i] == 1:
                 dates[i] = dates[i] + '(chemo)'
 
+    dates = deduplicate_chemo(dates)
     numeric_dates = np.arange(len(dates))
 
     if any(0 in row for row in isSelfTimedMode):

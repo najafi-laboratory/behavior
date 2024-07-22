@@ -5,28 +5,15 @@ import matplotlib.pyplot as plt
 from datetime import date
 import random
 
+
 states = [
-    'Reward' , 
-    'DidNotPress1' , 
-    'DidNotPress2' , 
-    'EarlyPress' , 
-    'EarlyPress1' , 
-    'EarlyPress2' , 
-    'Others']
-states_name = [
-    'Reward' , 
-    'DidNotPress1' , 
-    'DidNotPress2' , 
-    'EarlyPress' , 
-    'EarlyPress1' , 
-    'EarlyPress2' , 
-    'VisInterrupt']
+    'Reward' , 'DidNotPress1' , 'DidNotPress2' , 'EarlyPress' , 'EarlyPress1' , 'EarlyPress2']
 colors = [
     'limegreen',
     'coral',
     'lightcoral',
-    'dodgerblue',
     'orange',
+    'dodgerblue',
     'deeppink',
     'violet',
     'mediumorchid',
@@ -40,9 +27,14 @@ def count_label(session_label, states, norm=True):
     for i in range(num_session):
         for j in range(len(states)):
             if norm:
-                counts[i,j] = np.sum(
-                    np.array(session_label[i]) == states[j]
-                    ) / len(session_label[i])
+                if 'Other' in session_label[i]:
+                    counts[i,j] = np.sum(
+                        np.array(session_label[i]) == states[j]
+                        ) / (len(session_label[i]) - session_label[i].count('Other'))
+                else:
+                    counts[i,j] = np.sum(
+                        np.array(session_label[i]) == states[j]
+                        ) / len(session_label[i])   
             else:
                 counts[i,j] = np.sum(
                     np.array(session_label[i]) == states[j]
@@ -62,17 +54,16 @@ def plot_fig1(
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']
-    chemo_labels = session_data['chemo']
     start_idx = 0
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
     outcomes = outcomes[start_idx:]
-    dates = dates[start_idx:]  
+    dates = dates[start_idx:]    
     new_dates = []
     for date_item in dates:
         new_dates.append(date_item[2:])
     dates = new_dates
-      
+        
     counts = count_label(outcomes, states)
     session_id = np.arange(len(outcomes)) + 1
     bottom = np.cumsum(counts, axis=1)
@@ -86,27 +77,18 @@ def plot_fig1(
             edgecolor='white',
             width=width,
             color=colors[i],
-            label=states_name[i])
+            label=states[i])
     axs.tick_params(tick1On=False)
     axs.spines['left'].set_visible(False)
     axs.spines['right'].set_visible(False)
     axs.spines['top'].set_visible(False)
+    axs.yaxis.grid(True)
     axs.set_xlabel('Training session')
     
     axs.set_ylabel('Outcome percentages')
     
     axs.set_xticks(np.arange(len(outcomes))+1)
-    
-    dates_label = dates
-    for i in range(0 , len(chemo_labels)):
-        if chemo_labels[i] == 1:
-            dates_label[i] = dates[i] + '(chemo)'
-    axs.set_xticklabels(dates_label, rotation='vertical')
-    ind = 0
-    for xtick in axs.get_xticklabels():
-        if chemo_labels[ind] == 1:
-            xtick.set_color('r')
-        ind = ind + 1
+    axs.set_xticklabels(dates, rotation='vertical')
     axs.set_title(subject)
     axs.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     fig.suptitle('Reward percentage for completed trials across sessions')
@@ -135,33 +117,83 @@ def plot_fig1(
     for i in range(len(session_id)):
         if 'Other' in outcomes[i]:
             Trials.append(len(outcomes[i]) - outcomes[i].count('Other'))
-            Punish.append(len(outcomes[i]) - outcomes[i].count('Reward') - outcomes[i].count('Other'))
         else:
             Trials.append(len(outcomes[i]))
-            Punish.append(len(outcomes[i])-outcomes[i].count('Reward'))
         Reward.append(outcomes[i].count('Reward'))
+        Punish.append(outcomes[i].count('Punish'))
         HitRate.append(Reward[i]/Trials[i])
     
     with open(output_logs_fname, 'w') as f:
         sys.stdout = f
+    
+    
+        for i in range(len(session_id)):
+            # Trials = len(outcomes[i])
+            # Reward = outcomes[i].count('Reward')
+            # Punish = outcomes[i].count('Punish')
+            # HitRate = Reward/Trials
+            # print to log file
+            print(subject, dates[i], 'Counts')
+            print('Trials:', Trials[i])
+            print('Reward:', Reward[i])
+            print('Punish:', Punish[i])
+            print('Hit Rate:', format(HitRate[i], ".2%"))
+            print()
            
     # Reset the standard output
     sys.stdout = original_stdout 
 
     for i in range(len(session_id)):
+        # Trials = len(outcomes[i])
+        # Reward = outcomes[i].count('Reward')
+        # Punish = outcomes[i].count('Punish')
+        # HitRate = Reward/Trials
+        # print to console
         print(subject, dates[i], 'Counts')
         print('Trials:', Trials[i])
         print('Reward:', Reward[i])
-        print('NonRewarded:', Punish[i])
+        print('Punish:', Punish[i])
         print('Hit Rate:', format(HitRate[i], ".2%"))
         print()
     
          
+    # update to better code later
+    # save_dir = './figures/'+ subject + '/outcome'
+    # save_dir_outcome = save_dir + '/outcome'
+    # save_fn = 
+    # os.makedirs('./figures/'+subject+'/outcome', exist_ok = True)
+    # fig.savefig('./figures/'+subject+'/fig1_'+subject+'_outcome.pdf', dpi=300)
+    # fig.savefig('./figures/'+subject+'/outcome/fig1_'+subject+'_outcome.png', dpi=300)
+    
+    # output_imgs_dir = 'C:\\data analysis\\behavior\\joystick\\figures\\'+subject+'\\' + 'outcome_imgs\\'
+    
+    
+    # output_figs_dir = 'C:/Users/timst/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/' +subject+'\\'    
+    # output_imgs_dir = 'C:/Users/timst/OneDrive - Georgia Institute of Technology/Najafi_Lab/0_Data_analysis/Behavior/Joystick/'+subject+'\\' + 'outcome_imgs\\'
     output_figs_dir = output_dir_onedrive + subject + '/'    
     output_imgs_dir = output_dir_local + subject + '/outcome_imgs/'    
     os.makedirs(output_figs_dir, exist_ok = True)
     os.makedirs(output_imgs_dir, exist_ok = True)
     fig.savefig(output_figs_dir + subject + '_Outcome.pdf', dpi=300)
     fig.savefig(output_imgs_dir + subject + '_Outcome.png', dpi=300)
+    # fig.savefig(output_figs_dir + 'fig1_'+subject+'_outcome.pdf', dpi=300)
+    # fig.savefig(output_imgs_dir + '\\fig1_'+subject+'_outcome.png', dpi=300)
+    
+    # os.makedirs('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome', exist_ok = True)
+    # fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\fig1_'+subject+'_outcome.pdf', dpi=300)
+    # fig.savefig('C:\\behavior\\joystick\\figures\\'+subject+'\\outcome\\fig1_'+subject+'_outcome.png', dpi=300)
     plt.close()
     
+# debugging
+
+# session_data = session_data_1
+# plot_fig1(session_data)
+
+# session_data = session_data_2
+# plot_fig1(session_data)
+    
+# session_data = session_data_3
+# plot_fig1(session_data)
+
+# session_data = session_data_4
+# plot_fig1(session_data)
