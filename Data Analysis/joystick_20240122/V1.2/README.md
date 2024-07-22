@@ -79,7 +79,7 @@
 - Add first reaction time vs probability of correctness.
 
 ## 2023.10.21
-- Delete wrong reaction figure.
+- Delete the wrong reaction figure.
 - Fix reaction time.
 
 ## 2023.10.29
@@ -90,4 +90,11 @@
 - Add change of mind percentage.
 
 ## 2024.01.14
-- Seperate figures for each subject.
+- Separate figures for each subject.
+
+## 2024.07.22
+- DataIO1.py is created which can handle all of the protocols of .mat data
+- fig1_outcome_short_long_1.py is added to the folder plot. This function can give us a report of mice's performance over sessions, pooled sessions, and grand average of sessions. Most importantly we can notice the performance over chemo, control, and opto trials.
+- fig6_average_superimosed_short_long_all.py is added to the folder plot. We find the average of trajectories of lever deflection aligned with onsets and stimuli. Also, this function gives us the same analysis for pooled sessions.
+- fig_bpod.py creates a pdf file that shows the trial states over sessions. (PLEASE LOAD LESS THAN 10 SESSIONS FOR THIS ANALYSIS)
+- fig_time_analysis.py gives us all the analysis related to press onset, velocity analysis, and amplitude of presses. This function creates analysis for single sessions, pooled, and grand average of sessions.
