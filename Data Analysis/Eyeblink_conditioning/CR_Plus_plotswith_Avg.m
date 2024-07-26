@@ -35,8 +35,8 @@ overallMax = max(allEyeAreaPixels);
 
 for ctr_trial = 1:numTrials
 
-
-FECTime = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
+FECTime = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+% FECTime = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
 FEC_norm = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
 t_LED = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(1);
@@ -84,22 +84,25 @@ CR_plus_fraction_x{i} = SessionData.Info.SessionDate;
 % CR_plus_trials{i} = bar_str;
 
 
-
+load(data_files(1).name);
+numTrials = length(SessionData.RawEvents.Trial);
 for ctr_trial = 1:numTrials
-
-% Shade the area (ITI)
-x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1),...
-          SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1) SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1)];         % x values for the filled area
-y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
+    % Shade the area (ITI)
+    LED_start_time = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_Start - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+    LED_stop_time = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_End - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+    
+    x_fill = [LED_start_time, LED_stop_time,LED_stop_time, LED_start_time];         % x values for the filled area
+    y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
+    fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 end
 
 for ctr_trial = 1:numTrials
-% Shade the area (AirPuff Duration)
-x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2),...
-          SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2) SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1)];         % x values for the filled area
-y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
+    % Shade the area (AirPuff Duration)
+    AirPuff_start_time = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_Start;
+    AirPuff_stop_time = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_End;
+    x_fill = [AirPuff_start_time, AirPuff_stop_time, AirPuff_start_time,AirPuff_stop_time];         % x values for the filled area
+    y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
+    fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
 end
 
 

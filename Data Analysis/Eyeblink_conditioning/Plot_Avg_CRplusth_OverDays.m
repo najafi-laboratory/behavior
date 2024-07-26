@@ -14,8 +14,8 @@ commonFECTime = linspace(0, 4.3, 500); % Adjust 0 and 5 based on your expected t
 for i = 1:length(data_files)
     load(data_files(i).name);
 
-    numTrials = length(SessionData.RawEvents.Trial);
-    colors = [linspace(0.6, 0, numTrials)', linspace(0.6 , 0, numTrials)', linspace(1, 0.5, numTrials)'];
+     numTrials = length(SessionData.RawEvents.Trial);
+    % color_map = [linspace(0.5, 0, numTrials)', linspace(0.5, 0, numTrials)', linspace(1, 0.5, numTrials)'];
 
     numCurves = 0;
     totalFEC_norm = [];
@@ -30,7 +30,8 @@ for i = 1:length(data_files)
     overallMax = max(allEyeAreaPixels);
 
     for ctr_trial = 1:numTrials
-        FECTime = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
+        % FECTime = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
+        FECTime = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
         FEC_norm = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels / overallMax;
         t_LED = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(1);
         t_puff = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(2);
@@ -44,13 +45,15 @@ for i = 1:length(data_files)
             totalFEC_norm = [totalFEC_norm; FEC_norm_interp];
         end
     end
-
+   
+    numFiles = length(data_files);
+    cmap = [linspace(0.6, 0, numFiles)', linspace(0.6, 0, numFiles)', linspace(1, 0.5, numFiles)'];
     if numCurves > 0
         avgFECTime = commonFECTime;
         avgFEC_norm = mean(totalFEC_norm, 1);
         
         % Plot the average curve in the main figure
-        h_avg = plot(avgFECTime, avgFEC_norm, 'LineWidth', 2); % Adjust color or style as needed
+        h_avg = plot(avgFECTime, avgFEC_norm, 'LineWidth', 2, 'Color', cmap(i, :)); % Adjust color or style as needed
         % legend_entries{end + 1} = sprintf('File %d', i); % Add a legend entry for each file
     else
         disp('No CR+ trials found.');
@@ -69,16 +72,19 @@ load(data_files(1).name);
 numTrials = length(SessionData.RawEvents.Trial);
 for ctr_trial = 1:numTrials
     % Shade the area (ITI)
-    x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1),...
-              SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1)];         % x values for the filled area
+    LED_start_time = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_Start - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+    LED_stop_time = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_End - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+    
+    x_fill = [LED_start_time, LED_stop_time,LED_stop_time, LED_start_time];         % x values for the filled area
     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
     fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 end
 
 for ctr_trial = 1:numTrials
     % Shade the area (AirPuff Duration)
-    x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2),...
-              SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1)];         % x values for the filled area
+    AirPuff_start_time = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_Start;
+    AirPuff_stop_time = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_End;
+    x_fill = [AirPuff_start_time, AirPuff_stop_time, AirPuff_start_time,AirPuff_stop_time];         % x values for the filled area
     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
     fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
 end

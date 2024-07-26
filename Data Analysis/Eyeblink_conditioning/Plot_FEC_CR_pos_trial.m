@@ -1,6 +1,6 @@
 clc;close all;clear
-data_files = dir('*_EBC_*.mat');
-
+% data_files = dir('*_EBC_*.mat');
+data_files = dir('E1VT_EBC_V_3_0_20240713_143538.mat');
 CR_threshold = 0.05;
 
 
@@ -52,14 +52,14 @@ x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1), Session
 y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
 fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 end
-
+% 
 for ctr_trial = 1:numTrials
 % Shade the area (AirPuff Duration)
 x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2),...
           SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2) SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1)];         % x values for the filled area
 y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
 fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
-end
+% end
 
 ylim([0 1])
 set(gca,'FontSize',14)

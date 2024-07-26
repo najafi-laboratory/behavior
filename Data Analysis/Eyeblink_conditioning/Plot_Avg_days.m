@@ -16,7 +16,7 @@ clc;close all;clear
 
      load(data_files(i).name);
      numTrials = length(SessionData.RawEvents.Trial);
-
+    
 
     % Initialize an empty array to store all eyeAreaPixels values
     allEyeAreaPixels = [];
@@ -35,7 +35,8 @@ clc;close all;clear
     for ctr_trial = 1:numTrials
         
         numCurves = numCurves+1;
-        FECTime{numCurves} = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
+        % FECTime{numCurves} = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
+        FECTime{numCurves} = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
         FEC_norm{numCurves}= 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
     end
@@ -54,32 +55,18 @@ clc;close all;clear
 end
 
 % Plot all average curves in a single figure
+% colors = lines(length(all_avg_curves)); % Use distinct colors for each average curve
+leg_str = cell(1, length(all_avg_curves));
+% Plot all average curves in a single figure
 figure('units', 'centimeters', 'position', [2 2 24 26]);
 hold on;
-colors = lines(length(all_avg_curves)); % Use distinct colors for each average curve
-leg_str = cell(1, length(all_avg_curves));
-
-% Add vertical shaded areas for the first file as a representative (assuming the structure is similar across files)
-
-% for ctr_trial = 1:numTrials
-%     % Shade the area (ITI)
-%     x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1),...
-%               SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1)];         % x values for the filled area
-%     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-%     fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
-% end
-% 
-% for ctr_trial = 1:numTrials
-%     % Shade the area (AirPuff Duration)
-%     x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2),...
-%               SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1)];         % x values for the filled area
-%     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-%     fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
-% end
+% Define a colormap from dim to dark blue
+num_colors = length(all_avg_curves);
+color_map = [linspace(0.5, 0, num_colors)', linspace(0.5, 0, num_colors)', linspace(1, 0.5, num_colors)'];
 
 for i = 1:length(all_avg_curves)
     avg_curve = all_avg_curves{i};
-    plot(avg_curve.FECTime_avg, avg_curve.FEC_norm_avg, 'Color', colors(i, :), 'LineWidth', 1.7);
+    plot(avg_curve.FECTime_avg, avg_curve.FEC_norm_avg, 'Color', color_map(i, :), 'LineWidth', 1.7);
     % leg_str{i} = sprintf('Average %d', i);
 end
 
@@ -95,16 +82,19 @@ load(data_files(1).name);
 numTrials = length(SessionData.RawEvents.Trial);
 for ctr_trial = 1:numTrials
     % Shade the area (ITI)
-    x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1),...
-              SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1)];         % x values for the filled area
+    LED_start_time = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_Start - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+    LED_stop_time = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_End - SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
+    
+    x_fill = [LED_start_time, LED_stop_time,LED_stop_time, LED_start_time];         % x values for the filled area
     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
     fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 end
 
 for ctr_trial = 1:numTrials
     % Shade the area (AirPuff Duration)
-    x_fill = [SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2),...
-              SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(2), SessionData.RawEvents.Trial{1, ctr_trial}.States.AirPuff(1)];         % x values for the filled area
+    AirPuff_start_time = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_Start;
+    AirPuff_stop_time = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_End;
+    x_fill = [AirPuff_start_time, AirPuff_stop_time, AirPuff_start_time,AirPuff_stop_time];         % x values for the filled area
     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
     fill(x_fill, y_fill, 'yellow', 'FaceAlpha', 0.35, 'EdgeColor', 'none');
 end
