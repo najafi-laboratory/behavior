@@ -417,7 +417,7 @@ classdef EyelidAnalyzer < handle
                 numFramesVideo = min(obj.vid.FramesAvailable, round(vidDur * obj.EBC_vid_log_trial.FrameRate));
                 numFramesPreVid = obj.vid.FramesAvailable - numFramesVideo;
                 if numFramesPreVid > 0
-                    getdata(obj.vid, numFramesPreVid); % move intitial images, if any, to get to ITI_Pre seconds before LED_Onset
+                    getdata(obj.vid, numFramesPreVid); % move intitial images, if any, to get to ITI_
                 end
                 
                 [data, time, metadata] = getdata(obj.vid, numFramesVideo);

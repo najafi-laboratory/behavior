@@ -6,28 +6,17 @@ global MEV
 
 switch true
     case code == 1
-        % MEV.startVideoTrial;
         MEV.triggerTrialsVideo();
         SendBpodSoftCode(1); % Indicate to the state machine that video start
-
     case code == 2
-        % MEV.stopVideoTrial;  
-        % MEV.triggerTrialsVideo();
         MEV.eyeOpen = false;
         while ~MEV.eyeOpen
             MEV.checkEyeOpen();
-            % pause(0.03);
         end
-        % MEV.triggerTrialsVideo();
         SendBpodSoftCode(1); % Indicate to the state machine that eye is open relative to threshold   
-        
-    % case code == 8
-    %     % MEV.stopVideoTrial;  
-    %     SendBpodSoftCode(1); % Indicate to the state machine that video stop
     case code == 3
         MEV.LEDOnsetTime = seconds(datetime("now") - MEV.trialVidStartTime);
         MEV.plotLEDOnset;
-    % 
     case code == 4
         MEV.AirPuffOnsetTime = seconds(datetime("now") - MEV.trialVidStartTime);
         MEV.plotAirPuffOnset;
