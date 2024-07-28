@@ -12,6 +12,7 @@ switch true
         MEV.eyeOpen = false;
         while ~MEV.eyeOpen
             MEV.checkEyeOpen();
+            pause(0.02);
         end
         SendBpodSoftCode(1); % Indicate to the state machine that eye is open relative to threshold   
     case code == 3
