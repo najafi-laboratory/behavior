@@ -46,6 +46,7 @@ classdef EyelidAnalyzer < handle
         fps
         frame
         
+        hasSSImg = false;
         hFig
 
         isPaused = true;
@@ -366,11 +367,11 @@ classdef EyelidAnalyzer < handle
 
 
         function checkEyeOpen(obj)         
-            obj.frame = getsnapshot(obj.vid);
-            rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
-            set(obj.imgOrigHandle, 'CData', rgbFrame);
-            obj.updateBinaryVideo;            
-            obj.calculateFEC('trial');
+            % obj.frame = getsnapshot(obj.vid);
+            % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+            % set(obj.imgOrigHandle, 'CData', rgbFrame);
+            % obj.updateBinaryVideo;            
+            % obj.calculateFEC('trial');
             
             % if (obj.fec / 100) <= obj.FECTrialStartThresh
             %     obj.eyeOpen = true;
@@ -387,13 +388,15 @@ classdef EyelidAnalyzer < handle
             %     end
             % end
 
+            if obj.hasSSImg
+                if (obj.fecAVG / 100) <= obj.FECTrialStartThresh
+                    obj.eyeOpen = true;
+                else
+                    obj.eyeOpen = false;
+                end   
+                obj.hasSSImg = false;
+            end
 
-            if (obj.fecAVG / 100) <= obj.FECTrialStartThresh
-                obj.eyeOpen = true;
-            else
-                obj.eyeOpen = false;
-            end   
-            
             % if obj.vid.FramesAvailable > 0
             %     [data, time, metadata] = getdata(obj.vid, obj.vid.FramesAvailable);
             %     flushdata(obj.vid);
@@ -505,6 +508,7 @@ classdef EyelidAnalyzer < handle
                 % flushdata(obj.vid);
                 obj.updateBinaryVideo;   
                 obj.calculateFEC('trial');
+                obj.hasSSImg = true;
             end
         end
 

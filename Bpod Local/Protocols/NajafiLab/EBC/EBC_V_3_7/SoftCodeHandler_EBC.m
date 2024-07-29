@@ -10,10 +10,12 @@ switch true
         SendBpodSoftCode(1); % Indicate to the state machine that video start
     case code == 2
         MEV.eyeOpen = false;
+        % tic
         while ~MEV.eyeOpen
             MEV.checkEyeOpen();
-            pause(0.02);
+            pause(0.01);
         end
+        % toc
         SendBpodSoftCode(1); % Indicate to the state machine that eye is open relative to threshold   
     case code == 3
         MEV.LEDOnsetTime = seconds(datetime("now") - MEV.trialVidStartTime);

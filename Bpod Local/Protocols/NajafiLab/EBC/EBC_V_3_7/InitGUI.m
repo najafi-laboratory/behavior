@@ -18,9 +18,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.AirPuff_OnsetDelay = S.GUI.LED_Dur - S.GUI.AirPuff_Dur;
         
         S.GUI.CheckEyeOpenAveragingBaseline = 0.2;
-        S.GUI.CheckEyeOpenTimeout = 5;
+        % S.GUI.CheckEyeOpenTimeout = 5;
 
-        S.GUIPanels.EBC = {'ITI_Pre', 'ITI_Post', 'LED_OnsetDelay', 'LED_Dur', 'AirPuff_OnsetDelay', 'AirPuff_Dur', 'CheckEyeOpenAveragingBaseline', 'CheckEyeOpenTimeout'};
+        S.GUIPanels.EBC = {'ITI_Pre', 'ITI_Post', 'LED_OnsetDelay', 'LED_Dur', 'AirPuff_OnsetDelay', 'AirPuff_Dur', 'CheckEyeOpenAveragingBaseline'};
 
     end
 end
