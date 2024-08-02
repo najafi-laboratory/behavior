@@ -10,7 +10,7 @@ function [S] = SetParams(obj, BpodSystem)
         
         S.GUI.ITI_Pre = 0.5;
         S.GUI.ITI_Post = 5;
-        S.GUI.ITI = 2;
+        S.GUI.ITI = 3;
 
         S.GUI.LED_OnsetDelay = 0;
         S.GUI.LED_Dur = 0.5;
