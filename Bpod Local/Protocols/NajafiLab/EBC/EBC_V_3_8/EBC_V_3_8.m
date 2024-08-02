@@ -116,10 +116,10 @@ try
         vidSecondsPostLEDOnsetKeep = LED_puff + min(3, S.GUI.ITI_Post);
 
         vidDurKeep = vidSecondsPreLEDOnsetKeep + S.GUI.LED_OnsetDelay + vidSecondsPostLEDOnsetKeep; % unless LED dur is later than puff offset
-        vidDur = S.GUI.ITI_Pre + S.GUI.LED_OnsetDelay + LED_puff + S.GUI.ITI_Post + S.GUI.ITI; % unless LED dur is later than puff offset
+        vidDur = S.GUI.ITI_Pre + S.GUI.LED_OnsetDelay + LED_puff + S.GUI.ITI_Post + S.GUI.ITI_Extra; % unless LED dur is later than puff offset
         numFramesVidKeep = round(fps * vidDurKeep);
         numFramesVid = round(fps * vidDur);
-        numFramesITI = round(fps * S.GUI.ITI);
+        numFramesITI = round(fps * S.GUI.ITI_Extra);
         % numFramesPreLEDOnset = fps * vidSecondsPreLEDOnset;
         % numFramesPostLEDOnset =  fps * vidSecondsPostLEDOnset;
 
@@ -217,7 +217,7 @@ try
             'OutputActions', {});
 
         sma = AddState(sma, 'Name', 'ITI', ...
-            'Timer', S.GUI.ITI,...
+            'Timer', S.GUI.ITI_Extra,...
             'StateChangeConditions', {'Tup', 'CamOff'},...
             'OutputActions', {});
 
