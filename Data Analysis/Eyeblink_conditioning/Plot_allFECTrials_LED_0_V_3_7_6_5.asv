@@ -6,8 +6,6 @@ clear
 % data_files = dir('*_EBC_*.mat');
 data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_2_9_20240704_151618.mat');
 
-FECTimes_all = [];
-
 for i = 1:length(data_files)
  
     load(data_files(i).name)
@@ -105,7 +103,6 @@ for i = 1:length(data_files)
             % FEC_led_aligned = FECTimes - LED_Onset;
             FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
             FEC_trimmed = FEC_norm(start_idx : stop_idx);
-            FECTimes_all = [FECTimes_all; FEC_led_aligned_trimmed(1)];
             h(x) = plot(FEC_led_aligned,FEC_norm, 'Color', colors(ctr_trial, :)); hold on
 
         end
@@ -141,8 +138,11 @@ legend_handles(3) = h_avg;
 
 numTrials = length(SessionData.RawEvents.Trial);
 
-AirPuff_start_LED_Onset_Aligned = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_Start - SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer1_Start;
-AirPuff_stop_LED_Onset_Aligned = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_End - SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer1_Start;
+AirPuff_start_LED_Onset_Aligned = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_Start - LED_Onset;
+AirPuff_stop_LED_Onset_Aligned = SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer2_End - LED_Onset;
+
+xline(AirPuff_start_LED_Onset_Aligned, '--m');
+xline(AirPuff_stop_LED_Onset_Aligned, '--m');
 
 xline(0, '--r');
 xline(AirPuff_start_LED_Onset_Aligned, '--m');
@@ -172,8 +172,8 @@ xlabel_text(1) = {'Time from LED_Onset (sec)'};
 xlabel(xlabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
 % h_legend = legend(legend_handles, leg_str, 'Interpreter','latex','fontsize',13,'location','northeast','Box','off');
 h_legend.NumColumns = 1;
-% h_legend_pos = h_legend.Position;
-% h_legend.Position = [0.98*h_legend_pos(1) 0.99*h_legend_pos(2) h_legend_pos(3) h_legend_pos(4)];
+h_legend_pos = h_legend.Position;
+h_legend.Position = [0.98*h_legend_pos(1) 0.99*h_legend_pos(2) h_legend_pos(3) h_legend_pos(4)];
 clear xlabel_text ylabel_text leg_str_1 leg_str_2 leg_str_3
 
 % Set tick marks to be outside
@@ -207,32 +207,3 @@ else
 end
 
 end
-
-
-
-
-% for trialIdx = 1:numTrials 
-%     % x = SessionData.RawEvents.Trial{1, trialIdx}.States.Start(2);
-%     LED_Onset = SessionData.RawEvents.Trial{1, trialIdx}.Events.GlobalTimer2_Start;
-%     FECTimes = LED_Onset - SessionData.RawEvents.Trial{1, trialIdx}.Data.FECTimes(1);
-%     FECTimes_all = [FECTimes_all; FECTimes];
-% end
-
-
-% Calculate histogram bin counts and edges
-[binCounts, binEdges] = histcounts(FECTimes_all);
-
-% Plot the distribution of FECTimes
-figure;
-histogram(FECTimes_all);
-xlabel('FECTimes relative to LED-Onset');
-ylabel('Frequency');
-title('Distribution of FECTimes values across all trials');
-grid on;
-
-% Display bin counts and edges
-disp('Bin counts:');
-disp(binCounts);
-
-disp('Bin edges:');
-disp(binEdges);
