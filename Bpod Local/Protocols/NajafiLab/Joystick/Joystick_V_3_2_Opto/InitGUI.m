@@ -113,7 +113,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.TrainingLevel = 5;
         S.GUIMeta.TrainingLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.TrainingLevel.String = {'Habituation', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
-        S.GUI.NumEasyWarmupTrials = 20;
+        S.GUI.NumEasyWarmupTrials = 10;
         S.GUIPanels.Training = {'MaxTrials', 'TrainingLevel', 'NumEasyWarmupTrials'};
     
         % difficulty params       
