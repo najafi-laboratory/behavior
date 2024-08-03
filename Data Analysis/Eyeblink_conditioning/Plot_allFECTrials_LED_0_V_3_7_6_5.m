@@ -4,7 +4,9 @@
 % clc;close all;clear
 clear
 % data_files = dir('*_EBC_*.mat');
-data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_2_9_20240704_151618.mat');
+% C:\behavior\session_data\
+% C:\behavior\session_data\E1VT\E1VT_EBC_V_2_9_20240704_151618.mat
+data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_6_20240724_135309.mat');
 
 FECTimes_all = [];
 
@@ -70,8 +72,8 @@ for i = 1:length(data_files)
         FEC_norm= 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
         fps = 250; % frames per second, frequency of images
-        seconds_before = 1;
-        seconds_after = 3;
+        seconds_before = 1; % time of video before led onset
+        seconds_after = 3; % time of video after led onset
         
         Frames_before = fps * seconds_before;
         Frames_after = fps * seconds_after;
@@ -86,30 +88,39 @@ for i = 1:length(data_files)
         
         len_FEC_led_aligned = length(FEC_led_aligned);
         disp(['Length of FEC_led_aligned: ', num2str(len_FEC_led_aligned)]);
-        start_idx = max(1, min(start_idx, len_FEC_led_aligned));
-        stop_idx = max(1, min(stop_idx, len_FEC_led_aligned));
+        disp(['Time of FEC_led_aligned: ', num2str(len_FEC_led_aligned * 1/fps)]);
+        % start_idx = max(1, min(start_idx, len_FEC_led_aligned));
+        % stop_idx = max(1, min(stop_idx, len_FEC_led_aligned));
+        start_idx = max(1, start_idx); % index to array must be >= 1
+        stop_idx = max(1, stop_idx); % index to array must be >= 1
         
-        FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
-        FEC_trimmed = FEC_norm(start_idx : stop_idx);
+        FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx); 
+        FEC_trimmed = FEC_norm(start_idx : stop_idx); 
 
-        if 1
-        if any(FEC_led_aligned_trimmed < -1)
-            x = ctr_trial;
+        len_FEC_led_aligned_trimmed = length(FEC_led_aligned_trimmed);
+        % disp(['Length of FEC_led_aligned_trimmed: ', num2str(len_FEC_led_aligned_trimmed)]);
+        % disp(['Time of FEC_led_aligned_trimmed: ', num2str(len_FEC_led_aligned_trimmed * 1/fps)]);
+
+        % if 1
+        % if any(FEC_led_aligned_trimmed < -1)
+        x = ctr_trial;
 
             % FECTimes = FECTimes - FECTimes(x);
-            if contains(data_files(i).name, 'V_2_9')
-                FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
-            else
-                FEC_led_aligned = FECTimes - LED_Onset;
-            end
-            % FEC_led_aligned = FECTimes - LED_Onset;
-            FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
-            FEC_trimmed = FEC_norm(start_idx : stop_idx);
-            FECTimes_all = [FECTimes_all; FEC_led_aligned_trimmed(1)];
-            h(x) = plot(FEC_led_aligned,FEC_norm, 'Color', colors(ctr_trial, :)); hold on
+            % if contains(data_files(i).name, 'V_2_9')
+            %     FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
+            % else
+            %     FEC_led_aligned = FECTimes - LED_Onset;
+            % end
+            % % FEC_led_aligned = FECTimes - LED_Onset;
+            % FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
+            % FEC_trimmed = FEC_norm(start_idx : stop_idx);
+       
+        FECTimes_all = [FECTimes_all; LED_Onset - FECTimes(1)]; % for distribution of ledsonet - fectimes(1)
 
-        end
-        end
+        h(x) = plot(FEC_led_aligned,FEC_norm, 'Color', colors(ctr_trial, :)); hold on
+
+        % end
+        % end
     
         % h(numCurves) = plot(FEC_led_aligned_trimmed, FEC_trimmed , 'Color', colors(ctr_trial, :)); hold on
 
@@ -225,7 +236,7 @@ end
 % Plot the distribution of FECTimes
 figure;
 histogram(FECTimes_all);
-xlabel('FECTimes relative to LED-Onset');
+xlabel('FECTimes(1) relative to LED-Onset');
 ylabel('Frequency');
 title('Distribution of FECTimes values across all trials');
 grid on;
