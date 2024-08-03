@@ -631,7 +631,7 @@ try
         % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
         %VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
         VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
-        VisDetectGray1_StateChangeConditions = {'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
+        VisDetectGray1_StateChangeConditions = {'Tup', 'VisStimInterrupt','BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
         VisualStimulus1_StateChangeConditions = {'BNC1Low', 'WaitForPress1'};
         VisualStimulus1_OutputActions = audStimOpto1;        
         WaitForPress1_StateChangeConditions = {};        
@@ -645,7 +645,7 @@ try
         % VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
         %VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
         VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
-        VisDetectGray2_StateChangeConditions = {'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
+        VisDetectGray2_StateChangeConditions = {'Tup', 'VisStimInterrupt','BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
         VisualStimulus2_StateChangeConditions = {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'};
         VisualStimulus2_OutputActions = [audStimOpto2 'SoftCode', 7,'RotaryEncoder1', ['E']];
         WaitForPress2_StateChangeConditions = {};
