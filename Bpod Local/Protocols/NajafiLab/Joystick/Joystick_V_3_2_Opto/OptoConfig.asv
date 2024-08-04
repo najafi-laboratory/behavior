@@ -272,21 +272,21 @@ classdef OptoConfig
                         % LEDOffDur = PMTOpenTransferDelay + 2*ScopeFrameDuration + PMTCloseTransferDelay;
                         LEDOffDur = S.GUI.LEDOffPulseDur_ms/1000;
                         
-                        % if ~S.GUI.OptoWaitForPress1
-                        %     LoopLED1 = 0;
-                        %     LoopPMT1 = 0;
-                        % else
-                        %     LoopLED1 = 1;
-                        %     LoopPMT1 = 1;
-                        % end
-                        % 
-                        % if ~S.GUI.OptoWaitForPress2
-                        %     LoopLED2 = 0;
-                        %     LoopPMT2 = 0;
-                        % else
-                        %     LoopLED2 = 1;
-                        %     LoopPMT2 = 1;
-                        % end
+                        if ~S.GUI.OptoWaitForPress1
+                            LoopLED1 = 0;
+                            LoopPMT1 = 0;
+                        else
+                            LoopLED1 = 1;
+                            LoopPMT1 = 1;
+                        end
+
+                        if ~S.GUI.OptoWaitForPress2
+                            LoopLED2 = 0;
+                            LoopPMT2 = 0;
+                        else
+                            LoopLED2 = 1;
+                            LoopPMT2 = 1;
+                        end
 
                         LoopNum = floor((S.GUI.MaxOptoDur_s/(LEDOnDur+LEDOffDur)));
                         LoopLED1 = LoopNum;
