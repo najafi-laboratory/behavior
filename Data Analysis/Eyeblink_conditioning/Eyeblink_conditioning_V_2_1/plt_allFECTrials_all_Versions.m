@@ -1,7 +1,7 @@
  clc;close all;clear
 clear
-data_files = dir('*_EBC_*.mat');
-% data_files = dir('E1VT_EBC_V_3_7_20240730_132615.mat');
+data_files = dir('C:\behavior\session_data\E3VT\*_EBC_*.mat');
+% data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_0_20240713_143538.mat');
 
 for i = 1:length(data_files)
  
@@ -33,11 +33,7 @@ for i = 1:length(data_files)
 
         numCurves = numCurves+1;
        
-        if ctr_trial == 51
-            disp('debug')
-        end
-
-        CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
+        % CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
         Start = SessionData.RawEvents.Trial{1, ctr_trial}.States.Start(1);
         ITI_Pre = SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
         % LED_Onset = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1);
@@ -55,7 +51,8 @@ for i = 1:length(data_files)
         AirPuff_LED_Onset_Aligned_Start = AirPuff_Start - LED_Onset;
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
         
-        if contains(data_files(i).name, 'V_2_9')
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
             FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
         else
             FEC_led_aligned = FECTimes - LED_Onset;

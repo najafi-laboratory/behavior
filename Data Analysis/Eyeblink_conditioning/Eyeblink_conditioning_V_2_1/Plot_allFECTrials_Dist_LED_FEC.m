@@ -6,9 +6,10 @@ clear
 % data_files = dir('*_EBC_*.mat');
 % C:\behavior\session_data\
 % C:\behavior\session_data\E1VT\E1VT_EBC_V_2_9_20240704_151618.mat
-data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_6_20240724_135309.mat');
+data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_7_20240730_132615.mat');
 
 FECTimes_all = [];
+Vid_Start_Difference_all = [];
 
 for i = 1:length(data_files)
  
@@ -38,11 +39,7 @@ for i = 1:length(data_files)
     step = 1;
     for ctr_trial = 1:step:numTrials
 
-        numCurves = numCurves+1;
-       
-        if ctr_trial == 51
-            disp('debug')
-        end
+        numCurves = numCurves+1;      
 
         % CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
         Start = SessionData.RawEvents.Trial{1, ctr_trial}.States.Start(1);
@@ -63,7 +60,8 @@ for i = 1:length(data_files)
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
         
         
-        if contains(data_files(i).name, 'V_2_9')
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
             FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
         else
             FEC_led_aligned = FECTimes - LED_Onset;
@@ -115,9 +113,21 @@ for i = 1:length(data_files)
             % FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
             % FEC_trimmed = FEC_norm(start_idx : stop_idx);
        
-        % FECTimes_all = [FECTimes_all; LED_Onset - FECTimes(1)]; % for distribution of ledsonet - fectimes(1), fectimes as-is from session data
+        ITI_Pre_Param = SessionData.TrialSettings(ctr_trial).GUI.ITI_Pre;
+        Vid_Start_Expected = LED_Onset - ITI_Pre_Param;
+        Vid_Start = FECTimes(1);
+        Vid_Start_Difference = Vid_Start_Expected - Vid_Start;
+        Vid_Start_Difference_all = [Vid_Start_Difference_all Vid_Start_Difference];
+
+        FECTimes_all = [FECTimes_all; LED_Onset - FECTimes(1)]; % for distribution of ledsonet - fectimes(1), fectimes as-is from session data
         % FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned(1)]; % for distribution of ledsonet - fectimes(1), aligned to led fectimes
-        FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned_trimmed(1)]; % for distribution of ledsonet - fectimes(1), aligned and trimmed fectimes
+        % FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned_trimmed(1)]; % for distribution of ledsonet - fectimes(1), aligned and trimmed fectimes
+
+        ITI_Pre_Param = SessionData.TrialSettings(ctr_trial).GUI.ITI_Pre;
+        Vid_Start_Expected = LED_Onset - ITI_Pre_Param;
+        Vid_Start = FECTimes(1);
+        Vid_Start_Difference = Vid_Start_Expected - Vid_Start;
+        Vid_Start_Difference_all = [Vid_Start_Difference_all Vid_Start_Difference];
 
         h(x) = plot(FEC_led_aligned,FEC_norm, 'Color', colors(ctr_trial, :)); hold on
 
@@ -249,3 +259,24 @@ disp(binCounts);
 
 disp('Bin edges:');
 disp(binEdges);
+
+
+
+
+% % Calculate histogram bin counts and edges
+% [binCounts, binEdges] = histcounts(Vid_Start_Difference_all);
+% 
+% % Plot the distribution of FECTimes
+% figure;
+% histogram(Vid_Start_Difference_all);
+% xlabel(['FECTimes(1) relative to ' num2str(ITI_Pre_Param) 's before LED Onset']);
+% ylabel('Frequency');
+% title('Distribution of VidStartExpected - FECTimes(1) across all trials');
+% grid on;
+% 
+% % Display bin counts and edges
+% disp('Bin counts:');
+% disp(binCounts);
+% 
+% disp('Bin edges:');
+% disp(binEdges);

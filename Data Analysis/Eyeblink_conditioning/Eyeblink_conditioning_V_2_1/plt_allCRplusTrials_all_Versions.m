@@ -2,8 +2,8 @@ clc;close all;clear
 
 
 
- data_files = dir('*_EBC_*.mat');
- 
+ data_files = dir('C:\behavior\session_data\E3VT\*_EBC_*.mat');
+ % data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_7_20240730_132615.mat');
 
 CR_threshold = 0.05;
 
@@ -36,7 +36,7 @@ step = 1;
 for ctr_trial = 1:step:numTrials
 
 
-        CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
+        % CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
         Start = SessionData.RawEvents.Trial{1, ctr_trial}.States.Start(1);
         ITI_Pre = SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
         % LED_Onset = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1);
@@ -54,13 +54,14 @@ for ctr_trial = 1:step:numTrials
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
 
 
-        if contains(data_files(i).name, 'V_2_9')
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
             FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
         else
             FEC_led_aligned = FECTimes - LED_Onset;
         end
 
-        FEC_led_aligned = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - LED_Puff_ISI_start;
+        % FEC_led_aligned = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - LED_Puff_ISI_start;
         FEC_norm = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
         fps = 250; % frames per second, frequency of images

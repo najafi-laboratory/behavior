@@ -3,7 +3,7 @@ clc;close all;clear
 
 
  data_files = dir('*_EBC_*.mat');
- 
+ data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_7_20240730_132615.mat');
 
 CR_threshold = 0.05;
 
@@ -53,7 +53,13 @@ for ctr_trial = 1:step:numTrials
         AirPuff_LED_Onset_Aligned_Start = AirPuff_Start - LED_Onset;
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
 
-FEC_led_aligned = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - LED_Puff_ISI_start;
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
+            FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
+        else
+            FEC_led_aligned = FECTimes - LED_Onset;
+        end
+% FEC_led_aligned = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - LED_Puff_ISI_start;
 FEC_norm = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
         fps = 250; % frames per second, frequency of images

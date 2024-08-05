@@ -1,6 +1,7 @@
 clc; close all; clear;
 
-data_files = dir('*_EBC_*.mat');
+data_files = dir('C:\behavior\session_data\E3VT\*_EBC_*.mat');
+% data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_7_20240730_132615.mat');
 CR_threshold = 0.05;
 
 % Initialize a figure for the average curves
@@ -30,7 +31,7 @@ for i = 1:length(data_files)
     for ctr_trial = 1:numTrials
 
 
-        CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
+        % CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
         Start = SessionData.RawEvents.Trial{1, ctr_trial}.States.Start(1);
         ITI_Pre = SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
         LED_Puff_ISI_start = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(1);
@@ -41,7 +42,16 @@ for i = 1:length(data_files)
         LED_Onset = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_Start;
         LED_Onset_End = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_End;
         FECTimes = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
-        FEC_led_aligned = FECTimes - LED_Onset;
+
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
+            FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
+        else
+            FEC_led_aligned = FECTimes - LED_Onset;
+        end
+
+        
+        % FEC_led_aligned = FECTimes - LED_Onset;
         FEC_norm_curve = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels / overallMax;
 
         LED_Onset_Zero_Start = LED_Onset - LED_Onset;

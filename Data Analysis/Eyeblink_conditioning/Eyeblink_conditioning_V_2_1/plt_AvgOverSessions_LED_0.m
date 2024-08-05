@@ -1,7 +1,8 @@
 clc; close all; clear
 
 % Load all session data files
-data_files = dir('*_EBC_*.mat');
+data_files = dir('C:\behavior\session_data\E3VT\*_EBC_*.mat');
+% data_files = dir('C:\behavior\session_data\E1VT\*_EBC_*.mat');
 
 % Container for all average curves
 all_avg_curves = {};
@@ -17,7 +18,9 @@ for i = 1:length(data_files)
     % Initialize an empty array to store all eyeAreaPixels values
     allEyeAreaPixels = [];
     % Collect eyeAreaPixels data from all trials
+    
     for trialIdx = 1:numTrials
+        
         eyeAreaPixels = SessionData.RawEvents.Trial{1, trialIdx}.Data.eyeAreaPixels;
         allEyeAreaPixels = [allEyeAreaPixels, eyeAreaPixels]; % Concatenate data
     end
@@ -31,7 +34,7 @@ for i = 1:length(data_files)
     % Loop over each trial to calculate shifted and normalized FEC
     for ctr_trial = 1:numTrials
 
-                
+        ITI_Pre = SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);                
         LED_Puff_ISI_start = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(1);
         AirPuff_Start = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer2_Start;
         AirPuff_End = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer2_End;
@@ -40,7 +43,13 @@ for i = 1:length(data_files)
         FECTimes = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes;
         
         % Align FEC times to LED onset
-        FEC_led_aligned = FECTimes - LED_Onset;
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
+            FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
+        else
+            FEC_led_aligned = FECTimes - LED_Onset;
+        end
+        % FEC_led_aligned = FECTimes - LED_Onset;
         FEC_norm_curve = 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels / overallMax;
         
         LED_Onset_Zero_Start = LED_Onset - LED_Onset;
@@ -125,11 +134,11 @@ for i = 1:length(all_avg_curves)
     % Shade the area (LED Duration)
     x_fill_LED = [LED_Onset_Zero_Start, LED_Onset_Zero_End, LED_Onset_Zero_End, LED_Onset_Zero_Start];
     y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-    fill(x_fill_LED, y_fill, 'green', 'FaceAlpha', 0.08, 'EdgeColor', 'none');
+    fill(x_fill_LED, y_fill, 'green', 'FaceAlpha', 0.03, 'EdgeColor', 'none');
     
     % Shade the area (AirPuff Duration)
     x_fill_Puff = [AirPuff_LED_Onset_Aligned_Start, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_Start];
-    fill(x_fill_Puff, y_fill, 'm', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
+    fill(x_fill_Puff, y_fill, 'm', 'FaceAlpha', 0.03, 'EdgeColor', 'none');
 end
 
 % Generate legend entries
