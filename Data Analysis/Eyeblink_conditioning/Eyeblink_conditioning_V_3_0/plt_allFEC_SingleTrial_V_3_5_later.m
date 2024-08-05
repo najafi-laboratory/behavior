@@ -41,6 +41,8 @@ for ctr_trial = 1:numTrials
         LED_Onset_Zero_End = SessionData.RawEvents.Trial{1, ctr_trial}.Events.GlobalTimer1_End - LED_Onset;
         AirPuff_LED_Onset_Aligned_Start = AirPuff_Start - LED_Onset;
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
+        
+ 
 
         FEC_led_aligned = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - LED_Puff_ISI_start;
         
@@ -98,7 +100,7 @@ plot(FEC_led_aligned_trimmed,FEC_trimmed, 'Color', color_str);hold on
 % Shade the area (ITI)
 x_fill = [LED_Onset_Zero_Start, LED_Onset_Zero_End,LED_Onset_Zero_End,LED_Onset_Zero_Start];         % x values for the filled area
 y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)
-fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.05, 'EdgeColor', 'none');
+fill(x_fill, y_fill, 'green', 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 % Shade the area (AirPuff Duration)
 x_fill = [AirPuff_LED_Onset_Aligned_Start, AirPuff_LED_Onset_Aligned_End,AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_Start];         % x values for the filled area
 y_fill = [0 0 1 1];    % y values for the filled area (y=0 at the x-axis)

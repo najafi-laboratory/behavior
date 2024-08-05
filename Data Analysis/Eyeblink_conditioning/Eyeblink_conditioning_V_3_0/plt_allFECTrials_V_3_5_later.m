@@ -55,13 +55,8 @@ for i = 1:length(data_files)
         AirPuff_LED_Onset_Aligned_Start = AirPuff_Start - LED_Onset;
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
         
-        if contains(data_files(i).name, 'V_2_9')
-            FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
-        else
-            FEC_led_aligned = FECTimes - LED_Onset;
-        end
         
-        % FEC_led_aligned = FECTimes - LED_Puff_ISI_start;
+        FEC_led_aligned = FECTimes - LED_Puff_ISI_start;
         FEC_norm= 1 - SessionData.RawEvents.Trial{1, ctr_trial}.Data.eyeAreaPixels /overallMax;
 
         fps = 250; % frames per second, frequency of images
