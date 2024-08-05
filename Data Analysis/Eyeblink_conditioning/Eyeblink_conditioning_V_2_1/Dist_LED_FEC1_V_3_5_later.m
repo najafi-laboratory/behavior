@@ -4,7 +4,7 @@ clc; close all; clear;
 
 % Load data
 % data_files = dir('E1VT_EBC_V_3_6_20240725_112350.mat');
-data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_7_20240730_132615.mat');
+data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_6_20240725_112350.mat');
 load(data_files.name);
 
 for ctr_file=1:length(data_files)
@@ -52,6 +52,12 @@ for trialIdx = 1:numTrials
   % FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned(1)]; % for distribution of ledsonet - fectimes(1), aligned to led fectimes
   FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned_trimmed(1)]; % for distribution of ledsonet - fectimes(1), aligned and trimmed fectimes
 end
+
+disp(['mean(FECTimes_all): ', num2str(mean(FECTimes_all))]);
+disp(['std(FECTimes_all): ', num2str(std(FECTimes_all))]);
+disp(['var(FECTimes_all): ', num2str(var(FECTimes_all))]);
+disp(['max(FECTimes_all): ', num2str(max(FECTimes_all))]);
+disp(['min(FECTimes_all): ', num2str(min(FECTimes_all))]);
 
 % % Plot histogram with small bins for better time resolution
 binWidth = 0.001; % Define bin width for better time resolution
