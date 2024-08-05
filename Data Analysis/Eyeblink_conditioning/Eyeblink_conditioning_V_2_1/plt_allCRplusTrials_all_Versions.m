@@ -36,7 +36,7 @@ step = 1;
 for ctr_trial = 1:step:numTrials
 
 
-        CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
+        % CheckEyeOpen = SessionData.RawEvents.Trial{1, ctr_trial}.States.CheckEyeOpen(2);
         Start = SessionData.RawEvents.Trial{1, ctr_trial}.States.Start(1);
         ITI_Pre = SessionData.RawEvents.Trial{1, ctr_trial}.States.ITI_Pre(1);
         % LED_Onset = SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Onset(1);
@@ -54,10 +54,19 @@ for ctr_trial = 1:step:numTrials
         AirPuff_LED_Onset_Aligned_End = AirPuff_End - LED_Onset;
 
 
-        if contains(data_files(i).name, 'V_2_9')
+        if contains(data_files(i).name, 'V_2_9') || ...
+           contains(data_files(i).name, 'V_3_0')
             FEC_led_aligned = FECTimes + ITI_Pre - LED_Onset;
+            t_LED = LED_Onset_Zero_Start+ ITI_Pre;
+            t_puff = t_LED+ 0.2;
+            t1 = t_LED-0.1;
+            t2 = t_LED;
         else
             FEC_led_aligned = FECTimes - LED_Onset;
+            t_LED = LED_Onset_Zero_Start;
+            t_puff = AirPuff_LED_Onset_Aligned_End;
+            t1 = t_LED-0.01;
+            t2 = t_LED;
         end
 
         FEC_led_aligned = SessionData.RawEvents.Trial{1, ctr_trial}.Data.FECTimes - LED_Puff_ISI_start;
@@ -85,10 +94,7 @@ for ctr_trial = 1:step:numTrials
         FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
         FEC_trimmed = FEC_norm(start_idx : stop_idx);
 
-t_LED = LED_Onset_Zero_Start;
-t_puff = AirPuff_LED_Onset_Aligned_End;
-t1 = t_LED-0.01;
-t2 = t_LED;   
+   
 
 % Define the common time vector (e.g., the union of all unique time points or a regular grid)
 commonTime = linspace(min(FEC_led_aligned_trimmed), max(FEC_led_aligned_trimmed), 100);  % Adjust 100 to the desired number of points
@@ -202,28 +208,57 @@ else
     error('Filename does not have the expected format');
 end
 
+%
+% Convert the dates to categorical for proper alignment
+CR_plus_fraction_x_cat = categorical(CR_plus_fraction_x);
 
+% Create the figure
+figure('units','centimeters','position',[2 2 30 20]) % Set figure size
+bar(CR_plus_fraction_x_cat, CR_plus_fraction); % Use categorical x-axis
+grid on;
+set(gca, 'TickDir', 'out');
+% Set x-tick labels to be dates
+set(gca, 'xticklabel', datestr(CR_plus_fraction_x, 'yyyy-mm-dd'))
+set(gca, 'FontSize', 14)
+xtickangle(90) % Rotate the x-tick labels
+
+% Set y-axis limits and label
+ylim([0 1])
+ylabel_text(1) = {'CR$^{+}$ fraction'};
+ylabel(ylabel_text, 'interpreter', 'latex', 'fontname', 'Times New Roman', 'fontsize', 17)
+
+% Set x-axis label
+xlabel_text(1) = {' '};
+xlabel(xlabel_text, 'interpreter', 'latex', 'fontname', 'Times New Roman', 'fontsize', 17)
+
+% Add text annotations on the bars
+% for ctr_bar = 1:length(CR_plus_fraction)
+%     text(CR_plus_fraction_x_cat(ctr_bar), CR_plus_fraction(ctr_bar), ...
+%         sprintf('%.2f', CR_plus_fraction(ctr_bar)), ...
+%         'interpreter', 'latex', 'fontname', 'Times New Roman', 'FontSize', 17, ...
+%         'Color', 'black', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+% end
 
 
 
 %
-
-figure('units','centimeters','position',[2 2 20 16])
-bar(CR_plus_fraction);
-grid on;
-set(gca,'xticklabel',CR_plus_fraction_x)
-set(gca,'FontSize',14)
-ylim([0 1])
-ylabel_text(1) = {'CR$^{+}$ fraction'};
-ylabel(ylabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
-xlabel_text(1) = {' '};
-xtickangle(45)
-xlabel(xlabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
-
-
-for ctr_bar=1:length(CR_plus_fraction)
-t1 = text(ctr_bar, CR_plus_fraction(ctr_bar)*100,xlabel_text(1),'interpreter', 'latex','fontname','Times New Roman', 'FontSize', 17, 'Color', 'black', 'HorizontalAlignment', 'center','VerticalAlignment','bottom');
-end
+% 
+% figure('units','centimeters','position',[2 2 20 16])
+% bar(CR_plus_fraction);
+% grid on;
+% set(gca,'xticklabel',CR_plus_fraction_x)
+% set(gca,'FontSize',14)
+% ylim([0 1])
+% ylabel_text(1) = {'CR$^{+}$ fraction'};
+% ylabel(ylabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
+% xlabel_text(1) = {' '};
+% xtickangle(45)
+% xlabel(xlabel_text,'interpreter', 'latex','fontname','Times New Roman','fontsize',17)
+% 
+% 
+% for ctr_bar=1:length(CR_plus_fraction)
+% t1 = text(ctr_bar, CR_plus_fraction(ctr_bar)*100,xlabel_text(1),'interpreter', 'latex','fontname','Times New Roman', 'FontSize', 17, 'Color', 'black', 'HorizontalAlignment', 'center','VerticalAlignment','bottom');
+% end
 
 load(data_files(i).name);
 
