@@ -4,7 +4,7 @@ clc; close all; clear;
 
 % Load data
 % data_files = dir('E1VT_EBC_V_3_6_20240725_112350.mat');
-data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_6_20240725_112350.mat');
+data_files = dir('C:\behavior\session_data\E1VT\E1VT_EBC_V_3_7_20240730_132615.mat');
 load(data_files.name);
 
 for ctr_file=1:length(data_files)
@@ -15,7 +15,7 @@ FECTimes_all = [];
 numTrials = SessionData.nTrials;
 for trialIdx = 1:numTrials 
     LED_Onset = SessionData.RawEvents.Trial{1, trialIdx}.Events.GlobalTimer1_Start;
-    FECTimes = LED_Onset - SessionData.RawEvents.Trial{1, trialIdx}.Data.FECTimes(1);
+    FECTimes = SessionData.RawEvents.Trial{1, trialIdx}.Data.FECTimes;
 
     if contains(data_files(ctr_file).name, 'V_2_9') || ...
        contains(data_files(ctr_file).name, 'V_3_0')
@@ -38,8 +38,7 @@ for trialIdx = 1:numTrials
         start_idx = closest_frame_idx_to_LED_Onset - Frames_before;
         stop_idx = closest_frame_idx_to_LED_Onset + Frames_after;
         
-        
-        
+
         len_FEC_led_aligned = length(FEC_led_aligned);
         disp(['Length of FEC_led_aligned: ', num2str(len_FEC_led_aligned)]);
         disp(['Time of FEC_led_aligned: ', num2str(len_FEC_led_aligned * 1/fps)]);
@@ -49,13 +48,13 @@ for trialIdx = 1:numTrials
         % stop_idx = max(1, stop_idx); % index to array must be >= 1
         
   FEC_led_aligned_trimmed = FEC_led_aligned(start_idx : stop_idx);
-  FECTimes_all = [FECTimes_all; LED_Onset - FECTimes(1)]; % for distribution of ledsonet - fectimes(1), fectimes as-is from session data
+  % FECTimes_all = [FECTimes_all; LED_Onset - FECTimes(1)]; % for distribution of ledsonet - fectimes(1), fectimes as-is from session data
   % FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned(1)]; % for distribution of ledsonet - fectimes(1), aligned to led fectimes
-  % FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned_trimmed(1)]; % for distribution of ledsonet - fectimes(1), aligned and trimmed fectimes
+  FECTimes_all = [FECTimes_all; 0 - FEC_led_aligned_trimmed(1)]; % for distribution of ledsonet - fectimes(1), aligned and trimmed fectimes
 end
 
 % % Plot histogram with small bins for better time resolution
-binWidth = 0.01; % Define bin width for better time resolution
+binWidth = 0.001; % Define bin width for better time resolution
 edges = min(FECTimes_all):binWidth:max(FECTimes_all); % Define bin edges
 
 % Calculate histogram bin counts and edges
