@@ -360,7 +360,8 @@ try
     
     %% init any needed experimenter trial info values
     ExperimenterTrialInfo.TrialNumber = 0;
-    ExperimenterTrialInfo.VisStimInterruptCount = 0;
+    ExperimenterTrialInfo.VisStimInterrupt1Count = 0;
+    ExperimenterTrialInfo.VisStimInterrupt2Count = 0;
     ExperimenterTrialInfo.TotalRewardAmount_uL = 0;
     
     % init PreReward delays
@@ -793,8 +794,8 @@ try
 
         % VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
         %VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
-        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
-        VisDetectGray1_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
+        VisDetect1_StateChangeConditions = {'Tup', 'VisStimInterrupt1', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'};
+        VisDetectGray1_StateChangeConditions = {'Tup', 'VisStimInterrupt1', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'};
         VisualStimulus1_StateChangeConditions = {'BNC1Low', 'WaitForPress1'};
         VisualStimulus1_OutputActions = audStimOpto1;        
         WaitForPress1_StateChangeConditions = {};        
@@ -805,8 +806,8 @@ try
     
         % VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
         %VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
-        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
-        VisDetectGray2_StateChangeConditions = {'Tup', 'VisStimInterrupt', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
+        VisDetect2_StateChangeConditions = {'Tup', 'VisStimInterrupt2', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'};
+        VisDetectGray2_StateChangeConditions = {'Tup', 'VisStimInterrupt2', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'};
         VisualStimulus2_StateChangeConditions = {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'};
         VisualStimulus2_OutputActions = [audStimOpto2 'SoftCode', 7,'RotaryEncoder1', ['E']];
         WaitForPress2_StateChangeConditions = {};
@@ -977,12 +978,14 @@ try
         ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
         ExperimenterTrialInfo.MatlabVer = BpodSystem.Data.MatVer;
 
-        switch S.GUI.SelfTimedMode
-            case 0 
-                ExperimenterTrialInfo.PressVisDelay_s = PressVisDelay_s;
-            case 1                
-                ExperimenterTrialInfo.PrePress2Delay_s = PressVisDelay_s;
-        end
+        % switch S.GUI.SelfTimedMode
+        %     case 0 
+        %         ExperimenterTrialInfo.PressVisDelay_s = PressVisDelay_s;
+        %     case 1                
+        %         ExperimenterTrialInfo.PrePress2Delay_s = PressVisDelay_s;
+        % end
+
+        ExperimenterTrialInfo.PrePress2Delay_s = PressVisDelay_s;
 
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
         disp(strExperimenterTrialInfo);          
@@ -1008,12 +1011,12 @@ try
         %% rep 1
         
         sma = AddState(sma, 'Name', 'VisDetect1', ...
-            'Timer', 0.100,...
+            'Timer', 0.300,...
             'StateChangeConditions', VisDetect1_StateChangeConditions,...
             'OutputActions', VisDetectOutputAction);
     
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
-            'Timer', 0.100,...
+            'Timer', 0.300,...
             'StateChangeConditions', VisDetectGray1_StateChangeConditions,...
             'OutputActions', VisDetectGray1OutputAction);        
     
@@ -1131,7 +1134,12 @@ try
             'StateChangeConditions', {'Tup', 'Punish_ITI'},...
             'OutputActions', Punish_OutputActions); 
     
-        sma = AddState(sma, 'Name', 'VisStimInterrupt', ...
+        sma = AddState(sma, 'Name', 'VisStimInterrupt1', ...
+            'Timer', 0,...
+            'StateChangeConditions', {'Tup', 'ITI'},...
+            'OutputActions', {});
+
+        sma = AddState(sma, 'Name', 'VisStimInterrupt2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {});        
@@ -1276,9 +1284,17 @@ try
   
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt(1))
-                ExperimenterTrialInfo.VisStimInterruptCount = ExperimenterTrialInfo.VisStimInterruptCount+1;
-            end
+            % if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt(1))
+            %     ExperimenterTrialInfo.VisStimInterruptCount = ExperimenterTrialInfo.VisStimInterruptCount+1;
+            % end
+
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt1(1))
+                ExperimenterTrialInfo.VisStimInterrupt1Count = ExperimenterTrialInfo.VisStimInterrupt1Count+1;
+            end      
+
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt2(1))
+                ExperimenterTrialInfo.VisStimInterrupt2Count = ExperimenterTrialInfo.VisStimInterrupt2Count+1;
+            end              
 
             if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward(1))
                 TotalRewardAmount_uL = TotalRewardAmount_uL + RewardAmount_uL;
