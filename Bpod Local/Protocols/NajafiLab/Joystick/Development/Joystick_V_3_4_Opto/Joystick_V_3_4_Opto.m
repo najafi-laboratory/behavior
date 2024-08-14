@@ -360,8 +360,10 @@ try
     
     %% init any needed experimenter trial info values
     ExperimenterTrialInfo.TrialNumber = 0;
-    ExperimenterTrialInfo.VisStimInterrupt1Count = 0;
-    ExperimenterTrialInfo.VisStimInterrupt2Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptDetect1Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptGray1Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptDetect2Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptGray2Count = 0;
     ExperimenterTrialInfo.TotalRewardAmount_uL = 0;
     
     % init PreReward delays
@@ -1010,12 +1012,12 @@ try
         %% rep 1
         
         sma = AddState(sma, 'Name', 'VisDetect1', ...
-            'Timer', 0.300,...
+            'Timer', 0.100,...
             'StateChangeConditions', VisDetect1_StateChangeConditions,...
             'OutputActions', VisDetectOutputAction);
     
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
-            'Timer', 0.300,...
+            'Timer', 0.100,...
             'StateChangeConditions', VisDetectGray1_StateChangeConditions,...
             'OutputActions', VisDetectGray1OutputAction);        
     
@@ -1297,13 +1299,21 @@ try
             %     ExperimenterTrialInfo.VisStimInterruptCount = ExperimenterTrialInfo.VisStimInterruptCount+1;
             % end
 
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt1(1))
-                ExperimenterTrialInfo.VisStimInterrupt1Count = ExperimenterTrialInfo.VisStimInterrupt1Count+1;
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect1(1))
+                ExperimenterTrialInfo.VisStimInterruptDetect1Count = ExperimenterTrialInfo.VisStimInterruptDetect1Count+1;
             end      
 
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt2(1))
-                ExperimenterTrialInfo.VisStimInterrupt2Count = ExperimenterTrialInfo.VisStimInterrupt2Count+1;
-            end              
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray1(1))
+                ExperimenterTrialInfo.VisStimInterruptGray1Count = ExperimenterTrialInfo.VisStimInterruptGray1Count+1;
+            end 
+
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect2(1))
+                ExperimenterTrialInfo.VisStimInterruptDetect2Count = ExperimenterTrialInfo.VisStimInterruptDetect2Count+1;
+            end      
+
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray2(1))
+                ExperimenterTrialInfo.VisStimInterruptGray2Count = ExperimenterTrialInfo.VisStimInterruptGray2Count+1;
+            end                
 
             if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward(1))
                 TotalRewardAmount_uL = TotalRewardAmount_uL + RewardAmount_uL;
