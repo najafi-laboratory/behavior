@@ -609,7 +609,7 @@ try
         % if auto pre reward delay enabled, then set pre reward delay to
         % the minimum of auto value or upper bound
         % otherwise set to gui param
-        if (S.GUI.EnableAutoPreRewardDelay && ...      
+        if S.GUI.EnableAutoPreRewardDelay && ...      
             (WarmupTrialsCounter <= 0))
             PreRewardDelay_s = min(AutoPreRewardDelay_s, S.GUI.AutoPreRewardDelayMax_s); 
             S.GUI.PreRewardDelay_s = AutoPreRewardDelay_s;
