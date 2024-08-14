@@ -302,9 +302,9 @@ try
     
     GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2)];
     
-    BpodSystem.PluginObjects.V.Videos{3} = struct;
-    BpodSystem.PluginObjects.V.Videos{3}.nFrames = GratingFrames + 1; % + 1 for final frame
-    BpodSystem.PluginObjects.V.Videos{3}.Data = [GratingVideo GratingBlank];
+    % BpodSystem.PluginObjects.V.Videos{3} = struct;
+    % BpodSystem.PluginObjects.V.Videos{3}.nFrames = GratingFrames + 1; % + 1 for final frame
+    % BpodSystem.PluginObjects.V.Videos{3}.Data = [GratingVideo GratingBlank];
     
     % compose gray video, fixed ISI
     GrayFrame_SyncW = BpodSystem.PluginObjects.V.Videos{2}.Data(1);
@@ -317,9 +317,9 @@ try
     GratingDur = length(GratingVideo) * (1/FramesPerSecond);
     GrayDur = length(GrayVideo) * (1/FramesPerSecond);
     
-    BpodSystem.PluginObjects.V.Videos{4} = struct;
-    BpodSystem.PluginObjects.V.Videos{4}.nFrames = GrayFixedFrames + 1; % + 1 for final frame
-    BpodSystem.PluginObjects.V.Videos{4}.Data = [GrayVideo GrayBlank];
+    % BpodSystem.PluginObjects.V.Videos{4} = struct;
+    % BpodSystem.PluginObjects.V.Videos{4}.nFrames = GrayFixedFrames + 1; % + 1 for final frame
+    % BpodSystem.PluginObjects.V.Videos{4}.Data = [GrayVideo GrayBlank];
     
     % use init video to set Frame2TTL BNC sync to be low and not miss first frame of vis
     % stim later
@@ -360,8 +360,10 @@ try
     
     %% init any needed experimenter trial info values
     ExperimenterTrialInfo.TrialNumber = 0;
-    ExperimenterTrialInfo.VisStimInterrupt1Count = 0;
-    ExperimenterTrialInfo.VisStimInterrupt2Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptDetect1Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptGray1Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptDetect2Count = 0;
+    ExperimenterTrialInfo.VisStimInterruptGray2Count = 0;
     ExperimenterTrialInfo.TotalRewardAmount_uL = 0;
     
     % init PreReward delays
@@ -603,19 +605,23 @@ try
             (WarmupTrialsCounter <= 0) && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))            
             % disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
+            
             AutoPreRewardDelay_s = AutoPreRewardDelay_s + S.GUI.AutoPreRewardDelayStep_s;
+            disp(['AutoPreRewardDelay_s incremented: ' num2str(AutoPreRewardDelay_s)])
         end
         
         % if auto pre reward delay enabled, then set pre reward delay to
         % the minimum of auto value or upper bound
         % otherwise set to gui param
-        if S.GUI.EnableAutoPreRewardDelay && ...      
+        if (S.GUI.EnableAutoPreRewardDelay && ...      
             (WarmupTrialsCounter <= 0))
             PreRewardDelay_s = min(AutoPreRewardDelay_s, S.GUI.AutoPreRewardDelayMax_s); 
             S.GUI.PreRewardDelay_s = AutoPreRewardDelay_s;
         else
             PreRewardDelay_s = S.GUI.PreRewardDelay_s;
         end
+
+        disp(['using PreRewardDelay_s: ' num2str(PreRewardDelay_s)]);
 
         ExperimenterTrialInfo.PreRewardDelay_s = PreRewardDelay_s;
 
@@ -670,9 +676,11 @@ try
             switch (TrialTypes(currentTrial-1))
                 case 1
                     S.GUI.PrePress2DelayShort_s = min(S.GUI.PrePress2DelayShort_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxShort_s);
+                    % disp(['min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s): ' num2str(min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s))])
                     disp(['PrePress2DelayShort_s incremented: ' num2str(S.GUI.PrePress2DelayShort_s)])
                 case 2
                     S.GUI.PrePress2DelayLong_s = min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s);
+                    % disp(['min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s): ' num2str(min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s))])
                     disp(['PrePress2DelayLong_s incremented: ' num2str(S.GUI.PrePress2DelayLong_s)])
             end            
         end
@@ -1010,12 +1018,12 @@ try
         %% rep 1
         
         sma = AddState(sma, 'Name', 'VisDetect1', ...
-            'Timer', 0.300,...
+            'Timer', 0.100,...
             'StateChangeConditions', VisDetect1_StateChangeConditions,...
             'OutputActions', VisDetectOutputAction);
     
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
-            'Timer', 0.300,...
+            'Timer', 0.100,...
             'StateChangeConditions', VisDetectGray1_StateChangeConditions,...
             'OutputActions', VisDetectGray1OutputAction);        
     
@@ -1297,13 +1305,21 @@ try
             %     ExperimenterTrialInfo.VisStimInterruptCount = ExperimenterTrialInfo.VisStimInterruptCount+1;
             % end
 
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt1(1))
-                ExperimenterTrialInfo.VisStimInterrupt1Count = ExperimenterTrialInfo.VisStimInterrupt1Count+1;
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect1(1))
+                ExperimenterTrialInfo.VisStimInterruptDetect1Count = ExperimenterTrialInfo.VisStimInterruptDetect1Count+1;
             end      
 
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterrupt2(1))
-                ExperimenterTrialInfo.VisStimInterrupt2Count = ExperimenterTrialInfo.VisStimInterrupt2Count+1;
-            end              
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray1(1))
+                ExperimenterTrialInfo.VisStimInterruptGray1Count = ExperimenterTrialInfo.VisStimInterruptGray1Count+1;
+            end 
+
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect2(1))
+                ExperimenterTrialInfo.VisStimInterruptDetect2Count = ExperimenterTrialInfo.VisStimInterruptDetect2Count+1;
+            end      
+
+            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray2(1))
+                ExperimenterTrialInfo.VisStimInterruptGray2Count = ExperimenterTrialInfo.VisStimInterruptGray2Count+1;
+            end                
 
             if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward(1))
                 TotalRewardAmount_uL = TotalRewardAmount_uL + RewardAmount_uL;

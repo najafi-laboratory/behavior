@@ -605,7 +605,9 @@ try
             (WarmupTrialsCounter <= 0) && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))            
             % disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
+            
             AutoPreRewardDelay_s = AutoPreRewardDelay_s + S.GUI.AutoPreRewardDelayStep_s;
+            disp(['AutoPreRewardDelay_s incremented: ' num2str(AutoPreRewardDelay_s)])
         end
         
         % if auto pre reward delay enabled, then set pre reward delay to
@@ -618,6 +620,8 @@ try
         else
             PreRewardDelay_s = S.GUI.PreRewardDelay_s;
         end
+
+        disp(['using PreRewardDelay_s: ' num2str(PreRewardDelay_s)]);
 
         ExperimenterTrialInfo.PreRewardDelay_s = PreRewardDelay_s;
 
@@ -672,9 +676,11 @@ try
             switch (TrialTypes(currentTrial-1))
                 case 1
                     S.GUI.PrePress2DelayShort_s = min(S.GUI.PrePress2DelayShort_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxShort_s);
+                    % disp(['min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s): ' num2str(min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s))])
                     disp(['PrePress2DelayShort_s incremented: ' num2str(S.GUI.PrePress2DelayShort_s)])
                 case 2
                     S.GUI.PrePress2DelayLong_s = min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s);
+                    % disp(['min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s): ' num2str(min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s))])
                     disp(['PrePress2DelayLong_s incremented: ' num2str(S.GUI.PrePress2DelayLong_s)])
             end            
         end
