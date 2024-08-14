@@ -44,18 +44,12 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.EnableAutoDelay = 1;
         S.GUIMeta.EnableAutoDelay.Style = 'checkbox';        
         S.GUI.AutoDelayStep_s = 0.0001;
-
-        S.GUI.AutoDelayStep_s = 0.03;
-
         % S.GUI.AutoDelayMaxVis_s = 0.500;
         % S.GUI.AutoDelayMaxSelf_s = 0.800;  
         % S.GUI.AutoDelayMaxVis_s = 0.300;
         % S.GUI.AutoDelayMaxSelf_s = 0.300;
-
-        S.GUI.AutoDelayMaxShort_s = 0.300;
+        S.GUI.AutoDelayMaxShort_s = 0.100;
         S.GUI.AutoDelayMaxLong_s = 0.300;
-
-
         S.GUI.EnableManualTrialType = 0;
         S.GUIMeta.EnableManualTrialType.Style = 'checkbox';
         S.GUI.ManualTrialType = 1;

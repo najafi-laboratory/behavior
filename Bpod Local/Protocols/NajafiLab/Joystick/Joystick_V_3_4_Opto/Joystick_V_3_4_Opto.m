@@ -1023,7 +1023,7 @@ try
             'OutputActions', VisDetectOutputAction);
     
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
-            'Timer', 0.100,...
+            'Timer', 0.050,...
             'StateChangeConditions', VisDetectGray1_StateChangeConditions,...
             'OutputActions', VisDetectGray1OutputAction);        
     
@@ -1060,7 +1060,7 @@ try
             'OutputActions', VisDetectOutputAction);  % ~50ms
     
         sma = AddState(sma, 'Name', 'VisDetectGray2', ...
-            'Timer', 0.100,...
+            'Timer', 0.050,...
             'StateChangeConditions', VisDetectGray2_StateChangeConditions,...
             'OutputActions', VisDetectGray2OutputAction);          
     
@@ -1331,6 +1331,11 @@ try
         end
         HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
+            PrintInterruptLog(BpodSystem);
+
+
+
+
             BpodSystem.PluginObjects.V = [];
             % BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
             BpodSystem.PluginObjects.R.stopUSBStream; % Stop streaming position data
@@ -1439,4 +1444,110 @@ function SetRigID(BpodSystem)
             BpodSystem.Data.RigName = 'JoystickRig';
     end
 end
+
+function PrintInterruptLog(BpodSystem)
+    % err report log file
+    % recording error and stack information to file
+    t = datetime;
+    session_date = 10000*(year(t)-2000) + 100*month(t) + day(t);
+    
+    % get session file name
+    [SessionFilepath, SessionFileName, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
+
+    % LogFileDir = 'C:\data analysis\behavior\joystick\logs\';
+    LogFileDir = 'C:\Users\gtg424h\OneDrive - Georgia Institute of Technology\Najafi_Lab\0_Data_analysis\InterruptLogs\';    
+    % LogFileName = [LogFileDir, num2str(session_date), '_BPod-matlab_interrupt_log_', SessionFileName];    
+    LogFileName = [LogFileDir, SessionFileName, '_InterruptCount'];
+
+    % make crash log folder if it doesn't already exist
+    [status, msg, msgID] = mkdir(LogFileDir);
+
+    % save workspace variables associated with session
+    Data = BpodSystem.Data;
+    save(LogFileName, 'Data');
+    % add more workspace vars if needed
+
+    %open file
+    fid = fopen([LogFileName, '.txt'],'a+');
+
+    %current windows username
+    % username=getenv('USERNAME');
+    % fprintf(fid,'%s\n\n', username);
+
+    % write session associated with error
+    fprintf(fid,'%s\n\n', SessionFileName);
+
+    % date
+    fprintf(fid,'%s\n\n', num2str(session_date));
+
+    switch BpodSystem.Data.RigName
+        case 'ImagingRig'
+            % S.GUI.ServoInPos = 1570.00; % lever start pos
+            % S.GUI.ServoOutPos = 34; % can press lever
+            fprintf(fid,'%s\n\n', 'Imaging Rig');
+        case 'JoystickRig'
+            % rig specs
+            fprintf(fid,'%s\n\n', 'Joystick Rig - Behavior Room');
+    end
+
+    SessionData = BpodSystem.Data;
+
+    VisStimInterruptDetect1Count = 0;
+    VisStimInterruptGray1Count = 0;
+    VisStimInterruptDetect2Count = 0;
+    VisStimInterruptGray2Count = 0;
+
+    for trial = 1:SessionData.nTrials  
+
+        VisStimInterruptDetect1 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptDetect1;
+        if ~isnan(VisStimInterruptDetect1)
+            VisStimInterruptDetect1Count = VisStimInterruptDetect1Count + 1;
+        end
+
+        VisStimInterruptGray1 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptGray1;
+        if ~isnan(VisStimInterruptGray1)
+            VisStimInterruptGray1Count = VisStimInterruptGray1Count + 1;
+        end
+    
+        VisStimInterruptDetect2 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptDetect2;
+        if ~isnan(VisStimInterruptDetect2)
+            VisStimInterruptDetect2Count = VisStimInterruptDetect2Count + 1;
+        end
+
+        VisStimInterruptGray2 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptGray2;
+        if ~isnan(VisStimInterruptGray2)
+            VisStimInterruptGray2Count = VisStimInterruptGray2Count + 1;
+        end        
+
+
+    end
+
+    fprintf(fid,'%s', 'VisStimInterruptDetect1Count    ');
+    fprintf(fid,'%s\n', num2str(VisStimInterruptDetect1Count));
+
+    fprintf(fid,'%s', 'VisStimInterruptGray1Count    ');
+    fprintf(fid,'%s\n', num2str(VisStimInterruptGray1Count));
+
+    fprintf(fid,'%s', 'VisStimInterruptDetect2Count    ');
+    fprintf(fid,'%s\n', num2str(VisStimInterruptDetect2Count));
+
+    fprintf(fid,'%s', 'VisStimInterruptGray2Count    ');
+    fprintf(fid,'%s\n', num2str(VisStimInterruptGray2Count)); 
+end
+
+
+
+% 
+% setpref('Internet','E_mail','gtg424h@gatech.edu');
+% 
+% 
+% sendmail('gtg424h@gatech.edu','New subject', ...
+% ['Line1 of message' 10 'Line2 of message' 10 ...
+% 'Line3 of message' 10 'Line4 of message'])
+% 
+% 
+% setpref('Internet','SMTP_Server','mail.gatech.edu');
+% 
+
+
 
