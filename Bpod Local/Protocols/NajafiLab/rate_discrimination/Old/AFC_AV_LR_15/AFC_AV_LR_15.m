@@ -435,7 +435,7 @@ LastNumISIOrigRep = S.GUI.NumISIOrigRep;  % Remember value of initial segment re
 
 % BpodSystem.PluginObjects.V.loadVideo(1, MyVideoL);
 % BpodSystem.PluginObjects.V.loadVideo(2, MyVideoR);
-BpodSystem.PluginObjects.V.TimerMode = 0;
+BpodSystem.PluginObjects.V.TimerMode = 1;
 pause(1.0); % matlab seems to require a pause here before clearing screen with play(0), 
             % otherwise can get stuck on Psychtoolbox splash screen
             % might need longer delay if purple image hangs on window open
@@ -444,6 +444,7 @@ BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_PlayVideo';
 
 BpodSystem.PluginObjects.V.play(6);
 BpodSystem.PluginObjects.V.TimerMode = 2;
+disp(BpodSystem.PluginObjects.V.TimerMode)
 % wait for parameter update and confirm before beginning trial loop
 input('Set parameters and press enter to continue >', 's'); 
 S = BpodParameterGUI('sync', S);
@@ -1270,7 +1271,7 @@ for currentTrial = 1:MaxTrials
     %AudioStimSound = GenerateSineWave(SF, S.GUI.AudioStimFreq_Hz, S.GUI.GratingDur_s); % Sampling freq (hz), Sine frequency (hz), duration (s)
     
     %H.load(4, AudioStimSound);
-    viss
+    % viss
     %VideoPrePerturbPattern = [GratingVideo GrayVideo]; % base video pattern for initial segment repetitions of grating->gray
     %VideoData = [repmat(VideoPrePerturbPattern, 1, S.GUI.NumISIOrigRep) GratingVideo]; % construct initial video segment, add one more grating video after initial repetitions
         

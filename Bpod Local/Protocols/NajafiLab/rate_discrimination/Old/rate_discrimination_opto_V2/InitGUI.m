@@ -10,20 +10,18 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.SessionType = 1;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};        
-        S.GUI.PulseType = 2;
+        S.GUI.PulseType = 3;
         S.GUIMeta.PulseType.Style = 'popupmenu';
-        S.GUIMeta.PulseType.String = {'On', 'Square', 'Sinusoidal'};
-        S.GUI.MaxOptoDur = 2.5;
-        S.GUI.PulseFreq_Hz = 50;
-        S.GUI.PulseOnDur_ms = 5;   
-        S.GUI.LEDOnPulseDur = 0.0078;
-        S.GUI.OptoFreq = 0.100;
+        S.GUIMeta.PulseType.String = {'ContinuousOpto', 'SquareWaveOpto_ContinuousShutter', 'SquareWaveOpto_PulsedShutter'};
+        S.GUI.MaxOptoDur_s = 20;
+        S.GUI.LEDOnPulseDur_ms = 5;
+        S.GUI.LEDOffPulseDur_ms = 15;
         S.GUI.OptoTrialTypeSeq = 1;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block'};
-        S.GUI.OnFraction = 1; % S.GUI.OnFraction = 0.4;
+        S.GUI.OnFraction = 0.3;
         S.GUI.NumOptoTrialsPerBlock = 50;          
-        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur', 'PulseFreq_Hz', 'PulseOnDur_ms', 'LEDOnPulseDur', 'OptoFreq', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
+        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock'};
         
         % chemogentic
         S.GUI.ChemoSession = 0;
@@ -57,9 +55,9 @@ function [S] = SetParams(obj, BpodSystem)
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
         S.GUIMeta.EnableMovingSpouts.Style = 'checkbox';
-        S.GUI.RightServoInPos = 1130.50;
-        S.GUI.LeftServoInPos = 1711.00;
-        S.GUI.ServoDeflection = -122.5;
+        S.GUI.RightServoInPos = 1160;
+        S.GUI.LeftServoInPos = 1940;
+        S.GUI.ServoDeflection = -100;
         S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
         % difficulty params

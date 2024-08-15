@@ -54,9 +54,9 @@ function [S] = SetParams(obj, BpodSystem)
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
         S.GUIMeta.EnableMovingSpouts.Style = 'checkbox';
-        S.GUI.RightServoInPos = 1130.50;
-        S.GUI.LeftServoInPos = 1711.00;
-        S.GUI.ServoDeflection = -122.5;
+        S.GUI.RightServoInPos = 1160;
+        S.GUI.LeftServoInPos = 1690;
+        S.GUI.ServoDeflection = -100;
         S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
 
         % difficulty params
@@ -123,7 +123,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFraction', 'FarMoveSpout', 'FarMoveSpoutPos'};
 
         % choice params
-        S.GUI.ChoiseWindowStartDelay = 0.1;
+        S.GUI.ChoiseWindowStartDelay = 0.5;
         S.GUI.ManualChoiceWindow = 0;
         S.GUIMeta.ManualChoiceWindow.Style = 'checkbox';
         S.GUI.ChoiceWindow_s = 5;

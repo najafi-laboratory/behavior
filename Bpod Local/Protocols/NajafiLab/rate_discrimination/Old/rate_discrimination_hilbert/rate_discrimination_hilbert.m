@@ -3,9 +3,10 @@ function rate_discrimination_hilbert
 global BpodSystem
 global M
 
+
 EnableMovingSpouts = 0;
-EnablePassive      = 0;
-PassiveSessMode    = 1; %1: omission; 2:ISI
+EnablePassive      = 1;
+PassiveSessMode    = 2; %1: omission; 2:ISI
 MonitorID          = 2;
 
 

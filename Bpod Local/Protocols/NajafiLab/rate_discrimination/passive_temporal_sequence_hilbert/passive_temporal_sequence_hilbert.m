@@ -182,7 +182,6 @@ function passive_temporal_sequence_hilbert
         if (currentTrial == 1)
             pause(S.GUI.SpontSilenceTimeSess)
         end
-        sma = NewStateMatrix();
         
 
         %% construct vis stim videos and audio stim
@@ -197,11 +196,13 @@ function passive_temporal_sequence_hilbert
 
 
         %% construct state matrix
-
+        
+        sma = NewStateMatrix();
+        
         % opto and shutter control
         [sma] = m_OptoConfig.SetOpto(S, sma, OptoSeq, currentTrial);
 
-        if OptoTypes(currentTrial)
+        if OptoSeq(currentTrial).Type ~= 0
             AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '011'};
         else
             AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4]};

@@ -170,7 +170,7 @@ function [S] = UpdatePassive(obj, S, EnablePassive, PassiveSessMode)
                 S.GUI.OmiProb = 0.20;
                 S.GUI.OmiMinInterval = 3; % min gratings before an omission is allowed
                 S.GUI.MaxTrials = 4*S.GUI.TrialPerBlock;  % number of blocks x number of trials per block
-                S.GUI.SpontSilenceTime = 300; % no-stim interval at the beginning, end, and in between blocks
+                S.GUI.SpontSilenceTime = 0; % no-stim interval at the beginning, end, and in between blocks
 
             case 2 % pre-post 
                 S.GUI.SetManualITI = 1;
@@ -182,7 +182,7 @@ function [S] = UpdatePassive(obj, S, EnablePassive, PassiveSessMode)
                 S.GUI.RandomISIWid = 0.25;
                 S.GUI.ActOmi = 0;
                 S.GUI.MaxTrials = 4*S.GUI.TrialPerBlock;
-                S.GUI.SpontSilenceTime = 300;
+                S.GUI.SpontSilenceTime = 0;
         end
     end
 end
