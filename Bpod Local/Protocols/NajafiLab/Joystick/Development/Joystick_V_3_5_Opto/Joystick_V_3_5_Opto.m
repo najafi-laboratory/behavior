@@ -33,6 +33,9 @@ try
     % get computer host name
     % 'COS-3A11406' - Imaging Rig
     % 'COS-3A11427' - Joystick Rig
+    % 'COS-3A17904' - Joystick Rig2
+
+
     SetRigID(BpodSystem)
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
@@ -44,8 +47,15 @@ try
     H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1);
     
     %% Connect Maestro
-    disp('Connecting Maestro...');
-    M = PololuMaestro('COM15');    
+    disp('Connecting Maestro...');     
+    switch BpodSystem.Data.RigName
+        case 'ImagingRig'
+            % M = PololuMaestro('COM8'); 
+        case 'JoystickRig'
+            % M = PololuMaestro('COM8'); 
+        case 'JoystickRig2'
+            M = PololuMaestro('COM8');             
+    end 
     
     %% Assert Stepper + Rotary Encoder modules are present + USB-paired (via USB button on console GUI)
     disp('Connecting Encoder...');
@@ -91,7 +101,7 @@ try
     set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 818]);
 
     %% sequence tester - see versions joystick_V_1_3 if trial type testing for proto mods is needed
-     inx = 0;
+     inx = 1;
     currentTrial = 1;
     PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
     PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
@@ -273,6 +283,8 @@ try
             MonitorID = 2;
         case 'JoystickRig'
             MonitorID = 1;
+        case 'JoystickRig2'
+            MonitorID = 1;            
     end    
 
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
@@ -1514,6 +1526,8 @@ function SetRigID(BpodSystem)
             BpodSystem.Data.RigName = 'ImagingRig';
         case 'COS-3A11427'
             BpodSystem.Data.RigName = 'JoystickRig';
+        case 'COS-3A17904'
+            BpodSystem.Data.RigName = 'JoystickRig2';
     end
 end
 
@@ -1560,6 +1574,9 @@ function PrintInterruptLog(BpodSystem)
         case 'JoystickRig'
             % rig specs
             fprintf(fid,'%s\n\n', 'Joystick Rig - Behavior Room');
+        case 'JoystickRig2'
+            % rig specs
+            fprintf(fid,'%s\n\n', 'Joystick Rig2 - Behavior Room');            
     end
 
     SessionData = BpodSystem.Data;
