@@ -254,6 +254,8 @@ function rate_discrimination_opto_V1_1
     
         % combine full video
         VisStim.Data.Full = m_AVstimConfig.GetFullVideo(S, VisStim, FPS);
+
+        
     
         % load constructed video into the video object
         BpodSystem.PluginObjects.V.Videos{25} = struct;

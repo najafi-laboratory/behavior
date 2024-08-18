@@ -84,14 +84,13 @@ function [sma] = SetOpto(obj, S, sma, OptoSeq, currentTrial)
     LEDOnsetDelay = OptoSetup.TimeOn; 
     PMTOnsetDelay = LEDOnsetDelay - PMTCloseDelay;
     % 10Hz pulsed shutter/opto, 7.8ms LED
-    LEDOnPulseDur = S.GUI.LEDOnPulseDur;
-    LEDOffDur = S.GUI.OptoFreq - LEDOnPulseDur;
+    LEDOffDur = S.GUI.OptoFreq - S.GUI.LEDOnPulseDur;
     % PMT shutter signal 5V and 0V durations           
     PMT5VDur = PMTCloseDelay; % set PMT5V dur initially to shutter close delay
     % if the LED is on for longer than the shutter StartOpenDelay,
     % then increase shutter 5V duration by the difference (LEDOnPulseDur - PMTStartOpenDelay)
-    if LEDOnPulseDur > PMTStartOpenDelay
-        PMT5VDur = PMT5VDur + (LEDOnPulseDur - PMTStartOpenDelay);
+    if S.GUI.LEDOnPulseDur > PMTStartOpenDelay
+        PMT5VDur = PMT5VDur + (S.GUI.LEDOnPulseDur - PMTStartOpenDelay);
     end
     % if shutter duration is less than the minimum dur for the
     % shutter to re-open, set it to minimum shutter pulse dur
@@ -101,7 +100,7 @@ function [sma] = SetOpto(obj, S, sma, OptoSeq, currentTrial)
     % integer number of pmt/led cycles within pre + post grating onset
     numPMTLEDCycles = floor(OptoSetup.TimeDur / S.GUI.OptoFreq);
     % LED timers
-    sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LEDOnPulseDur, 'OnsetDelay', LEDOnsetDelay,...
+    sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', S.GUI.LEDOnPulseDur, 'OnsetDelay', LEDOnsetDelay,...
         'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
         'Loop', numPMTLEDCycles, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
         'GlobalTimerEvents', 0, 'OffsetValue', 0);

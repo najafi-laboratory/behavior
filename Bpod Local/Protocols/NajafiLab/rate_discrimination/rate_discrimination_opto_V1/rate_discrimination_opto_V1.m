@@ -3,7 +3,7 @@ function rate_discrimination_opto_V1
     global BpodSystem
     global M
     
-    EnableMovingSpouts = 0;
+    EnableMovingSpouts = 1;
     MonitorID          = 2;
     EnableOpto         = 0;
 
@@ -40,7 +40,7 @@ function rate_discrimination_opto_V1
     %% Connect Maestro
     
     if (EnableMovingSpouts == 1)
-        M = PololuMaestro('COM5');
+        M = PololuMaestro('COM15');
         M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection));
         M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));
     end

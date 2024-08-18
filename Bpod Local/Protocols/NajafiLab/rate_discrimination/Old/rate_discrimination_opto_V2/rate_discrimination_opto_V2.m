@@ -22,6 +22,11 @@ function rate_discrimination_opto_V2
     
     BpodSystem.setStatusLED(0);
 
+    %% Get computer host name
+    % 'COS-3A11406' - Imaging Rig
+    % 'COS-3A11427' - Joystick Rig
+    SetRigID(BpodSystem)    
+
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
@@ -275,32 +280,26 @@ function rate_discrimination_opto_V2
             VisStim.Data.VisStimDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
         end
 
-    
+        % Set duration of opto to match visual stimulus duration
+        OptoDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
+
         %% Generate audio stim based on vis stim for this trial, account for shift due to gray frames
-        
-        % m_AVstimConfig.ConfigFullAudioStim( ...
-        %     H, S, VisStim, SF, Envelope);       
         
         [FullAudio] = m_AVstimConfig.GenAudioStim( ...
         S, VisStim, SF, Envelope);
         
-
         % shift audio to account for opto gray frames
-        % VideoOptoDelayDur = (length(VideoOptoDelay) - 1) * (1/FramesPerSecond); % for audio sync, subtract variable start frame 
-        % VideoOptoDelayDur = VisStim.Data.OptoGrayDur;
-        % fps-based frame dur is inaccurate, measure dur per rig
-        % measured gray f1, f2 duration, also used for led/pmt onset
         VideoOptoDelayDur = 0.032292;
-        % m_AVstimConfig.GetVideoDur(FPS, OptoGrayFrames);
 
-        OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF; % get duration of gray opto delay in number of audio samples for period between audio stim 
+        OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF;
+        % get duration of gray opto delay in number of audio samples for period between audio stim 
     
         OptoAudioStimOffset = zeros(1, floor(OptoAudioStimOffsetNumSamples));
 
         OptoAudioStimSound = [OptoAudioStimOffset FullAudio];       
 
         H.load(5, OptoAudioStimSound);
-        % H.load(7, OptoAudioStimSound);
+
         
         %% trial target
         % port1:left, port2:center, port3:right
@@ -354,7 +353,7 @@ function rate_discrimination_opto_V2
 
         %% set opto pmt shutter and LED timers
         % sma = m_Opto.SetOpto(S, sma, VisStimDuration, OptoTypes, currentTrial);
-        sma = m_Opto.SetOpto(S, sma, VisStim, OptoTypes, currentTrial);
+        sma = m_Opto.SetOpto(BpodSystem, S, sma, OptoDuration, OptoTypes, currentTrial);
 
         switch S.GUI.TrainingLevel
             case 1 % naive
@@ -442,3 +441,17 @@ function rate_discrimination_opto_V2
     clear global M;
     BpodSystem.PluginObjects.V = [];
     BpodSystem.setStatusLED(1);
+end
+
+function SetRigID(BpodSystem)
+    BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
+    BpodSystem.Data.RigName = '';
+    switch BpodSystem.Data.ComputerHostName
+        case 'COS-3A11406'
+            BpodSystem.Data.RigName = 'ImagingRig';
+        case 'COS-3A11427'
+            BpodSystem.Data.RigName = 'JoystickRig';
+        case 'COS-3A11264'
+            BpodSystem.Data.RigName = 'Rig2';
+    end
+end

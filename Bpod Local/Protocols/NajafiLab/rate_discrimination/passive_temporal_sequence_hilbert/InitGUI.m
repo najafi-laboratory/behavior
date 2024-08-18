@@ -17,10 +17,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.AudVisStim = {'AudioStimEnable', 'AudioStimVolume_percent', 'AudioStimFreq_Hz', 'VisStimEnable', 'GratingDur_s'};
 
         % passive general
-        S.GUI.MaxImg = 100; % 1000 1500 2000 2500
+        S.GUI.MaxImg = 1500;
         S.GUI.OrienBlockNumMin = 10;
         S.GUI.OrienBlockNumMax = 15;
-        S.GUI.SpontSilenceTimeSess = 0;
+        S.GUI.SpontSilenceTimeSess = 300;
         S.GUIPanels.Passive = {'MaxImg', 'OrienBlockNumMin', 'OrienBlockNumMax', 'SpontSilenceTimeSess'};
         
         % oddball
@@ -58,14 +58,14 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoMode = 1;
         S.GUIMeta.OptoMode.Style = 'popupmenu';
         S.GUIMeta.OptoMode.String = {'off', 'on', 'default', 'Random', 'Block'};
-        S.GUI.OptoProb = 0.35;
+        S.GUI.OptoProb = 0.5;
         S.GUI.OptoOnPreStim = 0.2;
         S.GUI.OptoOffPostStim = 0.4;
         S.GUI.OptoIntervalOdd = 0.2;
         S.GUI.LEDOnPulseDur = 0.0078;
         S.GUI.OptoFreq = 0.1;
         S.GUI.OptoAvoidFrameStart = 2;
-        S.GUI.OptoAvoidFrameBetween = 2;
+        S.GUI.OptoAvoidFrameBetween = 1;
         S.GUIPanels.Opto = {'OptoMode', 'OptoProb', 'OptoOnPreStim', 'OptoOffPostStim', 'OptoIntervalOdd', 'LEDOnPulseDur', 'OptoFreq', 'OptoAvoidFrameStart', 'OptoAvoidFrameBetween'};    
     end
 end

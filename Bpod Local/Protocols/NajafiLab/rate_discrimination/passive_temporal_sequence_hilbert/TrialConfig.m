@@ -135,6 +135,7 @@ function [OptoTypes] = GenOptoTypes( ...
             OptoTypes(IdxOddPicked) = 1;
             % post oddball
             IdxPostOdd = IdxOdd + 1;
+            IdxPostOdd = IdxPostOdd(1:end-1);
             ValidIdxPostOdd = IdxPostOdd(ismember(TrialTypes(IdxPostOdd), [2, 3, 4, 5]));
             NotIdxOddPicked = setdiff(ValidIdxPostOdd, IdxOddPicked + 1);
             NumPicked = round(S.GUI.OptoProb * length(NotIdxOddPicked));

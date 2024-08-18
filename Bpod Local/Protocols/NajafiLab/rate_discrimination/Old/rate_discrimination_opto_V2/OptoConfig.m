@@ -110,11 +110,27 @@ function [AudStimOpto] = GetAudStimOpto(obj, OptoTrialType)
     end
 end
 
-function [sma] = SetOpto(obj, S, sma, VisStim, OptoTypes, currentTrial)
+function [sma] = SetOpto(obj, BpodSystem, S, sma, OptoDuration, OptoTypes, currentTrial)
     if OptoTypes(currentTrial)
 % VisStim.Data.VisStimDuration
-        % measured gray f1, f2 duration
-        OptoGrayDurMeas = 0.032292;
+        % initial gray frame vis stim offset, statistical delay of
+        % 2 frames at 60fps
+        VisStimShift = 0;
+        switch BpodSystem.Data.RigName
+            case 'ImagingRig'
+                % % measured gray f1, f2 duration
+                % VisStimShift = 0.032292;
+                VisStimShift = 0.0329645; % f1 + f2 - imaging rig              
+            case 'JoystickRig'
+                % VisStimShift = 0.031698; % f1 + f2 - joystick rig
+                f1 = 0.0153655; % gray f1 dur
+                f2 = 0.0176069; % gray f2 dur
+                VisStimShift = f1 + f2; % f1 + f2 - joystick rig
+            case 'Rig2'
+                % % measured gray f1, f2 duration
+                VisStimShift = 0.0325; % f1 + f2 - imaging rig
+        end
+
 
         % pmt shutter delay timings are from Bruker specs, the actual
         % timings are a bit different, and vary between green/red PMTs, but these work for pulsing opto
@@ -130,30 +146,32 @@ function [sma] = SetOpto(obj, S, sma, VisStim, OptoTypes, currentTrial)
         % paddedISIseq = [ISIseq(1), ISIseq];
         % LEDOnsetDelay = paddedISIseq(currentTrial)/2 - S.GUI.OptoPreVisOnset;
         % LEDOnsetDelay = VisStim.Data.OptoGrayDur;
-        LEDOnsetDelay = OptoGrayDurMeas;
+        LEDOnsetDelay = VisStimShift;
 
         PMTOnsetDelay = LEDOnsetDelay - PMTCloseDelay;
         % 10Hz pulsed shutter/opto, 7.8ms LED
-        LEDOnPulseDur = S.GUI.LEDOnPulseDur;
-        LEDOffDur = S.GUI.OptoFreq - LEDOnPulseDur;
+        LEDOnDur = S.GUI.LEDOnPulseDur_ms/1000;
+        LEDOffDur = S.GUI.LEDOffPulseDur_ms/1000;
+        T = LEDOnDur + LEDOffDur;
         % PMT shutter signal 5V and 0V durations           
         PMT5VDur = PMTCloseDelay; % set PMT5V dur initially to shutter close delay
         % if the LED is on for longer than the shutter StartOpenDelay,
-        % then increase shutter 5V duration by the difference (LEDOnPulseDur - PMTStartOpenDelay)
-        if LEDOnPulseDur > PMTStartOpenDelay
-            PMT5VDur = PMT5VDur + (LEDOnPulseDur - PMTStartOpenDelay);
+        % then increase shutter 5V duration by the difference (LEDOnDur - PMTStartOpenDelay)
+        if LEDOnDur > PMTStartOpenDelay
+            PMT5VDur = PMT5VDur + (LEDOnDur - PMTStartOpenDelay);
         end
         % if shutter duration is less than the minimum dur for the
         % shutter to re-open, set it to minimum shutter pulse dur
         PMT5VDur = max(PMT5VDur, PMTMin5VSignalDur);
         % duration of LED pulse 0V is cycle period minus 5V dur
-        PMT0VDur =  S.GUI.OptoFreq - PMT5VDur;
+        PMT0VDur =  T - PMT5VDur;
         % integer number of pmt/led cycles within pre + post grating onset
         % numPMTLEDCycles = floor((S.GUI.OptoPreVisOnset + S.GUI.GratingDur_s + S.GUI.OptoPostVisOnset) / S.GUI.OptoFreq);     
-        numPMTLEDCycles = min(S.GUI.MaxOptoDur, VisStim.Data.VisStimDuration)/S.GUI.OptoFreq;
+        % numPMTLEDCycles = min(S.GUI.MaxOptoDur_s, VisStim.Data.VisStimDuration)/T;
+        numPMTLEDCycles = floor(min(S.GUI.MaxOptoDur_s, OptoDuration)/T);
 
         % LED timers
-        sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LEDOnPulseDur, 'OnsetDelay', LEDOnsetDelay,...
+        sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LEDOnDur, 'OnsetDelay', LEDOnsetDelay,...
             'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
             'Loop', numPMTLEDCycles, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
             'GlobalTimerEvents', 0, 'OffsetValue', 0);

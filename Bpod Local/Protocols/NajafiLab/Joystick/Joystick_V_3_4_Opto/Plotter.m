@@ -19,6 +19,18 @@ function UpdateOutcomePlot(obj, BpodSystem, TrialTypes, OptoTrialTypes, isEndOfT
                     disp('Outcome: Punish');
                 end
                 Outcomes(x) = 0;    % draws red circle on outcome plot
+            elseif ( isfield(Data.RawEvents.Trial{x}.States, 'EarlyPress1Punish') && ...
+                    ~isnan(Data.RawEvents.Trial{x}.States.EarlyPress1Punish(1)))
+                if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured
+                    disp('Outcome: EarlyPress1Punish');
+                end
+                Outcomes(x) = 0;    % draws red circle on outcome plot
+            elseif ( isfield(Data.RawEvents.Trial{x}.States, 'EarlyPress2Punish') && ...
+                    ~isnan(Data.RawEvents.Trial{x}.States.EarlyPress2Punish(1)))
+                if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured
+                    disp('Outcome: EarlyPress2Punish');
+                end
+                Outcomes(x) = 0;    % draws red circle on outcome plot                
             else
                 if (x == Data.nTrials && isEndOfTrial)  % only print outcome to console for the trial that just occured          
                     disp('Outcome: Other');
