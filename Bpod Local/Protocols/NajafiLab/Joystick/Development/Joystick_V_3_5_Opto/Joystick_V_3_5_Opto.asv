@@ -33,6 +33,9 @@ try
     % get computer host name
     % 'COS-3A11406' - Imaging Rig
     % 'COS-3A11427' - Joystick Rig
+    % 'COS-3A17904' - Joystick Rig2
+
+
     SetRigID(BpodSystem)
     
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
@@ -44,8 +47,15 @@ try
     H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1);
     
     %% Connect Maestro
-    disp('Connecting Maestro...');
-    M = PololuMaestro('COM15');    
+    disp('Connecting Maestro...');     
+    switch BpodSystem.Data.RigName
+        case 'ImagingRig'
+            M = PololuMaestro('COM15'); 
+        case 'JoystickRig'
+            % M = PololuMaestro('COM8'); 
+        case 'JoystickRig2'
+            M = PololuMaestro('COM8');             
+    end 
     
     %% Assert Stepper + Rotary Encoder modules are present + USB-paired (via USB button on console GUI)
     disp('Connecting Encoder...');
@@ -83,7 +93,7 @@ try
     BpodSystem.GUIHandles.OutcomePlot = axes('Position', [.075 .35 .89 .55]);
     
     % trial type outcomes for opto
-    TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes);
+    TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
     % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
      
@@ -91,7 +101,7 @@ try
     set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 818]);
 
     %% sequence tester - see versions joystick_V_1_3 if trial type testing for proto mods is needed
-     inx = 0;
+    inx = 1;
     currentTrial = 1;
     PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
     PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
@@ -136,9 +146,11 @@ try
         
 
         [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
         [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 1);
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
         % [EpochStartIdxs] = m_TrialConfig.GetEpochIdxs;
         % test = abs(diff(TrialTypes))
         % EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1)]
@@ -187,7 +199,8 @@ try
             ProbeTrialTypes(currentTrial:end) = ProbeTrialTypesAdded(1:length(OptoTrialTypes) - currentTrial + 1);
 
         end
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
         currentTrial = currentTrial + 1;
         disp(['currentTrial:', num2str(currentTrial)])
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
@@ -195,15 +208,42 @@ try
         % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update', TrialTypes);
         
     end
-
-
+    % updateTrialTypeSequence = 1;
+    % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
+    % ProbeTrialTypes = repmat(0, 1, S.GUI.MaxTrials);
+    % if (S.GUI.ProbeTrialFraction > 0)
+    %     edgeOffset = 2;
+    %     numTrialsAddedToSequence = 0;
+    %     ProbeTrialTypesAdded = [];
+    %     EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1), (S.GUI.MaxTrials + 1)];
+    %     % S.GUI.MaxTrials - EpochStartIdxs(end)
+    %     BlockLengths = [diff(EpochStartIdxs) (S.GUI.MaxTrials - EpochStartIdxs(end))];
+    %     BlockEpochIdx = 1;
+    %     while numTrialsAddedToSequence < S.GUI.MaxTrials
+    % 
+    %         numProbeTrialsToAdd = 0;
+    %         ProbeTrialTypesToAdd = [];
+    %         ProbeTrialTypesToAdd = [repmat(0, 1, BlockLengths(BlockEpochIdx) - 2*edgeOffset)];
+    %         numProbeTrialsToAdd = ceil(S.GUI.ProbeTrialFraction * length(ProbeTrialTypesToAdd));
+    %         if BlockLengths(BlockEpochIdx) > 2*edgeOffset
+    %             numProbeTrialsToAdd_idxs = randperm(length(ProbeTrialTypesToAdd), numProbeTrialsToAdd) + edgeOffset;
+    %             ProbeTrialTypesToAdd(numProbeTrialsToAdd_idxs) = 1;
+    %             ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(0, 1, edgeOffset)];                     
+    %         else                    
+    %             ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(0, 1, BlockLengths(BlockEpochIdx))];
+    %         end
+    %         ProbeTrialTypesAdded = [ProbeTrialTypesAdded ProbeTrialTypesToAdd];
+    %         numTrialsAddedToSequence = length(ProbeTrialTypesAdded);
+    %         BlockEpochIdx = BlockEpochIdx + 1;
+    %     end
+    %     ProbeTrialTypes(currentTrial:end) = ProbeTrialTypesAdded(1:length(OptoTrialTypes) - currentTrial + 1);
+    % end
 
 
 
     % init opto trial types
     currentTrial = 1;
-    [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 1);
-    m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+    [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 1);    
 
     % store trial type params
     PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
@@ -273,6 +313,8 @@ try
             MonitorID = 2;
         case 'JoystickRig'
             MonitorID = 1;
+        case 'JoystickRig2'
+            MonitorID = 1;            
     end    
 
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
@@ -357,6 +399,7 @@ try
     
     GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2)];
     
+    
     % BpodSystem.PluginObjects.V.Videos{3} = struct;
     % BpodSystem.PluginObjects.V.Videos{3}.nFrames = GratingFrames + 1; % + 1 for final frame
     % BpodSystem.PluginObjects.V.Videos{3}.Data = [GratingVideo GratingBlank];
@@ -366,7 +409,11 @@ try
     GrayFrame_SyncBlk = BpodSystem.PluginObjects.V.Videos{2}.Data(2);
     GrayBlank = BpodSystem.PluginObjects.V.Videos{2}.Data(3);
     GrayPattern = [GrayFrame_SyncBlk GrayFrame_SyncBlk];
+    GrayProbePattern =  [GrayFrame_SyncW GrayFrame_SyncW];
     GrayVideo = [repmat(GrayPattern, 1, GrayFixedFrames/2)];
+    
+    % gray probe video same duration as grating video
+    ProbeGrayVideo = [repmat(GrayProbePattern, 1, GratingFrames/2)];
     
     % update durations based on number of frames generated
     GratingDur = length(GratingVideo) * (1/FramesPerSecond);
@@ -393,6 +440,45 @@ try
     BpodSystem.PluginObjects.V.play(0);
     BpodSystem.PluginObjects.V.play(6);
     BpodSystem.PluginObjects.V.TimerMode = 2;
+
+    % update trial types before starting session
+    updateTrialTypeSequence = 1;
+    [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
+    ProbeTrialTypes = repmat(0, 1, S.GUI.MaxTrials);
+    if (S.GUI.ProbeTrialFraction > 0)
+        edgeOffset = 2;
+        numTrialsAddedToSequence = 0;
+        ProbeTrialTypesAdded = [];
+        EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1), (S.GUI.MaxTrials + 1)];
+        % S.GUI.MaxTrials - EpochStartIdxs(end)
+        BlockLengths = [diff(EpochStartIdxs) (S.GUI.MaxTrials - EpochStartIdxs(end))];
+        BlockEpochIdx = 1;
+        while numTrialsAddedToSequence < S.GUI.MaxTrials
+            
+            numProbeTrialsToAdd = 0;
+            ProbeTrialTypesToAdd = [];
+            ProbeTrialTypesToAdd = [repmat(0, 1, BlockLengths(BlockEpochIdx) - 2*edgeOffset)];
+            numProbeTrialsToAdd = ceil(S.GUI.ProbeTrialFraction * length(ProbeTrialTypesToAdd));
+            % ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd];
+            if BlockLengths(BlockEpochIdx) > 2*edgeOffset
+                numProbeTrialsToAdd_idxs = randperm(length(ProbeTrialTypesToAdd), numProbeTrialsToAdd) + edgeOffset;
+                ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(0, 1, edgeOffset)];
+                ProbeTrialTypesToAdd(numProbeTrialsToAdd_idxs) = 1;
+                ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(0, 1, edgeOffset)];                     
+            else                    
+                ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(0, 1, BlockLengths(BlockEpochIdx))];
+            end
+            ProbeTrialTypesAdded = [ProbeTrialTypesAdded ProbeTrialTypesToAdd];
+            length(ProbeTrialTypesToAdd)
+            numTrialsAddedToSequence = length(ProbeTrialTypesAdded);
+            % numTrialsAddedToSequence
+            BlockEpochIdx = BlockEpochIdx + 1;
+        end
+        ProbeTrialTypes(currentTrial:end) = ProbeTrialTypesAdded(1:length(ProbeTrialTypes) - currentTrial + 1);
+    end
+    [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 1);
+    m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
+    % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
 
     % wait for parameter update and confirm before beginning trial loop
     input('Set parameters and press enter to continue >', 's'); 
@@ -489,7 +575,7 @@ try
         % trial type updating needs to be updated with addition of probe
         % trials, epoch opto, block margins, etc before being used during session
         % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
 
 
         %% update grating and gray videos
@@ -504,9 +590,11 @@ try
             
             % compose grating video
             GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2)];
+            ProbeGrayVideo = [repmat(GrayProbePattern, 1, GratingFrames/2)];
             
             % update durations based on number of frames generated
             GratingDur = length(GratingVideo) * (1/FramesPerSecond);
+            ProbeGrayDur = length(ProbeGrayVideo) * (1/FramesPerSecond);
         end
         if S.GUI.ISIOrig_s ~= LastGrayFixedDuration
             GrayFixedDuration = S.GUI.ISIOrig_s; % set duration of gray screen to inter stimulus interval
@@ -583,13 +671,19 @@ try
         end
 
         % update outcome plot to reflect opto settings
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
                              
         %% video for joystick stim
-        FullVideo = GratingVideo;
-        FullVideoFrames = length(FullVideo);
-        VisStim.VisStimDuration = GratingDur;
-        ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;
+        % FullVideo = GratingVideo;
+        % FullVideoFrames = length(FullVideo);
+        % VisStim.VisStimDuration = GratingDur;
+        % ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;
+
+        %% video for probe trials
+        % FullGrayVideo = ProbeGrayVideo;
+        % FullVideoFrames = length(FullGrayVideo);
+        % VisStim.VisStimDuration = GratingDur;
+        % ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;     
 
         %% video for opto joystick stim, gray frames for shutter open delay
         % VideoOptoDelay = [GrayFrame_SyncW GrayFrame_SyncBlk GrayFrame_SyncBlk]; % 60 fps, F1, F2
@@ -597,19 +691,37 @@ try
 
         VideoOptoDelayDur = (length(VideoOptoDelay) - 1) * (1/FramesPerSecond); % for audio sync, subtract variable start frame 
     
-        FullOptoVideo = [VideoOptoDelay GratingVideo];
-        FullOptoVideoFrames = length(FullOptoVideo); % DO NOT subtract variable start frame, needed for actual number of frames when using PlayVideo function in VideoPlugin
+        % if ~ProbeTrialTypes(currentTrial)
+        FullOptoVideo = [VideoOptoDelay GratingVideo]; % standard vis stim grating video
+        
+
+        % else
+        FullOptoProbeVideo = [VideoOptoDelay ProbeGrayVideo]; % gray probe trial video, mimics sync patch of standard video
+        % end
+
+        
         % VisStim.VisStimOptoDuration = (FullOptoVideoFrames - 1) * (1/FramesPerSecond); % subtract variable start frame
-        % ExperimenterTrialInfo.VisStimOptoDuration = VisStim.VisStimOptoDuration;        
+        % ExperimenterTrialInfo.VisStimOptoDuration = VisStim.VisStimOptoDuration;      
+
+        FullOptoVideoFrames = length(FullOptoVideo); % DO NOT subtract variable start frame, needed for actual number of frames when using PlayVideo function in VideoPlugin
+        VisStim.VisStimDuration = GratingDur;
+        ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;
+
     
         % load constructed video into the video object
         % BpodSystem.PluginObjects.V.Videos{5} = struct;
         % BpodSystem.PluginObjects.V.Videos{5}.nFrames = FullVideoFrames; 
         % BpodSystem.PluginObjects.V.Videos{5}.Data = FullVideo;
 
+        % load regular video
         BpodSystem.PluginObjects.V.Videos{5} = struct;
         BpodSystem.PluginObjects.V.Videos{5}.nFrames = FullOptoVideoFrames; 
-        BpodSystem.PluginObjects.V.Videos{5}.Data = FullOptoVideo;        
+        BpodSystem.PluginObjects.V.Videos{5}.Data = FullOptoVideo;      
+
+        % load gray probe trial video
+        BpodSystem.PluginObjects.V.Videos{3} = struct;
+        BpodSystem.PluginObjects.V.Videos{3}.nFrames = FullOptoVideoFrames; 
+        BpodSystem.PluginObjects.V.Videos{3}.Data = FullOptoProbeVideo;             
               
         % audio for opto delay shift
         OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF; % get duration of gray opto delay in number of audio samples for period between audio stim 
@@ -624,25 +736,31 @@ try
         H.load(7, OptoAudioStimSound);
     
         % toggle punish sound on/off
-        if S.GUI.IncorrectSound
-            Punish_OutputActions = {'HiFi1', ['P' 2]};
-            EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
-        else
-            Punish_OutputActions = {};
-            EarlyPressPunish_OutputActions = {};
+        Punish_OutputActions = {};
+        EarlyPressPunish_OutputActions = {};
+        if (S.GUI.IncorrectSound && ...
+           ~ProbeTrialTypes(currentTrial))
+                Punish_OutputActions = {'HiFi1', ['P' 2]};
+                EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
         end
         
         Punish_OutputActions = [Punish_OutputActions, {'GlobalTimerTrig', '000000010'}];
 
         %% update trial-specific valve times using calibration table according to set reward amount    
-        RewardAmount_uL = S.GUI.CenterValveAmount_uL;
-        CenterValveTime = GetValveTimes(RewardAmount_uL, [2]); 
+        RewardAmount_uL = 0;
+        CenterValveTime = 0;
+        if ~ProbeTrialTypes(currentTrial)
+            RewardAmount_uL = S.GUI.CenterValveAmount_uL;
+            CenterValveTime = GetValveTimes(RewardAmount_uL, [2]); 
+        end
+
+        % init reward times, update based on reward rep
+        RewardTime = CenterValveTime;
 
         ExperimenterTrialInfo.CenterValveAmount_uL = S.GUI.CenterValveAmount_uL;
         ExperimenterTrialInfo.CenterValveTime = CenterValveTime;
 
-        % init reward times, update based on reward rep
-        RewardTime = CenterValveTime;
+        
 
         %% get PreRewardDelay, auto or manual
        
@@ -854,8 +972,14 @@ try
     
         PreVisStimITI_StateChangeConditions = {'Tup', 'VisDetect1', 'RotaryEncoder1_2', 'EarlyPress'};
         PreVisStimITI_OutputActions = {};
-        VisDetectOutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
+        VisDetect1OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
         VisDetectGray1OutputAction = {'RotaryEncoder1', ['E']};
+        % different vis stim for probe trials
+        if ~ProbeTrialTypes(currentTrial)
+            VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
+        else
+            VisDetect2OutputAction = {'SoftCode', 3,'RotaryEncoder1', ['E']};
+        end
         VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']};
         audStimOpto1 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 1);
         audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
@@ -884,7 +1008,13 @@ try
         LeverRetract2_StateChangeConditions = {};
     
         Reward_StateChangeConditions = {'Tup', 'PostRewardDelay'};
-        Reward_OutputActions = {'Valve2', 1};
+
+        if ProbeTrialTypes(currentTrial)
+            Reward_OutputActions = {};
+        else
+            Reward_OutputActions = {'Valve2', 1};
+        end
+
         PostRewardDelay_StateChangeConditions = {};
         PostRewardDelay_OutputActions = {};
 
@@ -963,16 +1093,7 @@ try
                 LeverRetract2_StateChangeConditions = {'SoftCode1', 'ITI'};
         end
     
-
-        ProbeTrialTypes(currentTrial)
-        switch S.GUI.SelfTimedMode
-            case 0
-                
-            case 1
-                
-        end
-
-        
+        % probe trials, consolidate probe trial check/updates later        
 
         %% training level specific state matrix values
         
@@ -1092,7 +1213,7 @@ try
         sma = AddState(sma, 'Name', 'VisDetect1', ...
             'Timer', 0.100,...
             'StateChangeConditions', VisDetect1_StateChangeConditions,...
-            'OutputActions', VisDetectOutputAction);
+            'OutputActions', VisDetect1OutputAction);
     
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
             'Timer', 0.050,...
@@ -1129,7 +1250,7 @@ try
         sma = AddState(sma, 'Name', 'VisDetect2', ...
             'Timer', 0.100,...
             'StateChangeConditions', VisDetect2_StateChangeConditions,...
-            'OutputActions', VisDetectOutputAction);  % ~50ms
+            'OutputActions', VisDetect2OutputAction);  % ~50ms
     
         sma = AddState(sma, 'Name', 'VisDetectGray2', ...
             'Timer', 0.050,...
@@ -1250,7 +1371,8 @@ try
             BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Computes trial events from raw data
             BpodSystem.Data.TrialSettings(currentTrial) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
             BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial); % Adds the trial type of the current trial to data
-            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 1);
+            % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 1);
+            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 1);
             if useStateTiming
                 StateTiming();
             end
@@ -1514,6 +1636,8 @@ function SetRigID(BpodSystem)
             BpodSystem.Data.RigName = 'ImagingRig';
         case 'COS-3A11427'
             BpodSystem.Data.RigName = 'JoystickRig';
+        case 'COS-3A17904'
+            BpodSystem.Data.RigName = 'JoystickRig2';
     end
 end
 
@@ -1560,6 +1684,9 @@ function PrintInterruptLog(BpodSystem)
         case 'JoystickRig'
             % rig specs
             fprintf(fid,'%s\n\n', 'Joystick Rig - Behavior Room');
+        case 'JoystickRig2'
+            % rig specs
+            fprintf(fid,'%s\n\n', 'Joystick Rig2 - Behavior Room');            
     end
 
     SessionData = BpodSystem.Data;
