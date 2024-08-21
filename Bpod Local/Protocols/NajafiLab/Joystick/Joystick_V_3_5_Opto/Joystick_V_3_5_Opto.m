@@ -893,6 +893,8 @@ try
                 disp(['using long delay: ' num2str(PressVisDelay_s)])
         end             
 
+
+        BpodSystem.Data.PressVisDelay_s(currentTrial) = PressVisDelay_s;
 % PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxSelf_s);
 % 
 %         % when autodelay becomes enabled, auto delay starts at short/long-specific delay
@@ -1386,7 +1388,7 @@ try
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'}); 
+            'OutputActions', {'GlobalCounterReset', '111111111'}); 
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events

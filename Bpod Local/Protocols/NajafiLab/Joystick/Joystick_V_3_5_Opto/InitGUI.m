@@ -46,7 +46,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PrePress2DelayLong_s = 0.050;        
         S.GUI.EnableAutoDelay = 1;
         S.GUIMeta.EnableAutoDelay.Style = 'checkbox';        
-        S.GUI.AutoDelayStep_s = 0.0001;
+        S.GUI.AutoDelayStep_s = 0.0003;
         % S.GUI.AutoDelayMaxVis_s = 0.500;
         % S.GUI.AutoDelayMaxSelf_s = 0.800;  
         % S.GUI.AutoDelayMaxVis_s = 0.300;
@@ -64,7 +64,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumTrialsPerBlock = 50;
         S.GUI.BlockLengthMargin = 5;
         % S.GUI.ProbeTrialFraction = 0.10;
-        S.GUI.ProbeTrialFraction = 0.5;
+        S.GUI.ProbeTrialFraction = 0.1;
         S.GUIPanels.Joystick = {'ChemogeneticSession', 'Threshold', 'WarmupThreshold', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
 
         % Optogentic params
@@ -97,7 +97,7 @@ function [S] = SetParams(obj, BpodSystem)
         % reward
         S.GUI.EnableAutoPreRewardDelay = 1;
         S.GUIMeta.EnableAutoPreRewardDelay.Style = 'checkbox';                
-        S.GUI.AutoPreRewardDelayStep_s = 0.0002;
+        S.GUI.AutoPreRewardDelayStep_s = 0.0001;
         S.GUI.AutoPreRewardDelayMax_s = 0.100;        
         S.GUI.PreRewardDelay_s = 0.030;
         S.GUI.PostRewardDelay_s = 0.500; % post reward delay prior to lever return
