@@ -52,7 +52,7 @@ try
         case 'ImagingRig'
             M = PololuMaestro('COM15'); 
         case 'JoystickRig'
-            % M = PololuMaestro('COM8'); 
+            M = PololuMaestro('COM15'); 
         case 'JoystickRig2'
             M = PololuMaestro('COM8');             
     end 
@@ -526,6 +526,26 @@ try
     % init counters
     TotalRewardAmount_uL = 0;
 
+    % exp notes log
+    ExpNotes.numTrials = 0;
+
+    ExpNotes.InitShort = 0;
+    ExpNotes.InitLong = 0;
+
+    ExpNotes.FinalShort = 0;
+    ExpNotes.FinalLong = 0;
+
+    ExpNotes.PressStep = 0;
+
+    ExpNotes.InitialPreRew = 0;
+    ExpNotes.FinalPreRew = 0;
+
+    ExpNotes.RewStep = 0;
+
+    ExpNotes.TotalRewardAmount_uL = 0;
+
+    ExpNotes.ProtoVersion = 'Joystick_V_3_5_Opto';
+
     %% Main trial loop
     
     for currentTrial = 1:MaxTrials
@@ -537,6 +557,14 @@ try
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
         S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin    
         
+        if (currentTrial == 1)
+            ExpNotes.InitShort = S.GUI.PrePress2DelayShort_s;
+            ExpNotes.InitLong = S.GUI.PrePress2DelayLong_s;
+            ExpNotes.PressStep = S.GUI.AutoDelayStep_s;
+            ExpNotes.InitialPreRew = S.GUI.PreRewardDelay_s;
+            ExpNotes.RewStep = S.GUI.AutoPreRewardDelayStep_s;
+        end
+
         % 1 = 'Opto', 2 = 'Control'
         if S.GUI.SessionType == 2
             m_Opto.EnableOpto = 0;
@@ -1553,7 +1581,14 @@ try
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
             PrintInterruptLog(BpodSystem);
 
-
+            % exp notes log
+            ExpNotes.numTrials = currentTrial;
+            ExpNotes.FinalShort = S.GUI.PrePress2DelayShort_s;
+            ExpNotes.FinalLong = S.GUI.PrePress2DelayLong_s;
+            ExpNotes.FinalPreRew = S.GUI.PreRewardDelay_s;
+            ExpNotes.TotalRewardAmount_uL = TotalRewardAmount_uL;
+            strExpNotes = formattedDisplayText(ExpNotes,'UseTrueFalseForLogical',true, 'NumericFormat','short');
+            disp(strExpNotes); 
 
 
             BpodSystem.PluginObjects.V = [];
