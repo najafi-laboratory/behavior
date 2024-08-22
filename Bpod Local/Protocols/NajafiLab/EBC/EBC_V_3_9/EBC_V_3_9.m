@@ -62,10 +62,32 @@ try
     numCheckEyeOpenTimeouts = 0;
 
     %% Define block parameters
+    % Define block parameters
     minBlockLength = 45;  % Minimum number of trials in a block
     maxBlockLength = 55;  % Maximum number of trials in a block
-    currentBlockLength = randi([minBlockLength, maxBlockLength]); % Randomly choose block length within range
+    
+    % Initialize variables
+    totalTrials = 0;      % Counter for the total number of assigned trials
+    blocks = [];          % Array to store the length of each block
+    
+    %% Divide MaxTrials into blocks
+    while totalTrials < MaxTrials
+        currentBlockLength = randi([minBlockLength, maxBlockLength]); % Randomly choose block length within range
+        
+        % If adding this block would exceed MaxTrials, adjust the last block
+        if totalTrials + currentBlockLength > MaxTrials
+            currentBlockLength = MaxTrials - totalTrials; % Use remaining trials
+        end
+        
+        % Add the block to the list of blocks
+        blocks = [blocks, currentBlockLength];
+        
+        % Update the total number of trials assigned
+        totalTrials = totalTrials + currentBlockLength;
+    end
 
+    %% Initialize for the experiment loop
+    currentBlockIndex = 1;
     currentBlockType = 'short'; % Start with a short block
     S.GUI.AirPuff_OnsetDelay = 0.2;  % 200 ms puff delay for short block
     currentTrialInBlock = 1;    % Track the current trial within the block
@@ -101,19 +123,21 @@ try
 
 
     %% Determine block type based on current trial and block length
-        if currentTrialInBlock > currentBlockLength
-        % Switch block type and reset block length
-            if strcmp(currentBlockType, 'short')
-                currentBlockType = 'long';
-                S.GUI.AirPuff_OnsetDelay = 0.4;  % 400 ms puff delay for long block
-            else
-                currentBlockType = 'short';
-                S.GUI.AirPuff_OnsetDelay = 0.2;  % 200 ms puff delay for short block
-            end
-            currentBlockLength = randi([minBlockLength, maxBlockLength]); % Set new block length
-            currentTrialInBlock = 1; % Reset trial count for new block
+    % Check if the current block has finished
+    if currentTrialInBlock > blocks(currentBlockIndex)
+        % Switch block type and move to the next block
+        if strcmp(currentBlockType, 'short')
+            currentBlockType = 'long';
+            S.GUI.AirPuff_OnsetDelay = 0.4;  % 400 ms puff delay for long block
+        else
+            currentBlockType = 'short';
+            S.GUI.AirPuff_OnsetDelay = 0.2;  % 200 ms puff delay for short block
         end
-    
+        
+        % Move to the next block
+        currentBlockIndex = currentBlockIndex + 1;
+        currentTrialInBlock = 1; % Reset trial count for the new block
+    end
         %% construct state matrix
     
         sma = NewStateMatrix(); % Assemble state matrix
