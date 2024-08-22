@@ -52,7 +52,7 @@ try
         case 'ImagingRig'
             M = PololuMaestro('COM15'); 
         case 'JoystickRig'
-            % M = PololuMaestro('COM8'); 
+            M = PololuMaestro('COM15'); 
         case 'JoystickRig2'
             M = PololuMaestro('COM8');             
     end 
@@ -441,6 +441,10 @@ try
     BpodSystem.PluginObjects.V.play(6);
     BpodSystem.PluginObjects.V.TimerMode = 2;
 
+% wait for parameter update and confirm before beginning trial loop
+    input('Set parameters and press enter to continue >', 's'); 
+    S = BpodParameterGUI('sync', S);
+
     % update trial types before starting session
     updateTrialTypeSequence = 1;
     [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
@@ -469,7 +473,7 @@ try
                 ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(0, 1, BlockLengths(BlockEpochIdx))];
             end
             ProbeTrialTypesAdded = [ProbeTrialTypesAdded ProbeTrialTypesToAdd];
-            length(ProbeTrialTypesToAdd)
+            length(ProbeTrialTypesToAdd);
             numTrialsAddedToSequence = length(ProbeTrialTypesAdded);
             % numTrialsAddedToSequence
             BlockEpochIdx = BlockEpochIdx + 1;
@@ -481,8 +485,8 @@ try
     % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
 
     % wait for parameter update and confirm before beginning trial loop
-    input('Set parameters and press enter to continue >', 's'); 
-    S = BpodParameterGUI('sync', S);
+    % input('Set parameters and press enter to continue >', 's'); 
+    % S = BpodParameterGUI('sync', S);
     
     %% set warmup counter
         
@@ -522,6 +526,26 @@ try
     % init counters
     TotalRewardAmount_uL = 0;
 
+    % exp notes log
+    ExpNotes.numTrials = 0;
+
+    ExpNotes.InitShort = 0;
+    ExpNotes.InitLong = 0;
+
+    ExpNotes.FinalShort = 0;
+    ExpNotes.FinalLong = 0;
+
+    ExpNotes.PressStep = 0;
+
+    ExpNotes.InitialPreRew = 0;
+    ExpNotes.FinalPreRew = 0;
+
+    ExpNotes.RewStep = 0;
+
+    ExpNotes.TotalRewardAmount_uL = 0;
+
+    ExpNotes.ProtoVersion = 'Joystick_V_3_5_Opto';
+
     %% Main trial loop
     
     for currentTrial = 1:MaxTrials
@@ -533,6 +557,14 @@ try
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
         S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin    
         
+        if (currentTrial == 1)
+            ExpNotes.InitShort = S.GUI.PrePress2DelayShort_s;
+            ExpNotes.InitLong = S.GUI.PrePress2DelayLong_s;
+            ExpNotes.PressStep = S.GUI.AutoDelayStep_s;
+            ExpNotes.InitialPreRew = S.GUI.PreRewardDelay_s;
+            ExpNotes.RewStep = S.GUI.AutoPreRewardDelayStep_s;
+        end
+
         % 1 = 'Opto', 2 = 'Control'
         if S.GUI.SessionType == 2
             m_Opto.EnableOpto = 0;
@@ -571,6 +603,21 @@ try
             updateTrialTypeSequence = 1;
             PreviousSelfTimedMode = S.GUI.SelfTimedMode;
         end
+
+        %% update probe trial types warmup
+        % no probe trials during warmup
+        if WarmupTrialsCounter > 0
+            ProbeTrialTypes(currentTrial) = 0;
+        end
+        BpodSystem.Data.ProbeTrial(currentTrial) = ProbeTrialTypes(currentTrial);
+
+        %% update opto epoch warmup
+        if (S.GUI.OptoTrialTypeSeq == 5 && ...
+            WarmupTrialsCounter > 0)
+            OptoTrialTypes(currentTrial) = 1;
+        end        
+      
+        %% update outcome plot
 
         % trial type updating needs to be updated with addition of probe
         % trials, epoch opto, block margins, etc before being used during session
@@ -613,7 +660,7 @@ try
     
     
         %% update video & audio and change tracking variables for audio and vis stim
-    
+     
         % if vis stim dur, audio stim freq, or volume changed then update sound wave
         if (S.GUI.GratingDur_s ~= LastGratingDuration) || ...
             (S.GUI.AudioStimFreq_Hz ~= LastAudioStimFrequency) || ...
@@ -874,6 +921,8 @@ try
                 disp(['using long delay: ' num2str(PressVisDelay_s)])
         end             
 
+
+        BpodSystem.Data.PressVisDelay_s(currentTrial) = PressVisDelay_s;
 % PressVisDelay_s = min(AutoPressVisDelay_s, S.GUI.AutoDelayMaxSelf_s);
 % 
 %         % when autodelay becomes enabled, auto delay starts at short/long-specific delay
@@ -1089,7 +1138,7 @@ try
                 end
                 WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
                 % PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetract2'};
-                PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_3
+                PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetract2'}; % updated V_3_5
                 LeverRetract2_StateChangeConditions = {'SoftCode1', 'ITI'};
         end
     
@@ -1267,10 +1316,10 @@ try
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...
             'OutputActions', WaitForPress2_OutputActions);          
     
-        sma = AddState(sma, 'Name', 'LeverRetract2', ...
-            'Timer', 0,...
-            'StateChangeConditions', LeverRetract2_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 8});
+        % sma = AddState(sma, 'Name', 'LeverRetract2', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', LeverRetract2_StateChangeConditions,...
+        %     'OutputActions', {'SoftCode', 8});
     
         %% reps complete   
         % 
@@ -1336,33 +1385,38 @@ try
     
         sma = AddState(sma, 'Name', 'VisStimInterruptDetect1', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
+            'StateChangeConditions', {'Tup', 'LeverRetract2'},...
             'OutputActions', {});
 
         sma = AddState(sma, 'Name', 'VisStimInterruptGray1', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
+            'StateChangeConditions', {'Tup', 'LeverRetract2'},...
             'OutputActions', {});        
 
         sma = AddState(sma, 'Name', 'VisStimInterruptDetect2', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
+            'StateChangeConditions', {'Tup', 'LeverRetract2'},...
             'OutputActions', {});
 
         sma = AddState(sma, 'Name', 'VisStimInterruptGray2', ...
             'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
+            'StateChangeConditions', {'Tup', 'LeverRetract2'},...
             'OutputActions', {});              
 
         sma = AddState(sma, 'Name', 'Punish_ITI', ...
             'Timer', S.GUI.PunishITI,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
+            'StateChangeConditions', {'Tup', 'LeverRetract2'},...
             'OutputActions', {}); 
+
+        sma = AddState(sma, 'Name', 'LeverRetract2', ...
+            'Timer', 0,...
+            'StateChangeConditions', LeverRetract2_StateChangeConditions,...
+            'OutputActions', {'SoftCode', 8});
 
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'}); 
+            'OutputActions', {'GlobalCounterReset', '111111111'}); 
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events
@@ -1527,7 +1581,14 @@ try
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
             PrintInterruptLog(BpodSystem);
 
-
+            % exp notes log
+            ExpNotes.numTrials = currentTrial;
+            ExpNotes.FinalShort = S.GUI.PrePress2DelayShort_s;
+            ExpNotes.FinalLong = S.GUI.PrePress2DelayLong_s;
+            ExpNotes.FinalPreRew = S.GUI.PreRewardDelay_s;
+            ExpNotes.TotalRewardAmount_uL = TotalRewardAmount_uL;
+            strExpNotes = formattedDisplayText(ExpNotes,'UseTrueFalseForLogical',true, 'NumericFormat','short');
+            disp(strExpNotes); 
 
 
             BpodSystem.PluginObjects.V = [];

@@ -68,69 +68,73 @@ classdef OptoConfig
                 BpodSystem.Data.PreviousOnFraction = S.GUI.OnFraction;
             end
 
-            if updateOptoTrialTypeSequence                
-                numTrialsAddedToSequence = 0;
-                OptoTrialTypesToAdd = [];
-                switch S.GUI.OptoTrialTypeSeq
-                    case 1 % interleaved - random
-                        numOnTrialsToAdd = [];
-                        OptoTrialTypesToAdd = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];
-                        numOnTrialsToAdd = ceil(S.GUI.OnFraction * length(OptoTrialTypesToAdd));
-                        numOnTrialsToAdd_idxs = randperm(length(OptoTrialTypesToAdd), numOnTrialsToAdd);
-                        OptoTrialTypesToAdd(numOnTrialsToAdd_idxs) = 2;
-                        OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd;
-                    case 2 % interleaved - random first block
-                        FirstTrialType = ceil(rand(1,1)*2);
-                        switch FirstTrialType
-                            case 1 % on first
-                                SecondTrialType = 2;
-                            case 2 % off first
-                                SecondTrialType = 1;
-                        end
-                        while numTrialsAddedToSequence < S.GUI.MaxTrials
-                            OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(FirstTrialType, 1, S.GUI.NumOptoTrialsPerBlock) repmat(SecondTrialType, 1, S.GUI.NumOptoTrialsPerBlock)];
-                            numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock;
-                        end
-                        OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
-                    case 3 % interleaved - off first block
-                        while numTrialsAddedToSequence < S.GUI.MaxTrials
-                            OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(1, 1, S.GUI.NumOptoTrialsPerBlock) repmat(2, 1, S.GUI.NumOptoTrialsPerBlock)];
-                            numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock;
-                        end
-                        OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
-                    case 4 % interleaved - on first block
-                        while numTrialsAddedToSequence < S.GUI.MaxTrials
-                            OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(2, 1, S.GUI.NumOptoTrialsPerBlock) repmat(1, 1, S.GUI.NumOptoTrialsPerBlock)];
-                            numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock;
-                        end
-                        OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
-                    case 5 % on epoch
-                        %  NOTE: currently only works if setting when
-                        %  starting session, but not if changing params
-                        % S.GUI.EpochTrialStart = 1;
-                        % S.GUI.EpochTrialStop = 15; 
-                        EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1), (S.GUI.MaxTrials + 1)];
-                        % S.GUI.MaxTrials - EpochStartIdxs(end)
-                        BlockLengths = [diff(EpochStartIdxs) (S.GUI.MaxTrials - EpochStartIdxs(end))];
-                        BlockEpochIdx = 1;
-                        while numTrialsAddedToSequence < S.GUI.MaxTrials
-                            if BlockEpochIdx == length(BlockLengths)
-                                disp('debug');
+            if obj.EnableOpto
+                if updateOptoTrialTypeSequence                
+                    numTrialsAddedToSequence = 0;
+                    OptoTrialTypesToAdd = [];
+                    switch S.GUI.OptoTrialTypeSeq
+                        case 1 % interleaved - random
+                            numOnTrialsToAdd = [];
+                            OptoTrialTypesToAdd = [repmat(1, 1, S.GUI.MaxTrials - currentTrial + 1)];
+                            numOnTrialsToAdd = ceil(S.GUI.OnFraction * length(OptoTrialTypesToAdd));
+                            numOnTrialsToAdd_idxs = randperm(length(OptoTrialTypesToAdd), numOnTrialsToAdd);
+                            OptoTrialTypesToAdd(numOnTrialsToAdd_idxs) = 2;
+                            OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd;
+                        case 2 % interleaved - random first block
+                            FirstTrialType = ceil(rand(1,1)*2);
+                            switch FirstTrialType
+                                case 1 % on first
+                                    SecondTrialType = 2;
+                                case 2 % off first
+                                    SecondTrialType = 1;
                             end
-                            numOpto = S.GUI.EpochTrialStop;
-                            if numOpto > BlockLengths(BlockEpochIdx)
-                                numOpto = BlockLengths(BlockEpochIdx);
+                            while numTrialsAddedToSequence < S.GUI.MaxTrials
+                                OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(FirstTrialType, 1, S.GUI.NumOptoTrialsPerBlock) repmat(SecondTrialType, 1, S.GUI.NumOptoTrialsPerBlock)];
+                                numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock;
                             end
-                            numNonOpto = BlockLengths(BlockEpochIdx) - S.GUI.EpochTrialStop;
-                            if numNonOpto < 1
-                                numNonOpto = 0;
+                            OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+                        case 3 % interleaved - off first block
+                            while numTrialsAddedToSequence < S.GUI.MaxTrials
+                                OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(1, 1, S.GUI.NumOptoTrialsPerBlock) repmat(2, 1, S.GUI.NumOptoTrialsPerBlock)];
+                                numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock;
                             end
-                            OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(2, 1, numOpto) repmat(1, 1, numNonOpto)];
-                            numTrialsAddedToSequence = numTrialsAddedToSequence + numOpto + numNonOpto;
-                            BlockEpochIdx = BlockEpochIdx + 1;
-                        end
-                        OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+                            OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+                        case 4 % interleaved - on first block
+                            while numTrialsAddedToSequence < S.GUI.MaxTrials
+                                OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(2, 1, S.GUI.NumOptoTrialsPerBlock) repmat(1, 1, S.GUI.NumOptoTrialsPerBlock)];
+                                numTrialsAddedToSequence = numTrialsAddedToSequence + 2*S.GUI.NumOptoTrialsPerBlock;
+                            end
+                            OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+                        case 5 % on epoch
+                            %  NOTE: currently only works if setting when
+                            %  starting session, but not if changing params
+                            % S.GUI.EpochTrialStart = 1;
+                            % S.GUI.EpochTrialStop = 15; 
+                            EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1), (S.GUI.MaxTrials + 1)];
+                            % S.GUI.MaxTrials - EpochStartIdxs(end)
+                            BlockLengths = [diff(EpochStartIdxs) (S.GUI.MaxTrials - EpochStartIdxs(end))];
+                            BlockEpochIdx = 1;
+                            while numTrialsAddedToSequence < S.GUI.MaxTrials
+                                if BlockEpochIdx == length(BlockLengths)
+                                    disp('debug');
+                                end
+                                numOpto = S.GUI.EpochTrialStop;
+                                if numOpto > BlockLengths(BlockEpochIdx)
+                                    numOpto = BlockLengths(BlockEpochIdx);
+                                end
+                                numNonOpto = BlockLengths(BlockEpochIdx) - S.GUI.EpochTrialStop;
+                                if numNonOpto < 1
+                                    numNonOpto = 0;
+                                end
+                                OptoTrialTypesToAdd = [OptoTrialTypesToAdd repmat(2, 1, numOpto) repmat(1, 1, numNonOpto)];
+                                numTrialsAddedToSequence = numTrialsAddedToSequence + numOpto + numNonOpto;
+                                BlockEpochIdx = BlockEpochIdx + 1;
+                            end
+                            OptoTrialTypes(currentTrial:end) = OptoTrialTypesToAdd(1:length(OptoTrialTypes) - currentTrial + 1);
+                    end
                 end
+            else
+                OptoTrialTypes(currentTrial:end) = 1;
             end
         end
 

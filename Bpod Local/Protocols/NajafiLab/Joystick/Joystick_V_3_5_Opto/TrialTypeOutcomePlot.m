@@ -88,24 +88,33 @@ switch Action
             DisplayXdataOptoOff = Xdata(YOptoOffIdxs);
             DisplayXdataOptoOn = Xdata(YOptoOnIdxs);
 
-            BpodSystem.GUIHandles.FutureTrialLineOptoOff = line([DisplayXdataOptoOff,DisplayXdataOptoOff],[YdataOptoOff,YdataOptoOff],'LineStyle','none','Marker','o','MarkerEdge','white','MarkerFace','b', 'MarkerSize',6);
-            BpodSystem.GUIHandles.FutureTrialLineOptoOn = line([DisplayXdataOptoOn,DisplayXdataOptoOn],[YdataOptoOn,YdataOptoOn],'LineStyle','none','Marker','o','MarkerEdge','white','MarkerFace','magenta', 'MarkerSize',6);
+            BpodSystem.GUIHandles.FutureTrialLineOptoOff = line([DisplayXdataOptoOff,DisplayXdataOptoOff],[YdataOptoOff,YdataOptoOff],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
+            BpodSystem.GUIHandles.FutureTrialLineOptoOn = line([DisplayXdataOptoOn,DisplayXdataOptoOn],[YdataOptoOn,YdataOptoOn],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','magenta', 'MarkerSize',6);
         else
             BpodSystem.GUIHandles.FutureTrialLine = line([Xdata,Xdata],[Ydata,Ydata],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
         end
 
-        ProbeOnIndicator = 'yellow';
+        ProbeOnIndicator = 'red';
         ProbeOffIndicator = 'blue';
+        MarkerSize = 9;
 
         if ProbeTrialTypeList ~= -1
             ProbeOnIdxs = (ProbeTrialTypeList(Xdata) == 1);
             ProbeOffIdxs = ~ProbeOnIdxs;
-            
-            DisplayXdataProbeOn = Xdata(YOptoOnIdxs);
-            DisplayXdataProbeOff = Xdata(YOptoOffIdxs);
 
-            set(BpodSystem.GUIHandles.FutureTrialLineProbeOff, 'xdata', [DisplayXdataOptoOff,DisplayXdataOptoOff], 'ydata', [YdataOptoOff,YdataOptoOff]);
-            set(BpodSystem.GUIHandles.FutureTrialLineProbeOn, 'xdata', [DisplayXdataOptoOn,DisplayXdataOptoOn], 'ydata', [YdataOptoOn,YdataOptoOn]);            
+            YdataProbeOn = Ydata(ProbeOnIdxs);
+            YdataProbeOff = Ydata(ProbeOffIdxs);            
+            
+            DisplayXdataProbeOn = Xdata(ProbeOnIdxs);
+            DisplayXdataProbeOff = Xdata(ProbeOffIdxs);
+
+            % BpodSystem.GUIHandles.FutureTrialLineProbeOn = line([DisplayXdataProbeOn,DisplayXdataProbeOn],[YdataProbeOn,YdataProbeOn],'LineStyle','none','Marker','o','MarkerEdge',ProbeOnIndicator,'MarkerFace','magenta', 'MarkerSize',6);                        
+            % BpodSystem.GUIHandles.FutureTrialLineProbeOff = line([DisplayXdataProbeOff,DisplayXdataProbeOff],[YdataProbeOff,YdataProbeOff],'LineStyle','none','Marker','o','MarkerEdge',ProbeOffIndicator,'MarkerFace','b', 'MarkerSize',6);
+
+            BpodSystem.GUIHandles.FutureTrialLineProbeOn = line([DisplayXdataProbeOn,DisplayXdataProbeOn],[YdataProbeOn,YdataProbeOn],'LineStyle','none','Marker','o','MarkerEdge',ProbeOnIndicator, 'MarkerSize', MarkerSize);            
+            BpodSystem.GUIHandles.FutureTrialLineProbeOff = line([DisplayXdataProbeOff,DisplayXdataProbeOff],[YdataProbeOff,YdataProbeOff],'LineStyle','none','Marker','o','MarkerEdge',ProbeOffIndicator, 'MarkerSize', MarkerSize);            
+            % set(BpodSystem.GUIHandles.FutureTrialLineProbeOff, 'xdata', [DisplayXdataOptoOff,DisplayXdataOptoOff], 'ydata', [YdataOptoOff,YdataOptoOff]);
+            % set(BpodSystem.GUIHandles.FutureTrialLineProbeOn, 'xdata', [DisplayXdataOptoOn,DisplayXdataOptoOn], 'ydata', [YdataOptoOn,YdataOptoOn]);            
         end
 
 
@@ -137,8 +146,9 @@ switch Action
     case 'update'
         CurrentTrial = varargin{1};
         TrialTypeList = varargin{2};        
-        OutcomeRecord = varargin{4};
+        OutcomeRecord = varargin{5};
         OptoTrialTypeList = varargin{3};
+        ProbeTrialTypeList = varargin{4};
 
         MaxTrialType = max(TrialTypeList);
         set(AxesHandle,'YLim',[-MaxTrialType-.5, -.5], 'YTick', -MaxTrialType:1:-1,'YTickLabel', BpodSystem.GUIHandles.TTOP_Ylabel);
@@ -156,6 +166,7 @@ switch Action
         Xdata = FutureTrialsIndx; Ydata = TrialTypeList(Xdata);
         DisplayXdata = Xdata-offset;
 
+
         if OptoTrialTypeList ~= -1
             YOptoOffIdxs = (OptoTrialTypeList(Xdata) == 1);
             YOptoOnIdxs = ~YOptoOffIdxs;
@@ -171,6 +182,28 @@ switch Action
         else
             set(BpodSystem.GUIHandles.FutureTrialLine, 'xdata', [DisplayXdata,DisplayXdata], 'ydata', [Ydata,Ydata]);
         end
+
+        ProbeOnIndicator = 'red';
+        ProbeOffIndicator = 'blue';
+
+        if ProbeTrialTypeList ~= -1
+            ProbeOnIdxs = (ProbeTrialTypeList(Xdata) == 1);
+            ProbeOffIdxs = ~ProbeOnIdxs;
+
+            YdataProbeOn = Ydata(ProbeOnIdxs);
+            YdataProbeOff = Ydata(ProbeOffIdxs);            
+            
+            DisplayXdataProbeOn = DisplayXdata(ProbeOnIdxs);
+            DisplayXdataProbeOff = DisplayXdata(ProbeOffIdxs);
+
+            % BpodSystem.GUIHandles.FutureTrialLineProbeOn = line([DisplayXdataProbeOn,DisplayXdataProbeOn],[YdataProbeOn,YdataProbeOn],'LineStyle','none','Marker','o','MarkerEdge',ProbeOnIndicator,'MarkerFace','magenta', 'MarkerSize',6);                        
+            % BpodSystem.GUIHandles.FutureTrialLineProbeOff = line([DisplayXdataProbeOff,DisplayXdataProbeOff],[YdataProbeOff,YdataProbeOff],'LineStyle','none','Marker','o','MarkerEdge',ProbeOffIndicator,'MarkerFace','b', 'MarkerSize',6);
+
+            % BpodSystem.GUIHandles.FutureTrialLineProbeOn = line([DisplayXdataProbeOn,DisplayXdataProbeOn],[YdataProbeOn,YdataProbeOn],'LineStyle','none','Marker','o','MarkerEdge', ProbeOnIndicator, 'MarkerSize',6);            
+            % BpodSystem.GUIHandles.FutureTrialLineProbeOff = line([DisplayXdataProbeOff,DisplayXdataProbeOff],[YdataProbeOff,YdataProbeOff],'LineStyle','none','Marker','o','MarkerEdge', ProbeOffIndicator, 'MarkerSize',6);            
+            set(BpodSystem.GUIHandles.FutureTrialLineProbeOff, 'xdata', [DisplayXdataProbeOff,DisplayXdataProbeOff], 'ydata', [YdataProbeOff,YdataProbeOff], 'MarkerEdge', ProbeOffIndicator);
+            set(BpodSystem.GUIHandles.FutureTrialLineProbeOn, 'xdata', [DisplayXdataProbeOn,DisplayXdataProbeOn], 'ydata', [YdataProbeOn,YdataProbeOn], 'MarkerEdge', ProbeOnIndicator);            
+        end        
                
         %Plot current trial
         displayCurrentTrial = CurrentTrial-offset;

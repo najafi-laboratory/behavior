@@ -42,11 +42,11 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.SelfTimedMode.Style = 'checkbox';
         %S.GUI.PrePress2DelayShort_s = 0.010;    % added version 1_5_1, self-timed now has short/long blocks like vis guided
         %S.GUI.PrePress2DelayLong_s = 0.500;
-        S.GUI.PrePress2DelayShort_s = 0.050;
+        S.GUI.PrePress2DelayShort_s = 0.030;
         S.GUI.PrePress2DelayLong_s = 0.050;        
         S.GUI.EnableAutoDelay = 1;
         S.GUIMeta.EnableAutoDelay.Style = 'checkbox';        
-        S.GUI.AutoDelayStep_s = 0.0001;
+        S.GUI.AutoDelayStep_s = 0.0003;
         % S.GUI.AutoDelayMaxVis_s = 0.500;
         % S.GUI.AutoDelayMaxSelf_s = 0.800;  
         % S.GUI.AutoDelayMaxVis_s = 0.300;
@@ -64,11 +64,11 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumTrialsPerBlock = 50;
         S.GUI.BlockLengthMargin = 5;
         % S.GUI.ProbeTrialFraction = 0.10;
-        S.GUI.ProbeTrialFraction = 0.5;
+        S.GUI.ProbeTrialFraction = 0.1;
         S.GUIPanels.Joystick = {'ChemogeneticSession', 'Threshold', 'WarmupThreshold', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
 
         % Optogentic params
-        S.GUI.SessionType = 1;  % S.GUI.SessionType = 2;
+        S.GUI.SessionType = 2;  % S.GUI.SessionType = 2;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 3;
@@ -97,9 +97,9 @@ function [S] = SetParams(obj, BpodSystem)
         % reward
         S.GUI.EnableAutoPreRewardDelay = 1;
         S.GUIMeta.EnableAutoPreRewardDelay.Style = 'checkbox';                
-        S.GUI.AutoPreRewardDelayStep_s = 0.0002;
+        S.GUI.AutoPreRewardDelayStep_s = 0.0001;
         S.GUI.AutoPreRewardDelayMax_s = 0.100;        
-        S.GUI.PreRewardDelay_s = 0.050;
+        S.GUI.PreRewardDelay_s = 0.030;
         S.GUI.PostRewardDelay_s = 0.500; % post reward delay prior to lever return
         S.GUI.CenterValveAmount_uL = 1;
         S.GUIPanels.Reward = {'EnableAutoPreRewardDelay', 'AutoPreRewardDelayStep_s', 'AutoPreRewardDelayMax_s', 'PreRewardDelay_s', 'PostRewardDelay_s', 'CenterValveAmount_uL'};        
