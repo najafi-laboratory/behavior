@@ -67,6 +67,7 @@ try
     currentBlockLength = randi([minBlockLength, maxBlockLength]); % Randomly choose block length within range
 
     currentBlockType = 'short'; % Start with a short block
+    S.GUI.AirPuff_OnsetDelay = 0.2;  % 200 ms puff delay for short block
     currentTrialInBlock = 1;    % Track the current trial within the block
 
     for currentTrial = 1:MaxTrials        
