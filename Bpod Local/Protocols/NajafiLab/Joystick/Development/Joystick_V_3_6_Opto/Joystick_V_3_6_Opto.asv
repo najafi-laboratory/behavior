@@ -504,8 +504,6 @@ try
     % exp notes log
     ExpNotes.numTrials = 0;
 
-    ExpNotes.AssistedTrials = 0;
-
     if S.GUI.ChemogeneticSession
         ExpNotes.ChemoSession = 'Yes';
         ExpNotes.ChemoDilution = append(num2str(S.GUI.mgCNO), ':', num2str(S.GUI.mlSaline)," mgCNO:mlSaline");
@@ -1259,7 +1257,7 @@ try
 
         sma = AddState(sma, 'Name', 'LeverRetractFinal', ...
             'Timer', 0,...
-            'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...	% {'SoftCode1', 'ITI'} % Softcode1: Indicate to the state machine that the lever is back in the home position
+            'StateChangeConditions', LeverRetract2_StateChangeConditions,...	% {'SoftCode1', 'ITI'} % Softcode1: Indicate to the state machine that the lever is back in the home position
             'OutputActions', {'SoftCode', 8});
 
         sma = AddState(sma, 'Name', 'ITI', ...
@@ -1355,7 +1353,7 @@ try
     
             VisualStimulus2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus2;
             WaitForPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress2;
-            LeverRetractFinalTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractFinal;
+            LeverRetract2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetract2;
             Reward2Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
             DidNotPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress2;
     
@@ -1385,7 +1383,7 @@ try
                 ITITimes, ...
                 LeverResetPos, ...
                 WaitForPress2Times, ...
-                LeverRetractFinalTimes, ...
+                LeverRetract2Times, ...
                 Reward2Times, ...
                 DidNotPress2Times, ...
                 WaitForPress3Times, ...
@@ -1430,11 +1428,10 @@ try
 
             % exp notes log
             ExpNotes.numTrials = currentTrial;
-            ExpNotes.AssistedTrials = num2str(find(BpodSystem.Data.Assisted==1));
             ExpNotes.FinalShort = S.GUI.PrePress2DelayShort_s;
             ExpNotes.FinalLong = S.GUI.PrePress2DelayLong_s;
             ExpNotes.FinalPreRew = S.GUI.PreRewardDelay_s;
-            ExpNotes.TotalRewardAmount_uL = TotalRewardAmount_uL;           
+            ExpNotes.TotalRewardAmount_uL = TotalRewardAmount_uL;
             strExpNotes = formattedDisplayText(ExpNotes,'UseTrueFalseForLogical',true, 'NumericFormat','short');
             disp(strExpNotes); 
 

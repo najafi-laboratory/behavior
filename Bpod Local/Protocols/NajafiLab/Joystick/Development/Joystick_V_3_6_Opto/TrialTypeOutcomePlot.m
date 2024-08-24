@@ -89,7 +89,7 @@ switch Action
             DisplayXdataOptoOn = Xdata(YOptoOnIdxs);
 
             BpodSystem.GUIHandles.FutureTrialLineOptoOff = line([DisplayXdataOptoOff,DisplayXdataOptoOff],[YdataOptoOff,YdataOptoOff],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
-            BpodSystem.GUIHandles.FutureTrialLineOptoOn = line([DisplayXdataOptoOn,DisplayXdataOptoOn],[YdataOptoOn,YdataOptoOn],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','magenta', 'MarkerSize',6);
+            BpodSystem.GUIHandles.FutureTrialLineOptoOn = line([DisplayXdataOptoOn,DisplayXdataOptoOn],[YdataOptoOn,YdataOptoOn],'LineStyle','none','Marker','^','MarkerEdge','b','MarkerFace','magenta', 'MarkerSize',6);
         else
             BpodSystem.GUIHandles.FutureTrialLine = line([Xdata,Xdata],[Ydata,Ydata],'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
         end
@@ -133,6 +133,10 @@ switch Action
         BpodSystem.GUIHandles.RewardedCorrectLine = line([0,0],[0,0], 'LineStyle','none','Marker','o','MarkerEdge','g','MarkerFace','g', 'MarkerSize',6);
         BpodSystem.GUIHandles.UnrewardedCorrectLine = line([0,0],[0,0], 'LineStyle','none','Marker','o','MarkerEdge','g','MarkerFace',[1 1 1], 'MarkerSize',6);
         BpodSystem.GUIHandles.NoResponseLine = line([0,0],[0,0], 'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace',[1 1 1], 'MarkerSize',6);
+
+        % new outcome lines
+        BpodSystem.GUIHandles.EarlyPressLine = line([0,0],[0,0], 'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace', 'b', 'MarkerSize',6);
+
         if verLessThan('matlab','8.0'); % Use optimal split function if possible
             BpodSystem.GUIHandles.TTOP_Ylabel = Split(num2str(MaxTrialType:-1:-1));
         else
@@ -238,6 +242,21 @@ switch Action
             Xdata = indxToPlot(DidNotChooseTrialsIndx); Ydata = TrialTypeList(Xdata);
             DispData = Xdata-offset;
             set(BpodSystem.GUIHandles.NoResponseLine, 'xdata', [DispData,DispData], 'ydata', [Ydata,Ydata]);
+
+            % newly added outcomes
+            % early press
+            EarlyPressTrialsIndx = (OutcomeRecord(indxToPlot) == 5);
+            Xdata = indxToPlot(EarlyPressTrialsIndx); Ydata = TrialTypeList(Xdata);
+            DispData = Xdata-offset;
+            set(BpodSystem.GUIHandles.EarlyPressLine, 'xdata', [DispData,DispData], 'ydata', [Ydata,Ydata]);
+
+            % opto
+
+
+            % probe
+
+
+
         end
 end
 
