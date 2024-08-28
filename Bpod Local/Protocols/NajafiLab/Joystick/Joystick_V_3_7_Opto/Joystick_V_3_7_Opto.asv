@@ -103,7 +103,7 @@ try
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
      
     % update gui positions
-    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 974]);
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 895]);
 
     %% sequence tester - see versions joystick_V_1_3 if trial type testing for proto mods is needed
     % do not remove this section of code, it's very helpful when
@@ -1057,7 +1057,6 @@ try
             end
 
             if S.GUI.OptoWaitForPress2
-                Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
                 if S.GUI.SelfTimedMode
                     WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
                 end 
@@ -1248,7 +1247,7 @@ try
             'Timer', 0,...
             'StateChangeConditions', {'RotaryEncoder1_1', 'PreRetract1Delay'},...
             'OutputActions', Press1_OutputActions);
-        % Press1_OutputActions = TimerCancel_V1W1;
+        % Press1_OutputActions = TimerCancel_V1W1];
 
         sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
             'Timer', 0.100,...
@@ -1301,8 +1300,7 @@ try
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', 0,...
             'StateChangeConditions', {'RotaryEncoder1_1', 'PreRewardDelay'},...
-            'OutputActions', Press2_OutputActions);
-        % Press2_OutputActions = TimerCancel_V2W2
+            'OutputActions', {}); 
 
         sma = AddState(sma, 'Name', 'PreRewardDelay', ...
             'Timer' , PreRewardDelay_s, ...
