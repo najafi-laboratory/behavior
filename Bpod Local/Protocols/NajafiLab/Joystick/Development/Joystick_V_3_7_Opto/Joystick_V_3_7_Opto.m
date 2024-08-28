@@ -899,27 +899,29 @@ try
         end      
 
         % if vis-guided, add jitter to pre vis 2 delay within margin
-        
-        if ~S.GUI.SelfTimedMode
-            RangeLeft = -S.GUI.PreVis2DelayMargin_s;
-            RangeRight = S.GUI.PreVis2DelayMargin_s;      
-            Vis2Jitter = RangeLeft + (RangeRight-RangeLeft).*rand(1,1);
-            PressVisDelay_s = PressVisDelay_s + Vis2Jitter;
-            disp(['vis 2 jitter: ' num2str(Vis2Jitter)])
-
-            % set vis 2 delay jitter minimum of 100ms
-            PressVisDelay_s = max(PressVisDelay_s, 0.100);
+        % add v_3_8
+        if 0
+            if ~S.GUI.SelfTimedMode
+                RangeLeft = -S.GUI.PreVis2DelayMargin_s;
+                RangeRight = S.GUI.PreVis2DelayMargin_s;      
+                Vis2Jitter = RangeLeft + (RangeRight-RangeLeft).*rand(1,1);
+                PressVisDelay_s = PressVisDelay_s + Vis2Jitter;
+                disp(['vis 2 jitter: ' num2str(Vis2Jitter)])
+    
+                % set vis 2 delay jitter minimum of 100ms
+                PressVisDelay_s = max(PressVisDelay_s, 0.100);
+            end
         end
          
         %% get press window
 
         % update auto window reduce if enabled
         if  (currentTrial>1 && ...      
-            S.GUI.EnableAutoWinReduce && ...
+            S.GUI.EnableAutoPressWinReduce && ...
             (WarmupTrialsCounter <= 0) && ...
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
-            S.GUI.Press1Window_s = max(S.GUI.Press1Window_s - S.GUI.AutoWinReduceStep, S.GUI.AutoWinReduceMin);
-            S.GUI.Press2Window_s = max(S.GUI.Press2Window_s - S.GUI.AutoWinReduceStep, S.GUI.AutoWinReduceMin);
+            S.GUI.Press1Window_s = max(S.GUI.Press1Window_s - S.GUI.AutoPressWinReduceStep, S.GUI.AutoPressWinReduceMin);
+            S.GUI.Press2Window_s = max(S.GUI.Press2Window_s - S.GUI.AutoPressWinReduceStep, S.GUI.AutoPressWinReduceMin);
         end
 
         % local vars for checking if warmup extend
