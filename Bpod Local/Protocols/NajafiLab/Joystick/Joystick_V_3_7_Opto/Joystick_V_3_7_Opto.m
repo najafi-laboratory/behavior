@@ -591,9 +591,9 @@ try
         
         % check gui press delay values
         % set long delay to be at least 100ms more than short delay
-        if S.GUI.PrePress2DelayLong_s <= S.GUI.PrePress2DelayShort_s + 0.100
-            S.GUI.PrePress2DelayLong_s = S.GUI.PrePress2DelayShort_s + 0.100;
-        end
+        % if S.GUI.PrePress2DelayLong_s <= S.GUI.PrePress2DelayShort_s + 0.100
+        %     S.GUI.PrePress2DelayLong_s = S.GUI.PrePress2DelayShort_s + 0.100;
+        % end
 
         if (currentTrial == 1)
             ExpNotes.InitShort = S.GUI.PrePress2DelayShort_s;
