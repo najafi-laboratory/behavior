@@ -953,14 +953,14 @@ try
 
         WaitForPress1_StateChangeConditions = {};        
         WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
-        Press1_OutputActions = {};
+        Press1_OutputActions = {'RotaryEncoder1', ['E']};
         LeverRetract1_OutputActions = {'SoftCode', 8};
         DidNotPress1_OutputActions = {};
         LeverRetract1_StateChangeConditions = {};
     
         WaitForPress2_StateChangeConditions = {};
         WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};       
-        Press2_OutputActions = {};
+        Press2_OutputActions = {'RotaryEncoder1', ['E']};
         DidNotPress2_OutputActions = {};
         
     
