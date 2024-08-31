@@ -499,6 +499,8 @@ try
     ExperimenterTrialInfo.VisStimInterruptGray2Count = 0;
     ExperimenterTrialInfo.TotalRewardAmount_uL = 0;
     
+    BpodSystem.Data.EndOfTrialITI = 0;
+
     % init PreReward delays
     PreRewardDelay_s = 0;
     AutoPreRewardDelay_s = PreRewardDelay_s;
@@ -968,8 +970,11 @@ try
     
         %% fixed dur Pre-Vis ITI
             
-        EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
-        ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI;
+        % EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
+        % ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI;
+
+        BpodSystem.Data.EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
+        ExperimenterTrialInfo.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI;        
 
         %% set state matrix variables        
         
@@ -990,12 +995,17 @@ try
         LeverRetract1_OutputActions = {'SoftCode', 8};
         DidNotPress1_OutputActions = {};
         LeverRetract1_StateChangeConditions = {};
+        EarlyPress1_OutputActions = {};        
     
+        PreDelayGap_OutputActions = {};
         WaitForPress2_StateChangeConditions = {};
         WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};       
         Press2_OutputActions = {'RotaryEncoder1', ['E']};
         DidNotPress2_OutputActions = {};
+        EarlyPress2_OutputActions = {};
            
+        PreRewardDelay_OutputActions = {};
+
         if ProbeTrialTypes(currentTrial)
             Reward_OutputActions = {};
         else
@@ -1011,6 +1021,11 @@ try
         % vis1 and/or wait1: timer 1 and 5: '000010001'
         TimerTrigger_V1W1 = {'GlobalTimerTrig', '000010001'};
         TimerCancel_V1W1 = {'GlobalTimerCancel', '000010001'};
+
+        % seg delay:
+        % vis1 and/or wait1: timer 4 and 6: '000101000'
+        TimerTrigger_PressDelay = {'GlobalTimerTrig', '000101000'};
+        TimerCancel_PressDelay = {'GlobalTimerCancel', '000101000'};
 
         % seg2:
         % vis2 and/or wait2: timer 3 and 7: '001000100'
@@ -1040,14 +1055,15 @@ try
         % if opto is enabled, add opto triggers to vis stim output actions
         if m_Opto.EnableOpto
             if OptoTrialTypes(currentTrial) == 2
-                % vis1 and wait 1 segment stim output
-                if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-                    VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
-                end                             
-                % vis2 and wait 2 segment stim output
-                if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
-                    VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
-                end                             
+                % % vis1 and wait 1 segment stim output
+                % if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
+                %     VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
+                % end                             
+                % % vis2 and wait 2 segment stim output
+                % if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
+                %     % VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2, TimerCancel_V1W1];
+                %     VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
+                % end                             
             end
         end
 
@@ -1055,11 +1071,7 @@ try
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
             if S.GUI.OptoVis1
                 VisDetectGray1OutputAction = [VisDetectGray1OutputAction , TimerTrigger_V1W1];
-            end
-            
-            if S.GUI.OptoVis2
-                VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerTrigger_V2W2];
-            end            
+            end                       
 
             if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
                 WaitForPress1_OutputActions = [WaitForPress1_OutputActions, TimerCancel_V1W1];
@@ -1068,36 +1080,85 @@ try
             if S.GUI.OptoWaitForPress1
                 % LeverRetract1_OutputActions = [LeverRetract1_OutputActions, TimerCancel_V1W1];
                 Press1_OutputActions = [Press1_OutputActions, TimerCancel_V1W1];
-                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];
-                
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];                
             end
+
+            % vis1 and wait 1 segment stim output
+            if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
+                VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
+            end      
+
+            EarlyPress1_OutputActions = [EarlyPress1_OutputActions, TimerCancel_V1W1];
 
             % if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
             %     LeverRetract1_OutputActions = [LeverRetract1_OutputActions, TimerCancel_V1W1];
             %     DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];                
             % end
+            
+            % press delay
+            if S.GUI.OptoPrePressDelay
+                PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_PressDelay];
 
-            if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
-                WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_V2W2];
-            end
+                if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2 
+                    Press2_OutputActions = [Press2_OutputActions, TimerCancel_PressDelay];
+                    DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_PressDelay];                   
+                end
 
-            if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_V2W2];            
-            end
+                % VisDetect2OutputAction = [VisDetect2OutputAction, TimerCancel_PressDelay];
+                if ~S.GUI.OptoVis2
+                    VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerCancel_PressDelay];
+                    if S.GUI.OptoWaitForPress2                        
+                        VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
+                        Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
+                    end
+                end
 
-            if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_V2W2];                
-            end
+                if  S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
+                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_PressDelay];
+                end
+                
+                if S.GUI.OptoWaitForPress2
+                    % Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
+                    if S.GUI.SelfTimedMode
+                        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
+                    end 
+                end
 
-            if S.GUI.OptoWaitForPress2
+                EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerCancel_PressDelay];
+            else
+                if S.GUI.OptoVis2
+                    VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerTrigger_V2W2];
+                end             
+    
+                if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
+                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_V2W2];
+                end
+                % 
+                % if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
+                %     DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_V2W2];            
+                % end
+
+                 % vis2 and wait 2 segment stim output
+                if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2               
+                    % VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2, TimerCancel_V1W1];
+                    VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];             
+                end    
+
+                if S.GUI.OptoWaitForPress2
+                    % Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
+                    if S.GUI.SelfTimedMode
+                        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
+                    end 
+                end
+
                 Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
-                if S.GUI.SelfTimedMode
-                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
-                end 
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_V2W2];
+                EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerCancel_V2W2];                
             end
 
             LeverRetract1_OutputActions = [LeverRetract1_OutputActions, TimerShutterReset];
-            Reward_OutputActions = [Reward_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+            % Reward_OutputActions = [Reward_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+            PreRewardDelay_OutputActions = [PreRewardDelay_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
         end
 
         %% update trial-specific Audio
@@ -1125,11 +1186,14 @@ try
                 LeverRetractInitial_StateChangeConditions = {'SoftCode1', 'PreVisStimITI'};
                 % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
                 WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-
+                LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+                
                 if ~S.GUI.SelfTimedMode
-                    LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+                    PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
                 else
-                    LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+                    PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
                 end
                 % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
                 WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
@@ -1292,9 +1356,18 @@ try
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
             'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
-       		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-	 	    % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+       		    % Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+	 	        % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+            % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
    		    % LeverRetract1_OutputActions = {'SoftCode', 8};
+
+        sma = AddState(sma, 'Name', 'PreDelayGap', ...
+            'Timer', 0.5,...
+            'StateChangeConditions', PreDelayGap_StateChangeConditions,...
+            'OutputActions', PreDelayGap_OutputActions);       
+        % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
+        % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
+        % PreDelayGap_OutputActions = TimerTrigger_V2W2;
 
         sma = AddState(sma, 'Name', 'PreVis2Delay', ...
             'Timer', PressVisDelay_s,...
@@ -1320,7 +1393,7 @@ try
     
         sma = AddState(sma, 'Name', 'VisualStimulus2', ...
             'Timer', VisStim.VisStimDuration + 0.020,...
-            'StateChangeConditions', {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'Reward'},...
+            'StateChangeConditions', {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
             'OutputActions', [VisualStimulus2_OutputActions 'SoftCode', 7,'RotaryEncoder1', ['E']]);
         % VisualStimulus2_OutputActions = [AudStim, TimerTrigger_V2W2, 'SoftCode', 7,'RotaryEncoder1', ['E']]
    
@@ -1340,7 +1413,7 @@ try
         sma = AddState(sma, 'Name', 'PreRewardDelay', ...
             'Timer' , PreRewardDelay_s, ...
             'StateChangeConditions', {'Tup', 'Reward'}, ...
-            'OutputActions', {});        
+            'OutputActions', PreRewardDelay_OutputActions);        
 
         sma = AddState(sma, 'Name', 'Reward', ...
             'Timer', RewardTime,...
@@ -1370,12 +1443,14 @@ try
         sma = AddState(sma, 'Name', 'EarlyPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress1Punish'},...
-            'OutputActions', {});
+            'OutputActions', EarlyPress1_OutputActions);
+        % EarlyPress1_OutputActions = {}
+        % EarlyPress2_OutputActions = {}
 
         sma = AddState(sma, 'Name', 'EarlyPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
-            'OutputActions', {});
+            'OutputActions', EarlyPress2_OutputActions);
 
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
@@ -1392,10 +1467,17 @@ try
             'StateChangeConditions', {'Tup', 'Punish_ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);      	% {'HiFi1', ['P' 3]}   
 
+        % sma = AddState(sma, 'Name', 'Punish', ...
+        %     'Timer', S.GUI.PunishSoundDuration_s,...
+        %     'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+        %     'OutputActions', Punish_OutputActions); 
+
+        Punish_OutputActions = [Punish_OutputActions, 'SoftCode', 12];
+
         sma = AddState(sma, 'Name', 'Punish', ...
             'Timer', S.GUI.PunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
-            'OutputActions', Punish_OutputActions); 
+            'StateChangeConditions', {'Tup', 'ITI'},...
+            'OutputActions', Punish_OutputActions);         
     
         sma = AddState(sma, 'Name', 'VisStimInterruptDetect1', ...
             'Timer', 0,...
@@ -1417,17 +1499,24 @@ try
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {});              
 
+        % S.GUI.PunishITI = 1;
+
         sma = AddState(sma, 'Name', 'Punish_ITI', ...
             'Timer', S.GUI.PunishITI,...
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {});         
+        % 
+        % sma = AddState(sma, 'Name', 'ITI', ...
+        %     'Timer', EndOfTrialITI,...
+        %     'StateChangeConditions', {'Tup', '>exit'},...
+        %     'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
+
+        % BpodSystem.Data.EndOfTrialITI = 3;
 
         sma = AddState(sma, 'Name', 'ITI', ...
-            'Timer', EndOfTrialITI,...
-            'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
-
-        
+            'Timer', 0,...
+            'StateChangeConditions', {'SoftCode3', '>exit'},...
+            'OutputActions', {'SoftCode', 13, 'GlobalCounterReset', '111111111'});
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events

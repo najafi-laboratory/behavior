@@ -87,7 +87,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.AssistedTrials = {'AssistedTrials', 'ATRangeStart', 'ATRangeStop'};
 
         % Optogentic params
-        S.GUI.SessionType = 2;  % S.GUI.SessionType = 2;
+        S.GUI.SessionType = 1;  % S.GUI.SessionType = 2;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 3;
@@ -100,18 +100,22 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.OptoVis1.Style = 'checkbox';
         S.GUI.OptoWaitForPress1 = 1;
         S.GUIMeta.OptoWaitForPress1.Style = 'checkbox';
+
+        S.GUI.OptoPrePressDelay = 1;
+        S.GUIMeta.OptoPrePressDelay.Style = 'checkbox';
+
         S.GUI.OptoVis2 = 1;
         S.GUIMeta.OptoVis2.Style = 'checkbox';
         S.GUI.OptoWaitForPress2 = 1;
         S.GUIMeta.OptoWaitForPress2.Style = 'checkbox';
-        S.GUI.OptoTrialTypeSeq = 5;
+        S.GUI.OptoTrialTypeSeq = 1; % S.GUI.OptoTrialTypeSeq = 5;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block', 'On Epoch'};               
-        S.GUI.OnFraction = 0.35;    % S.GUI.OnFraction = 0.35;
+        S.GUI.OnFraction = 1;    % S.GUI.OnFraction = 0.35;
         S.GUI.NumOptoTrialsPerBlock = 50; 
         S.GUI.EpochTrialStart = 1;
         S.GUI.EpochTrialStop = 15;        
-        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoWaitForPress1', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock', 'EpochTrialStart', 'EpochTrialStop'};
+        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoWaitForPress1', 'OptoPrePressDelay', 'OptoVis2', 'OptoWaitForPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock', 'EpochTrialStart', 'EpochTrialStop'};
 
         % reward
         S.GUI.PreRewardDelay_s = 0.200;

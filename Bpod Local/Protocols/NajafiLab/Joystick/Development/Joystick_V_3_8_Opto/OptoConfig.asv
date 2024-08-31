@@ -162,12 +162,10 @@ classdef OptoConfig
                 end
 
                 LED1OnsetDelay = 0;
-                LED2OnsetDelay = 0;  
-                LED3OnsetDelay = 0; 
+                LED2OnsetDelay = 0;                
 
                 PMT1OnsetDelay = 0;
                 PMT2OnsetDelay = 0;
-                PMT3OnsetDelay = 0;
 
                 % bpod timer loop limit
                 MaxLoopNum = 255;
@@ -196,12 +194,7 @@ classdef OptoConfig
                 if S.GUI.SelfTimedMode
                     LED2OnsetDelay = PMTCloseDelay;
                     PMT2OnsetDelay = LED2OnsetDelay - PMTCloseDelay;
-                end          
-
-                if S.GUI.OptoPrePressDelay
-                    LED3OnsetDelay = PMTCloseDelay;
-                    PMT3OnsetDelay = LED3OnsetDelay - PMTCloseDelay;
-                end
+                end                
 
                 switch S.GUI.PulseType
                     case 1
@@ -241,11 +234,8 @@ classdef OptoConfig
                         LoopNum = floor((S.GUI.MaxOptoDur_s/(LEDOnDur+LEDOffDur)));
                         LoopLED1 = LoopNum;
                         LoopLED2 = LoopNum;
-                        LoopLED3 = LoopNum;
                         LoopPMT1 = LoopNum;
-                        LoopPMT2 = LoopNum;
-                        LoopPMT3 = LoopNum;
-
+                        LoopPMT2 = LoopNum;                        
                        
                         PMTCloseDur = PMTCloseDelay;
                         % if the LED is on for longer than the shutter StartOpenDelay,
