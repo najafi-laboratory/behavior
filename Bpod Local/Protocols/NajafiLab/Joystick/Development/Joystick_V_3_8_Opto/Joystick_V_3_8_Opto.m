@@ -561,6 +561,18 @@ try
             ExpNotes.OptoWaitForPress1 = 'Off';
         end
 
+        if S.GUI.OptoPress1
+            ExpNotes.OptoPress1 = 'On';
+        else
+            ExpNotes.OptoPress1 = 'Off';
+        end
+
+        if S.GUI.OptoPrePressDelay
+            ExpNotes.OptoPrePressDelay = 'On';
+        else
+            ExpNotes.OptoPrePressDelay = 'Off';
+        end        
+
         if S.GUI.OptoVis2
             ExpNotes.OptoVis2 = 'On';
         else
@@ -572,6 +584,12 @@ try
         else
             ExpNotes.OptoWaitForPress2 = 'Off';
         end
+
+        if S.GUI.OptoPress2
+            ExpNotes.OptoPress2 = 'On';
+        else
+            ExpNotes.OptoPress2 = 'Off';
+        end        
 
         ExpNotes.LEDOnPulseDur_ms = S.GUI.LEDOnPulseDur_ms;
         ExpNotes.LEDOffPulseDur_ms = S.GUI.LEDOffPulseDur_ms;
@@ -992,6 +1010,7 @@ try
         WaitForPress1_StateChangeConditions = {};        
         WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
         Press1_OutputActions = {'RotaryEncoder1', ['E']};
+        PreRetract1Delay_OutputActions = {};
         LeverRetract1_OutputActions = {'SoftCode', 8};
         DidNotPress1_OutputActions = {};
         LeverRetract1_StateChangeConditions = {};
@@ -1005,6 +1024,8 @@ try
         EarlyPress2_OutputActions = {};
            
         PreRewardDelay_OutputActions = {};
+
+        Punish_OutputActions = {};
 
         if ProbeTrialTypes(currentTrial)
             Reward_OutputActions = {};
@@ -1035,6 +1056,17 @@ try
         % shutter reset timer: timer 2: '000000010'
         TimerShutterReset = {'GlobalTimerTrig', '000000010'};
 
+        % press timers: timer 8 and 9: 
+        % currently using seg delay timers 4 & 6 since press states have
+        % unknown immediate start time of opto, update to use different
+        % timers if seg delay changes
+        
+        % TimerTrigger_Press = TimerTrigger_PressDelay;
+        % TimerCancel_Press = TimerCancel_PressDelay;
+        TimerTrigger_Press = {'GlobalTimerTrig', '110000000'};
+        TimerCancel_Press = {'GlobalTimerCancel', '110000000'};
+
+
         % set visual stimulus 1&2 state outputs (referred to as audStimOpto
         % since the audio starts in those states)
         % audStimOpto1 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 1);
@@ -1053,78 +1085,86 @@ try
         VisualStimulus2_OutputActions = AudStim;
 
         % if opto is enabled, add opto triggers to vis stim output actions
-        if m_Opto.EnableOpto
-            if OptoTrialTypes(currentTrial) == 2
-                % % vis1 and wait 1 segment stim output
-                % if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-                %     VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
-                % end                             
-                % % vis2 and wait 2 segment stim output
-                % if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
-                %     % VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2, TimerCancel_V1W1];
-                %     VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
-                % end                             
-            end
-        end
-
         % update after opto proto is defined to create separate function to abstract global timer
         if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
+            %%%%%%%%%%%%%%% segment either %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+            %%%%%%%%%%%%%%% segment 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+            % if any segment 1 opto is active,
+            % cancel timers and reset shutter when press1, didnotpress1, earlypress1 starts            
+            if S.GUI.OptoVis1 || S.GUI.OptoWaitForPress1 || S.GUI.OptoPress1            
+                if S.GUI.OptoPress1
+                    PreRetract1Delay_OutputActions = [Press1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                else
+                    Press1_OutputActions = [Press1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                end
+                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                EarlyPress1_OutputActions = [EarlyPress1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+            end
+
             if S.GUI.OptoVis1
                 VisDetectGray1OutputAction = [VisDetectGray1OutputAction , TimerTrigger_V1W1];
             end                       
 
             if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
-                WaitForPress1_OutputActions = [WaitForPress1_OutputActions, TimerCancel_V1W1];
+                %WaitForPress1_OutputActions = [WaitForPress1_OutputActions, TimerCancel_V1W1];
             end
 
-            if S.GUI.OptoWaitForPress1
-                % LeverRetract1_OutputActions = [LeverRetract1_OutputActions, TimerCancel_V1W1];
-                Press1_OutputActions = [Press1_OutputActions, TimerCancel_V1W1];
-                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];                
-            end
-
-            % vis1 and wait 1 segment stim output
             if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
                 VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
-            end      
+            end
 
-            EarlyPress1_OutputActions = [EarlyPress1_OutputActions, TimerCancel_V1W1];
+            if ~S.GUI.OptoWaitForPress1 && S.GUI.OptoPress1
+                Press1_OutputActions = [Press1_OutputActions, TimerTrigger_Press];
+            end
 
-            % if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-            %     LeverRetract1_OutputActions = [LeverRetract1_OutputActions, TimerCancel_V1W1];
+            % press opto currently written to only work if 
+
+            % can use these later if we need to reduce the number of cases
+            % in which the 25ms shutter reset is used since it's only
+            % needed when variable-time opto segments are used (such as
+            % waitforpress)
+            % if S.GUI.OptoWaitForPress1
             %     DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];                
             % end
             
-            % press delay
+            %%%%%%%%%%%%%%% segment 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % if any segment 2 (including prepressdelay) opto is active,
+            % cancel timers and reset shutter when press2, didnotpress2, earlypress2 starts
+            if S.GUI.OptoPrePressDelay || S.GUI.OptoVis2 || S.GUI.OptoWaitForPress2 || S.GUI.OptoPress2
+                if S.GUI.OptoPress2
+                    PreRewardDelay_OutputActions = [PreRewardDelay_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                else
+                    Press2_OutputActions = [Press2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                end                                   
+                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+            end
+
+            % cases depending on PrePressDelay opto on/off
             if S.GUI.OptoPrePressDelay
                 PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_PressDelay];
-
-                if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2 
-                    Press2_OutputActions = [Press2_OutputActions, TimerCancel_PressDelay];
-                    DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_PressDelay];                   
-                end
-
-                % VisDetect2OutputAction = [VisDetect2OutputAction, TimerCancel_PressDelay];
+               
                 if ~S.GUI.OptoVis2
-                    VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerCancel_PressDelay];
+                    VisDetectGray2OutputAction = [VisDetectGray2OutputAction, TimerCancel_PressDelay];
                     if S.GUI.OptoWaitForPress2                        
                         VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
-                        Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
                     end
                 end
 
-                if  S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
+                if ~S.GUI.OptoWaitForPress2
                     WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_PressDelay];
+                    if S.GUI.OptoPress2
+                        Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
+                    end
                 end
                 
-                if S.GUI.OptoWaitForPress2
-                    % Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
-                    if S.GUI.SelfTimedMode
-                        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
-                    end 
-                end
-
-                EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerCancel_PressDelay];
+                % if S.GUI.OptoWaitForPress2 && S.GUI.SelfTimedMode
+                %     WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
+                % end                
             else
                 if S.GUI.OptoVis2
                     VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerTrigger_V2W2];
@@ -1133,32 +1173,26 @@ try
                 if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
                     WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_V2W2];
                 end
-                % 
-                % if S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2
-                %     DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_V2W2];            
-                % end
 
-                 % vis2 and wait 2 segment stim output
                 if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2               
-                    % VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2, TimerCancel_V1W1];
                     VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];             
                 end    
 
-                if S.GUI.OptoWaitForPress2
-                    % Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
-                    if S.GUI.SelfTimedMode
-                        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
-                    end 
-                end
 
-                Press2_OutputActions = [Press2_OutputActions, TimerCancel_V2W2];
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerCancel_V2W2];
-                EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerCancel_V2W2];                
+                if S.GUI.OptoWaitForPress2 && S.GUI.SelfTimedMode
+                    % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
+                    PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_V2W2];
+                end   
+
+                if ~S.GUI.OptoWaitForPress2
+                    if S.GUI.OptoPress2
+                        Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
+                    end
+                end
             end
 
-            LeverRetract1_OutputActions = [LeverRetract1_OutputActions, TimerShutterReset];
-            % Reward_OutputActions = [Reward_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-            PreRewardDelay_OutputActions = [PreRewardDelay_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+            % ?
+            Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
         end
 
         %% update trial-specific Audio
@@ -1167,15 +1201,14 @@ try
         H.load(7, OptoAudioStimSound);
     
         % toggle punish sound on/off
-        Punish_OutputActions = {};
         EarlyPressPunish_OutputActions = {};
         if (S.GUI.IncorrectSound && ...
            ~ProbeTrialTypes(currentTrial))
-                Punish_OutputActions = {'HiFi1', ['P' 2]};
+                Punish_OutputActions = [Punish_OutputActions, 'HiFi1', ['P' 2]];
                 EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
         end
         
-        Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];        
+        
 
         switch S.GUI.Reps
             case 1           
@@ -1186,7 +1219,7 @@ try
                 LeverRetractInitial_StateChangeConditions = {'SoftCode1', 'PreVisStimITI'};
                 % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
                 WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-                LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+                LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreDelayGap'};
                 
                 if ~S.GUI.SelfTimedMode
                     % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
@@ -1298,7 +1331,9 @@ try
 
         sma = SetGlobalCounter(sma, CounterNumber, TargetEventName, CounterThreshold);
         
-        sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim);
+        sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim, PressVisDelay_s);
+
+        debugSyncSignal = {'BNC1', 1};
       
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
@@ -1334,6 +1369,7 @@ try
             'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
         % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]
 
+        WaitForPress1_OutputActions = [WaitForPress1_OutputActions, debugSyncSignal];
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
@@ -1350,7 +1386,7 @@ try
         sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
             'Timer', 0.100,...
             'StateChangeConditions', {'Tup', 'LeverRetract1'},...
-            'OutputActions', {});     
+            'OutputActions', PreRetract1Delay_OutputActions);             
 
         sma = AddState(sma, 'Name', 'LeverRetract1', ...
             'Timer', 0,...
@@ -1361,8 +1397,9 @@ try
             % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
    		    % LeverRetract1_OutputActions = {'SoftCode', 8};
 
+        % set to 22.1ms to match opto timing of shutter
         sma = AddState(sma, 'Name', 'PreDelayGap', ...
-            'Timer', 0.5,...
+            'Timer', 0.0221,...
             'StateChangeConditions', PreDelayGap_StateChangeConditions,...
             'OutputActions', PreDelayGap_OutputActions);       
         % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
@@ -1372,12 +1409,12 @@ try
         sma = AddState(sma, 'Name', 'PreVis2Delay', ...
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E'], 'BNC1', 1}); 
 
         sma = AddState(sma, 'Name', 'PrePress2Delay', ...
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E'], 'BNC1', 1});
      
         %% rep 2
     
@@ -1397,6 +1434,8 @@ try
             'OutputActions', [VisualStimulus2_OutputActions 'SoftCode', 7,'RotaryEncoder1', ['E']]);
         % VisualStimulus2_OutputActions = [AudStim, TimerTrigger_V2W2, 'SoftCode', 7,'RotaryEncoder1', ['E']]
    
+        % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'BNC1', 1];
+
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', Press2Window_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
@@ -1404,6 +1443,7 @@ try
         % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
         % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
     
+        Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', 0,...
             'StateChangeConditions', {'RotaryEncoder1_1', 'PreRewardDelay'},...
@@ -1438,7 +1478,7 @@ try
         sma = AddState(sma, 'Name', 'EarlyPress', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPressPunish'},...
-            'OutputActions', {});
+            'OutputActions', {});        
 
         sma = AddState(sma, 'Name', 'EarlyPress1', ...
             'Timer', 0,...
@@ -1454,17 +1494,17 @@ try
 
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);  
 
         sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);  		% {'HiFi1', ['P' 3]}
 
         sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);      	% {'HiFi1', ['P' 3]}   
 
         % sma = AddState(sma, 'Name', 'Punish', ...
