@@ -1120,8 +1120,6 @@ try
                 Press1_OutputActions = [Press1_OutputActions, TimerTrigger_Press];
             end
 
-            % press opto currently written to only work if 
-
             % can use these later if we need to reduce the number of cases
             % in which the 25ms shutter reset is used since it's only
             % needed when variable-time opto segments are used (such as
@@ -1191,8 +1189,8 @@ try
                 end
             end
 
-            % ?
-            Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
+            % need the punish shutter retract?
+            % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
         end
 
         %% update trial-specific Audio
@@ -1207,8 +1205,6 @@ try
                 Punish_OutputActions = [Punish_OutputActions, 'HiFi1', ['P' 2]];
                 EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
         end
-        
-        
 
         switch S.GUI.Reps
             case 1           
@@ -1230,11 +1226,8 @@ try
                 end
                 % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
                 WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-                PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5
-                
-        end
-    
-           
+                PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5              
+        end           
             
         %% adjust for warmup trials
         % For warmup trials, wait for press is extended by additional warmup param, after warmup wait for press is S.GUI.PressWindow_s
@@ -1313,33 +1306,47 @@ try
         disp(strExperimenterTrialInfo);          
     
         %% counter to indicate if non-rewarded trial
+        % might use counter function for different feature, keeping code
+        % here for now in case
         % Non-rewarded Counter - increment if non-rewarded, use to extend
         % iti by punish_iti
-        CounterNumber = 1;
-        TargetEventName = 'GlobalTimer9_Start';
-        CounterThreshold = 1;
-
-        TimerTrigger_Punish = {'GlobalTimerTrig', '100000000'};        
-        TimerCounterEvent = 'GlobalCounter1_End';
-
-        disp(['Counter Threshold:', num2str(CounterThreshold)])
+        % CounterNumber = 1;
+        % TargetEventName = 'GlobalTimer9_Start';
+        % CounterThreshold = 1;
+        % 
+        % TimerTrigger_Punish = {'GlobalTimerTrig', '100000000'};        
+        % TimerCounterEvent = 'GlobalCounter1_End';
+        % 
+        % disp(['Counter Threshold:', num2str(CounterThreshold)])
 
 
         %% construct state matrix
     
         sma = NewStateMatrix(); % Assemble state matrix
 
-        sma = SetGlobalCounter(sma, CounterNumber, TargetEventName, CounterThreshold);
+        % sma = SetGlobalCounter(sma, CounterNumber, TargetEventName, CounterThreshold);
         
         sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim, PressVisDelay_s);
 
-        debugSyncSignal = {'BNC1', 1};
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+        % adding variables to improve readability, starting with V_3_8
+        % output action variables
+        StartSyncSignal = {'BNC1', 1};
+        debugSyncSignal = {}; % using start sync signal when developing/debugging, could expand to other signals for differentiation on voltage recordings if needed
+                                % set to empty {} when not
+                                % developing/debugging
+        RotaryEncoderStart = {'RotaryEncoder1', ['E#' 0]}; % enable rotary encoder and set time sync
+        HiFiStart = {['' 'HiFi1'],'*'}; % push newly uploaded waves to front (playback) buffers
+        PlayVis1 = {'SoftCode', 5};
+        MoveServoOut = {'SoftCode', 7};
+        MoveServoIn = {'SoftCode', 8};
+        CombineITI_Punish = {'SoftCode', 12}; % used to combine end of trial and punish ITI during the trial
       
+        Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
             'StateChangeConditions', {'Tup', 'LeverRetractInitial', 'RotaryEncoder1_2', 'EarlyPress'},...
-            'OutputActions', {['' ...
-            'HiFi1'],'*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to push newly uploaded waves to front (playback) buffers
+            'OutputActions', {['' 'HiFi1'],'*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to
         
         sma = AddState(sma, 'Name', 'LeverRetractInitial', ...
             'Timer', 0,...
@@ -1397,7 +1404,7 @@ try
             % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
    		    % LeverRetract1_OutputActions = {'SoftCode', 8};
 
-        % set to 22.1ms to match opto timing of shutter
+        % set to 22.1ms to match opto timing of shutter, aligns opto to PreVisDelay
         sma = AddState(sma, 'Name', 'PreDelayGap', ...
             'Timer', 0.0221,...
             'StateChangeConditions', PreDelayGap_StateChangeConditions,...
@@ -1409,12 +1416,12 @@ try
         sma = AddState(sma, 'Name', 'PreVis2Delay', ...
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E'], 'BNC1', 1}); 
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
 
         sma = AddState(sma, 'Name', 'PrePress2Delay', ...
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E'], 'BNC1', 1});
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});
      
         %% rep 2
     
@@ -1443,7 +1450,7 @@ try
         % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
         % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
     
-        Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
+        % Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', 0,...
             'StateChangeConditions', {'RotaryEncoder1_1', 'PreRewardDelay'},...
@@ -1492,6 +1499,8 @@ try
             'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
             'OutputActions', EarlyPress2_OutputActions);
 
+        EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
+        
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
             'StateChangeConditions', {'Tup', 'ITI'},...
@@ -1512,7 +1521,7 @@ try
         %     'StateChangeConditions', {'Tup', 'Punish_ITI'},...
         %     'OutputActions', Punish_OutputActions); 
 
-        Punish_OutputActions = [Punish_OutputActions, 'SoftCode', 12];
+        Punish_OutputActions = [Punish_OutputActions, CombineITI_Punish];
 
         sma = AddState(sma, 'Name', 'Punish', ...
             'Timer', S.GUI.PunishSoundDuration_s,...
@@ -1541,10 +1550,13 @@ try
 
         % S.GUI.PunishITI = 1;
 
-        sma = AddState(sma, 'Name', 'Punish_ITI', ...
-            'Timer', S.GUI.PunishITI,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});         
+        % sma = AddState(sma, 'Name', 'Punish_ITI', ...
+        %     'Timer', S.GUI.PunishITI,...
+        %     'StateChangeConditions', {'Tup', 'ITI'},...
+        %     'OutputActions', {});         
+        
+        % keeping ITI and ITI_Punish in case we switch back to using 2
+        % different ITI states
         % 
         % sma = AddState(sma, 'Name', 'ITI', ...
         %     'Timer', EndOfTrialITI,...
@@ -1552,6 +1564,7 @@ try
         %     'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
 
         % BpodSystem.Data.EndOfTrialITI = 3;
+        % S.GUI.PunishITI = 2;
 
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', 0,...

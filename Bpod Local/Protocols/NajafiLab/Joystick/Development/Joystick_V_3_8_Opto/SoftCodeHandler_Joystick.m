@@ -29,8 +29,13 @@ switch true
     case code >= 0 && code <= 6 
         BpodSystem.PluginObjects.V.play(code);
     case code == 12
+        % used to combined end of trial ITI with punish ITI
         BpodSystem.Data.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI + S.GUI.PunishITI;
-    case code == 13        
+    case code == 13 
+        % softcode used to retur lever AND get combined trial ITI
+        % time to return lever is measured and subtracted from the combined
+        % trial ITI, instead of state 'Tup', matlab pause is used so that
+        % we can combine ITI and ITI_punish into a single state
         tic
         % disp('code 8');
         M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5);

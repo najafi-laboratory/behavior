@@ -21,7 +21,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.AutoPressWinReduceMin = 0.500;
         S.GUI.Press1Window_s = 1.8; % how long mouse has to press lever
         S.GUI.Press2Window_s = 1.8; % how long mouse has to press lever
-        S.GUI.PressWindowExtend_s = 1; % additional time added for warmup trials
+        S.GUI.PressWindowExtend_s = 1; % additional time to press lever added for warmup trials
         S.GUI.Reps = 2;   % number of required repeated lever presses in a trial
         S.GUIMeta.Reps.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.Reps.String = {'1', '2', '3'};
@@ -29,8 +29,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ResistanceLevel = 1;
         S.GUIMeta.ResistanceLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
         S.GUIMeta.ResistanceLevel.String = {'0 mA', '30 mA', '91 mA', '122 mA', '152 mA', '183 mA', '214 mA', '244 mA', '900 mA'};
+        
         % set servo positions per rig, allows consistent code version
-        % updates
+        % updates compatible across rigs
         switch BpodSystem.Data.RigName
             case 'ImagingRig'
                 S.GUI.ServoInPos = 1569.00; % lever start pos
@@ -50,7 +51,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PrePress2DelayShort_s = 0.100;
         S.GUI.PrePress2DelayLong_s = 0.200;
 
-        S.GUI.EnablePreVis2DelayJitter = 1;
+        S.GUI.EnablePreVis2DelayJitter = 0;
         S.GUIMeta.EnablePreVis2DelayJitter.Style = 'checkbox';
         S.GUI.PreVis2DelayMargin_s = 0.050;
 
@@ -73,21 +74,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.Joystick = {'ChemogeneticSession', 'mgCNO', 'mlSaline', 'Threshold', 'WarmupThreshold', 'EnableAutoPressWinReduce', 'AutoPressWinReduceStep', 'AutoPressWinReduceMin', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnablePreVis2DelayJitter', 'PreVis2DelayMargin_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
         % S.GUIPanels.Joystick = {'ChemogeneticSession', 'mgCNO', 'mlSaline', 'Threshold', 'WarmupThreshold', 'EnableAutoPressWinReduce', 'AutoPressWinReduceStep', 'AutoPressWinReduceMin', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'PreVis2DelayMargin_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
 
-        % excluded trials
-        S.GUI.ExcludedTrials = @(src,event)fnExcludedTrials;
-        S.GUIMeta.ExcludedTrials.Style = 'pushbutton';
-        S.GUI.numExcludedTrials = 0;    
-        S.GUIPanels.ExcludedTrials = {'ExcludedTrials', 'numExcludedTrials'};
-
-        % assisted trials
-        S.GUI.AssistedTrials = @(src,event)fnAssistedTrials;
-        S.GUIMeta.AssistedTrials.Style = 'pushbutton';
-        S.GUI.ATRangeStart = 0;
-        S.GUI.ATRangeStop = 0;
-        S.GUIPanels.AssistedTrials = {'AssistedTrials', 'ATRangeStart', 'ATRangeStop'};
-
         % Optogentic params
-        S.GUI.SessionType = 1;  % S.GUI.SessionType = 2;
+        S.GUI.SessionType = 2;  % S.GUI.SessionType = 2;
         S.GUIMeta.SessionType.Style = 'popupmenu';
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 3;
@@ -113,14 +101,16 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoPress2 = 1;
         S.GUIMeta.OptoPress2.Style = 'checkbox';
 
-        S.GUI.OptoTrialTypeSeq = 1; % S.GUI.OptoTrialTypeSeq = 5;
+        S.GUI.OptoTrialTypeSeq = 5; % S.GUI.OptoTrialTypeSeq = 5;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block', 'On Epoch'};               
-        S.GUI.OnFraction = 1;    % S.GUI.OnFraction = 0.35;
+        S.GUI.OnFraction = 0.35;    % S.GUI.OnFraction = 0.35;
         S.GUI.NumOptoTrialsPerBlock = 50; 
         S.GUI.EpochTrialStart = 1;
         S.GUI.EpochTrialStop = 15;        
         S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoWaitForPress1', 'OptoPress1', 'OptoPrePressDelay', 'OptoVis2', 'OptoWaitForPress2', 'OptoPress2', 'OptoTrialTypeSeq', 'OnFraction', 'NumOptoTrialsPerBlock', 'EpochTrialStart', 'EpochTrialStop'};
+
+
 
         % reward
         S.GUI.PreRewardDelay_s = 0.200;
@@ -132,8 +122,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.CenterValveAmount_uL = 1;
         S.GUIPanels.Reward = {'PreRewardDelay_s', 'EnableAutoPreRewardDelay', 'AutoPreRewardDelayStep_s', 'AutoPreRewardDelayMax_s', 'PostRewardDelay_s', 'CenterValveAmount_uL'};        
         
+
         % ITI params
-        S.GUI.ITI_Pre = 0.500;  % V_3_3 ITI post, fixed duration, now ITI_Pre V_3_7
+        S.GUI.ITI_Pre = 0.500;  % V_3_3 ITI_post, fixed duration, now ITI_Pre V_3_7
         S.GUI.SetManualITI = 0; % S.GUI.SetManualITI = 0;
         S.GUIMeta.SetManualITI.Style = 'checkbox';
         S.GUI.ManualITI = '0';
@@ -143,6 +134,19 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PunishITI = 1;  % early press and didnt press punish ITI (from EarlyPress1Punish, EarlyPress2Punish, Punish)
         S.GUIPanels.ITI_Dist = {'ITI_Pre', 'SetManualITI', 'ManualITI', 'ITIMin', 'ITIMax', 'ITIMean', 'PunishITI'};
     
+        % excluded trials
+        S.GUI.ExcludedTrials = @(src,event)fnExcludedTrials;
+        S.GUIMeta.ExcludedTrials.Style = 'pushbutton';
+        S.GUI.numExcludedTrials = 0;    
+        S.GUIPanels.ExcludedTrials = {'ExcludedTrials', 'numExcludedTrials'};
+
+        % assisted trials
+        S.GUI.AssistedTrials = @(src,event)fnAssistedTrials;
+        S.GUIMeta.AssistedTrials.Style = 'pushbutton';
+        S.GUI.ATRangeStart = 0;
+        S.GUI.ATRangeStop = 0;
+        S.GUIPanels.AssistedTrials = {'AssistedTrials', 'ATRangeStart', 'ATRangeStop'};
+
         % init cue params
               
         % training level params
