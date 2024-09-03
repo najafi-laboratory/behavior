@@ -135,8 +135,7 @@ classdef OptoConfig
                 PMTMin5VSignalDur = PMTCloseDelay + ShutterPulseWidthAdd; % ~25.1ms, minimum measured duration of 5V shutter signal for shutter to re-open 
 
                 % shutter open delays
-                % PMTStartOpenDelay = 0.0078;
-                PMTStartOpenDelay = 0.000;  % setting to zero to prevent pmt damage, red channel shutter seems to open a bit faster than specs
+                PMTStartOpenDelay = 0.0078;
                 PMTOpenTransferDelay = 0.0125;
                 
                 % scope 3-frame segment dur
@@ -165,12 +164,10 @@ classdef OptoConfig
                 LED1OnsetDelay = 0;
                 LED2OnsetDelay = 0;  
                 LED3OnsetDelay = 0; 
-                LED4OnsetDelay = 0;
 
                 PMT1OnsetDelay = 0;
                 PMT2OnsetDelay = 0;
                 PMT3OnsetDelay = 0;
-                PMT4OnsetDelay = 0;
 
                 % bpod timer loop limit
                 MaxLoopNum = 255;
@@ -208,9 +205,6 @@ classdef OptoConfig
                     LED3OnsetDelay = PMTCloseDelay;
                     PMT3OnsetDelay = LED3OnsetDelay - PMTCloseDelay;
                 end
-
-                LED4OnsetDelay = PMTCloseDelay;
-                PMT4OnsetDelay = LED4OnsetDelay - PMTCloseDelay;
 
                 switch S.GUI.PulseType
                     case 1
@@ -250,8 +244,8 @@ classdef OptoConfig
                         % general case is max integer number of loops
                         % within maxopto constraint
                         LoopNum = floor((S.GUI.MaxOptoDur_s/(LEDOnDur+LEDOffDur)));
-                        if LoopNum == 1
-                            LoopNum = 0;
+                        if LoopNum > 0
+                            LoopNum = LoopNum - 1;
                         end                        
                         
                         LoopLED1 = LoopNum;
@@ -298,13 +292,13 @@ classdef OptoConfig
                         % should be integer number of loops in
                         % prepress2delay
                         if ~S.GUI.OptoWaitForPress2
-                            % OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
-                            LoopNum = floor((PressVisDelay_s/(LEDOnDur+LEDOffDur)));
-                            if LoopNum == 1
-                                LoopNum = 0;
-                            end
-                            LoopLED3 = LoopNum;
-                            LoopPMT3 = LoopNum; 
+                                % OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
+                                LoopNum = floor((PressVisDelay_s/(LEDOnDur+LEDOffDur)));
+                                if LoopNum > 0
+                                    LoopNum = LoopNum - 1;
+                                end
+                                LoopLED3 = LoopNum;
+                                LoopPMT3 = LoopNum; 
                         end
                        
                         PMTCloseDur = PMTCloseDelay;
@@ -374,12 +368,6 @@ classdef OptoConfig
                     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                     'Loop', LoopPMT2, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0); 
-
-                % press1/press2
-                sma = SetGlobalTimer(sma, 'TimerID', 9, 'Duration', PMTCloseDur, 'OnsetDelay', PMT4OnsetDelay,...
-                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
-                    'Loop', LoopPMT4, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
-                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                 
 
                 % shutter reset timer
                 sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', 0.030, 'OnsetDelay', 0,...

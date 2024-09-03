@@ -529,8 +529,6 @@ try
     if S.GUI.ChemogeneticSession
         ExpNotes.ChemoSession = 'Yes';
         ExpNotes.ChemoDilution = append(num2str(S.GUI.mgCNO), ':', num2str(S.GUI.mlSaline)," mgCNO:mlSaline");
-        % ExpNotes.ChemoDilution = num2str(S.GUI.mgCNO_mlSaline);
-        % S = BpodParameterGUI('sync', S);
     else
         ExpNotes.ChemoSession = 'No';
     end
@@ -953,29 +951,8 @@ try
                 end
             end
 
-            % draw jitter from normal distribution using 
-            % mean = PressVisDelay_s 
-            % sigma (std dev) = S.GUI.PreVis2DelayJitterStd
-            % within cutoff margin of S.GUI.PreVis2DelayMargin_s
             if ApplyJitterInThisBlock
-                % Vis2Jitter(currentTrial) = (2* S.GUI.PreVis2DelayMargin_s).*rand(1,1) - S.GUI.PreVis2DelayMargin_s;
-                
-                LB = PressVisDelay_s - S.GUI.PreVis2DelayMargin_s;
-                UB = PressVisDelay_s + S.GUI.PreVis2DelayMargin_s;
-                % test = [];  % testing to check distribution
-                % idx = 1;
-                % while idx < 1000
-                withinMargin = 0;
-                while ~withinMargin
-                    drawNormal = normrnd(PressVisDelay_s, S.GUI.PreVis2DelayJitterStd);
-                    if (drawNormal >= LB) && (drawNormal <= UB)
-                        withinMargin = 1;
-                        Vis2Jitter(currentTrial) = drawNormal;
-                    end
-                end
-                %     test(idx) = drawNormal;
-                %     idx = idx + 1;
-                % end
+                Vis2Jitter(currentTrial) = (2* S.GUI.PreVis2DelayMargin_s).*rand(1,1) - S.GUI.PreVis2DelayMargin_s;
                 PressVisDelay_s = PressVisDelay_s + Vis2Jitter(currentTrial);
                 disp(['vis 2 jitter: ' num2str(Vis2Jitter(currentTrial))]);   
             else
@@ -1363,8 +1340,7 @@ try
         PlayVis1 = {'SoftCode', 5};
         MoveServoOut = {'SoftCode', 7};
         MoveServoIn = {'SoftCode', 8};
-        % CombineITI_Punish = {'SoftCode', 12}; % used to combine end of trial and punish ITI during the trial
-
+        CombineITI_Punish = {'SoftCode', 12}; % used to combine end of trial and punish ITI during the trial
       
         Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
         sma = AddState(sma, 'Name', 'Start', ...
@@ -1523,21 +1499,21 @@ try
             'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
             'OutputActions', EarlyPress2_OutputActions);
 
-        % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
+        EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
         
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);  
 
         sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);  		% {'HiFi1', ['P' 3]}
 
         sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);      	% {'HiFi1', ['P' 3]}   
 
         % sma = AddState(sma, 'Name', 'Punish', ...
@@ -1545,11 +1521,11 @@ try
         %     'StateChangeConditions', {'Tup', 'Punish_ITI'},...
         %     'OutputActions', Punish_OutputActions); 
 
-        % Punish_OutputActions = [Punish_OutputActions, CombineITI_Punish];
+        Punish_OutputActions = [Punish_OutputActions, CombineITI_Punish];
 
         sma = AddState(sma, 'Name', 'Punish', ...
             'Timer', S.GUI.PunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', Punish_OutputActions);         
     
         sma = AddState(sma, 'Name', 'VisStimInterruptDetect1', ...
@@ -1574,26 +1550,27 @@ try
 
         % S.GUI.PunishITI = 1;
 
-        sma = AddState(sma, 'Name', 'Punish_ITI', ...
-            'Timer', S.GUI.PunishITI,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});         
+        % sma = AddState(sma, 'Name', 'Punish_ITI', ...
+        %     'Timer', S.GUI.PunishITI,...
+        %     'StateChangeConditions', {'Tup', 'ITI'},...
+        %     'OutputActions', {});         
         
         % keeping ITI and ITI_Punish in case we switch back to using 2
         % different ITI states
         % 
-        sma = AddState(sma, 'Name', 'ITI', ...
-            'Timer', BpodSystem.Data.EndOfTrialITI,...
-            'StateChangeConditions', {'Tup', '>exit'},...
-            'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
+        % sma = AddState(sma, 'Name', 'ITI', ...
+        %     'Timer', EndOfTrialITI,...
+        %     'StateChangeConditions', {'Tup', '>exit'},...
+        %     'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
 
         % BpodSystem.Data.EndOfTrialITI = 3;
+        BpodSystem.Data.EndOfTrialITI = 3;
         % S.GUI.PunishITI = 2;
 
-        % sma = AddState(sma, 'Name', 'ITI', ...
-        %     'Timer', 0,...
-        %     'StateChangeConditions', {'SoftCode3', '>exit'},...
-        %     'OutputActions', {'SoftCode', 13, 'GlobalCounterReset', '111111111'});
+        sma = AddState(sma, 'Name', 'ITI', ...
+            'Timer', 0,...
+            'StateChangeConditions', {'SoftCode3', '>exit'},...
+            'OutputActions', {'SoftCode', 13, 'GlobalCounterReset', '111111111'});
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events
@@ -1750,8 +1727,6 @@ try
             end
 
             BpodSystem.Data.TotalRewardAmount_uL(currentTrial) = TotalRewardAmount_uL; % total rew received up to current trial, session data
-
-            
 
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file 
         end
