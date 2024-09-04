@@ -601,6 +601,9 @@ try
 
     ExpNotes.ProbeTrialFraction = S.GUI.ProbeTrialFraction;
 
+    ExpNotes.FinalPress1Window_s = 0;
+    ExpNotes.FinalPress2Window_s = 0;
+
     ExpNotes.InitShort = 0;
     ExpNotes.InitLong = 0;
 
@@ -1767,6 +1770,8 @@ try
             ExpNotes.numTrials = currentTrial;
             ExpNotes.AssistedTrials = num2str(find(BpodSystem.Data.Assisted==1));
             ExpNotes.ExcludedTrials = num2str(BpodSystem.Data.Excluded);
+            ExpNotes.FinalPress1Window_s = S.GUI.Press1Window_s;
+            ExpNotes.FinalPress2Window_s = S.GUI.Press2Window_s;
             ExpNotes.FinalShort = S.GUI.PrePress2DelayShort_s;
             ExpNotes.FinalLong = S.GUI.PrePress2DelayLong_s;
             ExpNotes.FinalPreRew = S.GUI.PreRewardDelay_s;
