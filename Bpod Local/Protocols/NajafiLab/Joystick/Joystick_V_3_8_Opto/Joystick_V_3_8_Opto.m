@@ -528,9 +528,10 @@ try
 
     if S.GUI.ChemogeneticSession
         ExpNotes.ChemoSession = 'Yes';
-        ExpNotes.ChemoDilution = append(num2str(S.GUI.mgCNO), ':', num2str(S.GUI.mlSaline)," mgCNO:mlSaline");
-        % ExpNotes.ChemoDilution = num2str(S.GUI.mgCNO_mlSaline);
-        % S = BpodParameterGUI('sync', S);
+        ExpNotes.ChemoDilution = append(S.GUI.mgCNO_mlSaline, " mgCNO:mlSaline");
+        concentration = strsplit(S.GUI.mgCNO_mlSaline, [",",":"]);
+        BpodSystem.Data.ChemoDilution.mgCNO = concentration{1};
+        BpodSystem.Data.ChemoDilution.mlSaline = concentration{2};
     else
         ExpNotes.ChemoSession = 'No';
     end
@@ -1229,28 +1230,23 @@ try
                 EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
         end
 
-        switch S.GUI.Reps
-            case 1           
-                WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'Reward'};                
-                PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetract1'};
-                LeverRetract1_StateChangeConditions = {'SoftCode1', 'ITI'};                
-            case 2
-                LeverRetractInitial_StateChangeConditions = {'SoftCode1', 'PreVisStimITI'};
-                % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
-                WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-                LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreDelayGap'};
-                
-                if ~S.GUI.SelfTimedMode
-                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-                    PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
-                else
-                    % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
-                    PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
-                end
-                % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
-                WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-                PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5              
-        end           
+
+        LeverRetractInitial_StateChangeConditions = {'SoftCode1', 'PreVisStimITI'};
+        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
+        WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
+        LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreDelayGap'};
+        
+        if ~S.GUI.SelfTimedMode
+            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+            PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
+        else
+            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+            PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
+        end
+        % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
+        WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+        PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5              
+       
             
         %% adjust for warmup trials
         % For warmup trials, wait for press is extended by additional warmup param, after warmup wait for press is S.GUI.PressWindow_s
@@ -1265,8 +1261,8 @@ try
             ExperimenterTrialInfo.Warmup = true;   % check variable states as field/value struct for experimenter info
             ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % check variable states as field/value struct for experimenter info
             % if warmup trial, increase wait for press by gui param PressWindowExtend_s
-            Press1Window_s = S.GUI.Press1Window_s + S.GUI.PressWindowExtend_s;
-            Press2Window_s = S.GUI.Press2Window_s + S.GUI.PressWindowExtend_s;
+            % Press1Window_s = S.GUI.Press1Window_s + S.GUI.PressWindowExtend_s;
+            % Press2Window_s = S.GUI.Press2Window_s + S.GUI.PressWindowExtend_s;
 
             PressVisDelay_s = min(S.GUI.PrePress2DelayShort_s, PressVisDelay_s);
 
@@ -1400,7 +1396,7 @@ try
             'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
         % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]
 
-        WaitForPress1_OutputActions = [WaitForPress1_OutputActions, debugSyncSignal];
+        % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, debugSyncSignal];
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
@@ -1754,8 +1750,14 @@ try
             
 
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file 
+
+
         end
         HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
+
+        BpodSystem.Data.TrialSettings(currentTrial).GUI.ExcludedTrials = [];
+        BpodSystem.Data.TrialSettings(currentTrial).GUI.AssistedTrials = [];
+
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file 
             

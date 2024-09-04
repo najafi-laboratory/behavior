@@ -200,11 +200,17 @@ switch Op
             ThisParamCurrentValue = Params.GUI.(ThisParamName); % Use single precision to avoid problems with ==
             switch ThisParamStyle
                 case 1 % Edit
-                    GUIParam = str2double(get(ThisParamHandle, 'String'));
-                    if single(GUIParam) ~= single(ThisParamLastValue)
+                    if strcmp(ThisParamName,'mgCNO_mlSaline')
+                        GUIParam = get(ThisParamHandle, 'String');
+                        % if ~strcmp(GUIParam, )
                         Params.GUI.(ThisParamName) = GUIParam;
-                    elseif single(ThisParamCurrentValue) ~= single(ThisParamLastValue)
-                        set(ThisParamHandle, 'String', num2str(ThisParamCurrentValue, 8));
+                    else
+                        GUIParam = str2double(get(ThisParamHandle, 'String'));
+                        if single(GUIParam) ~= single(ThisParamLastValue)
+                            Params.GUI.(ThisParamName) = GUIParam;
+                        elseif single(ThisParamCurrentValue) ~= single(ThisParamLastValue)
+                            set(ThisParamHandle, 'String', num2str(ThisParamCurrentValue, 8));
+                        end
                     end
                 case 2 % Text
                     GUIParam = ThisParamCurrentValue;

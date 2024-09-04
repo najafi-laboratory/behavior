@@ -265,9 +265,11 @@ classdef OptoConfig
                         LoopPMT4 = LoopNum;
 
                         if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
-                            % OptoMax = min(S.GUI.MaxOptoDur_s, VisStim.VisStimDuration);
-                            % LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
-                            LoopNum = 0;
+                            OptoMax = min(S.GUI.MaxOptoDur_s, VisStim.VisStimDuration);
+                            LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
+                            if LoopNum == 1
+                                LoopNum = 0;
+                            end 
                             LoopLED1 = LoopNum;
                             LoopPMT1 = LoopNum;
                         end
@@ -276,9 +278,11 @@ classdef OptoConfig
                             % if vis-guided, constrain loops to an integer
                             % number within vis stim
                             if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
-                                % OptoMax = min(S.GUI.MaxOptoDur_s, VisStim.VisStimDuration);
-                                % LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
-                                LoopNum = 0;
+                                OptoMax = min(S.GUI.MaxOptoDur_s, VisStim.VisStimDuration);
+                                LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
+                                if LoopNum == 1
+                                    LoopNum = 0;
+                                end 
                                 LoopLED2 = LoopNum;
                                 LoopPMT2 = LoopNum;
                             end
@@ -286,9 +290,11 @@ classdef OptoConfig
                             % if self-timed, constrain loops to an integer
                             % number within
                             if ~S.GUI.OptoWaitForPress2
-                                % OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
-                                % LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
-                                LoopNum = 0;
+                                OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
+                                LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
+                                if LoopNum == 1
+                                    LoopNum = 0;
+                                end 
                                 LoopLED2 = LoopNum;
                                 LoopPMT2 = LoopNum;                                
                             end
@@ -298,7 +304,7 @@ classdef OptoConfig
                         % should be integer number of loops in
                         % prepress2delay
                         if ~S.GUI.OptoWaitForPress2
-                            % OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
+                            OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
                             LoopNum = floor((PressVisDelay_s/(LEDOnDur+LEDOffDur)));
                             if LoopNum == 1
                                 LoopNum = 0;
