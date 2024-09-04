@@ -113,7 +113,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.EpochTrialStart = 1;
         S.GUI.EpochTrialStop = 15;
         S.GUI.NumOptoTrialsPerBlock = 50;
-        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoVis2', 'OptoPrePressDelay', 'OptoWaitForPress1', 'OptoWaitForPress2', 'OptoPress1', 'OptoPress2', 'OptoTrialTypeSeq', 'OnFraction', 'EpochTrialStart', 'EpochTrialStop', 'NumOptoTrialsPerBlock'};
+        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoVis2', 'OptoPrePressDelay', 'OptoWaitForPress1', 'OptoWaitForPress2', 'OptoPress1', 'OptoPress2', 'OptoTrialTypeSeq', 'OnFraction', 'EpochTrialStart', 'EpochTrialStop'};
 
 
 

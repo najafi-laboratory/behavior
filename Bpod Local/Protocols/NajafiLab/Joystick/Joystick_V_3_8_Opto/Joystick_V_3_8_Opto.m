@@ -537,6 +537,16 @@ try
     end
    
     if m_Opto.EnableOpto
+        ExpNotes.Opto = 'On';
+        switch S.GUI.PulseType
+            case 1
+                ExpNotes.PulseType = 'ContinuousOpto';
+            case 2
+                ExpNotes.PulseType = 'SquareWaveOpto_ContinuousShutter';
+            case 3
+                ExpNotes.PulseType = 'SquareWaveOpto_PulsedShutter';
+        end
+
         switch S.GUI.OptoTrialTypeSeq
             case 1
                 ExpNotes.OptoType = 'Random';
@@ -596,7 +606,8 @@ try
 
         ExpNotes.LEDOnPulseDur_ms = S.GUI.LEDOnPulseDur_ms;
         ExpNotes.LEDOffPulseDur_ms = S.GUI.LEDOffPulseDur_ms;
-
+    else
+        ExpNotes.Opto = 'Off';
     end
 
     ExpNotes.ProbeTrialFraction = S.GUI.ProbeTrialFraction;
