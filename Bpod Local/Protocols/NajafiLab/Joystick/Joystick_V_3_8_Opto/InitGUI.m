@@ -118,10 +118,10 @@ function [S] = SetParams(obj, BpodSystem)
 
 
         % reward
-        S.GUI.PreRewardDelay_s = 0.200;
+        S.GUI.PreRewardDelay_s = 0.100;
         S.GUI.EnableAutoPreRewardDelay = 1;
         S.GUIMeta.EnableAutoPreRewardDelay.Style = 'checkbox';                        
-        S.GUI.AutoPreRewardDelayMax_s = 0.100;
+        S.GUI.AutoPreRewardDelayMax_s = 0.200;
         S.GUI.AutoPreRewardDelayStep_s = 0.0001;
         S.GUI.PostRewardDelay_s = 1.000; % post reward delay prior to lever return
         S.GUI.CenterValveAmount_uL = 1;
