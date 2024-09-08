@@ -125,7 +125,7 @@ classdef OptoConfig
             end
         end
 
-        function [sma] = InsertGlobalTimer(obj, BpodSystem, sma, S, VisStim)
+        function [sma] = InsertGlobalTimer(obj, BpodSystem, sma, S, VisStim, PressVisDelay_s)
             if obj.EnableOpto 
                 % shutter close delays
                 ShutterPulseWidthAdd = 0.003; % add 3ms to PMTCloseDelay for shutter to re-open
@@ -135,20 +135,12 @@ classdef OptoConfig
                 PMTMin5VSignalDur = PMTCloseDelay + ShutterPulseWidthAdd; % ~25.1ms, minimum measured duration of 5V shutter signal for shutter to re-open 
 
                 % shutter open delays
-                PMTStartOpenDelay = 0.0078;
+                % PMTStartOpenDelay = 0.0078;
+                PMTStartOpenDelay = 0.000;  % setting to zero to prevent pmt damage, red channel shutter seems to open a bit faster than specs
                 PMTOpenTransferDelay = 0.0125;
                 
                 % scope 3-frame segment dur
                 ScopeFrameDuration = 0.033;
-
-                % initial gray frame vis stim offset, statistical delay of
-                % 2 frames at 60fps
-                %VisStimShift = 0.0147 + 0.0353098; % f1 and f2,f3
-                % VisStimShift = 0.0363000; % f2,f3
-                % VisStimShift = 0.031698; % f1,f2 - joystick rig
-                % VisStimShift = 0.0329645; % f1,f2 - imaging rig
-                % % VisStimDurationOffset = 0.002; % ~1.5ms measured vis stim offset
-                % VisStimDurationOffset = 0.0014; % ~1.5ms measured vis stim offset 
 
                 % initial gray frame vis stim offset, statistical delay of
                 % 2 frames at 60fps
@@ -162,13 +154,23 @@ classdef OptoConfig
                         f2 = 0.0176069; % gray f2 dur
                         VisStimShift = f1 + f2; % f1 + f2 - joystick rig
                         VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms
+                    case 'JoystickRig2'
+                        % VisStimShift = 0.031698; % f1 + f2 - joystick rig
+                        % f1 = 0.0153655; % gray f1 dur
+                        % f2 = 0.0176069; % gray f2 dur
+                        % VisStimShift = f1 + f2; % f1 + f2 - joystick rig
+                        % VisStimDurationOffset = 0.0014; % ~measured vis stim offset from 100ms                        
                 end
 
                 LED1OnsetDelay = 0;
-                LED2OnsetDelay = 0;                
+                LED2OnsetDelay = 0;  
+                LED3OnsetDelay = 0; 
+                LED4OnsetDelay = 0;
 
                 PMT1OnsetDelay = 0;
                 PMT2OnsetDelay = 0;
+                PMT3OnsetDelay = 0;
+                PMT4OnsetDelay = 0;
 
                 % bpod timer loop limit
                 MaxLoopNum = 255;
@@ -196,8 +198,19 @@ classdef OptoConfig
 
                 if S.GUI.SelfTimedMode
                     LED2OnsetDelay = PMTCloseDelay;
-                    PMT2OnsetDelay = LED2OnsetDelay - PMTCloseDelay;
-                end                
+                    if ~S.GUI.OptoPrePressDelay
+                        LED2OnsetDelay = LED2OnsetDelay + PressVisDelay_s;
+                    end
+                    PMT2OnsetDelay = LED2OnsetDelay - PMTCloseDelay;                    
+                end          
+
+                if S.GUI.OptoPrePressDelay
+                    LED3OnsetDelay = PMTCloseDelay;
+                    PMT3OnsetDelay = LED3OnsetDelay - PMTCloseDelay;
+                end
+
+                LED4OnsetDelay = PMTCloseDelay;
+                PMT4OnsetDelay = LED4OnsetDelay - PMTCloseDelay;
 
                 switch S.GUI.PulseType
                     case 1
@@ -234,11 +247,65 @@ classdef OptoConfig
                         LEDOnDur = S.GUI.LEDOnPulseDur_ms/1000;
                         LEDOffDur = S.GUI.LEDOffPulseDur_ms/1000;
                         
+                        % general case is max integer number of loops
+                        % within maxopto constraint
                         LoopNum = floor((S.GUI.MaxOptoDur_s/(LEDOnDur+LEDOffDur)));
+                        if LoopNum == 1
+                            LoopNum = 0;
+                        end                        
+                        
                         LoopLED1 = LoopNum;
                         LoopLED2 = LoopNum;
+                        LoopLED3 = LoopNum;
+                        LoopLED4 = LoopNum;
+                        
                         LoopPMT1 = LoopNum;
-                        LoopPMT2 = LoopNum;                        
+                        LoopPMT2 = LoopNum;
+                        LoopPMT3 = LoopNum;
+                        LoopPMT4 = LoopNum;
+
+                        if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
+                            % OptoMax = min(S.GUI.MaxOptoDur_s, VisStim.VisStimDuration);
+                            % LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
+                            LoopNum = 0;
+                            LoopLED1 = LoopNum;
+                            LoopPMT1 = LoopNum;
+                        end
+                        
+                        if ~S.GUI.SelfTimedMode
+                            % if vis-guided, constrain loops to an integer
+                            % number within vis stim
+                            if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
+                                % OptoMax = min(S.GUI.MaxOptoDur_s, VisStim.VisStimDuration);
+                                % LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
+                                LoopNum = 0;
+                                LoopLED2 = LoopNum;
+                                LoopPMT2 = LoopNum;
+                            end
+                        else
+                            % if self-timed, constrain loops to an integer
+                            % number within
+                            if ~S.GUI.OptoWaitForPress2
+                                % OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
+                                % LoopNum = floor((OptoMax/(LEDOnDur+LEDOffDur)));
+                                LoopNum = 0;
+                                LoopLED2 = LoopNum;
+                                LoopPMT2 = LoopNum;                                
+                            end
+                        end
+
+                        % if waitforpress2 inactive, prepressdelay opto
+                        % should be integer number of loops in
+                        % prepress2delay
+                        if ~S.GUI.OptoWaitForPress2
+                            % OptoMax = min(S.GUI.MaxOptoDur_s, PressVisDelay_s);
+                            LoopNum = floor((PressVisDelay_s/(LEDOnDur+LEDOffDur)));
+                            if LoopNum == 1
+                                LoopNum = 0;
+                            end
+                            LoopLED3 = LoopNum;
+                            LoopPMT3 = LoopNum; 
+                        end
                        
                         PMTCloseDur = PMTCloseDelay;
                         % if the LED is on for longer than the shutter StartOpenDelay,
@@ -258,6 +325,9 @@ classdef OptoConfig
                 % seg1:
                 % vis1 and/or wait1: timer 1 and 5: '000010001'
                 %
+                % seg delay:
+                % gap delay: timer 4 and 6: '000101000'
+                %
                 % seg2:
                 % vis2 and/or wait2: timer 3 and 7: '001000100'
                 %
@@ -268,10 +338,22 @@ classdef OptoConfig
                     'Loop', LoopLED1, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0);
 
+                % seg delay
+                sma = SetGlobalTimer(sma, 'TimerID', 4, 'Duration', LEDOnDur, 'OnsetDelay', LED3OnsetDelay,...
+                    'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    'Loop', LoopLED3, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                
+
                 % seg 2
                 sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', LEDOnDur, 'OnsetDelay', LED2OnsetDelay,...
                     'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
                     'Loop', LoopLED2, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);
+
+                % press1/press2
+                sma = SetGlobalTimer(sma, 'TimerID', 8, 'Duration', LEDOnDur, 'OnsetDelay', LED4OnsetDelay,...
+                    'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    'Loop', LoopLED4, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0);
 
                 % shutter timers
@@ -280,12 +362,24 @@ classdef OptoConfig
                     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                     'Loop', LoopPMT1, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0);     
+                
+                % seg delay
+                sma = SetGlobalTimer(sma, 'TimerID', 6, 'Duration', PMTCloseDur, 'OnsetDelay', PMT3OnsetDelay,...
+                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    'Loop', LoopPMT3, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);    
 
                 % seg 2
                 sma = SetGlobalTimer(sma, 'TimerID', 7, 'Duration', PMTCloseDur, 'OnsetDelay', PMT2OnsetDelay,...
                     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                     'Loop', LoopPMT2, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
                     'GlobalTimerEvents', 0, 'OffsetValue', 0); 
+
+                % press1/press2
+                sma = SetGlobalTimer(sma, 'TimerID', 9, 'Duration', PMTCloseDur, 'OnsetDelay', PMT4OnsetDelay,...
+                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    'Loop', LoopPMT4, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMTOffDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                 
 
                 % shutter reset timer
                 sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', 0.030, 'OnsetDelay', 0,...
