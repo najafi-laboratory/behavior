@@ -32,7 +32,7 @@ try
     BpodSystem.ProtocolFigures.ParameterGUI.Position = [9 53 442 185];
      
  
-    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 697 539]);
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 817 548]);
     
     %% state timing plot
     useStateTiming = true;  % Initialize state timing plot
@@ -364,10 +364,13 @@ try
             % access them in plot function
             TrialDuration = BpodSystem.Data.TrialEndTimestamp(currentTrial)-BpodSystem.Data.TrialStartTimestamp(currentTrial);
      
+            BpodSystem.Data.ExperimenterInitials = S.GUI.ExperimenterInitials;
+
              %%Show the following information to the Experimenter
              protocol_version = 'EBC_V_3_11';
             % Example protocol version
             % Print the information to the console
+            fprintf('Experimenter Initials: %s\n', S.GUI.ExperimenterInitials);
             fprintf('Protocol Version: %s\n', protocol_version);
             fprintf('Short Block LED Duration: %d ms\n', S.GUI.LED_Dur_Short);
             fprintf('Short Block Puff Duration: %d ms\n', S.GUI.AirPuff_Dur);
