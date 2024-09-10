@@ -521,7 +521,7 @@ try
     end
 
     % exp notes log
-    ExpNotes.ExperimenterInitials = 
+    ExpNotes.ExperimenterInitials = S.GUI.ExperimenterInitials;
 
     ExpNotes.numTrials = 0;
 
@@ -1421,8 +1421,8 @@ try
         % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']} and Opto timers
 
         sma = AddState(sma, 'Name', 'Press1', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'RotaryEncoder1_1', 'PreRetract1Delay'},...
+            'Timer', Press1Window_s,...
+            'StateChangeConditions', {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
             'OutputActions', Press1_OutputActions);
         % Press1_OutputActions = TimerCancel_V1W1;
 
@@ -1763,7 +1763,7 @@ try
 
             BpodSystem.Data.TotalRewardAmount_uL(currentTrial) = TotalRewardAmount_uL; % total rew received up to current trial, session data
 
-            
+            BpodSystem.Data.ExperimenterInitials = S.GUI.ExperimenterInitials;
 
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file 
 
@@ -1780,6 +1780,7 @@ try
             PrintInterruptLog(BpodSystem);
 
             % exp notes log
+            ExpNotes.ExperimenterInitials = S.GUI.ExperimenterInitials;
             ExpNotes.numTrials = currentTrial;
             ExpNotes.AssistedTrials = num2str(find(BpodSystem.Data.Assisted==1));
             ExpNotes.ExcludedTrials = num2str(BpodSystem.Data.Excluded);
