@@ -204,6 +204,10 @@ switch Op
                         GUIParam = get(ThisParamHandle, 'String');
                         % if ~strcmp(GUIParam, )
                         Params.GUI.(ThisParamName) = GUIParam;
+                    elseif strcmp(ThisParamName,'ExperimenterInitials')
+                        GUIParam = get(ThisParamHandle, 'String');
+                        % if ~strcmp(GUIParam, )
+                        Params.GUI.(ThisParamName) = GUIParam;
                     else
                         GUIParam = str2double(get(ThisParamHandle, 'String'));
                         if single(GUIParam) ~= single(ThisParamLastValue)
