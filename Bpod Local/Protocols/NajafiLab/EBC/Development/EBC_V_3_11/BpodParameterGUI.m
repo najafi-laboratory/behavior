@@ -200,11 +200,7 @@ switch Op
             ThisParamCurrentValue = Params.GUI.(ThisParamName); % Use single precision to avoid problems with ==
             switch ThisParamStyle
                 case 1 % Edit
-                    if strcmp(ThisParamName,'mgCNO_mlSaline')
-                        GUIParam = get(ThisParamHandle, 'String');
-                        % if ~strcmp(GUIParam, )
-                        Params.GUI.(ThisParamName) = GUIParam;
-                    elseif strcmp(ThisParamName,'ExperimenterInitials')
+                    if strcmp(ThisParamName,'ExperimenterInitials')
                         GUIParam = get(ThisParamHandle, 'String');
                         % if ~strcmp(GUIParam, )
                         Params.GUI.(ThisParamName) = GUIParam;

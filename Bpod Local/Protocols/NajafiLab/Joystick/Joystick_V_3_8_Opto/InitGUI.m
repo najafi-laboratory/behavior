@@ -9,6 +9,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.currentTrial = 0;
         
         % joystick params
+        S.GUI.ExperimenterInitials = 'Initials';
         S.GUI.SelfTimedMode = 0;
         S.GUIMeta.SelfTimedMode.Style = 'checkbox';  
         S.GUI.ChemogeneticSession = 0;
@@ -69,7 +70,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.NumTrialsPerBlock = 30;
         S.GUI.BlockLengthMargin = 5;
         S.GUI.ProbeTrialFraction = 0.1;
-        S.GUIPanels.Joystick = {'SelfTimedMode', 'ChemogeneticSession', 'mgCNO_mlSaline', 'Threshold', 'EarlyPressThreshold', 'WarmupThreshold', 'RetractThreshold', 'Press1Window_s', 'Press2Window_s', 'EnableAutoPressWinReduce', 'AutoPressWinReduceMin', 'AutoPressWinReduceStep', 'ServoInPos', 'ServoOutPos', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'AutoDelayStep_s', 'EnablePreVis2DelayJitter', 'PreVis2DelayJitterStd', 'PreVis2DelayMargin_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
+        S.GUIPanels.Joystick = {'ExperimenterInitials', 'SelfTimedMode', 'ChemogeneticSession', 'mgCNO_mlSaline', 'Threshold', 'EarlyPressThreshold', 'WarmupThreshold', 'RetractThreshold', 'Press1Window_s', 'Press2Window_s', 'EnableAutoPressWinReduce', 'AutoPressWinReduceMin', 'AutoPressWinReduceStep', 'ServoInPos', 'ServoOutPos', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'AutoDelayStep_s', 'EnablePreVis2DelayJitter', 'PreVis2DelayJitterStd', 'PreVis2DelayMargin_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
         % S.GUIPanels.Joystick = {'SelfTimedMode', 'ChemogeneticSession', 'mgCNO', 'mlSaline', 'mgCNO_mlSaline', 'Threshold', 'WarmupThreshold', 'RetractThreshold', 'EarlyPressThreshold', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s',  'EnableAutoPressWinReduce', 'AutoPressWinReduceMin', 'AutoPressWinReduceStep', 'Reps', 'ServoInPos', 'ServoOutPos', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'EnableAutoDelay', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'AutoDelayStep_s', 'EnablePreVis2DelayJitter', 'PreVis2DelayJitterStd', 'PreVis2DelayMargin_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
         % S.GUIPanels.Joystick = {'ChemogeneticSession', 'mgCNO', 'mlSaline', 'Threshold', 'WarmupThreshold', 'EnableAutoPressWinReduce', 'AutoPressWinReduceStep', 'AutoPressWinReduceMin', 'Press1Window_s', 'Press2Window_s', 'PressWindowExtend_s', 'Reps', 'ZeroRTrials', 'ResistanceLevel', 'ServoInPos', 'ServoOutPos', 'RetractThreshold', 'EarlyPressThreshold', 'SelfTimedMode', 'PrePress2DelayShort_s', 'PrePress2DelayLong_s', 'PreVis2DelayMargin_s', 'EnableAutoDelay', 'AutoDelayStep_s', 'AutoDelayMaxShort_s', 'AutoDelayMaxLong_s', 'EnableManualTrialType', 'ManualTrialType', 'TrialTypeSequence', 'NumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
 
