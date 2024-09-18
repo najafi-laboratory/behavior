@@ -632,7 +632,7 @@ try
 
     ExpNotes.TotalRewardAmount_uL = 0;
 
-    ExpNotes.ProtoVersion = 'Joystick_V_3_8_Opto'; % update to use current file name
+    ExpNotes.ProtoVersion = 'Joystick_V_3_9_Opto'; % update to use current file name
 
     %% Main trial loop
     
@@ -1422,10 +1422,12 @@ try
         % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'}
         % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']} and Opto timers
 
+        
+
         Press1_OutputActions = [Press1_OutputActions, 'SoftCode', 15];
         sma = AddState(sma, 'Name', 'Press1', ...
             'Timer', Press1Window_s,...
-            'StateChangeConditions', {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
+            'StateChangeConditions', {'Tup', 'DidNotPress1', 'SoftCode5', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
             'OutputActions', Press1_OutputActions);
         % Press1_OutputActions = TimerCancel_V1W1;
 
@@ -1509,7 +1511,7 @@ try
         sma = AddState(sma, 'Name', 'PostRewardDelay', ...
             'Timer', S.GUI.PostRewardDelay_s,...
             'StateChangeConditions', PostRewardDelay_StateChangeConditions,...		% {'Tup', 'ITI'}
-            'OutputActions', {});        
+            'OutputActions', {'SoftCode', 16});        
         
         sma = AddState(sma, 'Name', 'DidNotPress1', ...
             'Timer', 0,...

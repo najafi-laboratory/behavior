@@ -62,9 +62,7 @@ switch true
     case code == 15
         TimeToPress = toc;
         disp(['TimeToPress = ' num2str(TimeToPress)]);
-        disp(['TimeToPress = ' num2str(TimeToPress)]);
-
-        S.GUI.Press1Window_s - SendBpodSoftCode(5); % Indicate to the state machine that bar is open (specific to press1)
+        SendBpodSoftCode(4); % Indicate to the state machine that bar is open (specific to press1/2)
     case code == 16
         % return lever 700ms after reward and EarlyPress
         tic
@@ -73,7 +71,7 @@ switch true
         M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5);
         % set servo to return, although not waiting in softcode to sense
         % zero position
-        SendBpodSoftCode(6); % Indicate to the state machine that the lever is back in the home position
+        SendBpodSoftCode(5); % Indicate to the state machine that the lever is back in the home position
         
 
     case code == 255
