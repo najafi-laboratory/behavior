@@ -55,25 +55,42 @@ switch true
         ITI_Offset = toc;
         pause(BpodSystem.Data.EndOfTrialITI - ITI_Offset);
         SendBpodSoftCode(3);
-    case code == 14
-        tic;
-        M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos - S.GUI.ServoOutPos));        
-        SendBpodSoftCode(4); % Indicate to the state machine that bar is open (specific to wait1/2)
-    case code == 15
-        TimeToPress = toc;
-        disp(['TimeToPress = ' num2str(TimeToPress)]);
-        disp(['TimeToPress = ' num2str(TimeToPress)]);
+    % case code == 14
+    %     tic;    % set tic to measure TimeToPress when entering Press1/Press2
+    %     M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos - S.GUI.ServoOutPos));        
+    %     SendBpodSoftCode(4); % Indicate to the state machine that bar is open (specific to wait1/2)
+    % case code == 15
+    %     % TimeToPress = toc;
+    %     % disp(['Press1']);
+    %     % disp(['TimeToPress = ' num2str(TimeToPress)]);
+    %     % disp(['TimeRemainingToPress = ' num2str(S.GUI.Press1Window_s - TimeToPress)]);
+    % 
+    %     % tic
+    %     % pause(S.GUI.Press1Window_s - TimeToPress);
+    %     % toc
+    % 
+    %     SendBpodSoftCode(5); % Indicate to the state machine that S.GUI.Press1Window_s - TimeToPress has elapsed (specific to press1)
+    % case code == 16
+    %     % TimeToPress = toc;
+    %     % disp(['Press2']);
+    %     % disp(['TimeToPress = ' num2str(TimeToPress)]);
+    %     % disp(['TimeRemainingToPress = ' num2str(S.GUI.Press2Window_s - TimeToPress)]);
+    % 
+    %     % tic
+    %     % pause(S.GUI.Press2Window_s - TimeToPress);
+    %     % toc
+    % 
+    %     SendBpodSoftCode(6); % Indicate to the state machine that S.GUI.Press1Window_s - TimeToPress has elapsed (specific to press2)
 
-        S.GUI.Press1Window_s - SendBpodSoftCode(5); % Indicate to the state machine that bar is open (specific to press1)
-    case code == 16
+    case code == 17
         % return lever 700ms after reward and EarlyPress
-        tic
+        % tic
         pause(0.7);
-        toc
+        % toc
         M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5);
         % set servo to return, although not waiting in softcode to sense
         % zero position
-        SendBpodSoftCode(6); % Indicate to the state machine that the lever is back in the home position
+        SendBpodSoftCode(7); % Indicate to the state machine that the lever is back in the home position
         
 
     case code == 255
