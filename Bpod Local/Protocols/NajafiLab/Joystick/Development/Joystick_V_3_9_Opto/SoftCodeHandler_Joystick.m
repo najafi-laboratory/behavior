@@ -4,11 +4,12 @@ global S
 global BpodSystem
 
 switch true
-    case code == 7
+    case code == 7 % servo out
         % disp('code 7');        
         M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos - S.GUI.ServoOutPos));        
         SendBpodSoftCode(1); % Indicate to the state machine that the horiz bar is open for press
-    case code == 8
+        
+    case code == 8 % servo in
         % disp('code 8');
         M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5);
         % pause(1); % 200ms after starting retract prior to ITI or next stim/press
@@ -87,7 +88,7 @@ switch true
         % tic
         pause(0.7);
         % toc
-        M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5);
+        M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5); % servo in
         % set servo to return, although not waiting in softcode to sense
         % zero position
         SendBpodSoftCode(7); % Indicate to the state machine that the lever is back in the home position
