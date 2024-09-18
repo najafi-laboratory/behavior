@@ -1379,6 +1379,7 @@ try
         MoveServoIn = {'SoftCode', 8};
         % CombineITI_Punish = {'SoftCode', 12}; % used to combine end of trial and punish ITI during the trial
 
+
         Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
 	
         sma = AddState(sma, 'Name', 'Start', ...
@@ -1417,27 +1418,25 @@ try
         % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'SoftCode', 14];
         % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, debugSyncSignal];
         
-        %This legacy syntax is supported. Arguments: (sma, GlobalTimerNumber, Duration(s))
-        sma = SetGlobalTimer(sma, 10, Press1Window_s); % Press1 window timer
+        % This legacy syntax is supported. Arguments: (sma, GlobalTimerNumber, Duration(s))
+        sma = SetGlobalTimer(sma, 10, Press1Window_s); % Press1 window timer % global timer 10 is triggered when we enter waitForPress1; its duration is Press1Window
         WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 10];
 
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
             'OutputActions', WaitForPress1_OutputActions);
-        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'}
-        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']} and Opto timers
-        
+	        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'}
+	        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']} and Opto timers
 
-        Press1_OutputActions = [Press1_OutputActions, 'SoftCode', 15];
-        % Press1_OutputActions = [Press1_OutputActions];
+        % Press1_OutputActions = [Press1_OutputActions, 'SoftCode', 15];
 	
         sma = AddState(sma, 'Name', 'Press1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', {'Tup', 'DidNotPress1', 'GlobalTimer10_End', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
             'OutputActions', Press1_OutputActions);
-        % Press1_OutputActions = TimerCancel_V1W1;
-        % 'StateChangeConditions', {'Tup', 'DidNotPress1', 'SoftCode5', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
+	        % Press1_OutputActions = TimerCancel_V1W1;
+	        % 'StateChangeConditions', {'Tup', 'DidNotPress1', 'SoftCode5', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
 
         sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
             'Timer', 0.100,...
@@ -1448,10 +1447,10 @@ try
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
             'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
-       		    % Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-	 	        % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
-            % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
-   		    % LeverRetract1_OutputActions = {'SoftCode', 8};
+       		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+            	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+   		% LeverRetract1_OutputActions = {'SoftCode', 8};
 
         % set to 22.1ms to match opto timing of shutter, aligns opto to PreVisDelay
         sma = AddState(sma, 'Name', 'PreDelayGap', ...
@@ -1500,11 +1499,11 @@ try
             'Timer', Press2Window_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
             'OutputActions', WaitForPress2_OutputActions);         
-        % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-        % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
+        	% WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+        	% WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
     
-        % Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
-        % Press2_OutputActions = [Press2_OutputActions, 'SoftCode', 16];
+        	% Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
+        	% Press2_OutputActions = [Press2_OutputActions, 'SoftCode', 16];
 	
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', Press2Window_s,...
