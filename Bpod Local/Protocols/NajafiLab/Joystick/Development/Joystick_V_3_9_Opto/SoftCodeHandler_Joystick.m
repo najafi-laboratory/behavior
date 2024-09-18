@@ -27,11 +27,14 @@ switch true
         end
         % pause(.01);
         SendBpodSoftCode(1); % Indicate to the state machine that the lever is back in the home position
+        
     case code >= 0 && code <= 6 
         BpodSystem.PluginObjects.V.play(code);
+        
     case code == 12
         % used to combined end of trial ITI with punish ITI
         BpodSystem.Data.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI + S.GUI.PunishITI;
+        
     case code == 13 
         % softcode used to retur lever AND get combined trial ITI
         % time to return lever is measured and subtracted from the combined
