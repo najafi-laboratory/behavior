@@ -34,6 +34,13 @@ try
  
     set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 817 548]);
     
+
+    if S.GUI.SleepDeprived
+        disp('Sleep deprivation condition is active');
+    else
+        disp('Sleep deprivation condition is not active');
+    end
+    
     %% state timing plot
     useStateTiming = true;  % Initialize state timing plot
     if ~verLessThan('matlab','9.5') % StateTiming plot requires MATLAB r2018b or newer
@@ -120,6 +127,11 @@ try
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
         S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin           
 
+         if S.GUI.SleepDeprived
+            disp(['Trial',num2str(currentTrial),': Sleep deprivation enabled']);
+        else
+            disp(['Trial',num2str(currentTrial),': Sleep deprivation not enabled']);
+        end 
         %% Determine trial AirPuff_OnsetDelay
         % These need to be updated prior to
         % MEV.setEventTimes(S.GUI.LED_OnsetDelay, AirPuff_OnsetDelay,
@@ -256,6 +268,20 @@ try
         %     disp(getReport(MatlabException));
         % end
         
+        % sma = AddState(sma, 'Name', 'CheckEyeOpen', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', {'SoftCode1', 'Start'},...
+        %     'OutputActions', {'GlobalTimerTrig', '100', 'SoftCode', 1});
+        % 
+        % sma = AddState(sma, 'Name', 'Start', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', {'SoftCode1', 'ITI_Pre'},...
+        %     'OutputActions', {'GlobalTimerCancel', '100', 'SoftCode', 2});
+        % 
+        % sma = AddState(sma, 'Name', 'ITI_Pre', ...
+        %     'Timer', S.GUI.ITI_Pre,...
+        %     'StateChangeConditions', {'Tup', 'LED_Onset'},...
+        %     'OutputActions', {'GlobalTimerTrig', '100'});
 
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0,...
@@ -358,6 +384,7 @@ try
             TrialDuration = BpodSystem.Data.TrialEndTimestamp(currentTrial)-BpodSystem.Data.TrialStartTimestamp(currentTrial);
      
             BpodSystem.Data.ExperimenterInitials = S.GUI.ExperimenterInitials;
+            BpodSystem.Data.SleepDeprived = S.GUI.SleepDeprived;
 
              %%Show the following information to the Experimenter
              protocol_version = 'EBC_V_3_11';

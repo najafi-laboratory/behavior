@@ -211,14 +211,6 @@ try
         % numFramesPreLEDOnset = fps * vidSecondsPreLEDOnset;
         % numFramesPostLEDOnset =  fps * vidSecondsPostLEDOnset;
 
-        %
-        switch BpodSystem.Data.RigName
-            case 'ImagingRig'
-                S.GUI.ServoInPos = 1569.00; % lever start pos
-                S.GUI.ServoOutPos = 34; % can press lever           
-        end
-
-
         % LED Timer
         % LED Timer generated using behavior port 1 Pulse Width Modulation 
         % pin (PWM).  Starts after S.GUI.LED_OnsetDelay, on during
@@ -257,6 +249,20 @@ try
         %     disp(getReport(MatlabException));
         % end
         
+        % sma = AddState(sma, 'Name', 'CheckEyeOpen', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', {'SoftCode1', 'Start'},...
+        %     'OutputActions', {'GlobalTimerTrig', '100', 'SoftCode', 1});
+        % 
+        % sma = AddState(sma, 'Name', 'Start', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', {'SoftCode1', 'ITI_Pre'},...
+        %     'OutputActions', {'GlobalTimerCancel', '100', 'SoftCode', 2});
+        % 
+        % sma = AddState(sma, 'Name', 'ITI_Pre', ...
+        %     'Timer', S.GUI.ITI_Pre,...
+        %     'StateChangeConditions', {'Tup', 'LED_Onset'},...
+        %     'OutputActions', {'GlobalTimerTrig', '100'});
 
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0,...
@@ -485,19 +491,4 @@ catch MatlabException
         disp(getReport(MatlabException));
     end
 end
-end
-
-% match rig ID to computer name for rig-specific settings
-% (features/timing/servos/etc)
-function SetRigID(BpodSystem)
-    BpodSystem.Data.ComputerHostName = getenv('COMPUTERNAME');
-    BpodSystem.Data.RigName = '';
-    switch BpodSystem.Data.ComputerHostName
-        case 'COS-3A11406'
-            BpodSystem.Data.RigName = 'ImagingRig';
-        case 'COS-3A11427'
-            BpodSystem.Data.RigName = 'JoystickRig';
-        case 'COS-3A17904'
-            BpodSystem.Data.RigName = 'JoystickRig2';
-    end
 end
