@@ -1045,7 +1045,7 @@ try
         end
         VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']};
 
-        LeverRetractInitial_StateChangeConditions = {};
+        LeverRetractFinal_StateChangeConditions = {};
 
         WaitForPress1_StateChangeConditions = {};        
         WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
@@ -1249,21 +1249,22 @@ try
         end
 
 
-        LeverRetractInitial_StateChangeConditions = {'SoftCode1', 'PreVisStimITI'};
+        LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'};
         % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
         WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-        LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreDelayGap'};
+        LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreDelayGap'};
         
         if ~S.GUI.SelfTimedMode
-            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+            % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
             PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
         else
-            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+            % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
             PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
         end
         % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
         WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-        PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5              
+        % PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5              
+        PostRewardDelay_StateChangeConditions = {'Tup', 'ITI_Switch'}; % updated V_3_9 
        
             
         %% adjust for warmup trials
@@ -1384,14 +1385,9 @@ try
 	
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
-            'StateChangeConditions', {'Tup', 'LeverRetractInitial', 'RotaryEncoder1_2', 'EarlyPress'},...
+            'StateChangeConditions', {'Tup', 'PreVisStimITI', 'RotaryEncoder1_2', 'EarlyPress'},...
             'OutputActions', {['' 'HiFi1'],'*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to
         
-        sma = AddState(sma, 'Name', 'LeverRetractInitial', ...
-            'Timer', 0,...
-            'StateChangeConditions', LeverRetractInitial_StateChangeConditions,...	% {'SoftCode1', 'PreVisStimITI'} % Softcode1: Indicate to the state machine that the lever is back in the home position
-            'OutputActions', {'SoftCode', 8});
-
         sma = AddState(sma, 'Name', 'PreVisStimITI', ...
             'Timer', PreVisStimITI,...
             'StateChangeConditions', {'Tup', 'VisDetect1', 'RotaryEncoder1_2', 'EarlyPress'},...
@@ -1447,8 +1443,8 @@ try
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
             'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
-       		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+       		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
+	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
             	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
    		% LeverRetract1_OutputActions = {'SoftCode', 8};
 
@@ -1521,11 +1517,14 @@ try
             'StateChangeConditions', {'Tup', 'PostRewardDelay'},...
             'OutputActions', Reward_OutputActions); 		% {'Valve2', 1}
        
+        sma = SetGlobalTimer(sma, 13, 20); % timer to indicate if reward occurred
+        sma = SetCondition(sma, 1, 'GlobalTimer13', 1); %Arguments: (sma, ConditionNumber, ConditionChannel, ConditionValue; 1 = on, 0 = off)
         sma = AddState(sma, 'Name', 'PostRewardDelay', ...
             'Timer', S.GUI.PostRewardDelay_s,...
             'StateChangeConditions', PostRewardDelay_StateChangeConditions,...		% {'Tup', 'ITI'}
-            'OutputActions', {'SoftCode', 17});  % servo in; registered as bpod event softcode 7       
-        
+            'OutputActions', {'GlobalTimerTrig', 13});  % trigger global timer to indicate reward occured, go to ITI instead of ITI_punish after lever retract     
+        % 'OutputActions', {'SoftCode', 17});  % servo in; registered as bpod event softcode 7       
+
         sma = AddState(sma, 'Name', 'DidNotPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
@@ -1554,23 +1553,33 @@ try
             'OutputActions', EarlyPress2_OutputActions);
 
         % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
-        EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, 'SoftCode', 17];
+        % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, 'SoftCode', 17];
 
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'ITI_Switch'},...
             'OutputActions', EarlyPressPunish_OutputActions);  
+        % 'StateChangeConditions', {'Tup', 'Punish_ITI'},...
 
         sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
-            'OutputActions', EarlyPressPunish_OutputActions);  		% [{'HiFi1', ['P' 3]}, 'SoftCode', 17]
+            'StateChangeConditions', {'Tup', 'ITI_Switch'},...
+            'OutputActions', EarlyPressPunish_OutputActions);  		% [{'HiFi1', ['P' 3]}]
 
         sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
-            'OutputActions', EarlyPressPunish_OutputActions);      	% [{'HiFi1', ['P' 3]}, 'SoftCode', 17]
+            'StateChangeConditions', {'Tup', 'ITI_Switch'},...
+            'OutputActions', EarlyPressPunish_OutputActions);      	% [{'HiFi1', ['P' 3]}]
 
+        sma = AddState(sma, 'Name', 'LeverRetractFinal', ...
+            'Timer', 0,...
+            'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...	% {'SoftCode2', 'PreVisStimITI'} % SoftCode2: Indicate to the state machine that the lever is back in the home position
+            'OutputActions', {'SoftCode', 8});
+
+        sma = AddState(sma, 'Name', 'ITI_Switch', ...
+            'Timer', 0.001,...
+            'StateChangeConditions', {'Condition1', 'ITI', 'Tup', 'Punish_ITI', },...	% {'SoftCode2', 'PreVisStimITI'} % SoftCode2: Indicate to the state machine that the lever is back in the home position
+            'OutputActions', {'SoftCode', 8});        
 
         % Punish_OutputActions = [Punish_OutputActions, CombineITI_Punish];
 
@@ -1712,7 +1721,7 @@ try
     
             VisualStimulus2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus2;
             WaitForPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress2;
-            LeverRetractInitialTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractInitial;
+            LeverRetractFinalTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractFinal;
             Reward2Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
             DidNotPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress2;
     
@@ -1742,7 +1751,7 @@ try
                 ITITimes, ...
                 LeverResetPos, ...
                 WaitForPress2Times, ...
-                LeverRetractInitialTimes, ...
+                LeverRetractFinalTimes, ...
                 Reward2Times, ...
                 DidNotPress2Times, ...
                 WaitForPress3Times, ...

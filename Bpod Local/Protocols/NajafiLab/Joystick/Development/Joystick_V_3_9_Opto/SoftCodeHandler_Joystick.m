@@ -26,7 +26,7 @@ switch true
             
         end
         % pause(.01);
-        SendBpodSoftCode(1); % Indicate to the state machine that the lever is back in the home position
+        SendBpodSoftCode(2); % Indicate to the state machine that the lever is back in the home position
         
     case code >= 0 && code <= 6 
         BpodSystem.PluginObjects.V.play(code);
@@ -85,16 +85,16 @@ switch true
     %     % toc
     % 
     %     SendBpodSoftCode(6); % Indicate to the state machine that S.GUI.Press1Window_s - TimeToPress has elapsed (specific to press2)
-
-    case code == 17
-        % return lever 700ms after reward and EarlyPress
-        % tic
-        pause(0.7);
-        % toc
-        M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5); % servo in
-        % set servo to return, although not waiting in softcode to sense
-        % zero position
-        SendBpodSoftCode(7); % Indicate to the state machine that the lever is back in the home position
+    % 
+    % case code == 17
+    %     % return lever 700ms after reward and EarlyPress
+    %     % tic
+    %     pause(0.7);
+    %     % toc
+    %     M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5); % servo in
+    %     % set servo to return, although not waiting in softcode to sense
+    %     % zero position
+    %     SendBpodSoftCode(7); % Indicate to the state machine that the lever is back in the home position
         
 
     case code == 255
