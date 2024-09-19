@@ -8,6 +8,7 @@ function [S] = SetParams(obj, BpodSystem)
     if isempty(fieldnames(S))  % If settings file was an empty struct, populate struct with default settings
         
         S.GUI.ExperimenterInitials = 'Initials';
+        
 
         S.GUI.ITI_Pre = 0.5;
         S.GUI.ITI_Post = 5;
@@ -37,7 +38,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.CheckEyeOpenAveragingBaseline = 0.2;
         S.GUI.CheckEyeOpenTimeout = 15;
 
-        S.GUIPanels.EBC = {'ExperimenterInitials', 'ITI_Pre', 'ITI_Post', 'ITI_Extra','LED_OnsetDelay',...
+        S.GUI.SleepDeprived = false;
+        S.GUIMeta.SleepDeprived.Style = 'checkbox';
+
+        S.GUIPanels.EBC = {'ExperimenterInitials','SleepDeprived', 'ITI_Pre', 'ITI_Post', 'ITI_Extra','LED_OnsetDelay',...
             'TrialTypeSequence','LED_Dur_Short','LED_Dur_Long', 'AirPuff_OnsetDelay', 'AirPuff_OnsetDelay_Short','AirPuff_OnsetDelay_Long', 'AirPuff_Dur', 'CheckEyeOpenAveragingBaseline','CheckEyeOpenTimeout','BlockLength','Margine'};
 
     end
