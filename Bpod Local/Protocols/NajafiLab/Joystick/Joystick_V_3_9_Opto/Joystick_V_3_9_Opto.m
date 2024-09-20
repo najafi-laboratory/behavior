@@ -32,7 +32,7 @@ try
 
     % get computer host name
     % 'COS-3A11406' - Imaging Rig
-    % 'COS-3A11427' - Joystick Rig
+    % 'COS-3A11427' - Joystick Rig1
     % 'COS-3A17904' - Joystick Rig2
 
     SetRigID(BpodSystem)
@@ -50,7 +50,7 @@ try
     switch BpodSystem.Data.RigName
         case 'ImagingRig'
             M = PololuMaestro('COM15'); 
-        case 'JoystickRig'
+        case 'JoystickRig1'
             M = PololuMaestro('COM15'); 
         case 'JoystickRig2'
             M = PololuMaestro('COM8');             
@@ -287,7 +287,7 @@ try
     switch BpodSystem.Data.RigName
         case 'ImagingRig'
             MonitorID = 2;
-        case 'JoystickRig'
+        case 'JoystickRig1'
             MonitorID = 1;
         case 'JoystickRig2'
             MonitorID = 1;            
@@ -522,6 +522,8 @@ try
 
     % exp notes log
     ExpNotes.ExperimenterInitials = S.GUI.ExperimenterInitials;
+
+    ExpNotes.Rig = BpodSystem.Data.RigName;
 
     ExpNotes.numTrials = 0;
 
@@ -1249,16 +1251,16 @@ try
         end
 
 
-        LeverRetractFinal_StateChangeConditions = {'SoftCode1', 'ITI_Switch'};
+        LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'};
         % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
         WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-        LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreDelayGap'};
+        LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreDelayGap'};
         
         if ~S.GUI.SelfTimedMode
-            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+            % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
             PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
         else
-            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+            % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
             PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
         end
         % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
@@ -1443,8 +1445,8 @@ try
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
             'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
-       		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
-	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+       		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
+	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
             	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
    		% LeverRetract1_OutputActions = {'SoftCode', 8};
 
@@ -1497,10 +1499,7 @@ try
             'OutputActions', WaitForPress2_OutputActions);         
         	% WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
         	% WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
-    
-        	% Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
-        	% Press2_OutputActions = [Press2_OutputActions, 'SoftCode', 16];
-	
+    	
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', Press2Window_s,...
             'StateChangeConditions', {'Tup', 'DidNotPress2', 'GlobalTimer11_End', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
@@ -1522,7 +1521,7 @@ try
         sma = AddState(sma, 'Name', 'PostRewardDelay', ...
             'Timer', S.GUI.PostRewardDelay_s,...
             'StateChangeConditions', PostRewardDelay_StateChangeConditions,...		% {'Tup', 'ITI'}
-            'OutputActions', {'GlobalTimerTrig', 13});  % servo in; registered as bpod event softcode 7       
+            'OutputActions', {'GlobalTimerTrig', 13});  % trigger global timer to indicate reward occured, go to ITI instead of ITI_punish after lever retract     
         % 'OutputActions', {'SoftCode', 17});  % servo in; registered as bpod event softcode 7       
 
         sma = AddState(sma, 'Name', 'DidNotPress1', ...
@@ -1544,17 +1543,17 @@ try
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress1Punish'},...
             'OutputActions', EarlyPress1_OutputActions);
-        % EarlyPress1_OutputActions = {}
-        % EarlyPress2_OutputActions = {}
+        % EarlyPress1_OutputActions = {TimerShutterReset, {'GlobalTimerCancel', '111111101'}
+
 
         sma = AddState(sma, 'Name', 'EarlyPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
             'OutputActions', EarlyPress2_OutputActions);
+        % EarlyPress2_OutputActions = TimerShutterReset, {'GlobalTimerCancel', '111111101'}
 
         % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
         % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, 'SoftCode', 17];
-
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
             'StateChangeConditions', {'Tup', 'ITI_Switch'},...
@@ -1573,12 +1572,12 @@ try
 
         sma = AddState(sma, 'Name', 'LeverRetractFinal', ...
             'Timer', 0,...
-            'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...	% {'SoftCode1', 'PreVisStimITI'} % Softcode1: Indicate to the state machine that the lever is back in the home position
+            'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...	% {'SoftCode2', 'PreVisStimITI'} % SoftCode2: Indicate to the state machine that the lever is back in the home position
             'OutputActions', {'SoftCode', 8});
 
         sma = AddState(sma, 'Name', 'ITI_Switch', ...
             'Timer', 0.001,...
-            'StateChangeConditions', {'Condition1', 'ITI', 'Tup', 'Punish_ITI', },...	% {'SoftCode1', 'PreVisStimITI'} % Softcode1: Indicate to the state machine that the lever is back in the home position
+            'StateChangeConditions', {'Condition1', 'ITI', 'Tup', 'Punish_ITI', },...	% {'SoftCode2', 'PreVisStimITI'} % SoftCode2: Indicate to the state machine that the lever is back in the home position
             'OutputActions', {'SoftCode', 8});        
 
         % Punish_OutputActions = [Punish_OutputActions, CombineITI_Punish];
@@ -1923,7 +1922,7 @@ function SetRigID(BpodSystem)
         case 'COS-3A11406'
             BpodSystem.Data.RigName = 'ImagingRig';
         case 'COS-3A11427'
-            BpodSystem.Data.RigName = 'JoystickRig';
+            BpodSystem.Data.RigName = 'JoystickRig1';
         case 'COS-3A17904'
             BpodSystem.Data.RigName = 'JoystickRig2';
     end
@@ -1969,9 +1968,9 @@ function PrintInterruptLog(BpodSystem)
             % S.GUI.ServoInPos = 1570.00; % lever start pos
             % S.GUI.ServoOutPos = 34; % can press lever
             fprintf(fid,'%s\n\n', 'Imaging Rig');
-        case 'JoystickRig'
+        case 'JoystickRig1'
             % rig specs
-            fprintf(fid,'%s\n\n', 'Joystick Rig - Behavior Room');
+            fprintf(fid,'%s\n\n', 'Joystick Rig1 - Behavior Room');
         case 'JoystickRig2'
             % rig specs
             fprintf(fid,'%s\n\n', 'Joystick Rig2 - Behavior Room');            
@@ -2021,20 +2020,5 @@ function PrintInterruptLog(BpodSystem)
     fprintf(fid,'%s', 'VisStimInterruptGray2Count    ');
     fprintf(fid,'%s\n', num2str(VisStimInterruptGray2Count)); 
 end
-
-
-
-% 
-% setpref('Internet','E_mail','gtg424h@gatech.edu');
-% 
-% 
-% sendmail('gtg424h@gatech.edu','New subject', ...
-% ['Line1 of message' 10 'Line2 of message' 10 ...
-% 'Line3 of message' 10 'Line4 of message'])
-% 
-% 
-% setpref('Internet','SMTP_Server','mail.gatech.edu');
-% 
-
 
 
