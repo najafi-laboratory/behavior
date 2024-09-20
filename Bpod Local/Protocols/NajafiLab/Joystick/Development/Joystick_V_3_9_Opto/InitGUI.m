@@ -40,7 +40,7 @@ function [S] = SetParams(obj, BpodSystem)
                 S.GUI.ServoInPos = 1598.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig2'
-                S.GUI.ServoInPos = 1598.00; % lever start pos
+                S.GUI.ServoInPos = 1686.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever            
         end
 
