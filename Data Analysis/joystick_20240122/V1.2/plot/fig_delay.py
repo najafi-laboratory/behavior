@@ -46,7 +46,7 @@ def process_matrix(matrix):
     
     return matrix
 
-def plot_bpod(
+def push_delay(
         session_data,
         output_dir_onedrive, 
         output_dir_local
@@ -73,7 +73,7 @@ def plot_bpod(
     if len(session_id) == 1:
         if any(0 in row for row in isSelfTimedMode):
             print('Visually Guided')
-            fig1,axs1 = plt.subplots( figsize= (60,10))
+            fig1,axs1 = plt.subplots(figsize= (60,10))
             fig1.suptitle(3*'\n' + subject +'\n')
 
             for i in range(0 , len(session_id)):
@@ -82,55 +82,54 @@ def plot_bpod(
                 raw_data = session_data['raw'][i]
                 session_date = dates[i][2:]
                 trial_types = raw_data['TrialTypes']
-                print('bpod for session:' + session_date)
+                print('delay for session:' + session_date)
 
-                axs1.set_yticks([1, 2])
-                axs1.set_yticklabels(['2', '1'])
                 if 'chemo' in session_date:
                     axs1.set_title('\n' + session_date, color = 'red')
                 else:
                     axs1.set_title('\n' + session_date, color = 'k')
                     
-                axs1.set_ylabel('Trial Type')
+                axs1.set_ylabel('delay (s)')
                 axs1.set_xlabel('trials')
                 axs1.spines['top'].set_visible(False)
                 axs1.spines['right'].set_visible(False)
                 
                 for trial in range(0,len(TrialOutcomes)):
                     
+                    trial_states = raw_data['RawEvents']['Trial'][trial]['States']
+                    PreVis2Delay_1 = trial_states['PreVis2Delay'][0]
+                    PreVis2Delay_2 = trial_states['PreVis2Delay'][1]
+                    PreVis2Delay = PreVis2Delay_2 - PreVis2Delay_1
+                    
                     if np.isnan(isSelfTimedMode[i][trial]):
                         continue
                     
-                    if trial_types[trial] == 2:
-                        trial_types[trial] = 1
-                    else:
-                        trial_types[trial] = 2
                         
                     if TrialOutcomes[trial] == 'Reward':
-                        axs1.scatter(trial, trial_types[trial], color = '#4efd54')
+                        axs1.scatter(trial, PreVis2Delay, color = '#4efd54')
                         
                     elif TrialOutcomes[trial] == 'DidNotPress1':
-                        axs1.scatter(trial, trial_types[trial], color='red')
+                        axs1.scatter(trial, PreVis2Delay, color='red')
                         
                     elif TrialOutcomes[trial] == 'DidNotPress2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='red', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='red', marker='o')
                         
                     elif TrialOutcomes[trial] == 'EarlyPress1':
-                        axs1.scatter(trial, trial_types[trial], color='blue')
+                        axs1.scatter(trial, PreVis2Delay, color='blue')
                     elif TrialOutcomes[trial] == 'EarlyPress2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='blue', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='blue', marker='o')
                     elif TrialOutcomes[trial] == 'EarlyPress':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='gray', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='gray', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect1':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#D3D3D3', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='#D3D3D3', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#C0C0C0', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='#C0C0C0', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray1':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#808080', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='#808080', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#696969', marker='o')
+                        axs1.scatter(trial, PreVis2Delay, c='none', edgecolors='#696969', marker='o')
                     else:
-                        axs1.scatter(trial, trial_types[trial], color = 'k')
+                        axs1.scatter(trial, PreVis2Delay, color = 'k')
             
             # Create custom legend with markers
             legend_elements = [
@@ -151,7 +150,7 @@ def plot_bpod(
             output_imgs_dir = output_dir_local + subject + '/bpod_imgs/'
             os.makedirs(output_figs_dir, exist_ok = True)
             os.makedirs(output_imgs_dir, exist_ok = True)
-            fig1.savefig(output_figs_dir + subject + '_bpod.pdf', dpi=300, bbox_inches='tight')
+            fig1.savefig(output_figs_dir + subject + '_delay.pdf', dpi=300, bbox_inches='tight')
             fig1.savefig(output_imgs_dir + subject + '_bpod.png', dpi=300)
             plt.close(fig1)
             
@@ -166,55 +165,51 @@ def plot_bpod(
                 raw_data = session_data['raw'][i]
                 session_date = dates[i][2:]
                 trial_types = raw_data['TrialTypes']
-                print('bpod for session:' + session_date)
+                print('delay for session:' + session_date)
 
-                axs1.set_yticks([1, 2])
-                axs1.set_yticklabels(['2', '1'])
                 if 'chemo' in session_date:
                     axs1.set_title('\n' + session_date, color = 'red')
                 else:
                     axs1.set_title('\n' + session_date, color = 'k')
                     
-                axs1.set_ylabel('Trial Type')
+                axs1.set_ylabel('delay (s)')
                 axs1.set_xlabel('trials')
                 axs1.spines['top'].set_visible(False)
                 axs1.spines['right'].set_visible(False)
                 
                 for trial in range(0,len(TrialOutcomes)):
                     
+                    trial_states = raw_data['RawEvents']['Trial'][trial]['States']
+                    
                     if np.isnan(isSelfTimedMode[i][trial]):
                         continue
                     
-                    if trial_types[trial] == 2:
-                        trial_types[trial] = 1
-                    else:
-                        trial_types[trial] = 2
+                    PrePress2Delay_1 = trial_states['PrePress2Delay'][0]
+                    PrePress2Delay_2 = trial_states['PrePress2Delay'][1]
+                    PrePress2Delay = PrePress2Delay_2 - PrePress2Delay_1
                         
                     if TrialOutcomes[trial] == 'Reward':
-                        axs1.scatter(trial, trial_types[trial], color = '#4efd54')
-                        
+                        axs1.scatter(trial, PrePress2Delay, color = '#4efd54')                    
                     elif TrialOutcomes[trial] == 'DidNotPress1':
-                        axs1.scatter(trial, trial_types[trial], color='red')
-                        
+                        axs1.scatter(trial, PrePress2Delay, color='red')                    
                     elif TrialOutcomes[trial] == 'DidNotPress2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='red', marker='o')
-                        
+                        axs1.scatter(trial, PrePress2Delay, c='none', edgecolors='red', marker='o')                    
                     elif TrialOutcomes[trial] == 'EarlyPress1':
-                        axs1.scatter(trial, trial_types[trial], color='blue')
+                        axs1.scatter(trial, PrePress2Delay, color='blue')
                     elif TrialOutcomes[trial] == 'EarlyPress2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='blue', marker='o')
+                        axs1.scatter(trial, PrePress2Delay, c='none', edgecolors='blue', marker='o')
                     elif TrialOutcomes[trial] == 'EarlyPress':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='gray', marker='o')
+                        axs1.scatter(trial, PrePress2Delay, c='none', edgecolors='gray', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect1':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#D3D3D3', marker='o')
+                        axs1.scatter(trial,PrePress2Delay, c='none', edgecolors='#D3D3D3', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#C0C0C0', marker='o')
+                        axs1.scatter(trial, PrePress2Delay, c='none', edgecolors='#C0C0C0', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray1':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#808080', marker='o')
+                        axs1.scatter(trial, PrePress2Delay, c='none', edgecolors='#808080', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray2':
-                        axs1.scatter(trial, trial_types[trial], c='none', edgecolors='#696969', marker='o')
+                        axs1.scatter(trial, PrePress2Delay, c='none', edgecolors='#696969', marker='o')
                     else:
-                        axs1.scatter(trial, trial_types[trial], color = 'k')
+                        axs1.scatter(trial, PrePress2Delay, color = 'k')
             
             # Create custom legend with markers
             legend_elements = [
@@ -232,12 +227,13 @@ def plot_bpod(
             fig1.legend(handles=legend_elements, loc='upper center', ncol=5, bbox_to_anchor=(0.5,1))
             fig1.tight_layout()
             output_figs_dir = output_dir_onedrive + subject + '/'    
-            output_imgs_dir = output_dir_local + subject + '/bpod_imgs/'
+            output_imgs_dir = output_dir_local + subject + '/delay_imgs/'
             os.makedirs(output_figs_dir, exist_ok = True)
             os.makedirs(output_imgs_dir, exist_ok = True)
-            fig1.savefig(output_figs_dir + subject + '_bpod.pdf', dpi=300, bbox_inches='tight')
-            fig1.savefig(output_imgs_dir + subject + '_bpod.png', dpi=300)
+            fig1.savefig(output_figs_dir + subject + '_delay.pdf', dpi=300, bbox_inches='tight')
+            fig1.savefig(output_imgs_dir + subject + '_delay.png', dpi=300)
             plt.close(fig1)
+        
     else:
         if any(0 in row for row in isSelfTimedMode):
             print('Visually Guided')
@@ -250,55 +246,54 @@ def plot_bpod(
                 raw_data = session_data['raw'][i]
                 session_date = dates[i][2:]
                 trial_types = raw_data['TrialTypes']
-                print('bpod for session:' + session_date)
+                print('delay for session:' + session_date)
 
-                axs1[i].set_yticks([1, 2])
-                axs1[i].set_yticklabels(['2', '1'])
                 if 'chemo' in session_date:
                     axs1[i].set_title('\n' + session_date, color = 'red')
                 else:
                     axs1[i].set_title('\n' + session_date, color = 'k')
                     
-                axs1[i].set_ylabel('Trial Type')
+                axs1[i].set_ylabel('delay (s)')
                 axs1[i].set_xlabel('trials')
                 axs1[i].spines['top'].set_visible(False)
                 axs1[i].spines['right'].set_visible(False)
                 
                 for trial in range(0,len(TrialOutcomes)):
                     
+                    trial_states = raw_data['RawEvents']['Trial'][trial]['States']
+                    PreVis2Delay_1 = trial_states['PreVis2Delay'][0]
+                    PreVis2Delay_2 = trial_states['PreVis2Delay'][1]
+                    PreVis2Delay = PreVis2Delay_2 - PreVis2Delay_1
+                    
                     if np.isnan(isSelfTimedMode[i][trial]):
                         continue
                     
-                    if trial_types[trial] == 2:
-                        trial_types[trial] = 1
-                    else:
-                        trial_types[trial] = 2
                         
                     if TrialOutcomes[trial] == 'Reward':
-                        axs1[i].scatter(trial, trial_types[trial], color = '#4efd54')
+                        axs1[i].scatter(trial, PreVis2Delay, color = '#4efd54')
                         
                     elif TrialOutcomes[trial] == 'DidNotPress1':
-                        axs1[i].scatter(trial, trial_types[trial], color='red')
+                        axs1[i].scatter(trial, PreVis2Delay, color='red')
                         
                     elif TrialOutcomes[trial] == 'DidNotPress2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='red', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='red', marker='o')
                         
                     elif TrialOutcomes[trial] == 'EarlyPress1':
-                        axs1[i].scatter(trial, trial_types[trial], color='blue')
+                        axs1[i].scatter(trial, PreVis2Delay, color='blue')
                     elif TrialOutcomes[trial] == 'EarlyPress2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='blue', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='blue', marker='o')
                     elif TrialOutcomes[trial] == 'EarlyPress':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='gray', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='gray', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect1':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#D3D3D3', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='#D3D3D3', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#C0C0C0', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='#C0C0C0', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray1':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#808080', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='#808080', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#696969', marker='o')
+                        axs1[i].scatter(trial, PreVis2Delay, c='none', edgecolors='#696969', marker='o')
                     else:
-                        axs1[i].scatter(trial, trial_types[trial], color = 'k')
+                        axs1[i].scatter(trial, PreVis2Delay, color = 'k')
             
             # Create custom legend with markers
             legend_elements = [
@@ -319,7 +314,7 @@ def plot_bpod(
             output_imgs_dir = output_dir_local + subject + '/bpod_imgs/'
             os.makedirs(output_figs_dir, exist_ok = True)
             os.makedirs(output_imgs_dir, exist_ok = True)
-            fig1.savefig(output_figs_dir + subject + '_bpod.pdf', dpi=300, bbox_inches='tight')
+            fig1.savefig(output_figs_dir + subject + '_delay.pdf', dpi=300, bbox_inches='tight')
             fig1.savefig(output_imgs_dir + subject + '_bpod.png', dpi=300)
             plt.close(fig1)
             
@@ -334,55 +329,51 @@ def plot_bpod(
                 raw_data = session_data['raw'][i]
                 session_date = dates[i][2:]
                 trial_types = raw_data['TrialTypes']
-                print('bpod for session:' + session_date)
+                print('delay for session:' + session_date)
 
-                axs1[i].set_yticks([1, 2])
-                axs1[i].set_yticklabels(['2', '1'])
                 if 'chemo' in session_date:
                     axs1[i].set_title('\n' + session_date, color = 'red')
                 else:
                     axs1[i].set_title('\n' + session_date, color = 'k')
                     
-                axs1[i].set_ylabel('Trial Type')
+                axs1[i].set_ylabel('delay (s)')
                 axs1[i].set_xlabel('trials')
                 axs1[i].spines['top'].set_visible(False)
                 axs1[i].spines['right'].set_visible(False)
                 
                 for trial in range(0,len(TrialOutcomes)):
                     
+                    trial_states = raw_data['RawEvents']['Trial'][trial]['States']
+                    
                     if np.isnan(isSelfTimedMode[i][trial]):
                         continue
                     
-                    if trial_types[trial] == 2:
-                        trial_types[trial] = 1
-                    else:
-                        trial_types[trial] = 2
+                    PrePress2Delay_1 = trial_states['PrePress2Delay'][0]
+                    PrePress2Delay_2 = trial_states['PrePress2Delay'][1]
+                    PrePress2Delay = PrePress2Delay_2 - PrePress2Delay_1
                         
                     if TrialOutcomes[trial] == 'Reward':
-                        axs1[i].scatter(trial, trial_types[trial], color = '#4efd54')
-                        
+                        axs1[i].scatter(trial, PrePress2Delay, color = '#4efd54')                    
                     elif TrialOutcomes[trial] == 'DidNotPress1':
-                        axs1[i].scatter(trial, trial_types[trial], color='red')
-                        
+                        axs1[i].scatter(trial, PrePress2Delay, color='red')                    
                     elif TrialOutcomes[trial] == 'DidNotPress2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='red', marker='o')
-                        
+                        axs1[i].scatter(trial, PrePress2Delay, c='none', edgecolors='red', marker='o')                    
                     elif TrialOutcomes[trial] == 'EarlyPress1':
-                        axs1[i].scatter(trial, trial_types[trial], color='blue')
+                        axs1[i].scatter(trial, PrePress2Delay, color='blue')
                     elif TrialOutcomes[trial] == 'EarlyPress2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='blue', marker='o')
+                        axs1[i].scatter(trial, PrePress2Delay, c='none', edgecolors='blue', marker='o')
                     elif TrialOutcomes[trial] == 'EarlyPress':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='gray', marker='o')
+                        axs1[i].scatter(trial, PrePress2Delay, c='none', edgecolors='gray', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect1':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#D3D3D3', marker='o')
+                        axs1[i].scatter(trial,PrePress2Delay, c='none', edgecolors='#D3D3D3', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptDetect2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#C0C0C0', marker='o')
+                        axs1[i].scatter(trial, PrePress2Delay, c='none', edgecolors='#C0C0C0', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray1':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#808080', marker='o')
+                        axs1[i].scatter(trial, PrePress2Delay, c='none', edgecolors='#808080', marker='o')
                     elif TrialOutcomes[trial] == 'VisStimInterruptGray2':
-                        axs1[i].scatter(trial, trial_types[trial], c='none', edgecolors='#696969', marker='o')
+                        axs1[i].scatter(trial, PrePress2Delay, c='none', edgecolors='#696969', marker='o')
                     else:
-                        axs1[i].scatter(trial, trial_types[trial], color = 'k')
+                        axs1[i].scatter(trial, PrePress2Delay, color = 'k')
             
             # Create custom legend with markers
             legend_elements = [
@@ -400,9 +391,9 @@ def plot_bpod(
             fig1.legend(handles=legend_elements, loc='upper center', ncol=5, bbox_to_anchor=(0.5,1))
             fig1.tight_layout()
             output_figs_dir = output_dir_onedrive + subject + '/'    
-            output_imgs_dir = output_dir_local + subject + '/bpod_imgs/'
+            output_imgs_dir = output_dir_local + subject + '/delay_imgs/'
             os.makedirs(output_figs_dir, exist_ok = True)
             os.makedirs(output_imgs_dir, exist_ok = True)
-            fig1.savefig(output_figs_dir + subject + '_bpod.pdf', dpi=300, bbox_inches='tight')
-            # fig1.savefig(output_imgs_dir + subject + '_bpod.png', dpi=300)
+            fig1.savefig(output_figs_dir + subject + '_delay.pdf', dpi=300, bbox_inches='tight')
+            # fig1.savefig(output_imgs_dir + subject + '_delay.png', dpi=300)
             plt.close(fig1)
