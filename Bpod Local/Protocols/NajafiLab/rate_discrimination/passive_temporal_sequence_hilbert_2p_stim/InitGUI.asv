@@ -58,10 +58,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoMode = 1;
         S.GUIMeta.OptoMode.Style = 'popupmenu';
         S.GUIMeta.OptoMode.String = {'off', 'on', 'default', 'Random', 'Block'};
-        S.GUI.OptoSource = 2;
-        S.GUIMeta.OptoSource.Style = 'popupmenu';
-        S.GUIMeta.OptoSource.String = {'LED', '2P-Stim'};
-        S.GUI.TimeToFirstLaserPulse = 0.023;
+        S.GUI.OptoType = 2;
+        S.GUIMeta.OptoType.Style = 'popupmenu';
+        S.GUIMeta.OptoMode.String = {'LED', '2P-Stim'};
         S.GUI.OptoProb = 0.5;
         S.GUI.OptoOnPreStim = 0.2;
         S.GUI.OptoOffPostStim = 0.4;
@@ -70,7 +69,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.LEDOffPulseDur = 0.085;
         S.GUI.OptoAvoidFrameStart = 2;
         S.GUI.OptoAvoidFrameBetween = 1;
-        S.GUIPanels.Opto = {'OptoMode', 'OptoSource', 'TimeToFirstLaserPulse', 'OptoProb', 'OptoOnPreStim', 'OptoOffPostStim', 'OptoIntervalOdd', 'LEDOnPulseDur', 'LEDOffPulseDur', 'OptoAvoidFrameStart', 'OptoAvoidFrameBetween'};    
+        S.GUIPanels.Opto = {'OptoMode', 'OptoProb', 'OptoOnPreStim', 'OptoOffPostStim', 'OptoIntervalOdd', 'LEDOnPulseDur', 'LEDOffPulseDur', 'OptoAvoidFrameStart', 'OptoAvoidFrameBetween'};    
     end
 end
 

@@ -203,11 +203,15 @@ function passive_temporal_sequence_hilbert_2p_stim
         [sma] = m_OptoConfig.SetOpto(S, sma, OptoSeq, currentTrial);
 
         if OptoSeq(currentTrial).Type ~= 0
-            if S.GUI.OptoSource == 1
-                AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '011'};
-            else
-                AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '100'};
-            end
+            if S.GUI.OptoSource
+            AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '011'};
+        
+
+            
+            
+            
+            
+            
             AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4]};
         end
 
@@ -221,6 +225,7 @@ function passive_temporal_sequence_hilbert_2p_stim
             'StateChangeConditions', {'BNC1High', 'AudVisStimPlay'},...
             'OutputActions', {'SoftCode', 25});
 
+        AudVisStimPlay_OutputActions = [AudVisStimPlay_OutputActions, 'GlobalTimerTrig', 3];
         sma = AddState(sma, 'Name', 'AudVisStimPlay', ...
             'Timer', VisStim.Data.Dur,...
             'StateChangeConditions', {'Tup', 'End'},...

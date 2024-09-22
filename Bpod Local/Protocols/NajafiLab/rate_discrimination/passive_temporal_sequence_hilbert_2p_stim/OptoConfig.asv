@@ -98,9 +98,8 @@ end
 
 function [sma] = Set2PStim(obj, S, sma, OptoSeq, currentTrial)
         % 2p-stim
-        StimOnsetDelay = OptoSetup.TimeOn;
-        % StimOnsetDelay = 0.5;
-
+        StimOnsetDelay = 0.5;
+        
         sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', 0.005, 'OnsetDelay', StimOnsetDelay,...
         'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
         'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
