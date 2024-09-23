@@ -20,7 +20,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.MaxImg = 1500;
         S.GUI.OrienBlockNumMin = 10;
         S.GUI.OrienBlockNumMax = 15;
-        S.GUI.SpontSilenceTimeSess = 300;
+        S.GUI.SpontSilenceTimeSess = 0;
         S.GUIPanels.Passive = {'MaxImg', 'OrienBlockNumMin', 'OrienBlockNumMax', 'SpontSilenceTimeSess'};
         
         % oddball
@@ -61,9 +61,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoSource = 2;
         S.GUIMeta.OptoSource.Style = 'popupmenu';
         S.GUIMeta.OptoSource.String = {'LED', '2P-Stim'};
-        S.GUI.TimeToFirstLaserPulse = 0.023;
+        S.GUI.TimeToFirstLaserPulse = 0.0221;
         S.GUI.OptoProb = 0.5;
-        S.GUI.OptoOnPreStim = 0.2;
+        % S.GUI.OptoOnPreStim = 0.2;
+        S.GUI.OptoOnPreStim = 0.0;
         S.GUI.OptoOffPostStim = 0.4;
         S.GUI.OptoIntervalOdd = 0.2;
         S.GUI.LEDOnPulseDur = 0.015;

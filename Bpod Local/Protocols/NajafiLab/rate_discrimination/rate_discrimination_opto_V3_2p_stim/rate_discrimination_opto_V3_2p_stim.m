@@ -1,13 +1,16 @@
-function rate_discrimination_opto_V1
+function rate_discrimination_opto_V3_2p_stim
 
     global BpodSystem
     global M
-    
-    EnableMovingSpouts = 0;
-    MonitorID          = 2;
-    EnableOpto         = 0;
+    MonitorID = 2;
 
+    disp('0: off')
+    disp('1: on')
+    EnableMovingSpouts = input('Set moving spout >> ');
+    disp('Opto fraction')
+    OnFraction = input('Set opto trial fraction >> ');
     
+
     %% Import scripts
     
     m_Plotter      = Plotter;
@@ -15,14 +18,14 @@ function rate_discrimination_opto_V1
     m_TrialConfig  = TrialConfig;
     m_AVstimConfig = AVstimConfig;
     m_PostProcess  = PostProcess;
-    m_Opto = OptoConfig(EnableOpto);
+    m_Opto         = OptoConfig;
     
     
     %% Turn off Bpod LEDs
     
     BpodSystem.setStatusLED(0);
 
-    
+
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
     BpodSystem.assertModule('HiFi', 1);
@@ -35,12 +38,13 @@ function rate_discrimination_opto_V1
     
     [S] = m_InitGUI.SetParams(BpodSystem);
     [S] = m_InitGUI.UpdateMovingSpouts(S, EnableMovingSpouts);
+    [S] = m_InitGUI.UpdateOpto(S, OnFraction);
     
     
     %% Connect Maestro
     
     if (EnableMovingSpouts == 1)
-        M = PololuMaestro('COM13');
+        M = PololuMaestro('COM15');
         M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection));
         M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));
     end
@@ -51,8 +55,7 @@ function rate_discrimination_opto_V1
     % set max number of trials
     
     BpodSystem.Data.TrialTypes = [];
-    BpodSystem.Data.OptoTrialTypes = [];    % store opto trial types as 1-off, 2-on (could later generate as arrays of 0 & 1)
-    BpodSystem.Data.OptoTag = [];    % store opto trial types as 1-off, 2-on
+    BpodSystem.Data.OptoType = [];
     BpodSystem.Data.ProcessedSessionData = {};
     
     % initialize anti-bias variables
@@ -62,6 +65,7 @@ function rate_discrimination_opto_V1
     AntiBiasVar.CompletedHist.right = [];
     AntiBiasVar.BiasIndex           = 0;
     AntiBiasVar.ValveFlag           = 'NoBias';
+    TotalRewardAmount_uL            = 0;
     
     % draw perturbation interval from uniform distribution in range
     PerturbInterval.EasyMinPercent       = 3/4;
@@ -76,28 +80,22 @@ function rate_discrimination_opto_V1
     % generate trial types
     [TrialTypes] = m_TrialConfig.GenTrials(S);
     [TrialTypes] = m_TrialConfig.AdjustWarmupTrials(S, TrialTypes);
-    
-    % initial opto trial type generate (random)
-    [OptoTrialTypes] = m_Opto.GenOptoTrials(BpodSystem, S);
+    [OptoType]   = m_Opto.GenOptoType(S);
 
     % Side Outcome Plot
     BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [50 540 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
     BpodSystem.GUIHandles.OutcomePlot = axes('Position', [.075 .35 .89 .55]);
-    TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes);
+    TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
-    
-    currentTrial = 1;
-    [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 1);
-    m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
+    m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0);
     
     
     %% Define stimuli and send to analog module
     
-    SF = 44100; % Use lower sampling rate (samples/sec) to allow for longer duration audio file (max length limited by HiFi)
+    SF = 44100;
     H.SamplingRate = SF;
-    Envelope = 1/(SF*0.001):1/(SF*0.001):1; % Define 1ms linear ramp envelope of amplitude coefficients, to apply at sound onset + in reverse at sound offset
-    
-    H.DigitalAttenuation_dB = -35; % Set a comfortable listening level for most headphones (useful during protocol dev).
+    Envelope = 1/(SF*0.001):1/(SF*0.001):1;
+    H.DigitalAttenuation_dB = -35;
     
     
     %% Setup video
@@ -147,7 +145,7 @@ function rate_discrimination_opto_V1
     BpodSystem.PluginObjects.V.Videos{6}.Data = GrayInitBNCSync;
 
     pause(1.0);
-    BpodSystem.PluginObjects.V.TimerMode = 1;
+    BpodSystem.PluginObjects.V.TimerMode = 2;
     BpodSystem.PluginObjects.V.play(0);
     BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler';    
     BpodSystem.PluginObjects.V.play(6); 
@@ -160,16 +158,12 @@ function rate_discrimination_opto_V1
     for currentTrial = 1:S.GUI.MaxTrials
     
         S = BpodParameterGUI('sync', S);
-
     
         %% anti bias
     
         [TrialTypes] = m_TrialConfig.ManuallFraction( ...
             S, currentTrial, TrialTypes);
-    
-        [TrialTypes, AntiBiasVar] = m_TrialConfig.RepeatedIncorrect( ...
-            BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
-    
+
         [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = m_TrialConfig.AntiBiasValveAdjust( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
     
@@ -209,32 +203,7 @@ function rate_discrimination_opto_V1
             S, TrialTypes, currentTrial, PostPertISI);
     
         BpodSystem.Data.TrialVars.Trial{currentTrial}.PostPertISI = PostPertISI + S.GUI.GratingDur_s;
-    
 
-        %% update opto trial types and outcome plot
-        % update for opto interop
-        [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, currentTrial, 0);
-        if ~m_Opto.EnableOpto
-            OptoStateExpInfo = 'Control';
-            OptoTrialExpInfo = 'NA';
-        else
-            OptoStateExpInfo = 'Opto';
-            switch OptoTrialTypes(currentTrial)
-                case 1                    
-                    OptoTrialExpInfo = 'Opto Off';
-                case 2                    
-                    OptoTrialExpInfo = 'Opto On';
-            end
-        end
-
-        switch OptoTrialTypes(currentTrial)
-            case 1
-                BpodSystem.Data.OptoTag(currentTrial) = 0;
-            case 2
-                BpodSystem.Data.OptoTag(currentTrial) = 1;
-        end
-
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
 
         %% construct preperturb vis stim videos and audio stim base for grating and gray if duration parameters changed
         
@@ -255,23 +224,30 @@ function rate_discrimination_opto_V1
         % combine full video
         VisStim.Data.Full = m_AVstimConfig.GetFullVideo(S, VisStim, FPS);
     
+        % add gray frames for opto
+        OptoGrayFrames = [m_AVstimConfig.GetUnitVideo(VisStim.Img.GrayFrame_SyncW, 1) m_AVstimConfig.GetUnitVideo(VisStim.Img.GrayFrame_SyncBlk, 1)];
+        VisStim.Data.OptoGrayDur = m_AVstimConfig.GetVideoDur(FPS, OptoGrayFrames);
+        VisStim.Data.Full = [OptoGrayFrames VisStim.Data.Full];
+       
         % load constructed video into the video object
         BpodSystem.PluginObjects.V.Videos{25} = struct;
         BpodSystem.PluginObjects.V.Videos{25}.nFrames = length(VisStim.Data.Full); 
         BpodSystem.PluginObjects.V.Videos{25}.Data = VisStim.Data.Full;
 
+        % use vis stim duration for opto timing
         if (S.GUI.ReactionTask == 1)
-            VisStimDuration = VisStim.Data.Pre.Dur;
+            VisStim.Data.VisStimDuration = VisStim.Data.Pre.Dur;
         else
-            VisStimDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
+            VisStim.Data.VisStimDuration = VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur;
         end
 
-    
-        %% Generate audio stim based on vis stim for this trial
+
+        %% Generate audio stim based on vis stim for this trial, account for shift due to gray frames
         
-        m_AVstimConfig.ConfigFullAudioStim( ...
-            H, S, VisStim, SF, Envelope);
-        
+        [FullAudio] = m_AVstimConfig.GenAudioStim( ...
+            S, VisStim, SF, Envelope);
+        H.load(5, FullAudio);
+
         
         %% trial target
         % port1:left, port2:center, port3:right
@@ -299,19 +275,18 @@ function rate_discrimination_opto_V1
     
     
         %% set softcode for hardware control output actions
-    
+
         SCOA.Start       = {'HiFi1','*', 'BNC1', 1};
         SCOA.InitCue     = {'HiFi1', ['P' 0]};
-        SCOA.StimAct     = m_AVstimConfig.GetStimAct(S, m_Opto.EnableOpto);
-        SCOA.EarlyChoice = {'SoftCode', 255, 'HiFi1', 'X'};
-        SCOA.Punish      = {'SoftCode', 255, 'HiFi1', ['P' 2]};
+        SCOA.StimAct     = {};
+        SCOA.Punish      = {'HiFi1', ['P' 2]};
         if (S.GUI.VisStimEnable == 1)
             SCOA.VisStim = {'SoftCode', 25};
         else
             SCOA.VisStim = {};
         end
-        SCOA.AudStim     = m_Opto.GetAudStimOpto(OptoTrialTypes(currentTrial));
-
+        SCOA.AudStim     = m_Opto.OptoUpdateAudStimTrig(S, OptoType, currentTrial);
+        SCOA.ResetTimer  = m_Opto.OptoUpdateResetTimer(S, OptoType, currentTrial);
         if (EnableMovingSpouts == 1)
             SCOA.SpoutIn = {'SoftCode', 9};
         else
@@ -322,40 +297,45 @@ function rate_discrimination_opto_V1
         %% construct state matrix
 
         sma = NewStateMatrix();
+        sma = m_Opto.SetOpto(BpodSystem, S, sma, VisStim, OptoType, currentTrial);
+        sma = m_Opto.Set2PStim(BpodSystem, S, sma, VisStim, OptoType, currentTrial);
+
+        switch OptoType(currentTrial)
+            case 0
+                ExperimenterTrialInfo.Opto = 'off';
+            case 1
+                ExperimenterTrialInfo.Opto = 'on';
+        end
 
         switch S.GUI.TrainingLevel
             case 1 % naive
                 ExperimenterTrialInfo.TrainingLevel = 'Naive';
-                StateNaive(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
-            case 2 % Mid 1 Trained
+                StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
+            case 2 % Mid Trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
-                    StateNaive(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
                 else
-                    ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 1';
-                    StateMidTrain1(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    ExperimenterTrialInfo.TrainingLevel = 'Mid Trained';
+                    StateMidTrain(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
                 end
-            case 3 % Mid 2 Trained
+            case 3 % well trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
-                    StateNaive(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
-                else
-                    ExperimenterTrialInfo.TrainingLevel = 'Mid Trained 2';
-                    StateMidTrain2(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
-                end
-            case 4 % well trained
-                if (currentTrial <= S.GUI.NumNaiveWarmup)
-                    ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
-                    StateNaive(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
                 else
                     ExperimenterTrialInfo.TrainingLevel = 'Well Trained';
-                    StateWellTrained(sma, S, SCOA, TrialTarget, VisStimDuration, DURA);
+                    StateWellTrained(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
                 end
         end
     
     
         %% add console print for experimenter trial information
-    
+        
+        [TotalRewardAmount_uL] = m_TrialConfig.GetTotalRewardAmount( ...
+            BpodSystem, S, TotalRewardAmount_uL, ...
+            currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL);
+
         ExperimenterTrialInfo.TrialNumber = currentTrial;
         ExperimenterTrialInfo.GratingOrientation = VisStim.orientation(VisStim.SampleGratingIdx-1);
         ExperimenterTrialInfo.CorrectChoice = TrialTarget.CorrectChoice;
@@ -375,7 +355,7 @@ function rate_discrimination_opto_V1
         ExperimenterTrialInfo.PostISIinfo = VisStim.PostISIinfo;
         ExperimenterTrialInfo.Jitter = JitterFlag;
         ExperimenterTrialInfo.Omission = VisStim.OmiFlag;
-        ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
+        ExperimenterTrialInfo.TotalRewardAmount_uL = TotalRewardAmount_uL;
     
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
         disp(strExperimenterTrialInfo);
@@ -389,10 +369,10 @@ function rate_discrimination_opto_V1
             BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents);
             BpodSystem.Data.TrialSettings(currentTrial) = S;
             BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
+            BpodSystem.Data.OptoType(currentTrial) = OptoType(currentTrial);
             BpodSystem.Data.JitterFlag(currentTrial) = JitterFlag;
-            BpodSystem.Data.OptoTrialTypes(currentTrial) = OptoTrialTypes(currentTrial);
             m_PostProcess.SaveProcessedSessionData(BpodSystem, VisStim, GrayPerturbISI);
-            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 1);
+            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 1);
             StateTiming();
             SaveBpodSessionData;
         end
@@ -409,3 +389,4 @@ function rate_discrimination_opto_V1
     clear global M;
     BpodSystem.PluginObjects.V = [];
     BpodSystem.setStatusLED(1);
+end

@@ -201,14 +201,20 @@ function passive_temporal_sequence_hilbert_2p_stim
         
         % opto and shutter control
         [sma] = m_OptoConfig.SetOpto(S, sma, OptoSeq, currentTrial);
+        
+        % 2p stim
+        [sma] = m_OptoConfig.Set2PStim(S, sma, OptoSeq, currentTrial);
 
+
+        AudVisStimPlay_OutputActions = {};
         if OptoSeq(currentTrial).Type ~= 0
-            if S.GUI.OptoSource == 1
+            if S.GUI.OptoSource == 1 % LED source
                 AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '011'};
-            else
+            elseif S.GUI.OptoSource == 2 % 2P Stim Source
                 AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '100'};
-            end
-            AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4]};
+            else
+                AudVisStimPlay_OutputActions = {'HiFi1', ['P', 4]};
+            end            
         end
 
         sma = AddState(sma, 'Name', 'Start', ...

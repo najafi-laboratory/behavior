@@ -50,6 +50,7 @@ function [OptoSeq] = GetOptoSeq(obj, S, TrialTypes, OptoTypes, ISIseq)
             currentImg = currentImg + 2;
         else
             % normal
+            % OptoTypes(currentImg) = 3; % TESTING 2pstim
             if OptoTypes(currentImg) == 3
                 OptoSetup.Type = 3;
                 [PreISI, ~] = GetPrePostISI(obj, ISIseq, currentImg);
@@ -97,16 +98,13 @@ function [sma] = SetOpto(obj, S, sma, OptoSeq, currentTrial)
 end
 
 function [sma] = Set2PStim(obj, S, sma, OptoSeq, currentTrial)
-        % 2p-stim
-        StimOnsetDelay = OptoSetup.TimeOn;
-        % StimOnsetDelay = 0.5;
+    OptoSetup = OptoSeq(currentTrial);    
+    StimOnsetDelay = OptoSetup.TimeOn - S.GUI.TimeToFirstLaserPulse;
 
-        sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', 0.005, 'OnsetDelay', StimOnsetDelay,...
+    sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', 0.005, 'OnsetDelay', StimOnsetDelay,...
         'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
         'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
         'GlobalTimerEvents', 0, 'OffsetValue', 0);
-
-
 end
 
     end

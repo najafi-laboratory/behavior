@@ -61,7 +61,7 @@ end
 % generate unit video from frames and image
 function [UnitVideo] = GetUnitVideo( ...
         obj, Frame_Sync, Frames)
-    UnitVideo = [repmat([Frame_Sync Frame_Sync], 1, Frames/2)];
+    UnitVideo = [repmat([Frame_Sync], 1, Frames)];
 end
 
 
@@ -216,6 +216,7 @@ function [SoundWithEnvelope] = ApplySoundEnvelope( ...
     IdxsBetweenTheEnvelope = length(Sound) - 2 * length(Envelope);
     FullEnvelope = [Envelope ones(1, IdxsBetweenTheEnvelope) BackOfTheEnvelope];
     SoundWithEnvelope = Sound .* FullEnvelope;
+    % SoundWithEnvelope = Sound;  % toggle envelope to align aud/vis
 end
 
 
@@ -299,7 +300,10 @@ function [FullAudio] = GenAudioStim( ...
     GoCueStartIdx = ceil((VisStim.Data.Pre.Dur + VisStim.Data.Post.Dur) * SF);
     AudioSeq = [AudioSeq, zeros(1, length(GoCueSound))];
     AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) = AudioSeq(GoCueStartIdx+1:GoCueStartIdx+length(GoCueSound)) + GoCueSound;
-    FullAudio = AudioSeq;
+    VideoOptoDelayDur = 0.032292;
+    OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF;
+    OptoAudioStimOffset = zeros(1, floor(OptoAudioStimOffsetNumSamples));
+    FullAudio = [OptoAudioStimOffset AudioSeq];
 end
 
 
@@ -343,7 +347,7 @@ end
 function [StimAct] = GetStimAct( ...
         obj, S, EnableOpto)
     if S.GUI.VisStimEnable && S.GUI.AudioStimEnable
-        StimAct = {'BNC2', 0};
+        StimAct = {};
     elseif S.GUI.VisStimEnable
         StimAct = {'HiFi1', ['P' 1]};
     elseif S.GUI.AudioStimEnable
@@ -352,7 +356,7 @@ function [StimAct] = GetStimAct( ...
         StimAct = {'HiFi1', ['P' 1]};
     end
     if EnableOpto
-        StimAct = [StimAct, {'GlobalTimerCancel', 1}];
+        StimAct = {};
     end
 end
 
