@@ -88,7 +88,7 @@ for i = 1:length(data_files)
         if length(FEC_trimmed) == length(FEC_times_trimmed)
             if SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(2) - SessionData.RawEvents.Trial{1, ctr_trial}.States.LED_Puff_ISI(1) > 0.3
                 long_block_data = [long_block_data; FEC_trimmed];
-                verticalLineColor = 'r'; % Red for long trials
+                
                 longBlockAirPuffColor = [0.5, 1.0, 0.5]; % Light green for long trials
                 x_fill_long = [AirPuff_LED_Onset_Aligned_Start, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_Start];
                 x_fill_longLED = [LED_Onset_Zero_Start, LED_Onset_Zero_End, LED_Onset_Zero_End, LED_Onset_Zero_Start];
@@ -147,7 +147,7 @@ fill(x_fill_shortLED, y_fill, [0.5 0.5 0.5], 'FaceAlpha', 0.16, 'EdgeColor', 'no
 % Add AirPuff shading
 y_fill = [0 0 1 1];
 fill(x_fill_short, y_fill, [0.5, 0.5, 1.0], 'FaceAlpha', 0.35, 'EdgeColor', 'none');  % Short blocks shading
-% fill(x_fill_long, y_fill, [0.5, 1.0, 0.5], 'FaceAlpha', 0.65, 'EdgeColor', 'none');  % Long blocks shading
+% % fill(x_fill_long, y_fill, [0.5, 1.0, 0.5], 'FaceAlpha', 0.65, 'EdgeColor', 'none');  % Long blocks shading
 
 % Create the legend entries using your provided logic
 legend_entries_short = cell(1, 2);
@@ -249,19 +249,16 @@ for i = 1:length(data_files)
                 long_block_data = [long_block_data; FEC_trimmed];
                 verticalLineColor = 'g';
                 longBlockAirPuffColor = [0.5, 1.0, 0.5]; % Light green for long trials
-                x_fill_long = [AirPuff_LED_Onset_Aligned_Start, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_Start];
-                x_fill_longLED = [LED_Onset_Zero_Start, LED_Onset_Zero_End, LED_Onset_Zero_End, LED_Onset_Zero_Start];
-                fill(x_fill_long, y_fill, [0.5, 1.0, 0.5], 'FaceAlpha', 0.65, 'EdgeColor', 'none');  % Long blocks shading
+ 
 
             else
                 short_block_data = [short_block_data; FEC_trimmed];
                 verticalLineColor = 'b'; % Blue for short trials
                 shortBlockAirPuffColor = [0.5, 0.5, 1.0];
                 x_fill_short = [AirPuff_LED_Onset_Aligned_Start, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_End, AirPuff_LED_Onset_Aligned_Start];
-                % x_fill_shortLED = [LED_Onset_Zero_Start, LED_Onset_Zero_End, LED_Onset_Zero_End, LED_Onset_Zero_Start];
-
-            end
+                x_fill_shortLED = [LED_Onset_Zero_Start, LED_Onset_Zero_End, LED_Onset_Zero_End, LED_Onset_Zero_Start];
                
+            end
         else
             warning('Skipping trial %d in file %s due to dimension mismatch.', ctr_trial, data_files(i).name);
         end
@@ -294,25 +291,14 @@ color_map_long = [linspace(dimGreen(1), darkGreen(1), num_colors)', ...
     
 end
 
-% Add vertical line for LED onset
-% line([0, 0], [0 1], 'Color', 'g', 'LineWidth', 2);  % Green line for LED onset
-% legend_entries = {'Long Block'};
-
 % Add LED onset shading
 y_fill = [0 0 1 1];
-% fill(x_fill_shortLED, y_fill, [0.5 0.5 0.5], 'FaceAlpha', 0.16, 'EdgeColor', 'none');
-fill(x_fill_longLED, y_fill, [0.5 0.5 0.5], 'FaceAlpha', 0.16, 'EdgeColor', 'none');
+fill(x_fill_shortLED, y_fill, [0.5 0.5 0.5], 'FaceAlpha', 0.16, 'EdgeColor', 'none');
 
 % Add AirPuff shading
 y_fill = [0 0 1 1];
-% fill(x_fill_short, y_fill, [0.5, 0.5, 1.0], 'FaceAlpha', 0.35, 'EdgeColor', 'none');  % Short blocks shading
-fill(x_fill_long, y_fill, [0.5, 1.0, 0.5], 'FaceAlpha', 0.65, 'EdgeColor', 'none');  % Long blocks shading
-
-
-% Add text annotations for LED and AirPuff
-% text(0, 0.9, 'LED', 'Color', 'g', 'FontSize', 12, 'HorizontalAlignment', 'right');
-% text(0.4, 0.9, 'AirPuff', 'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'right');
-
+fill(x_fill_long, y_fill, longBlockAirPuffColor, 'FaceAlpha', 0.35, 'EdgeColor', 'none');  % Short blocks shading
+  
 % Configure plot
 ylim([0 1]);
 xlim([-0.2 0.6]);
