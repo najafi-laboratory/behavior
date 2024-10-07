@@ -1,4 +1,3 @@
-# Updated version of DataIO 
 import os
 import scipy.io as sio
 import numpy as np
@@ -7,7 +6,7 @@ import time
 import tkinter as tk
 from tkinter import filedialog
 
-session_data_path = 'C://Users//Sana//OneDrive//Desktop//PHD//joystick//Data//' 
+# session_data_path = 'C://Users//Sana//OneDrive//Desktop//PHD//joystick//Data//' 
 
 # read .mat to dict
 def load_mat(fname):
@@ -31,6 +30,10 @@ def load_mat(fname):
 
     def _tolist(ndarray):
         elem_list = []
+        
+        if ndarray.ndim == 0:
+            return ndarray
+        
         for sub_elem in ndarray:
             if isinstance(sub_elem, sio.matlab.mio5_params.mat_struct):
                 elem_list.append(_todict(sub_elem))
@@ -138,13 +141,14 @@ def read_trials(session_data_path, subject, file_names):
         raw_data = load_mat(os.path.join(session_data_path, subject, fname))
         session_raw_data.append(raw_data)
         
+        # number of trials
+        nTrials = raw_data['nTrials']
+        
         if 'OptoTag' in raw_data.keys():
             opto_tag = raw_data['OptoTag']
         else:
-            opto_tag = []
+            opto_tag = np.zeros(nTrials)
         
-        # number of trials
-        nTrials = raw_data['nTrials']
         # trial target
         TrialTypes = raw_data['TrialTypes']
         # session date
@@ -221,8 +225,11 @@ def read_trials(session_data_path, subject, file_names):
             # handle key error if only one trial in a session
             if nTrials > 1:
                 trial_states = raw_data['RawEvents']['Trial'][i]['States']
-                trial_events = raw_data['RawEvents']['Trial'][i]['Events']                
-                trial_reps = raw_data['TrialSettings'][i]['GUI']['Reps']
+                trial_events = raw_data['RawEvents']['Trial'][i]['Events']  
+                if 'Reps' in raw_data['TrialSettings'][i]['GUI']:              
+                    trial_reps = raw_data['TrialSettings'][i]['GUI']['Reps']
+                else:
+                    trial_reps = 2
                 # session_press_window = raw_data['TrialSettings'][i]['GUI']['PressWindow_s']  # deprecated, press window changes during session, needs update
             else:
                 continue
@@ -266,37 +273,52 @@ def read_trials(session_data_path, subject, file_names):
                     elif 'PressVisDelayShort_s' in trial_GUI_Params:
                         press_delay = trial_GUI_Params['PressVisDelayShort_s']
                         trial_press_delay_short.append(press_delay)
-                    else:
+                    elif ('PreVis2DelayShort_s' in trial_GUI_Params) and ('PrePress2DelayShort_s' in trial_GUI_Params):
                         press_delay = trial_GUI_Params['PreVis2DelayShort_s']
+                        trial_press_delay_short.append(press_delay)
+                    elif ('PrePress2DelayShort_s' in trial_GUI_Params) and not('PreVis2DelayShort_s' in trial_GUI_Params):
+                        press_delay = trial_GUI_Params['PrePress2DelayShort_s']
                         trial_press_delay_short.append(press_delay)
                 else:
                     if 'PressVisDelayLong_s' in trial_GUI_Params:
                         press_delay = trial_GUI_Params['PressVisDelayLong_s']
                         trial_press_delay_long.append(press_delay)
-                    else:
+                    elif ('PreVis2DelayLong_s' in trial_GUI_Params) and ('PrePress2DelayLong_s' in trial_GUI_Params):
                         press_delay = trial_GUI_Params['PreVis2DelayLong_s']
-                        trial_press_delay_long.append(press_delay)
+                        trial_press_delay_short.append(press_delay)
+                    elif ('PrePress2DelayLong_s' in trial_GUI_Params) and not('PreVis2DelayLong_s' in trial_GUI_Params):
+                        press_delay = trial_GUI_Params['PrePress2DelayLong_s']
+                        trial_press_delay_short.append(press_delay)
             else:
                 if isShortDelay:
                     if 'PressVisDelayShort_s' in trial_GUI_Params:
                         press_delay = trial_GUI_Params['PressVisDelayShort_s']
                         trial_press_delay_short.append(press_delay)
-                    else:
+                    elif ('PreVis2DelayShort_s' in trial_GUI_Params) and ('PrePress2DelayShort_s' in trial_GUI_Params):
                         press_delay = trial_GUI_Params['PreVis2DelayShort_s']
+                        trial_press_delay_short.append(press_delay)
+                    elif ('PrePress2DelayShort_s' in trial_GUI_Params) and not('PreVis2DelayShort_s' in trial_GUI_Params):
+                        press_delay = trial_GUI_Params['PrePress2DelayShort_s']
                         trial_press_delay_short.append(press_delay)
                 else:
                     if 'PressVisDelayLong_s' in trial_GUI_Params:
                         press_delay = trial_GUI_Params['PressVisDelayLong_s']
                         trial_press_delay_long.append(press_delay)
-                    else:
+                    elif ('PreVis2DelayLong_s' in trial_GUI_Params) and ('PrePress2DelayLong_s' in trial_GUI_Params):
                         press_delay = trial_GUI_Params['PreVis2DelayLong_s']
-                        trial_press_delay_long.append(press_delay)
+                        trial_press_delay_short.append(press_delay)
+                    elif ('PrePress2DelayLong_s' in trial_GUI_Params) and not('PreVis2DelayLong_s' in trial_GUI_Params):
+                        press_delay = trial_GUI_Params['PrePress2DelayLong_s']
+                        trial_press_delay_short.append(press_delay)
                     
             trial_press_delay.append(press_delay)
                         
         
             # press reps 
-            press_reps = trial_GUI_Params['Reps']
+            if 'Reps' in trial_GUI_Params:
+                press_reps = trial_GUI_Params['Reps']
+            else:
+                press_reps = 2
             trial_press_reps.append(press_reps)
             
             # press window
@@ -305,7 +327,7 @@ def read_trials(session_data_path, subject, file_names):
             else:
                 press_window = trial_GUI_Params['Press1Window_s']
                 
-            press_window_extend = trial_GUI_Params['PressWindowExtend_s']            
+            # press_window_extend = trial_GUI_Params['PressWindowExtend_s']            
             
             # update to add extended window for warmup            
             trial_press_window.append(press_window)
@@ -325,7 +347,7 @@ def read_trials(session_data_path, subject, file_names):
                 else:
                     trial_target_thresh.append(trial_GUI_Params['Threshold'])
             else:
-                trial_target_thresh.append(0)
+                trial_target_thresh.append(trial_GUI_Params['Threshold'])
                         
             
             if encoder_data['nPositions']:                
@@ -442,23 +464,29 @@ def read_trials(session_data_path, subject, file_names):
                     # trial_encoder_times_aligned_VisStim2 = session_encoder_times_aligned[left_idx_VisStim2:right_idx_VisStim2]
                     trial_encoder_positions_aligned_VisStim2 = encoder_data_aligned[left_idx_VisStim2:right_idx_VisStim2]
                 
-                trial_encoder_positions_aligned_vis2.append(trial_encoder_positions_aligned_VisStim2)
+                if len(trial_encoder_positions_aligned_VisStim2) == 10000:
+                    trial_encoder_positions_aligned_vis2.append(trial_encoder_positions_aligned_VisStim2)
                 
                 if not isSelfTimedMode:
                     if isShortDelay:
-                        trial_encoder_positions_aligned_vis2_short.append(trial_encoder_positions_aligned_VisStim2)
+                        if len(trial_encoder_positions_aligned_VisStim2) == 10000:
+                            trial_encoder_positions_aligned_vis2_short.append(trial_encoder_positions_aligned_VisStim2)
                     else:
-                        trial_encoder_positions_aligned_vis2_long.append(trial_encoder_positions_aligned_VisStim2)
+                        if len(trial_encoder_positions_aligned_VisStim2) == 10000:
+                            trial_encoder_positions_aligned_vis2_long.append(trial_encoder_positions_aligned_VisStim2)
                 
                 if outcome == 'Reward':
-                    trial_encoder_positions_aligned_vis2_rew.append(trial_encoder_positions_aligned_VisStim2)
+                    if len(trial_encoder_positions_aligned_VisStim2) == 10000:
+                        trial_encoder_positions_aligned_vis2_rew.append(trial_encoder_positions_aligned_VisStim2)
                     
                     if not isSelfTimedMode:
                         if isShortDelay:
-                            trial_encoder_positions_aligned_vis2_rew_short.append(trial_encoder_positions_aligned_VisStim2)
+                            if len(trial_encoder_positions_aligned_VisStim2) == 10000:
+                                trial_encoder_positions_aligned_vis2_rew_short.append(trial_encoder_positions_aligned_VisStim2)
                             short_trials_vis2.append(i)
                         else:
-                            trial_encoder_positions_aligned_vis2_rew_long.append(trial_encoder_positions_aligned_VisStim2)
+                            if len(trial_encoder_positions_aligned_VisStim2) == 10000:
+                                trial_encoder_positions_aligned_vis2_rew_long.append(trial_encoder_positions_aligned_VisStim2)
                             long_trials_vis2.append(i)
             else:
                 trial_encoder_positions_aligned_VisStim2 = np.zeros(session_encoder_times_aligned_VisStim2.size)
@@ -520,14 +548,17 @@ def read_trials(session_data_path, subject, file_names):
                 
                 # if i == 121:
                 #     print()
-                trial_encoder_positions_aligned_rew.append(trial_encoder_positions_aligned_Reward)
+                if len(trial_encoder_positions_aligned_Reward) == 10000:
+                    trial_encoder_positions_aligned_rew.append(trial_encoder_positions_aligned_Reward)
                 
                 if not isSelfTimedMode:
                     if isShortDelay:
-                        trial_encoder_positions_aligned_rew_short.append(trial_encoder_positions_aligned_Reward)
+                        if len(trial_encoder_positions_aligned_Reward) == 10000:
+                            trial_encoder_positions_aligned_rew_short.append(trial_encoder_positions_aligned_Reward)
                         short_trial_rew.append(i)
                     else:
-                        trial_encoder_positions_aligned_rew_long.append(trial_encoder_positions_aligned_Reward)
+                        if len(trial_encoder_positions_aligned_Reward) == 10000:
+                            trial_encoder_positions_aligned_rew_long.append(trial_encoder_positions_aligned_Reward)
                         long_trial_rew.append(i)
                 
                 
@@ -592,22 +623,22 @@ def read_trials(session_data_path, subject, file_names):
                 pos_vis2_long_rew = np.sum(trial_encoder_positions_aligned_vis2_rew_long[0:], axis=0)        
                 sess_enc_avg_vis2_long_rew = pos_vis2_long_rew/len(trial_encoder_positions_aligned_vis2_rew_long[0:])         
         
-        if 0:
-            plt.plot(session_encoder_times_aligned_VisStim2, sess_enc_avg_vis2)
+        # if 0:
+        #     plt.plot(session_encoder_times_aligned_VisStim2, sess_enc_avg_vis2)
                 
-            for i in range(10):
-                plt.plot(session_encoder_times_aligned_VisStim2,trial_encoder_positions_aligned_vis2_rew[i], label=i)
-                plt.legend(loc='upper right')
-                # plt.show()
+        #     for i in range(10):
+        #         plt.plot(session_encoder_times_aligned_VisStim2,trial_encoder_positions_aligned_vis2_rew[i], label=i)
+        #         plt.legend(loc='upper right')
+        #         # plt.show()
                      
-            for i in range(len(trial_encoder_positions_aligned[0:4])):
-                plt.plot(session_encoder_times_aligned,trial_encoder_positions_aligned[i], label=i)
-                plt.legend(loc='upper right')
-                # plt.show()
+        #     for i in range(len(trial_encoder_positions_aligned[0:4])):
+        #         plt.plot(session_encoder_times_aligned,trial_encoder_positions_aligned[i], label=i)
+        #         plt.legend(loc='upper right')
+        #         # plt.show()
                
-            for i in range(len(trial_encoder_positions_aligned[0:4])):
-                plt.plot(session_encoder_times_aligned[0:7000],trial_encoder_positions_aligned[i][0:7000], label=i)
-                plt.legend(loc='upper right')
+        #     for i in range(len(trial_encoder_positions_aligned[0:4])):
+        #         plt.plot(session_encoder_times_aligned[0:7000],trial_encoder_positions_aligned[i][0:7000], label=i)
+        #         plt.legend(loc='upper right')
         
 
         pos_rew = np.sum(trial_encoder_positions_aligned_rew, axis=0)
@@ -782,7 +813,7 @@ def read_trials(session_data_path, subject, file_names):
 
 # labeling every trials for a subject
 def states_labeling(trial_states, reps):
-    if 'Punish' in trial_states.keys() and not np.isnan(trial_states['Punish'][0]):
+    if ('Punish' in trial_states.keys() and not np.isnan(trial_states['Punish'][0])) or ('EarlyPress1Punish' in trial_states.keys() and not np.isnan(trial_states['EarlyPress1Punish'][0])) or ('EarlyPress2Punish' in trial_states.keys() and not np.isnan(trial_states['EarlyPress2Punish'][0])):
         if 'DidNotPress1' in trial_states.keys() and not np.isnan(trial_states['DidNotPress1'][0]):
             outcome = 'DidNotPress1'
         elif 'DidNotPress2' in trial_states.keys() and not np.isnan(trial_states['DidNotPress2'][0]):
@@ -805,8 +836,16 @@ def states_labeling(trial_states, reps):
         outcome = 'Reward'
     elif 'Reward' in trial_states.keys() and not np.isnan(trial_states['Reward'][0]):
         outcome = 'Reward'
+    elif 'VisStimInterruptDetect1' in trial_states.keys() and not np.isnan(trial_states['VisStimInterruptDetect1'][0]):
+        outcome = 'VisStimInterruptDetect1'
+    elif 'VisStimInterruptDetect2' in trial_states.keys() and not np.isnan(trial_states['VisStimInterruptDetect2'][0]):
+        outcome = 'VisStimInterruptDetect2'
+    elif 'VisStimInterruptGray1' in trial_states.keys() and not np.isnan(trial_states['VisStimInterruptGray1'][0]):
+        outcome = 'VisStimInterruptGray1'
+    elif 'VisStimInterruptGray2' in trial_states.keys() and not np.isnan(trial_states['VisStimInterruptGray2'][0]):
+        outcome = 'VisStimInterruptGray2'
     else:
-        outcome = 'Other'
+        outcome = 'Other' # VisInterrupt
     
         
     return outcome        

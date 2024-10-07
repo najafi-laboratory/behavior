@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date
 import random
+import re
 
 states = [
     'Reward' , 
@@ -11,8 +12,12 @@ states = [
     'DidNotPress2' , 
     'EarlyPress' , 
     'EarlyPress1' , 
-    'EarlyPress2' , 
-    'Others']
+    'EarlyPress2' ,
+    'VisStimInterruptDetect1' ,         #int1
+    'VisStimInterruptDetect2' ,         #int2
+    'VisStimInterruptGray1' ,           #int3
+    'VisStimInterruptGray2' ,           #int4
+    'Other']                            #int
 states_name = [
     'Reward' , 
     'DidNotPress1' , 
@@ -20,16 +25,23 @@ states_name = [
     'EarlyPress' , 
     'EarlyPress1' , 
     'EarlyPress2' , 
+    'VisStimInterruptDetect1' ,
+    'VisStimInterruptDetect2' ,
+    'VisStimInterruptGray1' ,
+    'VisStimInterruptGray2' ,
     'VisInterrupt']
 colors = [
-    'limegreen',
-    'coral',
-    'lightcoral',
-    'dodgerblue',
-    'orange',
-    'deeppink',
-    'violet',
-    'mediumorchid',
+    '#4CAF50',
+    '#FFB74D',
+    '#FB8C00',
+    'r',
+    '#64B5F6',
+    '#1976D2',
+    '#967bb6',
+    '#9932CC',
+    '#800080',
+    '#4B0082',
+    '#2E003E',
     'purple',
     'deeppink',
     'grey']
@@ -50,14 +62,27 @@ def count_label(session_label, states, norm=True):
     return counts
 
 
+def deduplicate_chemo(strings):
+    result = []
+    for string in strings:
+        # Find all occurrences of (chemo)
+        chemo_occurrences = re.findall(r'\(chemo\)', string)
+        # If more than one (chemo) found, replace all but the first with empty string
+        if len(chemo_occurrences) > 1:
+            # Keep only one (chemo)
+            string = re.sub(r'\(chemo\)', '', string)
+            string = string + '(chemo)'
+        result.append(string)
+    return result
+
 def plot_fig1(
         session_data,
         output_dir_onedrive, 
         output_dir_local
         ):
     
-    max_sessions=25
-    fig, axs = plt.subplots(1, figsize=(10, 4))
+    max_sessions=100
+    fig, axs = plt.subplots(1, figsize=(14,7))
     plt.subplots_adjust(hspace=0.7)
     subject = session_data['subject']
     outcomes = session_data['outcomes']
@@ -101,6 +126,7 @@ def plot_fig1(
     for i in range(0 , len(chemo_labels)):
         if chemo_labels[i] == 1:
             dates_label[i] = dates[i] + '(chemo)'
+    dates_label = deduplicate_chemo(dates_label)
     axs.set_xticklabels(dates_label, rotation='vertical')
     ind = 0
     for xtick in axs.get_xticklabels():

@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import date
 import random
-
+import re
 
 states = [
     'Reward' , 
@@ -18,8 +18,12 @@ states = [
     'DidNotPress2' , 
     'EarlyPress' , 
     'EarlyPress1' , 
-    'EarlyPress2' , 
-    'Other']
+    'EarlyPress2' ,
+    'VisStimInterruptDetect1' ,         #int1
+    'VisStimInterruptDetect2' ,         #int2
+    'VisStimInterruptGray1' ,           #int3
+    'VisStimInterruptGray2' ,           #int4
+    'Other']                            #int
 states_name = [
     'Reward' , 
     'DidNotPress1' , 
@@ -27,37 +31,59 @@ states_name = [
     'EarlyPress' , 
     'EarlyPress1' , 
     'EarlyPress2' , 
+    'VisStimInterruptDetect1' ,
+    'VisStimInterruptDetect2' ,
+    'VisStimInterruptGray1' ,
+    'VisStimInterruptGray2' ,
     'VisInterrupt']
 colors = [
-    'limegreen',
-    'coral',
-    'lightcoral',
-    'dodgerblue',
-    'orange',
-    'deeppink',
-    'violet',
-    'mediumorchid',
+    '#4CAF50',
+    '#FFB74D',
+    '#FB8C00',
+    'r',
+    '#64B5F6',
+    '#1976D2',
+    '#967bb6',
+    '#9932CC',
+    '#800080',
+    '#4B0082',
+    '#2E003E',
     'purple',
     'deeppink',
     'grey']
 
-def count_label(session_delay, opto_tag, session_label, states, norm=True):
+def deduplicate_chemo(strings):
+    result = []
+    for string in strings:
+        # Find all occurrences of (chemo)
+        chemo_occurrences = re.findall(r'\(chemo\)', string)
+        # If more than one (chemo) found, replace all but the first with empty string
+        if len(chemo_occurrences) > 1:
+            # Keep only one (chemo)
+            string = re.sub(r'\(chemo\)', '', string)
+            string = string + '(chemo)'
+        result.append(string)
+    return result
+
+def count_label(session_data, opto_tag, session_label, states, norm=True):
     num_session = len(session_label)
     counts = np.zeros((4 , num_session, len(states)))
     numtrials = np.zeros((4 , num_session))
     for i in range(num_session):
+        raw_data = session_data['raw'][i]
+        trial_types = raw_data['TrialTypes']
         for j in range(len(session_label[i])):
             if norm:
                 k = states.index(session_label[i][j])
                 if opto_tag[i][j] == 0:
-                    if session_delay[i][j] == 0:
+                    if trial_types[j] == 1:
                         counts[0 , i , k] = counts[0 , i , k] + 1
                         numtrials[0 , i] = numtrials[0 , i] + 1
                     else:
                         counts[1 , i , k] = counts[1 , i , k] + 1
                         numtrials[1 , i] = numtrials[1 , i] + 1
                 else: 
-                    if session_delay[i][j] == 0:
+                    if trial_types[j] == 1:
                         counts[2 , i , k] = counts[2 , i , k] + 1
                         numtrials[2 , i] = numtrials[2 , i] + 1
                     else:
@@ -78,13 +104,10 @@ def plot_fig1_5(
         output_dir_local
         ):
     
-    max_sessions=25
-    fig, axs = plt.subplots(1, figsize=(10, 4))
-    plt.subplots_adjust(hspace=0.7)
+    max_sessions=100
     subject = session_data['subject']
     outcomes = session_data['outcomes']
     dates = session_data['dates']
-    delays = session_data['session_press_delay']
     opto_tag = session_data['session_opto_tag']
     chemo_labels = session_data['chemo']
     
@@ -95,14 +118,17 @@ def plot_fig1_5(
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
     outcomes = outcomes[start_idx:]
-    dates = dates[start_idx:]    
+    dates = dates[start_idx:]
+    dates = deduplicate_chemo(dates)      
     new_dates = []
     for date_item in dates:
         new_dates.append(date_item[2:])
     dates = new_dates
         
-    counts = count_label(delays, opto_tag, outcomes, states)
+    counts = count_label(session_data, opto_tag, outcomes, states)
     session_id = np.arange(len(outcomes)) + 1
+    fig, axs = plt.subplots(1, figsize=(len(session_id)*2 + 2 , 4))
+    plt.subplots_adjust(hspace=0.7)
     short_c_bottom = np.cumsum(counts[0 , : , :], axis=1)
     short_c_bottom[:,1:] = short_c_bottom[:,:-1]
     short_c_bottom[:,0] = 0
