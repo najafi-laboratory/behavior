@@ -37,10 +37,10 @@ function [S] = SetParams(obj, BpodSystem)
                 S.GUI.ServoInPos = 1569.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig1'
-                S.GUI.ServoInPos = 1598.00; % lever start pos
+                S.GUI.ServoInPos = 1603.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig2'
-                S.GUI.ServoInPos = 1686.00; % lever start pos
+                S.GUI.ServoInPos = 1688.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever            
         end
 
@@ -64,7 +64,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ManualTrialType = 1;
         S.GUIMeta.ManualTrialType.Style = 'popupmenu';
         S.GUIMeta.ManualTrialType.String = {'Short', 'Long'};
-        S.GUI.TrialTypeSequence = 3;
+        S.GUI.TrialTypeSequence = 2;
         S.GUIMeta.TrialTypeSequence.Style = 'popupmenu';
         S.GUIMeta.TrialTypeSequence.String = {'Random', 'Random First Block', 'Short First Block', 'Long First Block'};
         S.GUI.NumTrialsPerBlock = 30;

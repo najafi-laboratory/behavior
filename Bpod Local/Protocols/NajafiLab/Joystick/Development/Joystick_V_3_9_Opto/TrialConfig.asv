@@ -46,10 +46,6 @@ function [TrialTypes] = GenTrials(obj, S, MaxTrials, numTrialTypes, TrialTypes, 
         a = -m;
         b = m;
         N = MaxTrials;
-        % if NumWarmupTrials > 0
-        %     N = MaxTrials - 10;
-        %     % N = MaxTrials - NumWarmupTrials;
-        % end
         r = round(a + (b-a).*rand(N,1));
         NumTrialsPerBlock = S.GUI.NumTrialsPerBlock + r;
         NumTrialsPerBlockIdx = 1;
@@ -71,7 +67,7 @@ function [TrialTypes] = GenTrials(obj, S, MaxTrials, numTrialTypes, TrialTypes, 
                 % TrialTypes(currentTrial:end) = TrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
                 while numTrialsAddedToSequence < MaxTrials
                     TrialTypesToAdd = [TrialTypesToAdd repmat(FirstTrialType, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx) + IsFirstBlock*NumWarmupTrials) repmat(SecondTrialType, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx + 1))];                    
-                    numTrialsAddedToSequence = numTrialsAddedToSequence + NumTrialsPerBlock(NumTrialsPerBlockIdx) + IsFirstBlock*NumWarmupTrials + NumTrialsPerBlock(NumTrialsPerBlockIdx + 1);
+                    numTrialsAddedToSequence = numTrialsAddedToSequence + length(TrialTypesToAdd);
                     NumTrialsPerBlockIdx = NumTrialsPerBlockIdx + 2;
                     IsFirstBlock = 0;
                 end
@@ -85,10 +81,9 @@ function [TrialTypes] = GenTrials(obj, S, MaxTrials, numTrialTypes, TrialTypes, 
                 % TrialTypes(currentTrial:end) = TrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
 
                 while numTrialsAddedToSequence < MaxTrials
-                    TrialTypesToAdd = [TrialTypesToAdd repmat(1, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx) + IsFirstBlock*NumWarmupTrials) repmat(2, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx + 1))];
-                    numTrialsAddedToSequence = numTrialsAddedToSequence + NumTrialsPerBlock(NumTrialsPerBlockIdx) + IsFirstBlock*NumWarmupTrials + NumTrialsPerBlock(NumTrialsPerBlockIdx + 1);
+                    TrialTypesToAdd = [TrialTypesToAdd repmat(1, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx)) repmat(2, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx + 1))];
+                    numTrialsAddedToSequence = numTrialsAddedToSequence + NumTrialsPerBlock(NumTrialsPerBlockIdx) + NumTrialsPerBlock(NumTrialsPerBlockIdx + 1);
                     NumTrialsPerBlockIdx = NumTrialsPerBlockIdx + 2;
-                    IsFirstBlock = 0;
                 end
                 TrialTypes(currentTrial:end) = TrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);             
             case 4 % interleaved - long first block
@@ -99,10 +94,9 @@ function [TrialTypes] = GenTrials(obj, S, MaxTrials, numTrialTypes, TrialTypes, 
                 % TrialTypes(currentTrial:end) = TrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
 
                 while numTrialsAddedToSequence < MaxTrials
-                    TrialTypesToAdd = [TrialTypesToAdd repmat(2, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx) + IsFirstBlock*NumWarmupTrials) repmat(1, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx + 1))];
-                    numTrialsAddedToSequence = numTrialsAddedToSequence + NumTrialsPerBlock(NumTrialsPerBlockIdx) + IsFirstBlock*NumWarmupTrials + NumTrialsPerBlock(NumTrialsPerBlockIdx + 1);
+                    TrialTypesToAdd = [TrialTypesToAdd repmat(2, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx)) repmat(1, 1, NumTrialsPerBlock(NumTrialsPerBlockIdx + 1))];
+                    numTrialsAddedToSequence = numTrialsAddedToSequence + NumTrialsPerBlock(NumTrialsPerBlockIdx) + NumTrialsPerBlock(NumTrialsPerBlockIdx + 1);
                     NumTrialsPerBlockIdx = NumTrialsPerBlockIdx + 2;
-                    IsFirstBlock = 0;
                 end
                 TrialTypes(currentTrial:end) = TrialTypesToAdd(1:length(TrialTypes) - currentTrial + 1);
         end
