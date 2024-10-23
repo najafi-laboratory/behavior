@@ -54,26 +54,7 @@ switch true
         end   
         ITI_Offset = toc;
         pause(BpodSystem.Data.EndOfTrialITI - ITI_Offset);
-        SendBpodSoftCode(3);
-    case code == 14
-        tic;
-        M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos - S.GUI.ServoOutPos));        
-        SendBpodSoftCode(4); % Indicate to the state machine that bar is open (specific to wait1/2)
-    case code == 15
-        TimeToPress = toc;
-        disp(['TimeToPress = ' num2str(TimeToPress)]);
-        SendBpodSoftCode(4); % Indicate to the state machine that bar is open (specific to press1/2)
-    case code == 16
-        % return lever 700ms after reward and EarlyPress
-        tic
-        pause(0.7);
-        toc
-        M.setMotor(0, ConvertMaestroPos(S.GUI.ServoInPos), 0.5);
-        % set servo to return, although not waiting in softcode to sense
-        % zero position
-        SendBpodSoftCode(5); % Indicate to the state machine that the lever is back in the home position
-        
-
+        SendBpodSoftCode(3); 
     case code == 255
         BpodSystem.PluginObjects.V.stop;
 end

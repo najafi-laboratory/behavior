@@ -1,4 +1,4 @@
-function Joystick_V_3_9_Opto
+function Joystick_V_3_8_Opto_2pstim
 try
     % using try/catch for protocol code to allow for disconnecting from
     % modules and logging crash reports when exceptions thrown
@@ -32,7 +32,7 @@ try
 
     % get computer host name
     % 'COS-3A11406' - Imaging Rig
-    % 'COS-3A11427' - Joystick Rig1
+    % 'COS-3A11427' - Joystick Rig
     % 'COS-3A17904' - Joystick Rig2
 
     SetRigID(BpodSystem)
@@ -50,7 +50,7 @@ try
     switch BpodSystem.Data.RigName
         case 'ImagingRig'
             M = PololuMaestro('COM15'); 
-        case 'JoystickRig1'
+        case 'JoystickRig'
             M = PololuMaestro('COM15'); 
         case 'JoystickRig2'
             M = PololuMaestro('COM8');             
@@ -63,7 +63,7 @@ try
     
     %% Define parameters
     [S] = m_InitGUI.SetParams(BpodSystem);
-    % assisted trials
+            % assisted trials
         S.GUI.AssistedTrials = 'fnAssistedTrials';
         S.GUIMeta.AssistedTrials.Style = 'pushbutton';
         S.GUI.ATRangeStart = 0;
@@ -89,6 +89,7 @@ try
     numTrialTypes = 2;
     updateTrialTypeSequence = 1;
     [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, 1, updateTrialTypeSequence);
+    % [EpochIdxs] = m_TrialConfig.GetEpochIdxs;
     
     %% Initialize plots
     
@@ -98,6 +99,7 @@ try
     
     % trial type outcomes for opto
     TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
+    % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
      
     % update gui positions
@@ -117,6 +119,8 @@ try
         if isempty(inx) 
             inx = 0; % refill inx
         end
+        % usr_input = ['inx: ', inx];
+        % disp(usr_input);
         S = BpodParameterGUI('sync', S);
                 
         ManualDeactivated = 0;
@@ -143,21 +147,31 @@ try
             PreviousBlockLengthMargin = S.GUI.BlockLengthMargin;
         end           
         
+
         BpodSystem.Data.TrialTypes = []; % The trial type of each trial completed will be added here.
+        % TrialTypes = [];
         
+
         [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials, numTrialTypes, TrialTypes, currentTrial, updateTrialTypeSequence);
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
         [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 1);
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
+        % [EpochStartIdxs] = m_TrialConfig.GetEpochIdxs;
+        % test = abs(diff(TrialTypes))
+        % EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1)]
         ProbeTrialTypes = repmat(0, 1, S.GUI.MaxTrials);
         if (S.GUI.ProbeTrialFraction > 0)
             edgeOffset = 2;
             numTrialsAddedToSequence = 0;
             ProbeTrialTypesAdded = [];
             EpochStartIdxs = [1, (find(abs(diff(TrialTypes)) == 1) + 1), (S.GUI.MaxTrials + 1)];
+            % S.GUI.MaxTrials - EpochStartIdxs(end)
             BlockLengths = [diff(EpochStartIdxs) (S.GUI.MaxTrials - EpochStartIdxs(end))];
             BlockEpochIdx = 1;
-            while numTrialsAddedToSequence < S.GUI.MaxTrials                
+            while numTrialsAddedToSequence < S.GUI.MaxTrials
+                
                 numProbeTrialsToAdd = 0;
                 ProbeTrialTypesToAdd = [];
                 ProbeTrialTypesToAdd = [repmat(0, 1, BlockLengths(BlockEpochIdx) - 2*edgeOffset)];
@@ -172,13 +186,34 @@ try
                 ProbeTrialTypesAdded = [ProbeTrialTypesAdded ProbeTrialTypesToAdd];
                 numTrialsAddedToSequence = length(ProbeTrialTypesAdded);
                 BlockEpochIdx = BlockEpochIdx + 1;
+                % OptoTrialTypes(currentTrial:end) = numProbeTrialsToAdd;
+                          
+                % if BlockEpochIdx == length(BlockLengths)
+                %     disp('debug');
+                % end
+                % numOpto = S.GUI.EpochTrialStop;
+                % if numOpto > BlockLengths(BlockEpochIdx)
+                %     numOpto = BlockLengths(BlockEpochIdx);
+                % end
+                % numNonOpto = BlockLengths(BlockEpochIdx) - S.GUI.EpochTrialStop;
+                % if numNonOpto < 1
+                %     numNonOpto = 0;
+                % end
+                % ProbeTrialTypesToAdd = [ProbeTrialTypesToAdd repmat(2, 1, numOpto) repmat(1, 1, numNonOpto)];
+                % numTrialsAddedToSequence = numTrialsAddedToSequence + numOpto + numNonOpto;
+                % BlockEpochIdx = BlockEpochIdx + 1;
             end
             ProbeTrialTypes(currentTrial:end) = ProbeTrialTypesAdded(1:length(OptoTrialTypes) - currentTrial + 1);
+
         end
+        % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 0);
         m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
         currentTrial = currentTrial + 1;
         disp(['currentTrial:', num2str(currentTrial)])
-        S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line      
+        S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
+        % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update',(numTrialTypes+1)-TrialTypes);  
+        % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update', TrialTypes);
+        
     end
 
 
@@ -241,6 +276,7 @@ try
     LastEarlyPressPunishSoundDuration = S.GUI.EarlyPressPunishSoundDuration_s;
     LastEarlyPressPunishSoundVolume = S.GUI.EarlyPressPunishSoundVolume_percent;
     
+    
     %% Setup video
     
     if isfield(BpodSystem.PluginObjects, 'V') % Clear previous instances of the video server
@@ -251,7 +287,7 @@ try
     switch BpodSystem.Data.RigName
         case 'ImagingRig'
             MonitorID = 2;
-        case 'JoystickRig1'
+        case 'JoystickRig'
             MonitorID = 1;
         case 'JoystickRig2'
             MonitorID = 1;            
@@ -417,6 +453,11 @@ try
     end
     [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 1);
     m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
+    % TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
+
+    % wait for parameter update and confirm before beginning trial loop
+    % input('Set parameters and press enter to continue >', 's'); 
+    % S = BpodParameterGUI('sync', S);
     
     %% Vis 2 Jitter
     % create arrays for vis 2 jitter
@@ -481,8 +522,6 @@ try
 
     % exp notes log
     ExpNotes.ExperimenterInitials = S.GUI.ExperimenterInitials;
-
-    ExpNotes.Rig = BpodSystem.Data.RigName;
 
     ExpNotes.numTrials = 0;
 
@@ -593,7 +632,7 @@ try
 
     ExpNotes.TotalRewardAmount_uL = 0;
 
-    ExpNotes.ProtoVersion = 'Joystick_V_3_9_Opto'; % update to use current file name
+    ExpNotes.ProtoVersion = 'Joystick_V_3_8_Opto'; % update to use current file name
 
     %% Main trial loop
     
@@ -982,11 +1021,16 @@ try
         Press1Window_s = S.GUI.Press1Window_s;
         Press2Window_s = S.GUI.Press2Window_s;
 
-        %% fixed dur Pre-Vis ITI
+        %% Draw trial-specific ITI post for end of trial ITI
+
         PreVisStimITI = S.GUI.ITI_Pre; % updated V_3_3; updated V_3_7            
         ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI;
-         
-        %% Draw trial-specific ITI post for end of trial ITI    
+    
+        %% fixed dur Pre-Vis ITI
+            
+        % EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
+        % ExperimenterTrialInfo.EndOfTrialITI = EndOfTrialITI;
+
         BpodSystem.Data.EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
         ExperimenterTrialInfo.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI;        
 
@@ -1001,7 +1045,7 @@ try
         end
         VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']};
 
-        LeverRetractFinal_StateChangeConditions = {};
+        LeverRetractInitial_StateChangeConditions = {};
 
         WaitForPress1_StateChangeConditions = {};        
         WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
@@ -1014,7 +1058,7 @@ try
     
         PreDelayGap_OutputActions = {};
         WaitForPress2_StateChangeConditions = {};
-        WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};             
+        WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};       
         Press2_OutputActions = {'RotaryEncoder1', ['E']};
         DidNotPress2_OutputActions = {};
         EarlyPress2_OutputActions = {};
@@ -1057,12 +1101,16 @@ try
         % unknown immediate start time of opto, update to use different
         % timers if seg delay changes
         
+        % TimerTrigger_Press = TimerTrigger_PressDelay;
+        % TimerCancel_Press = TimerCancel_PressDelay;
         TimerTrigger_Press = {'GlobalTimerTrig', '110000000'};
         TimerCancel_Press = {'GlobalTimerCancel', '110000000'};
 
 
         % set visual stimulus 1&2 state outputs (referred to as audStimOpto
         % since the audio starts in those states)
+        % audStimOpto1 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 1);
+        % audStimOpto2 = m_Opto.GetAudStimOpto(S, OptoTrialTypes(currentTrial), 2);
 
         % set audio stim based on audio enable
         if S.GUI.AudioStimEnable
@@ -1151,7 +1199,10 @@ try
                         Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
                     end
                 end
-                              
+                
+                % if S.GUI.OptoWaitForPress2 && S.GUI.SelfTimedMode
+                %     WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
+                % end                
             else
                 if S.GUI.OptoVis2
                     VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerTrigger_V2W2];
@@ -1167,6 +1218,7 @@ try
 
 
                 if S.GUI.OptoWaitForPress2 && S.GUI.SelfTimedMode
+                    % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerTrigger_V2W2];
                     PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_V2W2];
                 end   
 
@@ -1194,19 +1246,24 @@ try
                 EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
         end
 
-        LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'};
+
+        LeverRetractInitial_StateChangeConditions = {'SoftCode1', 'PreVisStimITI'};
+        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'LeverRetract1'};
         WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-        LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreDelayGap'};
+        LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreDelayGap'};
         
         if ~S.GUI.SelfTimedMode
+            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
             PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
         else
+            % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
             PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
         end
-
-        WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};             
-        PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
-                   
+        % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'};
+        WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+        PostRewardDelay_StateChangeConditions = {'Tup', 'ITI'}; % updated V_3_5              
+       
+            
         %% adjust for warmup trials
         % For warmup trials, wait for press is extended by additional warmup param, after warmup wait for press is S.GUI.PressWindow_s
         
@@ -1283,9 +1340,26 @@ try
         strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
         disp(strExperimenterTrialInfo);          
     
+        %% counter to indicate if non-rewarded trial
+        % might use counter function for different feature, keeping code
+        % here for now in case
+        % Non-rewarded Counter - increment if non-rewarded, use to extend
+        % iti by punish_iti
+        % CounterNumber = 1;
+        % TargetEventName = 'GlobalTimer9_Start';
+        % CounterThreshold = 1;
+        % 
+        % TimerTrigger_Punish = {'GlobalTimerTrig', '100000000'};        
+        % TimerCounterEvent = 'GlobalCounter1_End';
+        % 
+        % disp(['Counter Threshold:', num2str(CounterThreshold)])
+
+
         %% construct state matrix
     
         sma = NewStateMatrix(); % Assemble state matrix
+
+        % sma = SetGlobalCounter(sma, CounterNumber, TargetEventName, CounterThreshold);
         
         sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim, PressVisDelay_s);
 
@@ -1301,14 +1375,20 @@ try
         PlayVis1 = {'SoftCode', 5};
         MoveServoOut = {'SoftCode', 7};
         MoveServoIn = {'SoftCode', 8};
+        % CombineITI_Punish = {'SoftCode', 12}; % used to combine end of trial and punish ITI during the trial
 
+      
         Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
-	
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
-            'StateChangeConditions', {'Tup', 'PreVisStimITI', 'RotaryEncoder1_2', 'EarlyPress'},...
+            'StateChangeConditions', {'Tup', 'LeverRetractInitial', 'RotaryEncoder1_2', 'EarlyPress'},...
             'OutputActions', {['' 'HiFi1'],'*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to
         
+        sma = AddState(sma, 'Name', 'LeverRetractInitial', ...
+            'Timer', 0,...
+            'StateChangeConditions', LeverRetractInitial_StateChangeConditions,...	% {'SoftCode1', 'PreVisStimITI'} % Softcode1: Indicate to the state machine that the lever is back in the home position
+            'OutputActions', {'SoftCode', 8});
+
         sma = AddState(sma, 'Name', 'PreVisStimITI', ...
             'Timer', PreVisStimITI,...
             'StateChangeConditions', {'Tup', 'VisDetect1', 'RotaryEncoder1_2', 'EarlyPress'},...
@@ -1321,100 +1401,97 @@ try
             'StateChangeConditions', {'Tup', 'VisStimInterruptDetect1', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'},...
             'OutputActions', {'SoftCode', 5,'RotaryEncoder1', ['E']});
     
-        % VisDetectGray1OutputAction = {‘RotaryEncoder1’, [‘E’]};
+        VisDetectGray1OutputAction = [VisDetectGray1OutputAction, {'BNC2', 1}];
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
             'Timer', 0.050,...
             'StateChangeConditions', {'Tup', 'VisStimInterruptGray1', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'},...
-            'OutputActions', VisDetectGray1OutputAction);        
-
-        % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]        
+            'OutputActions', VisDetectGray1OutputAction);   % VisDetectGray1OutputAction = {‘RotaryEncoder1’, [‘E’]};     
+    
         sma = AddState(sma, 'Name', 'VisualStimulus1', ...
             'Timer', VisStim.VisStimDuration + 0.020,...
             'StateChangeConditions', {'BNC1Low', 'WaitForPress1'},...
             'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
+        % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]
 
-        % Arguments: (sma, GlobalTimerNumber, Duration(s))
-        sma = SetGlobalTimer(sma, 10, Press1Window_s); % Press1 window timer % global timer 10 is triggered when we enter waitForPress1; its duration is Press1Window
-        WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 10];        
-        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'] , 'GlobalTimerTrig', 10};
+        % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, debugSyncSignal];
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
             'OutputActions', WaitForPress1_OutputActions);
+        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'}
+        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']} and Opto timers
 
-        % Press1_OutputActions ={'RotaryEncoder1', ['E']} and opto
         sma = AddState(sma, 'Name', 'Press1', ...
             'Timer', Press1Window_s,...
-            'StateChangeConditions', {'Tup', 'DidNotPress1', 'GlobalTimer10_End', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
+            'StateChangeConditions', {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
             'OutputActions', Press1_OutputActions);
+        % Press1_OutputActions = TimerCancel_V1W1;
 
         sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
             'Timer', 0.100,...
             'StateChangeConditions', {'Tup', 'LeverRetract1'},...
             'OutputActions', PreRetract1Delay_OutputActions);             
 
-   		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
-	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
-    	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
-   		% LeverRetract1_OutputActions = {'SoftCode', 8};        
         sma = AddState(sma, 'Name', 'LeverRetract1', ...
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
             'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
+       		    % Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PreVis2Delay'};
+	 	        % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode1', 'PrePress2Delay'};
+            % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+   		    % LeverRetract1_OutputActions = {'SoftCode', 8};
 
         % set to 22.1ms to match opto timing of shutter, aligns opto to PreVisDelay
-        % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
-        % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
-        % PreDelayGap_OutputActions = TimerTrigger_V2W2;        
         sma = AddState(sma, 'Name', 'PreDelayGap', ...
             'Timer', 0.0221,...
             'StateChangeConditions', PreDelayGap_StateChangeConditions,...
             'OutputActions', PreDelayGap_OutputActions);       
+        % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
+        % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
+        % PreDelayGap_OutputActions = TimerTrigger_V2W2;
 
         sma = AddState(sma, 'Name', 'PreVis2Delay', ...
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'},...
             'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
 
+        
         sma = AddState(sma, 'Name', 'PrePress2Delay', ...
             'Timer', PressVisDelay_s,...
             'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});
+            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E'], 'BNC2', 1});
      
         %% rep 2
     
-        % VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']} ~50ms
         sma = AddState(sma, 'Name', 'VisDetect2', ...
             'Timer', 0.100,...
             'StateChangeConditions', {'Tup', 'VisStimInterruptDetect2', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'},...
-            'OutputActions', VisDetect2OutputAction); 
-    
-        % VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']}
+            'OutputActions', VisDetect2OutputAction);  % ~50ms 		% {'SoftCode', 5,'RotaryEncoder1', ['E']}
+                    
         sma = AddState(sma, 'Name', 'VisDetectGray2', ...
             'Timer', 0.050,...
             'StateChangeConditions', {'Tup', 'VisStimInterruptGray2', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'},...
-            'OutputActions', VisDetectGray2OutputAction);          
+            'OutputActions', VisDetectGray2OutputAction);     % {'RotaryEncoder1', ['E']}     
     
         sma = AddState(sma, 'Name', 'VisualStimulus2', ...
             'Timer', VisStim.VisStimDuration + 0.020,...
             'StateChangeConditions', {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
             'OutputActions', [VisualStimulus2_OutputActions 'SoftCode', 7,'RotaryEncoder1', ['E']]);
         % VisualStimulus2_OutputActions = [AudStim, TimerTrigger_V2W2, 'SoftCode', 7,'RotaryEncoder1', ['E']]
-           
-        sma = SetGlobalTimer(sma, 11, Press2Window_s); % Press2 window timer 
-        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'GlobalTimerTrig', 11];
+   
+        % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'BNC1', 1];
 
-    	% WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-    	% WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', Press2Window_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
             'OutputActions', WaitForPress2_OutputActions);         
-
+        % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+        % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
+    
+        % Press2_OutputActions = [Press2_OutputActions, 'BNC1', 1];
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', Press2Window_s,...
-            'StateChangeConditions', {'Tup', 'DidNotPress2', 'GlobalTimer11_End', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
+            'StateChangeConditions', {'Tup', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
             'OutputActions', Press2_OutputActions);
         % Press2_OutputActions = TimerCancel_V2W2
 
@@ -1423,101 +1500,67 @@ try
             'StateChangeConditions', {'Tup', 'Reward'}, ...
             'OutputActions', PreRewardDelay_OutputActions);        
 
-        % Reward_OutputActions = {'Valve2', 1}
         sma = AddState(sma, 'Name', 'Reward', ...
             'Timer', RewardTime,...
             'StateChangeConditions', {'Tup', 'PostRewardDelay'},...
-            'OutputActions', Reward_OutputActions); 		
+            'OutputActions', Reward_OutputActions); 		% {'Valve2', 1}
        
-        % Timer 13 is triggered at the onset of post reward delay state.
-        % Timer duration is set to 20s to keep the timer active for the remainder
-        % of the current trial.
-        
-        % Condition 1 is used as a state transition event, and is true while timer 13 is active.
-
-        % Post reward delay transitions to retract final.
-
-        % When lever reaches home position (softcode2), LeverRetractFinal 
-        % transitions to ITI_Switch
-        
-        % When condition 1 is met, ITI_Switch transitions to ITI,
-        % otherwise ITI_Punish
-
-        % For early press, condition 1 is false
-
-        % timer to indicate if reward occurred 
-        % Arguments: (sma, TimerNumber, TimerDuration)
-        sma = SetGlobalTimer(sma, 13, 20); 
-
-        % condition to indicate if timer 13 is active
-        % Arguments: (sma, ConditionNumber, ConditionChannel, ConditionValue; 1 = on, 0 = off)
-        sma = SetCondition(sma, 1, 'GlobalTimer13', 1);
-        
-        % PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
-        % trigger global timer 13 to indicate reward occured
         sma = AddState(sma, 'Name', 'PostRewardDelay', ...
             'Timer', S.GUI.PostRewardDelay_s,...
-            'StateChangeConditions', PostRewardDelay_StateChangeConditions,...
-            'OutputActions', {'GlobalTimerTrig', 13});  
-
+            'StateChangeConditions', PostRewardDelay_StateChangeConditions,...		% {'Tup', 'ITI'}
+            'OutputActions', {});        
+        
         sma = AddState(sma, 'Name', 'DidNotPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', DidNotPress1_OutputActions);	% {opto timers}
+            'OutputActions', DidNotPress1_OutputActions);	% {}
         
         sma = AddState(sma, 'Name', 'DidNotPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', DidNotPress2_OutputActions);	% {opto timers}
+            'OutputActions', DidNotPress2_OutputActions);	% {}
    
         sma = AddState(sma, 'Name', 'EarlyPress', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPressPunish'},...
             'OutputActions', {});        
 
-        % EarlyPress1_OutputActions = {TimerShutterReset, {'GlobalTimerCancel', '111111101'}
         sma = AddState(sma, 'Name', 'EarlyPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress1Punish'},...
             'OutputActions', EarlyPress1_OutputActions);
+        % EarlyPress1_OutputActions = {}
+        % EarlyPress2_OutputActions = {}
 
-        % EarlyPress2_OutputActions = TimerShutterReset, {'GlobalTimerCancel', '111111101'}
         sma = AddState(sma, 'Name', 'EarlyPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
             'OutputActions', EarlyPress2_OutputActions);
 
-        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
+        % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
+        
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
+            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
             'OutputActions', EarlyPressPunish_OutputActions);  
 
-        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
         sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);
+            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'OutputActions', EarlyPressPunish_OutputActions);  		% {'HiFi1', ['P' 3]}
 
-        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
         sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);
+            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'OutputActions', EarlyPressPunish_OutputActions);      	% {'HiFi1', ['P' 3]}   
 
-        % LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'}
-        % SoftCode2: Indicate to the state machine that the lever is back in the home position
-        sma = AddState(sma, 'Name', 'LeverRetractFinal', ...
-            'Timer', 0,...
-            'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 8});
+        % sma = AddState(sma, 'Name', 'Punish', ...
+        %     'Timer', S.GUI.PunishSoundDuration_s,...
+        %     'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+        %     'OutputActions', Punish_OutputActions); 
 
-        sma = AddState(sma, 'Name', 'ITI_Switch', ...
-            'Timer', 0.001,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI', 'Condition1', 'ITI'},...
-            'OutputActions', {});        
+        % Punish_OutputActions = [Punish_OutputActions, CombineITI_Punish];
 
-        % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
         sma = AddState(sma, 'Name', 'Punish', ...
             'Timer', S.GUI.PunishSoundDuration_s,...
             'StateChangeConditions', {'Tup', 'Punish_ITI'},...
@@ -1543,16 +1586,28 @@ try
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {});              
 
-        % S.GUI.PunishITI = 1;        
+        % S.GUI.PunishITI = 1;
+
         sma = AddState(sma, 'Name', 'Punish_ITI', ...
             'Timer', S.GUI.PunishITI,...
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {});         
         
+        % keeping ITI and ITI_Punish in case we switch back to using 2
+        % different ITI states
+        % 
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', BpodSystem.Data.EndOfTrialITI,...
             'StateChangeConditions', {'Tup', '>exit'},...
             'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
+
+        % BpodSystem.Data.EndOfTrialITI = 3;
+        % S.GUI.PunishITI = 2;
+
+        % sma = AddState(sma, 'Name', 'ITI', ...
+        %     'Timer', 0,...
+        %     'StateChangeConditions', {'SoftCode3', '>exit'},...
+        %     'OutputActions', {'SoftCode', 13, 'GlobalCounterReset', '111111111'});
     
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events
@@ -1565,6 +1620,7 @@ try
             BpodSystem.Data.PrePress2Delay(currentTrial) = PressVisDelay_s;
             BpodSystem.Data.Assisted(currentTrial) = 0;
             BpodSystem.Data.Excluded = 0;
+            % m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, 1);
             m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 1);
             if useStateTiming
                 StateTiming();
@@ -1643,7 +1699,7 @@ try
     
             VisualStimulus2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus2;
             WaitForPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress2;
-            LeverRetractFinalTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractFinal;
+            LeverRetractInitialTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractInitial;
             Reward2Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
             DidNotPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress2;
     
@@ -1673,7 +1729,7 @@ try
                 ITITimes, ...
                 LeverResetPos, ...
                 WaitForPress2Times, ...
-                LeverRetractFinalTimes, ...
+                LeverRetractInitialTimes, ...
                 Reward2Times, ...
                 DidNotPress2Times, ...
                 WaitForPress3Times, ...
@@ -1845,7 +1901,7 @@ function SetRigID(BpodSystem)
         case 'COS-3A11406'
             BpodSystem.Data.RigName = 'ImagingRig';
         case 'COS-3A11427'
-            BpodSystem.Data.RigName = 'JoystickRig1';
+            BpodSystem.Data.RigName = 'JoystickRig';
         case 'COS-3A17904'
             BpodSystem.Data.RigName = 'JoystickRig2';
     end
@@ -1891,9 +1947,9 @@ function PrintInterruptLog(BpodSystem)
             % S.GUI.ServoInPos = 1570.00; % lever start pos
             % S.GUI.ServoOutPos = 34; % can press lever
             fprintf(fid,'%s\n\n', 'Imaging Rig');
-        case 'JoystickRig1'
+        case 'JoystickRig'
             % rig specs
-            fprintf(fid,'%s\n\n', 'Joystick Rig1 - Behavior Room');
+            fprintf(fid,'%s\n\n', 'Joystick Rig - Behavior Room');
         case 'JoystickRig2'
             % rig specs
             fprintf(fid,'%s\n\n', 'Joystick Rig2 - Behavior Room');            
@@ -1943,5 +1999,20 @@ function PrintInterruptLog(BpodSystem)
     fprintf(fid,'%s', 'VisStimInterruptGray2Count    ');
     fprintf(fid,'%s\n', num2str(VisStimInterruptGray2Count)); 
 end
+
+
+
+% 
+% setpref('Internet','E_mail','gtg424h@gatech.edu');
+% 
+% 
+% sendmail('gtg424h@gatech.edu','New subject', ...
+% ['Line1 of message' 10 'Line2 of message' 10 ...
+% 'Line3 of message' 10 'Line4 of message'])
+% 
+% 
+% setpref('Internet','SMTP_Server','mail.gatech.edu');
+% 
+
 
 

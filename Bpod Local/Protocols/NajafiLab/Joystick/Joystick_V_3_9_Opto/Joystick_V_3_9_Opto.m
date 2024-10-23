@@ -425,9 +425,10 @@ try
     ApplyJitterInThisBlock = true;
 
     % check gui press delay values
-    % set long delay to be at least 100ms more than short delay
-    if S.GUI.PrePress2DelayLong_s <= S.GUI.PrePress2DelayShort_s + 0.100
-        S.GUI.PrePress2DelayLong_s = S.GUI.PrePress2DelayShort_s + 0.100;
+    % set long delay to be at    least MinShortLongDelaySeparation more than short delay
+    MinShortLongDelaySeparation = 0.200;
+    if S.GUI.PrePress2DelayLong_s <= S.GUI.PrePress2DelayShort_s + MinShortLongDelaySeparation
+        S.GUI.PrePress2DelayLong_s = S.GUI.PrePress2DelayShort_s + MinShortLongDelaySeparation;
     end
 
     StartOfBlock = [1, abs(diff(TrialTypes))]; % get start-of-block idxs
@@ -889,7 +890,7 @@ try
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
             switch (TrialTypes(currentTrial-1))
                 case 1
-                    if (S.GUI.PrePress2DelayLong_s >= 0.100)
+                    if (S.GUI.PrePress2DelayLong_s >= MinShortLongDelaySeparation)
                         S.GUI.PrePress2DelayShort_s = min(S.GUI.PrePress2DelayShort_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxShort_s);
                         disp(['PrePress2DelayShort_s incremented: ' num2str(S.GUI.PrePress2DelayShort_s)])
                     end
@@ -922,8 +923,11 @@ try
 
             % check that (short+margin_max) and (long-margin_min) has at
             % least 100ms gap at the start of short/long block
+            % MinShortLongDelayJitterSeparation = MinShortLongDelaySeparation?
+            MinShortLongDelayJitterSeparation = 0.100;
+
             if StartOfBlock(currentTrial)
-                DelayMinSeparationCondition = (S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s) >= 0.100 + 2*S.GUI.PreVis2DelayMargin_s;
+                DelayMinSeparationCondition = (S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s) >= MinShortLongDelayJitterSeparation + 2*S.GUI.PreVis2DelayMargin_s;
                 if DelayMinSeparationCondition
                     ApplyJitterInThisBlock = true;
                 else
@@ -1321,18 +1325,19 @@ try
             'StateChangeConditions', {'Tup', 'VisStimInterruptDetect1', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'},...
             'OutputActions', {'SoftCode', 5,'RotaryEncoder1', ['E']});
     
+        % VisDetectGray1OutputAction = {‘RotaryEncoder1’, [‘E’]};
         sma = AddState(sma, 'Name', 'VisDetectGray1', ...
             'Timer', 0.050,...
             'StateChangeConditions', {'Tup', 'VisStimInterruptGray1', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'},...
-            'OutputActions', VisDetectGray1OutputAction);   % VisDetectGray1OutputAction = {‘RotaryEncoder1’, [‘E’]};     
-    
+            'OutputActions', VisDetectGray1OutputAction);        
+
+        % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]        
         sma = AddState(sma, 'Name', 'VisualStimulus1', ...
             'Timer', VisStim.VisStimDuration + 0.020,...
             'StateChangeConditions', {'BNC1Low', 'WaitForPress1'},...
             'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
-        % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]
-       
-        % This legacy syntax is supported. Arguments: (sma, GlobalTimerNumber, Duration(s))
+
+        % Arguments: (sma, GlobalTimerNumber, Duration(s))
         sma = SetGlobalTimer(sma, 10, Press1Window_s); % Press1 window timer % global timer 10 is triggered when we enter waitForPress1; its duration is Press1Window
         WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 10];        
         % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
@@ -1342,37 +1347,34 @@ try
             'StateChangeConditions', WaitForPress1_StateChangeConditions,...
             'OutputActions', WaitForPress1_OutputActions);
 
-        % Press1_OutputActions = [Press1_OutputActions, 'SoftCode', 15];
-	
+        % Press1_OutputActions ={'RotaryEncoder1', ['E']} and opto
         sma = AddState(sma, 'Name', 'Press1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', {'Tup', 'DidNotPress1', 'GlobalTimer10_End', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
             'OutputActions', Press1_OutputActions);
-        % Press1_OutputActions = TimerCancel_V1W1;
-        % 'StateChangeConditions', {'Tup', 'DidNotPress1', 'SoftCode5', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
 
         sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
             'Timer', 0.100,...
             'StateChangeConditions', {'Tup', 'LeverRetract1'},...
             'OutputActions', PreRetract1Delay_OutputActions);             
 
+   		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
+	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
+    	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+   		% LeverRetract1_OutputActions = {'SoftCode', 8};        
         sma = AddState(sma, 'Name', 'LeverRetract1', ...
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
             'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
-   		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
-	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
-    	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
-   		% LeverRetract1_OutputActions = {'SoftCode', 8};
 
         % set to 22.1ms to match opto timing of shutter, aligns opto to PreVisDelay
+        % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
+        % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
+        % PreDelayGap_OutputActions = TimerTrigger_V2W2;        
         sma = AddState(sma, 'Name', 'PreDelayGap', ...
             'Timer', 0.0221,...
             'StateChangeConditions', PreDelayGap_StateChangeConditions,...
             'OutputActions', PreDelayGap_OutputActions);       
-        % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
-        % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
-        % PreDelayGap_OutputActions = TimerTrigger_V2W2;
 
         sma = AddState(sma, 'Name', 'PreVis2Delay', ...
             'Timer', PressVisDelay_s,...
@@ -1386,15 +1388,17 @@ try
      
         %% rep 2
     
+        % VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']} ~50ms
         sma = AddState(sma, 'Name', 'VisDetect2', ...
             'Timer', 0.100,...
             'StateChangeConditions', {'Tup', 'VisStimInterruptDetect2', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'},...
-            'OutputActions', VisDetect2OutputAction);  % ~50ms 		% {'SoftCode', 5,'RotaryEncoder1', ['E']}
+            'OutputActions', VisDetect2OutputAction); 
     
+        % VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']}
         sma = AddState(sma, 'Name', 'VisDetectGray2', ...
             'Timer', 0.050,...
             'StateChangeConditions', {'Tup', 'VisStimInterruptGray2', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'},...
-            'OutputActions', VisDetectGray2OutputAction);     % {'RotaryEncoder1', ['E']}     
+            'OutputActions', VisDetectGray2OutputAction);          
     
         sma = AddState(sma, 'Name', 'VisualStimulus2', ...
             'Timer', VisStim.VisStimDuration + 0.020,...
@@ -1405,14 +1409,13 @@ try
         sma = SetGlobalTimer(sma, 11, Press2Window_s); % Press2 window timer 
         WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'GlobalTimerTrig', 11];
 
-        % WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'BNC1', 1];
+    	% WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+    	% WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', Press2Window_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
             'OutputActions', WaitForPress2_OutputActions);         
-    	% WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-    	% WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
-    	
+
         sma = AddState(sma, 'Name', 'Press2', ...
             'Timer', Press2Window_s,...
             'StateChangeConditions', {'Tup', 'DidNotPress2', 'GlobalTimer11_End', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
@@ -1436,7 +1439,7 @@ try
         
         % Condition 1 is used as a state transition event, and is true while timer 13 is active.
 
-        % Post reward transitions to retract final.
+        % Post reward delay transitions to retract final.
 
         % When lever reaches home position (softcode2), LeverRetractFinal 
         % transitions to ITI_Switch
@@ -1444,7 +1447,7 @@ try
         % When condition 1 is met, ITI_Switch transitions to ITI,
         % otherwise ITI_Punish
 
-        % For early press, condition 1 is false (0)
+        % For early press, condition 1 is false
 
         % timer to indicate if reward occurred 
         % Arguments: (sma, TimerNumber, TimerDuration)
@@ -1455,7 +1458,7 @@ try
         sma = SetCondition(sma, 1, 'GlobalTimer13', 1);
         
         % PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
-        % trigger global timer 13 to indicate reward occured, go to ITI instead of ITI_punish after LeverRetractFinal -> ITI_Switch    
+        % trigger global timer 13 to indicate reward occured
         sma = AddState(sma, 'Name', 'PostRewardDelay', ...
             'Timer', S.GUI.PostRewardDelay_s,...
             'StateChangeConditions', PostRewardDelay_StateChangeConditions,...
@@ -1464,47 +1467,47 @@ try
         sma = AddState(sma, 'Name', 'DidNotPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', DidNotPress1_OutputActions);	% {}
+            'OutputActions', DidNotPress1_OutputActions);	% {opto timers}
         
         sma = AddState(sma, 'Name', 'DidNotPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', DidNotPress2_OutputActions);	% {}
+            'OutputActions', DidNotPress2_OutputActions);	% {opto timers}
    
         sma = AddState(sma, 'Name', 'EarlyPress', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPressPunish'},...
             'OutputActions', {});        
 
+        % EarlyPress1_OutputActions = {TimerShutterReset, {'GlobalTimerCancel', '111111101'}
         sma = AddState(sma, 'Name', 'EarlyPress1', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress1Punish'},...
             'OutputActions', EarlyPress1_OutputActions);
-        % EarlyPress1_OutputActions = {TimerShutterReset, {'GlobalTimerCancel', '111111101'}
 
-
+        % EarlyPress2_OutputActions = TimerShutterReset, {'GlobalTimerCancel', '111111101'}
         sma = AddState(sma, 'Name', 'EarlyPress2', ...
             'Timer', 0,...
             'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
             'OutputActions', EarlyPress2_OutputActions);
-        % EarlyPress2_OutputActions = TimerShutterReset, {'GlobalTimerCancel', '111111101'}
 
-        % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, CombineITI_Punish];
-        % EarlyPressPunish_OutputActions = [EarlyPressPunish_OutputActions, 'SoftCode', 17];
+        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
         sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
             'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
             'OutputActions', EarlyPressPunish_OutputActions);  
 
+        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
         sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
             'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);  		% [{'HiFi1', ['P' 3]}]
+            'OutputActions', EarlyPressPunish_OutputActions);
 
+        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
         sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
             'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
             'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);      	% [{'HiFi1', ['P' 3]}]
+            'OutputActions', EarlyPressPunish_OutputActions);
 
         % LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'}
         % SoftCode2: Indicate to the state machine that the lever is back in the home position
@@ -1521,7 +1524,7 @@ try
         % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
         sma = AddState(sma, 'Name', 'Punish', ...
             'Timer', S.GUI.PunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI'},...
+            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
             'OutputActions', Punish_OutputActions);         
     
         sma = AddState(sma, 'Name', 'VisStimInterruptDetect1', ...

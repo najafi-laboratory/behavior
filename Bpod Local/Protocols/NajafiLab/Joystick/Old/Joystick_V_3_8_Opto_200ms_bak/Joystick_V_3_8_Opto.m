@@ -466,9 +466,10 @@ try
     ApplyJitterInThisBlock = true;
 
     % check gui press delay values
-    % set long delay to be at least 100ms more than short delay
-    if S.GUI.PrePress2DelayLong_s <= S.GUI.PrePress2DelayShort_s + 0.100
-        S.GUI.PrePress2DelayLong_s = S.GUI.PrePress2DelayShort_s + 0.100;
+    % set long delay to be at    least MinShortLongDelaySeparation more than short delay
+    MinShortLongDelaySeparation = 0.200;
+    if S.GUI.PrePress2DelayLong_s <= S.GUI.PrePress2DelayShort_s + MinShortLongDelaySeparation
+        S.GUI.PrePress2DelayLong_s = S.GUI.PrePress2DelayShort_s + MinShortLongDelaySeparation;
     end
 
     StartOfBlock = [1, abs(diff(TrialTypes))]; % get start-of-block idxs
@@ -928,7 +929,7 @@ try
             ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
             switch (TrialTypes(currentTrial-1))
                 case 1
-                    if (S.GUI.PrePress2DelayLong_s >= 0.100)
+                    if (S.GUI.PrePress2DelayLong_s >= MinShortLongDelaySeparation)
                         S.GUI.PrePress2DelayShort_s = min(S.GUI.PrePress2DelayShort_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxShort_s);
                         disp(['PrePress2DelayShort_s incremented: ' num2str(S.GUI.PrePress2DelayShort_s)])
                     end
@@ -961,8 +962,11 @@ try
 
             % check that (short+margin_max) and (long-margin_min) has at
             % least 100ms gap at the start of short/long block
+            % MinShortLongDelayJitterSeparation = MinShortLongDelaySeparation?
+            MinShortLongDelayJitterSeparation = 0.100;
+
             if StartOfBlock(currentTrial)
-                DelayMinSeparationCondition = (S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s) >= 0.100 + 2*S.GUI.PreVis2DelayMargin_s;
+                DelayMinSeparationCondition = (S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s) >= MinShortLongDelayJitterSeparation + 2*S.GUI.PreVis2DelayMargin_s;
                 if DelayMinSeparationCondition
                     ApplyJitterInThisBlock = true;
                 else
@@ -1048,8 +1052,7 @@ try
         LeverRetractInitial_StateChangeConditions = {};
 
         WaitForPress1_StateChangeConditions = {};        
-        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
-        WaitForPress1_OutputActions = {'SoftCode', 14,'RotaryEncoder1', ['E']};
+        WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
         Press1_OutputActions = {'RotaryEncoder1', ['E']};
         PreRetract1Delay_OutputActions = {};
         LeverRetract1_OutputActions = {'SoftCode', 8};
@@ -1413,7 +1416,6 @@ try
             'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
         % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]
 
-        % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'SoftCode', 14];
         % WaitForPress1_OutputActions = [WaitForPress1_OutputActions, debugSyncSignal];
         sma = AddState(sma, 'Name', 'WaitForPress1', ...
             'Timer', Press1Window_s,...
@@ -1422,7 +1424,6 @@ try
         % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'}
         % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']} and Opto timers
 
-        Press1_OutputActions = [Press1_OutputActions, 'SoftCode', 15]
         sma = AddState(sma, 'Name', 'Press1', ...
             'Timer', Press1Window_s,...
             'StateChangeConditions', {'Tup', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
