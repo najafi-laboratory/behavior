@@ -26,7 +26,7 @@ function [S] = SetParams(obj, BpodSystem)
         % 1 - Normal - AirPuff_OnsetDelay is calculated to be at the end of the LED duration 
         % 2 - Short/Long - AirPuff_OnsetDelay uses the short or long onset delay values depending upon the current trial type (short or long)
         S.GUIMeta.TrialTypeSequence.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
-        S.GUIMeta.TrialTypeSequence.String = {'Normal','Short/Long','Long/Short'};  
+        S.GUIMeta.TrialTypeSequence.String = {'Short', 'Long', 'Random'};  
         
         S.GUI.AirPuff_Dur = 0.02;
         S.GUI.AirPuff_OnsetDelay = S.GUI.LED_Dur - S.GUI.AirPuff_Dur;

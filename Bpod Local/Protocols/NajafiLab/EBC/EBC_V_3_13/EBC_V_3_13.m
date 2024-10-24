@@ -107,20 +107,31 @@ try
     % also use a local variable to store and use the AirPuff_OnsetDelay for the
     % current trial based on the trial type sequence
     switch S.GUI.TrialTypeSequence
-        case 1  
-            % normal air puff onset delay
-            AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay;
-            currentBlockType = 'normal';
-        case 2  
-            % short/long blocks - start with short delay block
+        case 1
+            % Short/Long blocks - start with short delay block
             AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
             currentBlockType = 'short'; % Start with a short block
             LED_Dur = S.GUI.LED_Dur_Short;
-        case 3  
-            % long/short blocks - start with long delay block
+            
+        case 2  
+            % Long/Short blocks - start with long delay block
             AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
             currentBlockType = 'long'; % Start with a long block
-            LED_Dur = S.GUI.LED_Dur_Long;    
+            LED_Dur = S.GUI.LED_Dur_Long;
+    
+        case 3
+            % Random - pick whether the first block is short or long randomly
+            if rand < 0.5
+                % Start with a short block
+                AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
+                currentBlockType = 'short';
+                LED_Dur = S.GUI.LED_Dur_Short;
+            else
+                % Start with a long block
+                AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
+                currentBlockType = 'long';
+                LED_Dur = S.GUI.LED_Dur_Long;
+            end
     end
 
     currentTrialInBlock = 1;    % Track the current trial within the block
@@ -143,57 +154,80 @@ try
         % S.GUI.ITI_Pre); so that the expected AirPuff onset time is shown
         % for the online experimenter plot
         
-        switch S.GUI.TrialTypeSequence
-            case 1  
-                % normal trial type sequence
-                AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay;
-                currentBlockType = 'normal';
-            case 2
-                % short/long trial type sequence
-                % Start with a short block and alternate to long blocks
-                % Determine block type based on current trial and block length
-                % Check if the current block has finished
+    switch S.GUI.TrialTypeSequence
 
-                if currentTrialInBlock > blocks(currentBlockIndex)
-                    % Switch block type and move to the next block
-                    if strcmp(currentBlockType, 'short')
-                        currentBlockType = 'long';
-                        AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;  % 400 ms puff delay for long block
-                        LED_Dur = S.GUI.LED_Dur_Long;
-                    else
-                        currentBlockType = 'short';
-                        AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;  % 200 ms puff delay for short block
-                        LED_Dur = S.GUI.LED_Dur_Short;
-                    end
-                    
-                    % Move to the next block
-                    currentBlockIndex = currentBlockIndex + 1;
-                    currentTrialInBlock = 1; % Reset trial count for the new block
+        case 1
+            % Short trial type sequence - starts with a short block
+            % Determine block type based on current trial and block length
+            if currentTrialInBlock > blocks(currentBlockIndex)
+                % Switch block type and move to the next block
+                if strcmp(currentBlockType, 'short')
+                    currentBlockType = 'long';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;  % 400 ms puff delay for long block
+                    LED_Dur = S.GUI.LED_Dur_Long;
+                else
+                    currentBlockType = 'short';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;  % 200 ms puff delay for short block
+                    LED_Dur = S.GUI.LED_Dur_Short;
                 end
-            
-           case 3
-                % long/short trial type sequence
-                % Start with a long block and alternate to short blocks
-        
-                % Check if the current block has finished
-                if currentTrialInBlock > blocks(currentBlockIndex)
-                    % Switch block type and move to the next block
-                    if strcmp(currentBlockType, 'long')
-                        currentBlockType = 'short';
-                        AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;  % 200 ms puff delay for short block
-                        LED_Dur = S.GUI.LED_Dur_Short;
-                    else
-                        currentBlockType = 'long';
-                        AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;  % 400 ms puff delay for long block
-                        LED_Dur = S.GUI.LED_Dur_Long;
-                    end
-        
-                    % Move to the next block
-                    currentBlockIndex = currentBlockIndex + 1;
-                    currentTrialInBlock = 1; % Reset trial count for the new block
+    
+                % Move to the next block
+                currentBlockIndex = currentBlockIndex + 1;
+                currentTrialInBlock = 1; % Reset trial count for the new block
+            end
+    
+        case 2
+            % Long trial type sequence - starts with a long block
+            % Determine block type based on current trial and block length
+            if currentTrialInBlock > blocks(currentBlockIndex)
+                % Switch block type and move to the next block
+                if strcmp(currentBlockType, 'long')
+                    currentBlockType = 'short';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;  % 200 ms puff delay for short block
+                    LED_Dur = S.GUI.LED_Dur_Short;
+                else
+                    currentBlockType = 'long';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;  % 400 ms puff delay for long block
+                    LED_Dur = S.GUI.LED_Dur_Long;
                 end
-
-       end
+    
+                % Move to the next block
+                currentBlockIndex = currentBlockIndex + 1;
+                currentTrialInBlock = 1; % Reset trial count for the new block
+            end
+    
+        case 3
+            % Random trial type sequence - pick first block randomly
+            if rand < 0.5
+                % Start with a short block
+                currentBlockType = 'short';
+                AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
+                LED_Dur = S.GUI.LED_Dur_Short;
+            else
+                % Start with a long block
+                currentBlockType = 'long';
+                AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
+                LED_Dur = S.GUI.LED_Dur_Long;
+            end
+    
+            % Determine block type based on current trial and block length
+            if currentTrialInBlock > blocks(currentBlockIndex)
+                % Switch block type and move to the next block
+                if strcmp(currentBlockType, 'short')
+                    currentBlockType = 'long';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;  % 400 ms puff delay for long block
+                    LED_Dur = S.GUI.LED_Dur_Long;
+                else
+                    currentBlockType = 'short';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;  % 200 ms puff delay for short block
+                    LED_Dur = S.GUI.LED_Dur_Short;
+                end
+    
+                % Move to the next block
+                currentBlockIndex = currentBlockIndex + 1;
+                currentTrialInBlock = 1; % Reset trial count for the new block
+            end
+    end
 
         %% Eye Analyzer        
         % move these to trial start function
