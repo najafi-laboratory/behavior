@@ -97,18 +97,17 @@ switch Op
             ThisPanelParamNames = ThisPanelParamNames(end:-1:1);
             nParams = length(ThisPanelParamNames);
             % ThisPanelHeight = (38*nParams)+5;
-            if nParams < 4
-                ThisPanelHeight = (36*nParams)+5;
-            elseif nParams < 10
+            if nParams < 10
                 % ThisPanelHeight = (41*nParams)+5;
-                ThisPanelHeight = (33*nParams)+5;
+                ThisPanelHeight = (3*nParams)+5;
             else
                 ThisPanelHeight = (31*nParams)+5;
             end
+            ThisPanelHeight = (32*nParams)+5;
             % ThisPanelHeight = (nParams^2)+(38*nParams)+5;
             % uipanel('title', PanelNames{p},'FontSize', 8, 'FontWeight', 'Bold', 'BackgroundColor','white','Units','Pixels', 'Position',[HPos VPos 430 ThisPanelHeight]);
             % uipanel('title', PanelNames{p},'FontSize', 7, 'FontWeight', 'Bold', 'BackgroundColor','white','Units','Pixels', 'Position',[HPos VPos 400 ThisPanelHeight]);
-            uipanel('title', PanelNames{p},'FontSize', 7, 'FontWeight', 'Bold', 'BackgroundColor','white','Units','Pixels', 'Position',[HPos VPos 370 ThisPanelHeight]);
+            uipanel('title', PanelNames{p},'FontSize', 7, 'FontWeight', 'Bold', 'BackgroundColor','white','Units','Pixels', 'Position',[HPos VPos 380 ThisPanelHeight]);
             % InPanelPos = 10;
             % InPanelPos = 8;
             InPanelPos = 6;
@@ -141,7 +140,7 @@ switch Op
                     ThisParamValue = NaN;
                 end
                 % BpodSystem.GUIHandles.ParameterGUI.Labels(ParamNum) = uicontrol('Style', 'text', 'String', ThisParamName, 'Position', [HPos+5 VPos+InPanelPos 200 25], 'FontWeight', 'normal', 'FontSize', 8, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
-                BpodSystem.GUIHandles.ParameterGUI.Labels(ParamNum) = uicontrol('Style', 'text', 'String', ThisParamName, 'Position', [HPos+5 VPos+InPanelPos 170 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
+                BpodSystem.GUIHandles.ParameterGUI.Labels(ParamNum) = uicontrol('Style', 'text', 'String', ThisParamName, 'Position', [HPos+5 VPos+InPanelPos 150 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
                 switch lower(ThisParamStyle)
                     case 'edit'
                         BpodSystem.GUIData.ParameterGUI.Styles(ParamNum) = 1;
@@ -157,17 +156,17 @@ switch Op
                         BpodSystem.GUIData.ParameterGUI.Styles(ParamNum) = 3;
                         % BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'checkbox', 'Value', ThisParam, 'String', '   (check to activate)', 'Position', [HPos+220 VPos+InPanelPos+4 200 25], 'FontWeight', 'normal', 'FontSize', 8, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
                         % BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'checkbox', 'Value', ThisParam, 'String', '   (check to activate)', 'Position', [HPos+200 VPos+InPanelPos+4 150 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
-                        BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'checkbox', 'Value', ThisParam, 'String', '   (check to activate)', 'Position', [HPos+200 VPos+InPanelPos+4 130 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
+                        BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'checkbox', 'Value', ThisParam, 'String', '   (check to activate)', 'Position', [HPos+180 VPos+InPanelPos+4 130 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
                     case 'popupmenu'
                         BpodSystem.GUIData.ParameterGUI.Styles(ParamNum) = 4;
                         % BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'popupmenu', 'String', ThisParamString, 'Value', ThisParam, 'Position', [HPos+220 VPos+InPanelPos+2 200 25], 'FontWeight', 'normal', 'FontSize', 8, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
                         % BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'popupmenu', 'String', ThisParamString, 'Value', ThisParam, 'Position', [HPos+200 VPos+InPanelPos+2 150 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
-                        BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'popupmenu', 'String', ThisParamString, 'Value', ThisParam, 'Position', [HPos+200 VPos+InPanelPos+2 130 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
+                        BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'popupmenu', 'String', ThisParamString, 'Value', ThisParam, 'Position', [HPos+180 VPos+InPanelPos+2 130 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center');
                     case 'pushbutton'
                         BpodSystem.GUIData.ParameterGUI.Styles(ParamNum) = 5;
                         % BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'pushbutton', 'String', ThisParamName, 'Position', [HPos+220 VPos+InPanelPos+2 200 25], 'FontWeight', 'normal', 'FontSize', 8, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center', 'Callback', ThisParam);
                         % BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'pushbutton', 'String', ThisParamName, 'Position', [HPos+200 VPos+InPanelPos+2 150 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center', 'Callback', ThisParam);
-                        BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'pushbutton', 'String', ThisParamName, 'Position', [HPos+200 VPos+InPanelPos+2 130 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center', 'Callback', ThisParam);
+                        BpodSystem.GUIHandles.ParameterGUI.Params(ParamNum) = uicontrol('Style', 'pushbutton', 'String', ThisParamName, 'Position', [HPos+180 VPos+InPanelPos+2 130 25], 'FontWeight', 'normal', 'FontSize', 7, 'BackgroundColor','white', 'FontName', 'Arial','HorizontalAlignment','Center', 'Callback', ThisParam);
                     otherwise
                         error('Invalid parameter style specified. Valid parameters are: ''edit'', ''text'', ''checkbox'', ''popupmenu'', ''button''');
                 end

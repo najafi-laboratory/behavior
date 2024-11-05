@@ -101,7 +101,7 @@ try
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
      
     % update gui positions
-    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 1617 1000]);
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 50 1863 948]);
 
     %% sequence tester - see versions joystick_V_1_3 if trial type testing for proto mods is needed
     % do not remove this section of code, it's very helpful when
@@ -994,32 +994,6 @@ try
         BpodSystem.Data.EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
         ExperimenterTrialInfo.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI;   
 
-        %% Get end of session reward pulses
-
-        NumPulses = 0;
-        PulseAmount = 0;
-        IPI = 0;
-
-        if S.GUI.EnableRewardPulses
-            if S.NumPulsesDist == 1
-                NumPulses = S.GUI.NumPulses;
-            else        
-                NumPulses = GetExpDist(S.GUI.NumPulsesMin, S.GUI.NumPulsesMax, S.GUI.NumPulsesMean);    
-            end
-            
-            if S.PulseAmountDist == 1
-                PulseAmount = S.GUI.PulseAmount_uL;
-            else        
-                PulseAmount = GetExpDist(S.GUI.PulseAmountMin, S.GUI.PulseAmountMax, S.GUI.PulseAmountMean);
-            end
-    
-            if S.IPIDist == 1
-                IPI = S.GUI.IPI_s;
-            else    
-                IPI = GetExpDist(S.GUI.IPIMin, S.GUI.IPIMax, S.GUI.IPIMean);    
-            end
-        end
-
 
         %% set state matrix variables        
         
@@ -1335,6 +1309,9 @@ try
 
         Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
 	
+        %% Get end of session reward pulses
+
+
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0.068,...
             'StateChangeConditions', {'Tup', 'PreVisStimITI', 'RotaryEncoder1_2', 'EarlyPress'},...
@@ -1385,10 +1362,10 @@ try
             'StateChangeConditions', {'Tup', 'LeverRetract1'},...
             'OutputActions', PreRetract1Delay_OutputActions);             
 
-   		% Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
-	 	% Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
-    	% LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
-   		% LeverRetract1_OutputActions = {'SoftCode', 8};        
+		    % Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
+ 	    % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
+	    % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+		    % LeverRetract1_OutputActions = {'SoftCode', 8};        
         sma = AddState(sma, 'Name', 'LeverRetract1', ...
             'Timer', 0,...
             'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
@@ -1436,8 +1413,8 @@ try
         sma = SetGlobalTimer(sma, 11, Press2Window_s); % Press2 window timer 
         WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'GlobalTimerTrig', 11];
 
-    	% WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-    	% WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
+	    % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+	    % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
         sma = AddState(sma, 'Name', 'WaitForPress2', ...
             'Timer', Press2Window_s,...
             'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
@@ -1580,42 +1557,59 @@ try
             'StateChangeConditions', {'Tup', 'ITI'},...
             'OutputActions', {});         
         
+        if ~S.GUI.EnableRewardPulses
+            ITI_StateChangeConditions = {'Tup', '>exit'};
+        else
+            ITI_StateChangeConditions = {'Tup', 'RewardPulse1'};
+        end
+
         sma = AddState(sma, 'Name', 'ITI', ...
             'Timer', BpodSystem.Data.EndOfTrialITI,...
-            'StateChangeConditions', {'Tup', '>exit'},...
+            'StateChangeConditions', ITI_StateChangeConditions,...
             'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
 
         if S.GUI.EnableRewardPulses
+            NumPulses = 0;
+            PulseAmount = 0;
+            RewardInterval = 0;
+
+            % keep local var mapping from gui, might add other
+            % distributions/etc
+            NumPulses = S.GUI.NumPulses;
+            PulseAmount = S.GUI.PulseAmount_uL;
+            RewardInterval = S.GUI.RewardInterval;           
+           
             MaxTrials = currentTrial;
 
             RewardPulseTime = GetValveTimes(PulseAmount, [2]);
             RewardPulse_OutputActions = {'Valve2', 1};
             for PulseNum = 1:NumPulses
 
-
                     sma = AddState(sma, 'Name', ['RewardPulse', num2str(PulseNum)], ...
                     'Timer', RewardPulseTime,...
-                    'StateChangeConditions', {'Tup', ['IPI', num2str(PulseNum)]},...
+                    'StateChangeConditions', {'Tup', ['RewardInterval', num2str(PulseNum)]},...
                     'OutputActions', RewardPulse_OutputActions);
-
-                    IPI_StateChangeConditions = {};
+                   
+                    RewardInterval_StateChangeConditions = {};
                     if PulseNum < NumPulses
-                        IPI_StateChangeConditions = [IPI_StateChangeConditions, 'Tup', ['RewardPulse', num2str(PulseNum+1)]];
+                        RewardInterval_StateChangeConditions = [RewardInterval_StateChangeConditions, 'Tup', ['RewardPulse', num2str(PulseNum+1)]];
                     else
-                        IPI_StateChangeConditions = [IPI_StateChangeConditions, 'Tup', '>exit'];
+                        RewardInterval_StateChangeConditions = [RewardInterval_StateChangeConditions, 'Tup', '>exit'];
                     end
 
-                    sma = AddState(sma, 'Name', ['IPI', num2str(PulseNum)], ...
-                    'Timer', IPI,...
-                    'StateChangeConditions', IPI_StateChangeConditions,...
+                    if S.GUI.RewardIntervalDist == 2
+                        RewardInterval = m_TrialConfig.GetExpDist(S.GUI.RewardIntervalMin, S.GUI.RewardIntervalMax, S.GUI.RewardIntervalMean);                           
+                    end
+
+                    sma = AddState(sma, 'Name', ['RewardInterval', num2str(PulseNum)], ...
+                    'Timer', RewardInterval,...
+                    'StateChangeConditions', RewardInterval_StateChangeConditions,...
                     'OutputActions', {});                    
             end
 
-            if NumPulses
-                BpodSystem.Status.Pause = 1;
-            end
+            BpodSystem.Status.Pause = 1;
         end
-    
+
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
         RawEvents = RunStateMachine; % Run the trial and return events
        

@@ -585,7 +585,7 @@ end
 
 function [RetVal] = GetExpDist( ...
         obj, Min, Max, Mean)
-    RetVal = -3;
+    RetVal = -3.0;
     while (RetVal < Min || RetVal > Max)
         RetVal = -log(rand) * Mean;
     end

@@ -141,24 +141,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PunishITI = 1;  % early press and didnt press punish ITI (from EarlyPress1Punish, EarlyPress2Punish, Punish)
         S.GUIPanels.ITI_Dist = {'ITI_Pre', 'SetManualITI', 'ManualITI', 'ITIMin', 'ITIMax', 'ITIMean', 'PunishITI'};
     
-
-
-
-        % excluded trials
-        S.GUI.ExcludedTrials = @(src,event)fnExcludedTrials;
-        S.GUIMeta.ExcludedTrials.Style = 'pushbutton';
-        S.GUI.numExcludedTrials = 0;    
-        S.GUIPanels.ExcludedTrials = {'ExcludedTrials', 'numExcludedTrials'};
-
-        % assisted trials
-        S.GUI.AssistedTrials = @(src,event)fnAssistedTrials;
-        S.GUIMeta.AssistedTrials.Style = 'pushbutton';
-        S.GUI.ATRangeStart = 0;
-        S.GUI.ATRangeStop = 0;
-        S.GUIPanels.AssistedTrials = {'AssistedTrials', 'ATRangeStart', 'ATRangeStop'};
-
-        % init cue params
-                      % Reward Pulse
+        % Reward Pulse
         S.GUI.EnableRewardPulses = 0;
         S.GUIMeta.EnableRewardPulses.Style = 'checkbox';
         
@@ -178,25 +161,41 @@ function [S] = SetParams(obj, BpodSystem)
         % S.GUI.PulseAmountMax = 15;    % Maximum NumPulses (in seconds)
         % S.GUI.PulseAmountMean = 8;   % Mean NumPulses (in seconds)         
 
-        S.GUI.RewardIntervalDist = 1;
-        S.GUIMeta.RewardIntervalDist.Style = 'popupmenu';
-        S.GUIMeta.RewardIntervalDist.String = {'Fixed', 'Random'};        
+
+        % S.GUI.IPIDist = 1;
+        % S.GUIMeta.IPIDist.Style = 'popupmenu';
+        % S.GUIMeta.IPIDist.String = {'Fixed', 'Random'};        
         S.GUI.RewardInterval = 3;
-        S.GUI.RewardIntervalMin = 0.3;    % Minimum NumPulses (in seconds)
-        S.GUI.RewardIntervalMax = 3;    % Maximum NumPulses (in seconds)
-        S.GUI.RewardIntervalMean = 1.5;   % Mean NumPulses (in seconds)
+        S.GUI.IPIMin = 1;    % Minimum NumPulses (in seconds)
+        S.GUI.IPIMax = 15;    % Maximum NumPulses (in seconds)
+        S.GUI.IPIMean = 3;   % Mean NumPulses (in seconds)
         
         % S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulsesDist', 'NumPulses', 'NumPulsesMin', 'NumPulsesMax', 'NumPulsesMean', 'PulseAmountDist', 'PulseAmount_uL','PulseAmountMin','PulseAmountMax','PulseAmountMean', 'IPIDist', 'IPI_s','IPIMin','IPIMax','IPIMean'};
-        S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulses', 'PulseAmount_uL', 'RewardIntervalDist', 'RewardInterval','RewardIntervalMin','RewardIntervalMax','RewardIntervalMean'};
+        S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulses', 'PulseAmount_uL', 'IPI_s','IPIMin','IPIMax','IPIMean'};
 
 
+        % excluded trials
+        S.GUI.ExcludedTrials = @(src,event)fnExcludedTrials;
+        S.GUIMeta.ExcludedTrials.Style = 'pushbutton';
+        S.GUI.numExcludedTrials = 0;    
+        S.GUIPanels.ExcludedTrials = {'ExcludedTrials', 'numExcludedTrials'};
+
+        % assisted trials
+        S.GUI.AssistedTrials = @(src,event)fnAssistedTrials;
+        S.GUIMeta.AssistedTrials.Style = 'pushbutton';
+        S.GUI.ATRangeStart = 0;
+        S.GUI.ATRangeStop = 0;
+        S.GUIPanels.AssistedTrials = {'AssistedTrials', 'ATRangeStart', 'ATRangeStop'};
+
+        % init cue params
+              
         % training level params
         S.GUI.MaxTrials = 1000;
-        % S.GUI.TrainingLevel = 5;
-        % S.GUIMeta.TrainingLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
-        % S.GUIMeta.TrainingLevel.String = {'Habituation', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
+        S.GUI.TrainingLevel = 5;
+        S.GUIMeta.TrainingLevel.Style = 'popupmenu'; % the GUIMeta field is used by the ParameterGUI plugin to customize UI objects.
+        S.GUIMeta.TrainingLevel.String = {'Habituation', 'Naive', 'Mid Trained 1', 'Mid Trained 2', 'Well Trained'};
         S.GUI.NumEasyWarmupTrials = 10;
-        S.GUIPanels.Training = {'MaxTrials', 'NumEasyWarmupTrials'};
+        S.GUIPanels.Training = {'MaxTrials', 'TrainingLevel', 'NumEasyWarmupTrials'};
     
         % difficulty params       
     
@@ -214,8 +213,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ISIOrig_s = 0.5; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
         S.GUI.ISIOrig_s = 1; % Duration of *fixed* gray screen stimulus in seconds - UPDATE
         S.GUI.PreVisStimDelay_s = 0; % How long the mouse must poke in the center to activate the goal port
-        % S.GUI.PreGoCueDelay_s = 0;
-        S.GUIPanels.VisStim = {'VisStimEnable', 'GratingDur_s', 'ISIOrig_s', 'PreVisStimDelay_s'};         
+        S.GUI.PreGoCueDelay_s = 0;
+        S.GUIPanels.VisStim = {'VisStimEnable', 'GratingDur_s', 'ISIOrig_s', 'PreVisStimDelay_s', 'PreGoCueDelay_s'};         
 
         % punish params
         S.GUI.IncorrectSoundVolume_percent = 0.07;  % volume control
