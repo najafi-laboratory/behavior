@@ -180,14 +180,14 @@ function [S] = SetParams(obj, BpodSystem)
 
         S.GUI.RewardIntervalDist = 1;
         S.GUIMeta.RewardIntervalDist.Style = 'popupmenu';
-        S.GUIMeta.RewardIntervalDist.String = {'Fixed', 'Random'};        
-        S.GUI.RewardInterval = 3;
-        S.GUI.RewardIntervalMin = 0.3;    % Minimum NumPulses (in seconds)
-        S.GUI.RewardIntervalMax = 3;    % Maximum NumPulses (in seconds)
-        S.GUI.RewardIntervalMean = 1.5;   % Mean NumPulses (in seconds)
+        S.GUIMeta.RewardIntervalDist.String = {'Fixed', 'Exponential'};        
+        S.GUI.RewardIntervalFixed = 3;
+        S.GUI.RewardIntervalMin = 1;    % Minimum NumPulses (in seconds)
+        S.GUI.RewardIntervalMax = 5;    % Maximum NumPulses (in seconds)
+        S.GUI.RewardIntervalMean = 3;   % Mean NumPulses (in seconds)
         
         % S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulsesDist', 'NumPulses', 'NumPulsesMin', 'NumPulsesMax', 'NumPulsesMean', 'PulseAmountDist', 'PulseAmount_uL','PulseAmountMin','PulseAmountMax','PulseAmountMean', 'IPIDist', 'IPI_s','IPIMin','IPIMax','IPIMean'};
-        S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulses', 'PulseAmount_uL', 'RewardIntervalDist', 'RewardInterval','RewardIntervalMin','RewardIntervalMax','RewardIntervalMean'};
+        S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulses', 'PulseAmount_uL', 'RewardIntervalDist', 'RewardIntervalFixed','RewardIntervalMin','RewardIntervalMax','RewardIntervalMean'};
 
 
         % training level params

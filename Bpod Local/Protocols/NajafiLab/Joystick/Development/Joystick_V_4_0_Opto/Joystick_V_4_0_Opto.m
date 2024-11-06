@@ -471,6 +471,9 @@ try
 
     % init counters
     TotalRewardAmount_uL = 0;
+
+    % init reward pulses
+    NumCompletedRewardPulses = 0;
    
     % check if opto session
     % 1 = 'Opto', 2 = 'Control'
@@ -592,9 +595,15 @@ try
 
     ExpNotes.RewStep = 0;
 
-    ExpNotes.TotalRewardAmount_uL = 0;
+    ExpNotes.RewardPulses = 0;
 
-    ExpNotes.ProtoVersion = 'Joystick_V_3_9_Opto'; % update to use current file name
+    ExpNotes.RewardPulseAmount = 0;
+
+    ExpNotes.RewardPulseIntervals = 0;
+
+    ExpNotes.TotalRewardAmount_uL = 0;    
+
+    ExpNotes.ProtoVersion = 'Joystick_V_4_0_Opto'; % update to use current file name
 
     %% Main trial loop
     
@@ -1311,303 +1320,336 @@ try
 	
         %% Get end of session reward pulses
 
-
-        sma = AddState(sma, 'Name', 'Start', ...
-            'Timer', 0.068,...
-            'StateChangeConditions', {'Tup', 'PreVisStimITI', 'RotaryEncoder1_2', 'EarlyPress'},...
-            'OutputActions', {['' 'HiFi1'],'*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to
-        
-        sma = AddState(sma, 'Name', 'PreVisStimITI', ...
-            'Timer', PreVisStimITI,...
-            'StateChangeConditions', {'Tup', 'VisDetect1', 'RotaryEncoder1_2', 'EarlyPress'},...
-            'OutputActions', {});
-        
-        %% rep 1
-        
-        sma = AddState(sma, 'Name', 'VisDetect1', ...
-            'Timer', 0.100,...
-            'StateChangeConditions', {'Tup', 'VisStimInterruptDetect1', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'},...
-            'OutputActions', {'SoftCode', 5,'RotaryEncoder1', ['E']});
-    
-        % VisDetectGray1OutputAction = {‘RotaryEncoder1’, [‘E’]};
-        sma = AddState(sma, 'Name', 'VisDetectGray1', ...
-            'Timer', 0.050,...
-            'StateChangeConditions', {'Tup', 'VisStimInterruptGray1', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'},...
-            'OutputActions', VisDetectGray1OutputAction);        
-
-        % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]        
-        sma = AddState(sma, 'Name', 'VisualStimulus1', ...
-            'Timer', VisStim.VisStimDuration + 0.020,...
-            'StateChangeConditions', {'BNC1Low', 'WaitForPress1'},...
-            'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
-
-        % Arguments: (sma, GlobalTimerNumber, Duration(s))
-        sma = SetGlobalTimer(sma, 10, Press1Window_s); % Press1 window timer % global timer 10 is triggered when we enter waitForPress1; its duration is Press1Window
-        WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 10];        
-        % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-        % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'] , 'GlobalTimerTrig', 10};
-        sma = AddState(sma, 'Name', 'WaitForPress1', ...
-            'Timer', Press1Window_s,...
-            'StateChangeConditions', WaitForPress1_StateChangeConditions,...
-            'OutputActions', WaitForPress1_OutputActions);
-
-        % Press1_OutputActions ={'RotaryEncoder1', ['E']} and opto
-        sma = AddState(sma, 'Name', 'Press1', ...
-            'Timer', Press1Window_s,...
-            'StateChangeConditions', {'Tup', 'DidNotPress1', 'GlobalTimer10_End', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
-            'OutputActions', Press1_OutputActions);
-
-        sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
-            'Timer', 0.100,...
-            'StateChangeConditions', {'Tup', 'LeverRetract1'},...
-            'OutputActions', PreRetract1Delay_OutputActions);             
-
-		    % Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
- 	    % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
-	    % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
-		    % LeverRetract1_OutputActions = {'SoftCode', 8};        
-        sma = AddState(sma, 'Name', 'LeverRetract1', ...
-            'Timer', 0,...
-            'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
-            'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
-
-        % set to 22.1ms to match opto timing of shutter, aligns opto to PreVisDelay
-        % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
-        % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
-        % PreDelayGap_OutputActions = TimerTrigger_V2W2;        
-        sma = AddState(sma, 'Name', 'PreDelayGap', ...
-            'Timer', 0.0221,...
-            'StateChangeConditions', PreDelayGap_StateChangeConditions,...
-            'OutputActions', PreDelayGap_OutputActions);       
-
-        sma = AddState(sma, 'Name', 'PreVis2Delay', ...
-            'Timer', PressVisDelay_s,...
-            'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
-
-        sma = AddState(sma, 'Name', 'PrePress2Delay', ...
-            'Timer', PressVisDelay_s,...
-            'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'},...
-            'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});
-     
-        %% rep 2
-    
-        % VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']} ~50ms
-        sma = AddState(sma, 'Name', 'VisDetect2', ...
-            'Timer', 0.100,...
-            'StateChangeConditions', {'Tup', 'VisStimInterruptDetect2', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'},...
-            'OutputActions', VisDetect2OutputAction); 
-    
-        % VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']}
-        sma = AddState(sma, 'Name', 'VisDetectGray2', ...
-            'Timer', 0.050,...
-            'StateChangeConditions', {'Tup', 'VisStimInterruptGray2', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'},...
-            'OutputActions', VisDetectGray2OutputAction);          
-    
-        sma = AddState(sma, 'Name', 'VisualStimulus2', ...
-            'Timer', VisStim.VisStimDuration + 0.020,...
-            'StateChangeConditions', {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
-            'OutputActions', [VisualStimulus2_OutputActions 'SoftCode', 7,'RotaryEncoder1', ['E']]);
-        % VisualStimulus2_OutputActions = [AudStim, TimerTrigger_V2W2, 'SoftCode', 7,'RotaryEncoder1', ['E']]
-           
-        sma = SetGlobalTimer(sma, 11, Press2Window_s); % Press2 window timer 
-        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'GlobalTimerTrig', 11];
-
-	    % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
-	    % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
-        sma = AddState(sma, 'Name', 'WaitForPress2', ...
-            'Timer', Press2Window_s,...
-            'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
-            'OutputActions', WaitForPress2_OutputActions);         
-
-        sma = AddState(sma, 'Name', 'Press2', ...
-            'Timer', Press2Window_s,...
-            'StateChangeConditions', {'Tup', 'DidNotPress2', 'GlobalTimer11_End', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
-            'OutputActions', Press2_OutputActions);
-        % Press2_OutputActions = TimerCancel_V2W2
-
-        sma = AddState(sma, 'Name', 'PreRewardDelay', ...
-            'Timer' , PreRewardDelay_s, ...
-            'StateChangeConditions', {'Tup', 'Reward'}, ...
-            'OutputActions', PreRewardDelay_OutputActions);        
-
-        % Reward_OutputActions = {'Valve2', 1}
-        sma = AddState(sma, 'Name', 'Reward', ...
-            'Timer', RewardTime,...
-            'StateChangeConditions', {'Tup', 'PostRewardDelay'},...
-            'OutputActions', Reward_OutputActions); 		
-       
-        % Timer 13 is triggered at the onset of post reward delay state.
-        % Timer duration is set to 20s to keep the timer active for the remainder
-        % of the current trial.
-        
-        % Condition 1 is used as a state transition event, and is true while timer 13 is active.
-
-        % Post reward delay transitions to retract final.
-
-        % When lever reaches home position (softcode2), LeverRetractFinal 
-        % transitions to ITI_Switch
-        
-        % When condition 1 is met, ITI_Switch transitions to ITI,
-        % otherwise ITI_Punish
-
-        % For early press, condition 1 is false
-
-        % timer to indicate if reward occurred 
-        % Arguments: (sma, TimerNumber, TimerDuration)
-        sma = SetGlobalTimer(sma, 13, 20); 
-
-        % condition to indicate if timer 13 is active
-        % Arguments: (sma, ConditionNumber, ConditionChannel, ConditionValue; 1 = on, 0 = off)
-        sma = SetCondition(sma, 1, 'GlobalTimer13', 1);
-        
-        % PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
-        % trigger global timer 13 to indicate reward occured
-        sma = AddState(sma, 'Name', 'PostRewardDelay', ...
-            'Timer', S.GUI.PostRewardDelay_s,...
-            'StateChangeConditions', PostRewardDelay_StateChangeConditions,...
-            'OutputActions', {'GlobalTimerTrig', 13});  
-
-        sma = AddState(sma, 'Name', 'DidNotPress1', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', DidNotPress1_OutputActions);	% {opto timers}
-        
-        sma = AddState(sma, 'Name', 'DidNotPress2', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'Punish'},...
-            'OutputActions', DidNotPress2_OutputActions);	% {opto timers}
-   
-        sma = AddState(sma, 'Name', 'EarlyPress', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'EarlyPressPunish'},...
-            'OutputActions', {});        
-
-        % EarlyPress1_OutputActions = {TimerShutterReset, {'GlobalTimerCancel', '111111101'}
-        sma = AddState(sma, 'Name', 'EarlyPress1', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'EarlyPress1Punish'},...
-            'OutputActions', EarlyPress1_OutputActions);
-
-        % EarlyPress2_OutputActions = TimerShutterReset, {'GlobalTimerCancel', '111111101'}
-        sma = AddState(sma, 'Name', 'EarlyPress2', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
-            'OutputActions', EarlyPress2_OutputActions);
-
-        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
-        sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
-            'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);  
-
-        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
-        sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
-            'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);
-
-        % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
-        sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
-            'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', EarlyPressPunish_OutputActions);
-
-        % LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'}
-        % SoftCode2: Indicate to the state machine that the lever is back in the home position
-        sma = AddState(sma, 'Name', 'LeverRetractFinal', ...
-            'Timer', 0,...
-            'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 8});
-
-        sma = AddState(sma, 'Name', 'ITI_Switch', ...
-            'Timer', 0.001,...
-            'StateChangeConditions', {'Tup', 'Punish_ITI', 'Condition1', 'ITI'},...
-            'OutputActions', {});        
-
-        % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
-        sma = AddState(sma, 'Name', 'Punish', ...
-            'Timer', S.GUI.PunishSoundDuration_s,...
-            'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
-            'OutputActions', Punish_OutputActions);         
-    
-        sma = AddState(sma, 'Name', 'VisStimInterruptDetect1', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});
-
-        sma = AddState(sma, 'Name', 'VisStimInterruptGray1', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});        
-
-        sma = AddState(sma, 'Name', 'VisStimInterruptDetect2', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});
-
-        sma = AddState(sma, 'Name', 'VisStimInterruptGray2', ...
-            'Timer', 0,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});              
-
-        % S.GUI.PunishITI = 1;        
-        sma = AddState(sma, 'Name', 'Punish_ITI', ...
-            'Timer', S.GUI.PunishITI,...
-            'StateChangeConditions', {'Tup', 'ITI'},...
-            'OutputActions', {});         
-        
         if ~S.GUI.EnableRewardPulses
-            ITI_StateChangeConditions = {'Tup', '>exit'};
+
+            sma = AddState(sma, 'Name', 'Start', ...
+                'Timer', 0.068,...
+                'StateChangeConditions', {'Tup', 'PreVisStimITI', 'RotaryEncoder1_2', 'EarlyPress'},...
+                'OutputActions', {['' 'HiFi1'],'*', 'RotaryEncoder1', ['E#' 0], 'BNC1', 1}); % Code to
+            
+            sma = AddState(sma, 'Name', 'PreVisStimITI', ...
+                'Timer', PreVisStimITI,...
+                'StateChangeConditions', {'Tup', 'VisDetect1', 'RotaryEncoder1_2', 'EarlyPress'},...
+                'OutputActions', {});
+            
+            %% rep 1
+            
+            sma = AddState(sma, 'Name', 'VisDetect1', ...
+                'Timer', 0.100,...
+                'StateChangeConditions', {'Tup', 'VisStimInterruptDetect1', 'BNC1High', 'VisDetectGray1', 'RotaryEncoder1_2', 'EarlyPress1'},...
+                'OutputActions', {'SoftCode', 5,'RotaryEncoder1', ['E']});
+        
+            % VisDetectGray1OutputAction = {‘RotaryEncoder1’, [‘E’]};
+            sma = AddState(sma, 'Name', 'VisDetectGray1', ...
+                'Timer', 0.050,...
+                'StateChangeConditions', {'Tup', 'VisStimInterruptGray1', 'BNC1High', 'VisualStimulus1', 'RotaryEncoder1_2', 'EarlyPress1'},...
+                'OutputActions', VisDetectGray1OutputAction);        
+    
+            % VisualStimulus1_OutputActions = [AudStim, TimerTrigger_V1W1, 'RotaryEncoder1', ['E']]        
+            sma = AddState(sma, 'Name', 'VisualStimulus1', ...
+                'Timer', VisStim.VisStimDuration + 0.020,...
+                'StateChangeConditions', {'BNC1Low', 'WaitForPress1'},...
+                'OutputActions', [VisualStimulus1_OutputActions, 'RotaryEncoder1', ['E']]);
+    
+            % Arguments: (sma, GlobalTimerNumber, Duration(s))
+            sma = SetGlobalTimer(sma, 10, Press1Window_s); % Press1 window timer % global timer 10 is triggered when we enter waitForPress1; its duration is Press1Window
+            WaitForPress1_OutputActions = [WaitForPress1_OutputActions, 'GlobalTimerTrig', 10];        
+            % WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
+            % WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E'] , 'GlobalTimerTrig', 10};
+            sma = AddState(sma, 'Name', 'WaitForPress1', ...
+                'Timer', Press1Window_s,...
+                'StateChangeConditions', WaitForPress1_StateChangeConditions,...
+                'OutputActions', WaitForPress1_OutputActions);
+    
+            % Press1_OutputActions ={'RotaryEncoder1', ['E']} and opto
+            sma = AddState(sma, 'Name', 'Press1', ...
+                'Timer', Press1Window_s,...
+                'StateChangeConditions', {'Tup', 'DidNotPress1', 'GlobalTimer10_End', 'DidNotPress1', 'RotaryEncoder1_1', 'PreRetract1Delay'},...
+                'OutputActions', Press1_OutputActions);
+    
+            sma = AddState(sma, 'Name', 'PreRetract1Delay', ...
+                'Timer', 0.100,...
+                'StateChangeConditions', {'Tup', 'LeverRetract1'},...
+                'OutputActions', PreRetract1Delay_OutputActions);             
+    
+		        % Vis-guided: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreVis2Delay'};
+ 	        % Self-timed: % LeverRetract1_StateChangeConditions = {'SoftCode2', 'PrePress2Delay'};
+	        % LeverRetract1_StateChangeConditions = {'Tup', 'PreDelayGap'};
+		        % LeverRetract1_OutputActions = {'SoftCode', 8};        
+            sma = AddState(sma, 'Name', 'LeverRetract1', ...
+                'Timer', 0,...
+                'StateChangeConditions', LeverRetract1_StateChangeConditions,... % When the PC is done resetting the lever, it sends soft code 1 to the state machine
+                'OutputActions', LeverRetract1_OutputActions); % On entering the LeverRetract state, send soft code 1 to the PC. The soft code handler will then start resetting the lever.   
+    
+            % set to 22.1ms to match opto timing of shutter, aligns opto to PreVisDelay
+            % Vis-guided: % PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};
+            % Self-timed: % PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
+            % PreDelayGap_OutputActions = TimerTrigger_V2W2;        
+            sma = AddState(sma, 'Name', 'PreDelayGap', ...
+                'Timer', 0.0221,...
+                'StateChangeConditions', PreDelayGap_StateChangeConditions,...
+                'OutputActions', PreDelayGap_OutputActions);       
+    
+            sma = AddState(sma, 'Name', 'PreVis2Delay', ...
+                'Timer', PressVisDelay_s,...
+                'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'VisDetect2'},...
+                'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']}); 
+    
+            sma = AddState(sma, 'Name', 'PrePress2Delay', ...
+                'Timer', PressVisDelay_s,...
+                'StateChangeConditions', {'RotaryEncoder1_2', 'EarlyPress2', 'Tup', 'WaitForPress2'},...
+                'OutputActions', {'SoftCode', 7, 'RotaryEncoder1', ['E']});
+         
+            %% rep 2
+        
+            % VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']} ~50ms
+            sma = AddState(sma, 'Name', 'VisDetect2', ...
+                'Timer', 0.100,...
+                'StateChangeConditions', {'Tup', 'VisStimInterruptDetect2', 'BNC1High', 'VisDetectGray2', 'RotaryEncoder1_2', 'EarlyPress2'},...
+                'OutputActions', VisDetect2OutputAction); 
+        
+            % VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']}
+            sma = AddState(sma, 'Name', 'VisDetectGray2', ...
+                'Timer', 0.050,...
+                'StateChangeConditions', {'Tup', 'VisStimInterruptGray2', 'BNC1High', 'VisualStimulus2', 'RotaryEncoder1_2', 'EarlyPress2'},...
+                'OutputActions', VisDetectGray2OutputAction);          
+        
+            sma = AddState(sma, 'Name', 'VisualStimulus2', ...
+                'Timer', VisStim.VisStimDuration + 0.020,...
+                'StateChangeConditions', {'BNC1Low', 'WaitForPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
+                'OutputActions', [VisualStimulus2_OutputActions 'SoftCode', 7,'RotaryEncoder1', ['E']]);
+            % VisualStimulus2_OutputActions = [AudStim, TimerTrigger_V2W2, 'SoftCode', 7,'RotaryEncoder1', ['E']]
+               
+            sma = SetGlobalTimer(sma, 11, Press2Window_s); % Press2 window timer 
+            WaitForPress2_OutputActions = [WaitForPress2_OutputActions, 'GlobalTimerTrig', 11];
+    
+	        % WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};
+	        % WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']}; and Opto timers
+            sma = AddState(sma, 'Name', 'WaitForPress2', ...
+                'Timer', Press2Window_s,...
+                'StateChangeConditions', WaitForPress2_StateChangeConditions,...    
+                'OutputActions', WaitForPress2_OutputActions);         
+    
+            sma = AddState(sma, 'Name', 'Press2', ...
+                'Timer', Press2Window_s,...
+                'StateChangeConditions', {'Tup', 'DidNotPress2', 'GlobalTimer11_End', 'DidNotPress2', 'RotaryEncoder1_1', 'PreRewardDelay'},...
+                'OutputActions', Press2_OutputActions);
+            % Press2_OutputActions = TimerCancel_V2W2
+    
+            sma = AddState(sma, 'Name', 'PreRewardDelay', ...
+                'Timer' , PreRewardDelay_s, ...
+                'StateChangeConditions', {'Tup', 'Reward'}, ...
+                'OutputActions', PreRewardDelay_OutputActions);        
+    
+            % Reward_OutputActions = {'Valve2', 1}
+            sma = AddState(sma, 'Name', 'Reward', ...
+                'Timer', RewardTime,...
+                'StateChangeConditions', {'Tup', 'PostRewardDelay'},...
+                'OutputActions', Reward_OutputActions); 		
+           
+            % Timer 13 is triggered at the onset of post reward delay state.
+            % Timer duration is set to 20s to keep the timer active for the remainder
+            % of the current trial.
+            
+            % Condition 1 is used as a state transition event, and is true while timer 13 is active.
+    
+            % Post reward delay transitions to retract final.
+    
+            % When lever reaches home position (softcode2), LeverRetractFinal 
+            % transitions to ITI_Switch
+            
+            % When condition 1 is met, ITI_Switch transitions to ITI,
+            % otherwise ITI_Punish
+    
+            % For early press, condition 1 is false
+    
+            % timer to indicate if reward occurred 
+            % Arguments: (sma, TimerNumber, TimerDuration)
+            sma = SetGlobalTimer(sma, 13, 20); 
+    
+            % condition to indicate if timer 13 is active
+            % Arguments: (sma, ConditionNumber, ConditionChannel, ConditionValue; 1 = on, 0 = off)
+            sma = SetCondition(sma, 1, 'GlobalTimer13', 1);
+            
+            % PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
+            % trigger global timer 13 to indicate reward occured
+            sma = AddState(sma, 'Name', 'PostRewardDelay', ...
+                'Timer', S.GUI.PostRewardDelay_s,...
+                'StateChangeConditions', PostRewardDelay_StateChangeConditions,...
+                'OutputActions', {'GlobalTimerTrig', 13});  
+    
+            sma = AddState(sma, 'Name', 'DidNotPress1', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'Punish'},...
+                'OutputActions', DidNotPress1_OutputActions);	% {opto timers}
+            
+            sma = AddState(sma, 'Name', 'DidNotPress2', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'Punish'},...
+                'OutputActions', DidNotPress2_OutputActions);	% {opto timers}
+       
+            sma = AddState(sma, 'Name', 'EarlyPress', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'EarlyPressPunish'},...
+                'OutputActions', {});        
+    
+            % EarlyPress1_OutputActions = {TimerShutterReset, {'GlobalTimerCancel', '111111101'}
+            sma = AddState(sma, 'Name', 'EarlyPress1', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'EarlyPress1Punish'},...
+                'OutputActions', EarlyPress1_OutputActions);
+    
+            % EarlyPress2_OutputActions = TimerShutterReset, {'GlobalTimerCancel', '111111101'}
+            sma = AddState(sma, 'Name', 'EarlyPress2', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'EarlyPress2Punish'},...
+                'OutputActions', EarlyPress2_OutputActions);
+    
+            % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
+            sma = AddState(sma, 'Name', 'EarlyPressPunish', ...
+                'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
+                'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
+                'OutputActions', EarlyPressPunish_OutputActions);  
+    
+            % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
+            sma = AddState(sma, 'Name', 'EarlyPress1Punish', ...
+                'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
+                'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
+                'OutputActions', EarlyPressPunish_OutputActions);
+    
+            % EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};
+            sma = AddState(sma, 'Name', 'EarlyPress2Punish', ...
+                'Timer', S.GUI.EarlyPressPunishSoundDuration_s,...
+                'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
+                'OutputActions', EarlyPressPunish_OutputActions);
+    
+            % LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'}
+            % SoftCode2: Indicate to the state machine that the lever is back in the home position
+            sma = AddState(sma, 'Name', 'LeverRetractFinal', ...
+                'Timer', 0,...
+                'StateChangeConditions', LeverRetractFinal_StateChangeConditions,...
+                'OutputActions', {'SoftCode', 8});
+    
+            sma = AddState(sma, 'Name', 'ITI_Switch', ...
+                'Timer', 0.001,...
+                'StateChangeConditions', {'Tup', 'Punish_ITI', 'Condition1', 'ITI'},...
+                'OutputActions', {});        
+    
+            % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
+            sma = AddState(sma, 'Name', 'Punish', ...
+                'Timer', S.GUI.PunishSoundDuration_s,...
+                'StateChangeConditions', {'Tup', 'LeverRetractFinal'},...
+                'OutputActions', Punish_OutputActions);         
+        
+            sma = AddState(sma, 'Name', 'VisStimInterruptDetect1', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'ITI'},...
+                'OutputActions', {});
+    
+            sma = AddState(sma, 'Name', 'VisStimInterruptGray1', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'ITI'},...
+                'OutputActions', {});        
+    
+            sma = AddState(sma, 'Name', 'VisStimInterruptDetect2', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'ITI'},...
+                'OutputActions', {});
+    
+            sma = AddState(sma, 'Name', 'VisStimInterruptGray2', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', 'ITI'},...
+                'OutputActions', {});              
+    
+            % S.GUI.PunishITI = 1;        
+            sma = AddState(sma, 'Name', 'Punish_ITI', ...
+                'Timer', S.GUI.PunishITI,...
+                'StateChangeConditions', {'Tup', 'ITI'},...
+                'OutputActions', {});         
+            
+            if ~S.GUI.EnableRewardPulses
+                ITI_StateChangeConditions = {'Tup', '>exit'};
+            else
+                ITI_StateChangeConditions = {'Tup', 'RewardPulse1'};
+            end
+    
+            sma = AddState(sma, 'Name', 'ITI', ...
+                'Timer', BpodSystem.Data.EndOfTrialITI,...
+                'StateChangeConditions', ITI_StateChangeConditions,...
+                'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
+
         else
-            ITI_StateChangeConditions = {'Tup', 'RewardPulse1'};
-        end
+            NumCompletedRewardPulses = NumCompletedRewardPulses + 1;
 
-        sma = AddState(sma, 'Name', 'ITI', ...
-            'Timer', BpodSystem.Data.EndOfTrialITI,...
-            'StateChangeConditions', ITI_StateChangeConditions,...
-            'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
-
-        if S.GUI.EnableRewardPulses
-            NumPulses = 0;
-            PulseAmount = 0;
             RewardInterval = 0;
 
             % keep local var mapping from gui, might add other
             % distributions/etc
-            NumPulses = S.GUI.NumPulses;
-            PulseAmount = S.GUI.PulseAmount_uL;
-            RewardInterval = S.GUI.RewardInterval;           
-           
-            MaxTrials = currentTrial;
+            % NumPulses = S.GUI.NumPulses;
+                      
+            % RewardAmount_uL = S.GUI.PulseAmount_uL;
+            RewardPulseTime = GetValveTimes(S.GUI.PulseAmount_uL, [2]);
 
-            RewardPulseTime = GetValveTimes(PulseAmount, [2]);
-            RewardPulse_OutputActions = {'Valve2', 1};
-            for PulseNum = 1:NumPulses
+            if S.GUI.RewardIntervalDist == 2
+                RewardInterval = m_TrialConfig.GetExpDist(S.GUI.RewardIntervalMin, S.GUI.RewardIntervalMax, S.GUI.RewardIntervalMean);                           
+            else
+                RewardInterval = S.GUI.RewardIntervalFixed;
+            end        
 
-                    sma = AddState(sma, 'Name', ['RewardPulse', num2str(PulseNum)], ...
-                    'Timer', RewardPulseTime,...
-                    'StateChangeConditions', {'Tup', ['RewardInterval', num2str(PulseNum)]},...
-                    'OutputActions', RewardPulse_OutputActions);
-                   
-                    RewardInterval_StateChangeConditions = {};
-                    if PulseNum < NumPulses
-                        RewardInterval_StateChangeConditions = [RewardInterval_StateChangeConditions, 'Tup', ['RewardPulse', num2str(PulseNum+1)]];
-                    else
-                        RewardInterval_StateChangeConditions = [RewardInterval_StateChangeConditions, 'Tup', '>exit'];
-                    end
+            sma = AddState(sma, 'Name', 'RewardPulse', ...
+                'Timer', RewardPulseTime,...
+                'StateChangeConditions', {'Tup', 'RewardInterval'},...
+                'OutputActions', [StartSyncSignal, {'Valve2', 1}]);
+            % 'RotaryEncoder1', ['E#' 0], 
 
-                    if S.GUI.RewardIntervalDist == 2
-                        RewardInterval = m_TrialConfig.GetExpDist(S.GUI.RewardIntervalMin, S.GUI.RewardIntervalMax, S.GUI.RewardIntervalMean);                           
-                    end
+            sma = AddState(sma, 'Name', 'RewardInterval', ...
+                'Timer', RewardInterval,...
+                'StateChangeConditions', {'Tup', '>exit'},...
+                'OutputActions', {});
 
-                    sma = AddState(sma, 'Name', ['RewardInterval', num2str(PulseNum)], ...
-                    'Timer', RewardInterval,...
-                    'StateChangeConditions', RewardInterval_StateChangeConditions,...
-                    'OutputActions', {});                    
+            % dummy state to prevent crash when checking ~isnan(reward)
+            sma = AddState(sma, 'Name', 'Reward', ...
+                'Timer', 0,...
+                'StateChangeConditions', {'Tup', '>exit'},...
+                'OutputActions', {});            
+
+            disp(['Pulse Num ', [num2str(NumCompletedRewardPulses)]]);
+            disp(['RewardPulseTime ', [num2str(RewardPulseTime)]]);
+            disp(['RewardInterval ', [num2str(RewardInterval)]]);
+
+            ExpNotes.RewardPulseIntervals(NumCompletedRewardPulses) = RewardInterval;
+
+            if NumCompletedRewardPulses == S.GUI.NumPulses
+                ExpNotes.RewardPulses = NumCompletedRewardPulses;
+                NumCompletedRewardPulses = 0;
+                BpodSystem.Status.Pause = 1;
             end
 
-            BpodSystem.Status.Pause = 1;
+            % for PulseNum = 1:NumPulses
+            % 
+            %         sma = AddState(sma, 'Name', ['RewardPulse', num2str(PulseNum)], ...
+            %         'Timer', RewardPulseTime,...
+            %         'StateChangeConditions', {'Tup', ['RewardInterval', num2str(PulseNum)]},...
+            %         'OutputActions', RewardPulse_OutputActions);
+            % 
+            %         RewardInterval_StateChangeConditions = {};
+            %         if PulseNum < NumPulses
+            %             RewardInterval_StateChangeConditions = [RewardInterval_StateChangeConditions, 'Tup', ['RewardPulse', num2str(PulseNum+1)]];
+            %         else
+            %             RewardInterval_StateChangeConditions = [RewardInterval_StateChangeConditions, 'Tup', '>exit'];
+            %         end
+            % 
+            %         if S.GUI.RewardIntervalDist == 2
+            %             RewardInterval = m_TrialConfig.GetExpDist(S.GUI.RewardIntervalMin, S.GUI.RewardIntervalMax, S.GUI.RewardIntervalMean);                           
+            %         end
+            % 
+            %         sma = AddState(sma, 'Name', ['RewardInterval', num2str(PulseNum)], ...
+            %         'Timer', RewardInterval,...
+            %         'StateChangeConditions', RewardInterval_StateChangeConditions,...
+            %         'OutputActions', {});                    
+            % end
+
+            % BpodSystem.Status.Pause = 1;
         end
 
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
@@ -1626,142 +1668,152 @@ try
                 StateTiming();
             end
     
-            BpodSystem.Data.EncoderData{currentTrial} = BpodSystem.PluginObjects.R.readUSBStream(); % Get rotary encoder data captured since last call to R.readUSBStream()
-            % Align this trial's rotary encoder timestamps to state machine trial-start (timestamp of '#' command sent from state machine to encoder module in 'TrialStart' state)
-            BpodSystem.Data.EncoderData{currentTrial}.Times = BpodSystem.Data.EncoderData{currentTrial}.Times - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1); % Align timestamps to state machine's trial time 0
-            BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps = BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1); % Align event timestamps to state machine's trial time 0
+            if ~S.GUI.EnableRewardPulses
+                BpodSystem.Data.EncoderData{currentTrial} = BpodSystem.PluginObjects.R.readUSBStream(); % Get rotary encoder data captured since last call to R.readUSBStream()
+                % Align this trial's rotary encoder timestamps to state machine trial-start (timestamp of '#' command sent from state machine to encoder module in 'TrialStart' state)
+                BpodSystem.Data.EncoderData{currentTrial}.Times = BpodSystem.Data.EncoderData{currentTrial}.Times - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1); % Align timestamps to state machine's trial time 0
+                BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps = BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1); % Align event timestamps to state machine's trial time 0
             
-            % Update rotary encoder plot
-            % might reduce this section to pass
-            % BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States, and
-            % access them in plot function
-            TrialDuration = BpodSystem.Data.TrialEndTimestamp(currentTrial)-BpodSystem.Data.TrialStartTimestamp(currentTrial);
-    
-            % encoder module doesn't report positions if there is no recent
-            % change in position (could probably update this in enc module
-            % code, but takes longer)
 
-            % impute start and end position and time values for missing data            
-            if ~isempty(BpodSystem.Data.EncoderData{currentTrial}.Times) % if some encoder positions reported                
-                if currentTrial == 1
-                    % if first trial, and if missing position values between start of trial and first
-                    % encoder movement, extrapolate from first recorded enc 
-                    % position
-                    if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
-                        BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
-                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions(1) BpodSystem.Data.EncoderData{currentTrial}.Positions];
+                % Update rotary encoder plot
+                % might reduce this section to pass
+                % BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States, and
+                % access them in plot function
+                TrialDuration = BpodSystem.Data.TrialEndTimestamp(currentTrial)-BpodSystem.Data.TrialStartTimestamp(currentTrial);
+        
+                % encoder module doesn't report positions if there is no recent
+                % change in position (could probably update this in enc module
+                % code, but takes longer)
+    
+                % impute start and end position and time values for missing data            
+                if ~isempty(BpodSystem.Data.EncoderData{currentTrial}.Times) % if some encoder positions reported                
+                    if currentTrial == 1
+                        % if first trial, and if missing position values between start of trial and first
+                        % encoder movement, extrapolate from first recorded enc 
+                        % position
+                        if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
+                            BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
+                            BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions(1) BpodSystem.Data.EncoderData{currentTrial}.Positions];
+                            BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
+                        end
+                    else
+                        % if > first trial, and if missing position values between start of trial and first
+                        % encoder movement, extrapolate from last recorded enc
+                        % position of previous trial
+                        if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
+                            BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
+                            BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end) BpodSystem.Data.EncoderData{currentTrial}.Positions];
+                            BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
+                        end
+                    end
+                    % if missing position values after last encoder movement,
+                    % extrapolate from last recorded enc position
+                    if BpodSystem.Data.EncoderData{currentTrial}.Times(end) < TrialDuration
+                        BpodSystem.Data.EncoderData{currentTrial}.Times = [BpodSystem.Data.EncoderData{currentTrial}.Times TrialDuration];
+                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions BpodSystem.Data.EncoderData{currentTrial}.Positions(end)];
                         BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
                     end
-                else
-                    % if > first trial, and if missing position values between start of trial and first
-                    % encoder movement, extrapolate from last recorded enc
-                    % position of previous trial
-                    if BpodSystem.Data.EncoderData{currentTrial}.Times(1) > 0
-                        BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 BpodSystem.Data.EncoderData{currentTrial}.Times];
-                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end) BpodSystem.Data.EncoderData{currentTrial}.Positions];
-                        BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
+                else % if no encoder positions reported
+                    % if first trial, impute position as zero
+                    if currentTrial == 1
+                        BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 TrialDuration];
+                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [0.0 0.0];
+                        BpodSystem.Data.EncoderData{currentTrial}.nPositions = 2;
+                    else
+                        % if > first trial, impute positions as extrapolation
+                        % from last recorded enc position of previous trial
+                        BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 TrialDuration];
+                        BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end) BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end)];
+                        BpodSystem.Data.EncoderData{currentTrial}.nPositions = 2;
                     end
-                end
-                % if missing position values after last encoder movement,
-                % extrapolate from last recorded enc position
-                if BpodSystem.Data.EncoderData{currentTrial}.Times(end) < TrialDuration
-                    BpodSystem.Data.EncoderData{currentTrial}.Times = [BpodSystem.Data.EncoderData{currentTrial}.Times TrialDuration];
-                    BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial}.Positions BpodSystem.Data.EncoderData{currentTrial}.Positions(end)];
-                    BpodSystem.Data.EncoderData{currentTrial}.nPositions = BpodSystem.Data.EncoderData{currentTrial}.nPositions + 1;                
-                end
-            else % if no encoder positions reported
-                % if first trial, impute position as zero
-                if currentTrial == 1
-                    BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 TrialDuration];
-                    BpodSystem.Data.EncoderData{currentTrial}.Positions = [0.0 0.0];
-                    BpodSystem.Data.EncoderData{currentTrial}.nPositions = 2;
-                else
-                    % if > first trial, impute positions as extrapolation
-                    % from last recorded enc position of previous trial
-                    BpodSystem.Data.EncoderData{currentTrial}.Times = [0.0 TrialDuration];
-                    BpodSystem.Data.EncoderData{currentTrial}.Positions = [BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end) BpodSystem.Data.EncoderData{currentTrial-1}.Positions(end)];
-                    BpodSystem.Data.EncoderData{currentTrial}.nPositions = 2;
-                end
+                      
+                end 
+        
+                PreVisStimITITimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PreVisStimITI;
+                VisDetect1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisDetect1;
+                VisualStimulus1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus1;
+                WaitForPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress1;
+                LeverRetract1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetract1;
+                Reward1Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
+                DidNotPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress1;
+                 
+                ITITimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.ITI;
+        
+                LeverResetPos = BpodSystem.Data.TrialData{1, currentTrial}.LeverResetPos;
+        
+                VisualStimulus2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus2;
+                WaitForPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress2;
+                LeverRetractFinalTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractFinal;
+                Reward2Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
+                DidNotPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress2;
+        
+                % placeholders for press3
+                WaitForPress3Times = [0 0];
+                LeverRetract3Times = [0 0];
+                Reward3Times = [0 0];
+                DidNotPress3Times = [0 0];
+        
+                RewardTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward; 
+    
+                EarlyPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress1;  
+    
+                PrePress2DelayTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PrePress2Delay;
+    
+                EarlyPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress2;  
+                    
+                LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'update', S.GUI.Threshold, BpodSystem.Data.EncoderData{currentTrial},...
+                    TrialDuration, ...
+                    PreVisStimITITimes, ...
+                    VisDetect1Times, ...
+                    VisualStimulus1Times, ...
+                    WaitForPress1Times, ...
+                    LeverRetract1Times, ...
+                    Reward1Times, ...
+                    DidNotPress1Times, ...
+                    ITITimes, ...
+                    LeverResetPos, ...
+                    WaitForPress2Times, ...
+                    LeverRetractFinalTimes, ...
+                    Reward2Times, ...
+                    DidNotPress2Times, ...
+                    WaitForPress3Times, ...
+                    LeverRetract3Times, ...
+                    Reward3Times, ...
+                    DidNotPress3Times, ...
+                    RewardTimes, ...
+                    EarlyPress1Times, ...
+                    VisualStimulus2Times, ...
+                    PrePress2DelayTimes, ...
+                    EarlyPress2Times);
                   
-            end 
+                if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect1(1))
+                    ExperimenterTrialInfo.VisStimInterruptDetect1Count = ExperimenterTrialInfo.VisStimInterruptDetect1Count+1;
+                end      
     
-            PreVisStimITITimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PreVisStimITI;
-            VisDetect1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisDetect1;
-            VisualStimulus1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus1;
-            WaitForPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress1;
-            LeverRetract1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetract1;
-            Reward1Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
-            DidNotPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress1;
-             
-            ITITimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.ITI;
+                if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray1(1))
+                    ExperimenterTrialInfo.VisStimInterruptGray1Count = ExperimenterTrialInfo.VisStimInterruptGray1Count+1;
+                end 
     
-            LeverResetPos = BpodSystem.Data.TrialData{1, currentTrial}.LeverResetPos;
+                if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect2(1))
+                    ExperimenterTrialInfo.VisStimInterruptDetect2Count = ExperimenterTrialInfo.VisStimInterruptDetect2Count+1;
+                end      
     
-            VisualStimulus2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisualStimulus2;
-            WaitForPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.WaitForPress2;
-            LeverRetractFinalTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.LeverRetractFinal;
-            Reward2Times = [NaN NaN]; % removed rew1 and rew2 V_3_3
-            DidNotPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.DidNotPress2;
-    
-            % placeholders for press3
-            WaitForPress3Times = [0 0];
-            LeverRetract3Times = [0 0];
-            Reward3Times = [0 0];
-            DidNotPress3Times = [0 0];
-    
-            RewardTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward; 
+                if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray2(1))
+                    ExperimenterTrialInfo.VisStimInterruptGray2Count = ExperimenterTrialInfo.VisStimInterruptGray2Count+1;
+                end
 
-            EarlyPress1Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress1;  
-
-            PrePress2DelayTimes = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.PrePress2Delay;
-
-            EarlyPress2Times = BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.EarlyPress2;  
-                
-            LastTrialEncoderPlot(BpodSystem.GUIHandles.EncoderAxes, 'update', S.GUI.Threshold, BpodSystem.Data.EncoderData{currentTrial},...
-                TrialDuration, ...
-                PreVisStimITITimes, ...
-                VisDetect1Times, ...
-                VisualStimulus1Times, ...
-                WaitForPress1Times, ...
-                LeverRetract1Times, ...
-                Reward1Times, ...
-                DidNotPress1Times, ...
-                ITITimes, ...
-                LeverResetPos, ...
-                WaitForPress2Times, ...
-                LeverRetractFinalTimes, ...
-                Reward2Times, ...
-                DidNotPress2Times, ...
-                WaitForPress3Times, ...
-                LeverRetract3Times, ...
-                Reward3Times, ...
-                DidNotPress3Times, ...
-                RewardTimes, ...
-                EarlyPress1Times, ...
-                VisualStimulus2Times, ...
-                PrePress2DelayTimes, ...
-                EarlyPress2Times);
-              
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect1(1))
-                ExperimenterTrialInfo.VisStimInterruptDetect1Count = ExperimenterTrialInfo.VisStimInterruptDetect1Count+1;
-            end      
-
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray1(1))
-                ExperimenterTrialInfo.VisStimInterruptGray1Count = ExperimenterTrialInfo.VisStimInterruptGray1Count+1;
-            end 
-
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptDetect2(1))
-                ExperimenterTrialInfo.VisStimInterruptDetect2Count = ExperimenterTrialInfo.VisStimInterruptDetect2Count+1;
-            end      
-
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.VisStimInterruptGray2(1))
-                ExperimenterTrialInfo.VisStimInterruptGray2Count = ExperimenterTrialInfo.VisStimInterruptGray2Count+1;
-            end                
-
-            if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward(1))
-                TotalRewardAmount_uL = TotalRewardAmount_uL + RewardAmount_uL;
-                ExperimenterTrialInfo.TotalRewardAmount_uL = TotalRewardAmount_uL;
+                if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.Reward(1))
+                    TotalRewardAmount_uL = TotalRewardAmount_uL + RewardAmount_uL;
+                    ExperimenterTrialInfo.TotalRewardAmount_uL = TotalRewardAmount_uL;
+                end  
+            else
+                if ~isnan(BpodSystem.Data.RawEvents.Trial{1, currentTrial}.States.RewardPulse(1))
+                    TotalRewardAmount_uL = TotalRewardAmount_uL + S.GUI.PulseAmount_uL;
+                    ExperimenterTrialInfo.TotalRewardAmount_uL = TotalRewardAmount_uL;
+                end
             end
+
+ 
 
             BpodSystem.Data.TotalRewardAmount_uL(currentTrial) = TotalRewardAmount_uL; % total rew received up to current trial, session data
 
@@ -1793,7 +1845,9 @@ try
             ExpNotes.FinalShort = S.GUI.PrePress2DelayShort_s;
             ExpNotes.FinalLong = S.GUI.PrePress2DelayLong_s;
             ExpNotes.FinalPreRew = S.GUI.PreRewardDelay_s;
-            ExpNotes.TotalRewardAmount_uL = TotalRewardAmount_uL;           
+            ExpNotes.RewardPulseAmount = S.GUI.PulseAmount_uL;
+            ExpNotes.RewardPulses = NumCompletedRewardPulses;            
+            ExpNotes.TotalRewardAmount_uL = TotalRewardAmount_uL;
             strExpNotes = formattedDisplayText(ExpNotes,'UseTrueFalseForLogical',true, 'NumericFormat','short');
             disp(strExpNotes); 
 
@@ -1965,26 +2019,27 @@ function PrintInterruptLog(BpodSystem)
     VisStimInterruptGray2Count = 0;
 
     for trial = 1:SessionData.nTrials  
-
-        VisStimInterruptDetect1 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptDetect1;
-        if ~isnan(VisStimInterruptDetect1)
-            VisStimInterruptDetect1Count = VisStimInterruptDetect1Count + 1;
-        end
-
-        VisStimInterruptGray1 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptGray1;
-        if ~isnan(VisStimInterruptGray1)
-            VisStimInterruptGray1Count = VisStimInterruptGray1Count + 1;
-        end
+        if ~SessionData.TrialSettings(trial).GUI.EnableRewardPulses
+            VisStimInterruptDetect1 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptDetect1;
+            if ~isnan(VisStimInterruptDetect1)
+                VisStimInterruptDetect1Count = VisStimInterruptDetect1Count + 1;
+            end
     
-        VisStimInterruptDetect2 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptDetect2;
-        if ~isnan(VisStimInterruptDetect2)
-            VisStimInterruptDetect2Count = VisStimInterruptDetect2Count + 1;
+            VisStimInterruptGray1 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptGray1;
+            if ~isnan(VisStimInterruptGray1)
+                VisStimInterruptGray1Count = VisStimInterruptGray1Count + 1;
+            end
+        
+            VisStimInterruptDetect2 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptDetect2;
+            if ~isnan(VisStimInterruptDetect2)
+                VisStimInterruptDetect2Count = VisStimInterruptDetect2Count + 1;
+            end
+    
+            VisStimInterruptGray2 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptGray2;
+            if ~isnan(VisStimInterruptGray2)
+                VisStimInterruptGray2Count = VisStimInterruptGray2Count + 1;
+            end    
         end
-
-        VisStimInterruptGray2 = SessionData.RawEvents.Trial{1, trial}.States.VisStimInterruptGray2;
-        if ~isnan(VisStimInterruptGray2)
-            VisStimInterruptGray2Count = VisStimInterruptGray2Count + 1;
-        end        
 
 
     end
