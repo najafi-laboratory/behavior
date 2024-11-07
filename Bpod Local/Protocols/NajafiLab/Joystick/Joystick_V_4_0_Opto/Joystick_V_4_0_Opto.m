@@ -1830,14 +1830,18 @@ try
 
 
         end
+
+        S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin
+        EnableRewardPulses = S.GUI.EnableRewardPulses;
+
         HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
 
         BpodSystem.Data.TrialSettings(currentTrial).GUI.ExcludedTrials = [];
         BpodSystem.Data.TrialSettings(currentTrial).GUI.AssistedTrials = [];
 
         
-        S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin
-        EnableRewardPulses = S.GUI.EnableRewardPulses;
+        % S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin
+        % EnableRewardPulses = S.GUI.EnableRewardPulses;
 
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file 
