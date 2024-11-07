@@ -606,721 +606,724 @@ try
     ExpNotes.ProtoVersion = 'Joystick_V_4_0_Opto'; % update to use current file name
 
     %% Main trial loop
+
+    EnableRewardPulses = S.GUI.EnableRewardPulses;
     
     for currentTrial = 1:MaxTrials
        
         ExperimenterTrialInfo.TrialNumber = currentTrial;   % check variable states as field/value struct for experimenter info
     
-        %% sync trial-specific parameters from GUI
+        if ~EnableRewardPulses     
+            %% sync trial-specific parameters from GUI
 
-        S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
-        S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin    
-        
-        if (currentTrial == 1)
-            ExpNotes.InitShort = S.GUI.PrePress2DelayShort_s;
-            ExpNotes.InitLong = S.GUI.PrePress2DelayLong_s;
-            ExpNotes.PressStep = S.GUI.AutoDelayStep_s;
-            ExpNotes.InitialPreRew = S.GUI.PreRewardDelay_s;
-            ExpNotes.RewStep = S.GUI.AutoPreRewardDelayStep_s;
-        end
-
-        %% update trial type and sequencing
-        % maybe move some of these into GenTrials function
-        % update gentrials from opto updates
-        ManualDeactivated = 0;
-        updateTrialTypeSequence = 0;
-        if (PreviousEnableManualTrialType ~= S.GUI.EnableManualTrialType) 
-            if (PreviousEnableManualTrialType == 1)
-                ManualDeactivated = 1;                
-            end
-            PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
-        end
-
-        if (PreviousTrialTypeSequence ~= S.GUI.TrialTypeSequence) || (ManualDeactivated)
-            updateTrialTypeSequence = 1;            
-        end
-        PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
-
-        if PreviousNumTrialsPerBlock ~= S.GUI.NumTrialsPerBlock
-            updateTrialTypeSequence = 1;
-            PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
-        end
-
-        if PreviousBlockLengthMargin ~= S.GUI.BlockLengthMargin
-            updateTrialTypeSequence = 1;
-            PreviousBlockLengthMargin = S.GUI.BlockLengthMargin;
-        end        
-
-        if PreviousSelfTimedMode ~= S.GUI.SelfTimedMode
-            updateTrialTypeSequence = 1;
-            PreviousSelfTimedMode = S.GUI.SelfTimedMode;
-        end
-
-        %% update probe trial types warmup
-        % no probe trials during warmup
-        if WarmupTrialsCounter > 0
-            ProbeTrialTypes(currentTrial) = 0;
-        end
-        BpodSystem.Data.ProbeTrial(currentTrial) = ProbeTrialTypes(currentTrial);
-
-        %% update opto epoch warmup
-        if (S.GUI.OptoTrialTypeSeq == 5 && ...
-            WarmupTrialsCounter > 0)
-            OptoTrialTypes(currentTrial) = 1;
-        end        
-      
-        %% update outcome plot
-
-        % trial type updating needs to be updated with addition of probe
-        % trials, epoch opto, block margins, etc before being used during session
-        % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials,
-        % numTrialTypes, TrialTypes, currentTrial,
-        % updateTrialTypeSequence);   % keep in case we need the ability to
-        % change trial types after session start
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
-
-
-        %% update grating and gray videos
-        
-        if S.GUI.GratingDur_s ~= LastGratingDuration
-            GratingDuration = S.GUI.GratingDur_s; % set duration of grating to stimulus interval        
-  
-            GratingFrames = convergent(FramesPerSecond * GratingDuration);  % maybe use floor for this? then continue to round up below?
-            if (mod(GratingFrames, 2) ~= 0)
-                GratingFrames = GratingFrames + 1; % round up to nearest even integer
-            end
+            S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
+            S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin 
             
-            % compose grating video
-            GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2)];
-            ProbeGrayVideo = [repmat(GrayProbePattern, 1, GratingFrames/2)];
-            
-            % update durations based on number of frames generated
-            GratingDur = length(GratingVideo) * (1/FramesPerSecond);
-            ProbeGrayDur = length(ProbeGrayVideo) * (1/FramesPerSecond);
-        end
-        if S.GUI.ISIOrig_s ~= LastGrayFixedDuration
-            GrayFixedDuration = S.GUI.ISIOrig_s; % set duration of gray screen to inter stimulus interval
-    
-            GrayFixedFrames = convergent(FramesPerSecond * GrayFixedDuration);
-            if (mod(GrayFixedFrames, 2) ~= 0)
-                GrayFixedFrames = GrayFixedFrames + 1; % round up to nearest even integer
+            if (currentTrial == 1)
+                ExpNotes.InitShort = S.GUI.PrePress2DelayShort_s;
+                ExpNotes.InitLong = S.GUI.PrePress2DelayLong_s;
+                ExpNotes.PressStep = S.GUI.AutoDelayStep_s;
+                ExpNotes.InitialPreRew = S.GUI.PreRewardDelay_s;
+                ExpNotes.RewStep = S.GUI.AutoPreRewardDelayStep_s;
             end
-           
-            % compose gray video, fixed ISI
-            GrayVideo = [repmat(GrayPattern, 1, GrayFixedFrames/2)];
-                   
-            % update durations based on number of frames generated
-            GrayDur = length(GrayVideo) * (1/FramesPerSecond);        
-        end
     
+            %% update trial type and sequencing
+            % maybe move some of these into GenTrials function
+            % update gentrials from opto updates
+            ManualDeactivated = 0;
+            updateTrialTypeSequence = 0;
+            if (PreviousEnableManualTrialType ~= S.GUI.EnableManualTrialType) 
+                if (PreviousEnableManualTrialType == 1)
+                    ManualDeactivated = 1;                
+                end
+                PreviousEnableManualTrialType = S.GUI.EnableManualTrialType;
+            end
     
-        %% update video & audio and change tracking variables for audio and vis stim
-     
-        % if vis stim dur, audio stim freq, or volume changed then update sound wave
-        if (S.GUI.GratingDur_s ~= LastGratingDuration) || ...
-            (S.GUI.AudioStimFreq_Hz ~= LastAudioStimFrequency) || ...
-            (S.GUI.AudioStimVolume_percent ~= LastAudioStimVolume)
-            % generate audio stim with duration of vis stim
-            AudioStimSound = GenerateSineWave(SF, S.GUI.AudioStimFreq_Hz, GratingDur)*S.GUI.AudioStimVolume_percent; % Sampling freq (hz), Sine frequency (hz), duration (s)             
-            AudioStimSound = ApplySoundEnvelope(AudioStimSound, Envelope);
+            if (PreviousTrialTypeSequence ~= S.GUI.TrialTypeSequence) || (ManualDeactivated)
+                updateTrialTypeSequence = 1;            
+            end
+            PreviousTrialTypeSequence = S.GUI.TrialTypeSequence;
     
-            LastAudioStimFrequency = S.GUI.AudioStimFreq_Hz;
-            LastAudioStimVolume = S.GUI.AudioStimVolume_percent;
-        end
+            if PreviousNumTrialsPerBlock ~= S.GUI.NumTrialsPerBlock
+                updateTrialTypeSequence = 1;
+                PreviousNumTrialsPerBlock = S.GUI.NumTrialsPerBlock;
+            end
+    
+            if PreviousBlockLengthMargin ~= S.GUI.BlockLengthMargin
+                updateTrialTypeSequence = 1;
+                PreviousBlockLengthMargin = S.GUI.BlockLengthMargin;
+            end        
+    
+            if PreviousSelfTimedMode ~= S.GUI.SelfTimedMode
+                updateTrialTypeSequence = 1;
+                PreviousSelfTimedMode = S.GUI.SelfTimedMode;
+            end
+    
+            %% update probe trial types warmup
+            % no probe trials during warmup
+            if WarmupTrialsCounter > 0
+                ProbeTrialTypes(currentTrial) = 0;
+            end
+            BpodSystem.Data.ProbeTrial(currentTrial) = ProbeTrialTypes(currentTrial);
+    
+            %% update opto epoch warmup
+            if (S.GUI.OptoTrialTypeSeq == 5 && ...
+                WarmupTrialsCounter > 0)
+                OptoTrialTypes(currentTrial) = 1;
+            end        
           
-        if (S.GUI.PunishSoundDuration_s ~= LastPunishSoundDuration) || ...
-            (S.GUI.IncorrectSoundVolume_percent ~= LastIncorrectSoundVolume)
-            IncorrectSound = GenerateWhiteNoise(SF, S.GUI.PunishSoundDuration_s, 1, 2)*S.GUI.IncorrectSoundVolume_percent; % white noise punish sound
-            IncorrectSound = ApplySoundEnvelope(IncorrectSound, Envelope);
-            H.load(3, IncorrectSound);
-            LastPunishSoundDuration = S.GUI.PunishSoundDuration_s;
-            LastIncorrectSoundVolume = S.GUI.IncorrectSoundVolume_percent;
-        end
-
-        if (S.GUI.EarlyPressPunishSoundDuration_s ~= LastEarlyPressPunishSoundDuration) || ...
-            (S.GUI.EarlyPressPunishSoundVolume_percent ~= LastEarlyPressPunishSoundVolume)
-            EarlyPressPunishSound = GenerateWhiteNoise(SF, S.GUI.EarlyPressPunishSoundDuration_s, 1, 1)*S.GUI.EarlyPressPunishSoundVolume_percent; % white noise punish sound
-            EarlyPressPunishSound = ApplySoundEnvelope(EarlyPressPunishSound, Envelope);
-            H.load(4, EarlyPressPunishSound);
-            LastEarlyPressPunishSoundDuration = S.GUI.EarlyPressPunishSoundDuration_s;
-            LastEarlyPressPunishSoundVolume = S.GUI.EarlyPressPunishSoundVolume_percent;        
-        end
-
-        % update for opto interop
-        % trial type updating needs to be updated with addition of probe
-        % trials, epoch opto, block margins, etc before being used during session
-        % [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 0);
-        if ~m_Opto.EnableOpto
-            OptoStateExpInfo = 'Control';
-            OptoTrialExpInfo = 'NA';
-        else
-            OptoStateExpInfo = 'Opto';
-            switch OptoTrialTypes(currentTrial)
-                case 1                    
-                    OptoTrialExpInfo = 'Opto Off';
-                case 2                    
-                    OptoTrialExpInfo = 'Opto On';
-            end
-        end
-
-        % set session data flags to indicate if opto occurs for a given
-        % trial. 0 = No Opto,  1 = Opto
-        switch OptoTrialTypes(currentTrial)
-            case 1
-                BpodSystem.Data.OptoTag(currentTrial) = 0;
-            case 2
-                BpodSystem.Data.OptoTag(currentTrial) = 1;
-        end
-
-        % update outcome plot to reflect opto settings
-        m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
-                                 
-        %% video for opto joystick stim, gray frames for shutter open delay
-        VideoOptoDelay = [GrayFrame_SyncW GrayFrame_SyncBlk]; % 60 fps, F1, F2
-
-        VideoOptoDelayDur = (length(VideoOptoDelay) - 1) * (1/FramesPerSecond); % for audio sync, subtract variable start frame 
+            %% update outcome plot
     
-        % if ~ProbeTrialTypes(currentTrial)
-        FullOptoVideo = [VideoOptoDelay GratingVideo]; % standard vis stim grating video
-        
-
-        % else
-        FullOptoProbeVideo = [VideoOptoDelay ProbeGrayVideo]; % gray probe trial video, mimics sync patch of standard video
-        % end
-         
-        FullOptoVideoFrames = length(FullOptoVideo); % DO NOT subtract variable start frame, needed for actual number of frames when using PlayVideo function in VideoPlugin
-        VisStim.VisStimDuration = GratingDur;
-        ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;
-  
-        % load regular video
-        BpodSystem.PluginObjects.V.Videos{5} = struct;
-        BpodSystem.PluginObjects.V.Videos{5}.nFrames = FullOptoVideoFrames; 
-        BpodSystem.PluginObjects.V.Videos{5}.Data = FullOptoVideo;      
-
-        % load gray probe trial video
-        BpodSystem.PluginObjects.V.Videos{3} = struct;
-        BpodSystem.PluginObjects.V.Videos{3}.nFrames = FullOptoVideoFrames; 
-        BpodSystem.PluginObjects.V.Videos{3}.Data = FullOptoProbeVideo;             
-              
-        % audio for opto delay shift
-        OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF; % get duration of gray opto delay in number of audio samples for period between audio stim 
+            % trial type updating needs to be updated with addition of probe
+            % trials, epoch opto, block margins, etc before being used during session
+            % [TrialTypes] =  m_TrialConfig.GenTrials(S, MaxTrials,
+            % numTrialTypes, TrialTypes, currentTrial,
+            % updateTrialTypeSequence);   % keep in case we need the ability to
+            % change trial types after session start
+            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
     
-        OptoAudioStimOffset = zeros(1, OptoAudioStimOffsetNumSamples);
-
-        OptoAudioStimSound = [OptoAudioStimOffset AudioStimSound];
-
-
-        %% update trial-specific valve times using calibration table according to set reward amount    
-        RewardAmount_uL = 0;
-        CenterValveTime = 0;
-        if ~ProbeTrialTypes(currentTrial)
-            RewardAmount_uL = S.GUI.CenterValveAmount_uL;
-            CenterValveTime = GetValveTimes(RewardAmount_uL, [2]); 
-        end
-
-        % init reward times, update based on reward rep
-        RewardTime = CenterValveTime;
-
-        ExperimenterTrialInfo.CenterValveAmount_uL = S.GUI.CenterValveAmount_uL;
-        ExperimenterTrialInfo.CenterValveTime = CenterValveTime;
-        
-        %% get PreRewardDelay, auto or manual
-       
-        % when auto pre reward delay becomes enabled, auto pre reward delay starts at
-        % gui param
-        if S.GUI.EnableAutoPreRewardDelay ~= PreviousEnableAutoPreRewardDelay
-            PreviousEnableAutoPreRewardDelay = S.GUI.EnableAutoPreRewardDelay;
-            if S.GUI.EnableAutoPreRewardDelay
-                disp('set auto pre reward delay to gui param')
-                AutoPreRewardDelay_s = S.GUI.PreRewardDelay_s;
-            end
-        end
-        
-        % if after first trial, auto pre reward delay enabled, and previous
-        % trial was rewarded, and isn't a warmup trial, then increment the auto pre reward delay
-        % value
-        if  (S.GUI.EnableAutoPreRewardDelay && ...
-            (currentTrial > 1) && ...      
-            (WarmupTrialsCounter <= 0) && ...
-            ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))            
-            % disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
+    
+            %% update grating and gray videos
             
-            AutoPreRewardDelay_s = AutoPreRewardDelay_s + S.GUI.AutoPreRewardDelayStep_s;
-            disp(['AutoPreRewardDelay_s incremented: ' num2str(AutoPreRewardDelay_s)])
-        end
-        
-        % if auto pre reward delay enabled, then set pre reward delay to
-        % the minimum of auto value or upper bound
-        % otherwise set to gui param
-        if (S.GUI.EnableAutoPreRewardDelay && ...      
-            (WarmupTrialsCounter <= 0))
-            PreRewardDelay_s = min(AutoPreRewardDelay_s, S.GUI.AutoPreRewardDelayMax_s); 
-            S.GUI.PreRewardDelay_s = AutoPreRewardDelay_s;
-        else
-            PreRewardDelay_s = S.GUI.PreRewardDelay_s;
-        end
-
-        disp(['using PreRewardDelay_s: ' num2str(PreRewardDelay_s)]);
-
-        ExperimenterTrialInfo.PreRewardDelay_s = PreRewardDelay_s;
-
-        %% get pre vis stim delay based on trial type gui params, also experimenter info previsdelay/trial type
-
-        switch S.GUI.SelfTimedMode
-            case 0 
-                ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
-                switch TrialTypes(currentTrial)
-                    case 1
-                        ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
-                    case 2
-                        ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+            if S.GUI.GratingDur_s ~= LastGratingDuration
+                GratingDuration = S.GUI.GratingDur_s; % set duration of grating to stimulus interval        
+      
+                GratingFrames = convergent(FramesPerSecond * GratingDuration);  % maybe use floor for this? then continue to round up below?
+                if (mod(GratingFrames, 2) ~= 0)
+                    GratingFrames = GratingFrames + 1; % round up to nearest even integer
                 end
-            case 1
-                ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
-                switch TrialTypes(currentTrial)
-                    case 1
-                        ExperimenterTrialInfo.TrialType = 'Short Pre Press Delay';   % check variable states as field/value struct for experimenter info
-                    case 2
-                        ExperimenterTrialInfo.TrialType = 'Long Pre Press Delay';   % check variable states as field/value struct for experimenter info
-                end      
-        end
-       
-        % exp info indicate auto delay enabled
-        if S.GUI.EnableAutoDelay
-            ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
-        end
-
-        % if auto delay enabled, prev trial rewarded, and not warmup, update respective
-        % gui param
-        if  (currentTrial>1 && ...      
-            S.GUI.EnableAutoDelay && ...
-            (WarmupTrialsCounter <= 0) && ...
-            isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
-            ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
-            switch (TrialTypes(currentTrial-1))
-                case 1
-                    if (S.GUI.PrePress2DelayLong_s >= MinShortLongDelaySeparation)
-                        S.GUI.PrePress2DelayShort_s = min(S.GUI.PrePress2DelayShort_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxShort_s);
-                        disp(['PrePress2DelayShort_s incremented: ' num2str(S.GUI.PrePress2DelayShort_s)])
-                    end
-                case 2
-                    S.GUI.PrePress2DelayLong_s = min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s);
-                    disp(['PrePress2DelayLong_s incremented: ' num2str(S.GUI.PrePress2DelayLong_s)])
-            end            
-        end
-
-        % use delay for current trial type
-        switch TrialTypes(currentTrial)
-            case 1
-                PressVisDelay_s = S.GUI.PrePress2DelayShort_s;
-                disp(['using short delay: ' num2str(PressVisDelay_s)])
-            case 2
-                PressVisDelay_s = S.GUI.PrePress2DelayLong_s;
-                disp(['using long delay: ' num2str(PressVisDelay_s)])
-        end      
-
-        %% Vis 2 Jitter
-        % if vis-guided, add jitter to pre vis 2 delay within margin
-        % add v_3_8
-        %if long - short >= 100 + 2*gui_margin
-    
-        % ShortDelayTrials = find(TrialTypes==1);
-        % LongDelayTrials = find(TrialTypes==2);
-        % 
-        if (S.GUI.EnablePreVis2DelayJitter && ...
-            ~S.GUI.SelfTimedMode) 
-
-            % check that (short+margin_max) and (long-margin_min) has at
-            % least 100ms gap at the start of short/long block
-            % MinShortLongDelayJitterSeparation = MinShortLongDelaySeparation?
-            MinShortLongDelayJitterSeparation = 0.100;
-
-            if StartOfBlock(currentTrial)
-                DelayMinSeparationCondition = (S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s) >= MinShortLongDelayJitterSeparation + 2*S.GUI.PreVis2DelayMargin_s;
-                if DelayMinSeparationCondition
-                    ApplyJitterInThisBlock = true;
-                else
-                    ApplyJitterInThisBlock = false;                    
-                end
-            end
-
-            % draw jitter from normal distribution using 
-            % mean = PressVisDelay_s 
-            % sigma (std dev) = S.GUI.PreVis2DelayJitterStd
-            % within cutoff margin of S.GUI.PreVis2DelayMargin_s
-            if ApplyJitterInThisBlock
-                % Vis2Jitter(currentTrial) = (2* S.GUI.PreVis2DelayMargin_s).*rand(1,1) - S.GUI.PreVis2DelayMargin_s;
                 
-                LB = PressVisDelay_s - S.GUI.PreVis2DelayMargin_s;
-                UB = PressVisDelay_s + S.GUI.PreVis2DelayMargin_s;
-                % test = [];  % testing to check distribution
-                % idx = 1;
-                % while idx < 1000
-                withinMargin = 0;
-                while ~withinMargin
-                    drawNormal = normrnd(PressVisDelay_s, S.GUI.PreVis2DelayJitterStd);
-                    if (drawNormal >= LB) && (drawNormal <= UB)
-                        withinMargin = 1;
-                        Vis2Jitter(currentTrial) = drawNormal;
-                    end
-                end
-                %     test(idx) = drawNormal;
-                %     idx = idx + 1;
-                % end
-                PressVisDelay_s = PressVisDelay_s + Vis2Jitter(currentTrial);
-                disp(['vis 2 jitter: ' num2str(Vis2Jitter(currentTrial))]);   
-            else
-                disp(['short/long delay too close to add vis 2 jitter: ' num2str(S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s)]);
+                % compose grating video
+                GratingVideo = [repmat(GratingPattern, 1, GratingFrames/2)];
+                ProbeGrayVideo = [repmat(GrayProbePattern, 1, GratingFrames/2)];
+                
+                % update durations based on number of frames generated
+                GratingDur = length(GratingVideo) * (1/FramesPerSecond);
+                ProbeGrayDur = length(ProbeGrayVideo) * (1/FramesPerSecond);
             end
-
-            % set minimum press vis delay of 100ms
-            if PressVisDelay_s < 0.100
-                PressVisDelay_s = 0.100;
-            end
-        end
-
-         
-        %% get press window
-
-        % update auto window reduce if enabled
-        if  (currentTrial>1 && ...      
-            S.GUI.EnableAutoPressWinReduce && ...
-            (WarmupTrialsCounter <= 0) && ...
-            ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
-            S.GUI.Press1Window_s = max(S.GUI.Press1Window_s - S.GUI.AutoPressWinReduceStep, S.GUI.AutoPressWinReduceMin);
-            S.GUI.Press2Window_s = max(S.GUI.Press2Window_s - S.GUI.AutoPressWinReduceStep, S.GUI.AutoPressWinReduceMin);
-        end
-
-        % local vars for checking if warmup extend
-        Press1Window_s = S.GUI.Press1Window_s;
-        Press2Window_s = S.GUI.Press2Window_s;
-
-        %% fixed dur Pre-Vis ITI
-        PreVisStimITI = S.GUI.ITI_Pre; % updated V_3_3; updated V_3_7            
-        ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI;
-         
-        %% Draw trial-specific ITI post for end of trial ITI    
-        BpodSystem.Data.EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
-        ExperimenterTrialInfo.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI;   
-
-
-        %% set state matrix variables        
+            if S.GUI.ISIOrig_s ~= LastGrayFixedDuration
+                GrayFixedDuration = S.GUI.ISIOrig_s; % set duration of gray screen to inter stimulus interval
         
-        VisDetectGray1OutputAction = {'RotaryEncoder1', ['E']};
-        % different vis stim for probe trials
-        if ~ProbeTrialTypes(currentTrial)
-            VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
-        else
-            VisDetect2OutputAction = {'SoftCode', 3,'RotaryEncoder1', ['E']};
-        end
-        VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']};
-
-        LeverRetractFinal_StateChangeConditions = {};
-
-        WaitForPress1_StateChangeConditions = {};        
-        WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
-        Press1_OutputActions = {'RotaryEncoder1', ['E']};
-        PreRetract1Delay_OutputActions = {};
-        LeverRetract1_OutputActions = {'SoftCode', 8};
-        DidNotPress1_OutputActions = {};
-        LeverRetract1_StateChangeConditions = {};
-        EarlyPress1_OutputActions = {};        
-    
-        PreDelayGap_OutputActions = {};
-        WaitForPress2_StateChangeConditions = {};
-        WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};             
-        Press2_OutputActions = {'RotaryEncoder1', ['E']};
-        DidNotPress2_OutputActions = {};
-        EarlyPress2_OutputActions = {};
-           
-        PreRewardDelay_OutputActions = {};
-
-        Punish_OutputActions = {};
-
-        if ProbeTrialTypes(currentTrial)
-            Reward_OutputActions = {};
-        else
-            Reward_OutputActions = {'Valve2', 1};
-        end
-
-        PostRewardDelay_StateChangeConditions = {};
-
-        %% Opto timers
-
-        % Define Opto Timer Trigger and Cancel for Segment 1 and Segment 2
-        % seg1:
-        % vis1 and/or wait1: timer 1 and 5: '000010001'
-        TimerTrigger_V1W1 = {'GlobalTimerTrig', '000010001'};
-        TimerCancel_V1W1 = {'GlobalTimerCancel', '000010001'};
-
-        % seg delay:
-        % vis1 and/or wait1: timer 4 and 6: '000101000'
-        TimerTrigger_PressDelay = {'GlobalTimerTrig', '000101000'};
-        TimerCancel_PressDelay = {'GlobalTimerCancel', '000101000'};
-
-        % seg2:
-        % vis2 and/or wait2: timer 3 and 7: '001000100'
-        TimerTrigger_V2W2 = {'GlobalTimerTrig', '001000100'};
-        TimerCancel_V2W2 = {'GlobalTimerCancel', '001000100'};
-
-        % shutter reset timer: timer 2: '000000010'
-        TimerShutterReset = {'GlobalTimerTrig', '000000010'};
-
-        % press timers: timer 8 and 9: 
-        % currently using seg delay timers 4 & 6 since press states have
-        % unknown immediate start time of opto, update to use different
-        % timers if seg delay changes
-        
-        TimerTrigger_Press = {'GlobalTimerTrig', '110000000'};
-        TimerCancel_Press = {'GlobalTimerCancel', '110000000'};
-
-
-        % set visual stimulus 1&2 state outputs (referred to as audStimOpto
-        % since the audio starts in those states)
-
-        % set audio stim based on audio enable
-        if S.GUI.AudioStimEnable
-            AudStim = {'HiFi1', ['P', 6]};
-        else
-            AudStim = {};
-        end
-
-        % set visual stimulus output actions
-        % add audio output to vis stim state output
-        VisualStimulus1_OutputActions = AudStim;
-        VisualStimulus2_OutputActions = AudStim;
-
-        % if opto is enabled, add opto triggers to vis stim output actions
-        % update after opto proto is defined to create separate function to abstract global timer
-        if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
-            %%%%%%%%%%%%%%% segment either %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-            %%%%%%%%%%%%%%% segment 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   
-            % if any segment 1 opto is active,
-            % cancel timers and reset shutter when press1, didnotpress1, earlypress1 starts            
-            if S.GUI.OptoVis1 || S.GUI.OptoWaitForPress1 || S.GUI.OptoPress1            
-                if S.GUI.OptoPress1
-                    PreRetract1Delay_OutputActions = [Press1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-                else
-                    Press1_OutputActions = [Press1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                GrayFixedFrames = convergent(FramesPerSecond * GrayFixedDuration);
+                if (mod(GrayFixedFrames, 2) ~= 0)
+                    GrayFixedFrames = GrayFixedFrames + 1; % round up to nearest even integer
                 end
-                DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-                EarlyPress1_OutputActions = [EarlyPress1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-            end
-
-            if S.GUI.OptoVis1
-                VisDetectGray1OutputAction = [VisDetectGray1OutputAction , TimerTrigger_V1W1];
-            end                       
-
-            if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
-                %WaitForPress1_OutputActions = [WaitForPress1_OutputActions, TimerCancel_V1W1];
-            end
-
-            if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
-                VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
-            end
-
-            if ~S.GUI.OptoWaitForPress1 && S.GUI.OptoPress1
-                Press1_OutputActions = [Press1_OutputActions, TimerTrigger_Press];
-            end
-
-            % can use these later if we need to reduce the number of cases
-            % in which the 25ms shutter reset is used since it's only
-            % needed when variable-time opto segments are used (such as
-            % waitforpress)
-            % if S.GUI.OptoWaitForPress1
-            %     DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];                
-            % end
-            
-            %%%%%%%%%%%%%%% segment 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            % if any segment 2 (including prepressdelay) opto is active,
-            % cancel timers and reset shutter when press2, didnotpress2, earlypress2 starts
-            if S.GUI.OptoPrePressDelay || S.GUI.OptoVis2 || S.GUI.OptoWaitForPress2 || S.GUI.OptoPress2
-                if S.GUI.OptoPress2
-                    PreRewardDelay_OutputActions = [PreRewardDelay_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-                else
-                    Press2_OutputActions = [Press2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-                end                                   
-                DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-                EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
-            end
-
-            % cases depending on PrePressDelay opto on/off
-            if S.GUI.OptoPrePressDelay
-                PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_PressDelay];
                
-                if ~S.GUI.OptoVis2
-                    VisDetectGray2OutputAction = [VisDetectGray2OutputAction, TimerCancel_PressDelay];
-                    if S.GUI.OptoWaitForPress2                        
-                        VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
-                    end
-                end
-
-                if ~S.GUI.OptoWaitForPress2
-                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_PressDelay];
-                    if S.GUI.OptoPress2
-                        Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
-                    end
-                end
-                              
-            else
-                if S.GUI.OptoVis2
-                    VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerTrigger_V2W2];
-                end             
+                % compose gray video, fixed ISI
+                GrayVideo = [repmat(GrayPattern, 1, GrayFixedFrames/2)];
+                       
+                % update durations based on number of frames generated
+                GrayDur = length(GrayVideo) * (1/FramesPerSecond);        
+            end
+        
+        
+            %% update video & audio and change tracking variables for audio and vis stim
+         
+            % if vis stim dur, audio stim freq, or volume changed then update sound wave
+            if (S.GUI.GratingDur_s ~= LastGratingDuration) || ...
+                (S.GUI.AudioStimFreq_Hz ~= LastAudioStimFrequency) || ...
+                (S.GUI.AudioStimVolume_percent ~= LastAudioStimVolume)
+                % generate audio stim with duration of vis stim
+                AudioStimSound = GenerateSineWave(SF, S.GUI.AudioStimFreq_Hz, GratingDur)*S.GUI.AudioStimVolume_percent; % Sampling freq (hz), Sine frequency (hz), duration (s)             
+                AudioStimSound = ApplySoundEnvelope(AudioStimSound, Envelope);
+        
+                LastAudioStimFrequency = S.GUI.AudioStimFreq_Hz;
+                LastAudioStimVolume = S.GUI.AudioStimVolume_percent;
+            end
+              
+            if (S.GUI.PunishSoundDuration_s ~= LastPunishSoundDuration) || ...
+                (S.GUI.IncorrectSoundVolume_percent ~= LastIncorrectSoundVolume)
+                IncorrectSound = GenerateWhiteNoise(SF, S.GUI.PunishSoundDuration_s, 1, 2)*S.GUI.IncorrectSoundVolume_percent; % white noise punish sound
+                IncorrectSound = ApplySoundEnvelope(IncorrectSound, Envelope);
+                H.load(3, IncorrectSound);
+                LastPunishSoundDuration = S.GUI.PunishSoundDuration_s;
+                LastIncorrectSoundVolume = S.GUI.IncorrectSoundVolume_percent;
+            end
     
-                if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
-                    WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_V2W2];
-                end
-
-                if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2               
-                    VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];             
-                end    
-
-
-                if S.GUI.OptoWaitForPress2 && S.GUI.SelfTimedMode
-                    PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_V2W2];
-                end   
-
-                if ~S.GUI.OptoWaitForPress2
-                    if S.GUI.OptoPress2
-                        Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
-                    end
+            if (S.GUI.EarlyPressPunishSoundDuration_s ~= LastEarlyPressPunishSoundDuration) || ...
+                (S.GUI.EarlyPressPunishSoundVolume_percent ~= LastEarlyPressPunishSoundVolume)
+                EarlyPressPunishSound = GenerateWhiteNoise(SF, S.GUI.EarlyPressPunishSoundDuration_s, 1, 1)*S.GUI.EarlyPressPunishSoundVolume_percent; % white noise punish sound
+                EarlyPressPunishSound = ApplySoundEnvelope(EarlyPressPunishSound, Envelope);
+                H.load(4, EarlyPressPunishSound);
+                LastEarlyPressPunishSoundDuration = S.GUI.EarlyPressPunishSoundDuration_s;
+                LastEarlyPressPunishSoundVolume = S.GUI.EarlyPressPunishSoundVolume_percent;        
+            end
+    
+            % update for opto interop
+            % trial type updating needs to be updated with addition of probe
+            % trials, epoch opto, block margins, etc before being used during session
+            % [OptoTrialTypes] = m_Opto.UpdateOptoTrials(BpodSystem, S, OptoTrialTypes, TrialTypes, currentTrial, 0);
+            if ~m_Opto.EnableOpto
+                OptoStateExpInfo = 'Control';
+                OptoTrialExpInfo = 'NA';
+            else
+                OptoStateExpInfo = 'Opto';
+                switch OptoTrialTypes(currentTrial)
+                    case 1                    
+                        OptoTrialExpInfo = 'Opto Off';
+                    case 2                    
+                        OptoTrialExpInfo = 'Opto On';
                 end
             end
-
-            % need the punish shutter retract?
-            % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
-        end
-
-        %% update trial-specific Audio
-        % load sound wave to hifi
-        % H.load(7, AudioStimSound);
-        H.load(7, OptoAudioStimSound);
     
-        % toggle punish sound on/off
-        EarlyPressPunish_OutputActions = {};
-        if (S.GUI.IncorrectSound && ...
-           ~ProbeTrialTypes(currentTrial))
-                Punish_OutputActions = [Punish_OutputActions, 'HiFi1', ['P' 2]];
-                EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
-        end
-
-        LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'};
-        WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
-        LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreDelayGap'};
+            % set session data flags to indicate if opto occurs for a given
+            % trial. 0 = No Opto,  1 = Opto
+            switch OptoTrialTypes(currentTrial)
+                case 1
+                    BpodSystem.Data.OptoTag(currentTrial) = 0;
+                case 2
+                    BpodSystem.Data.OptoTag(currentTrial) = 1;
+            end
+    
+            % update outcome plot to reflect opto settings
+            m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, OptoTrialTypes, ProbeTrialTypes, 0);
+                                     
+            %% video for opto joystick stim, gray frames for shutter open delay
+            VideoOptoDelay = [GrayFrame_SyncW GrayFrame_SyncBlk]; % 60 fps, F1, F2
+    
+            VideoOptoDelayDur = (length(VideoOptoDelay) - 1) * (1/FramesPerSecond); % for audio sync, subtract variable start frame 
         
-        if ~S.GUI.SelfTimedMode
-            PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
-        else
-            PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
-        end
-
-        WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};             
-        PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
+            % if ~ProbeTrialTypes(currentTrial)
+            FullOptoVideo = [VideoOptoDelay GratingVideo]; % standard vis stim grating video
+            
+    
+            % else
+            FullOptoProbeVideo = [VideoOptoDelay ProbeGrayVideo]; % gray probe trial video, mimics sync patch of standard video
+            % end
+             
+            FullOptoVideoFrames = length(FullOptoVideo); % DO NOT subtract variable start frame, needed for actual number of frames when using PlayVideo function in VideoPlugin
+            VisStim.VisStimDuration = GratingDur;
+            ExperimenterTrialInfo.VisStimDuration = VisStim.VisStimDuration;
+      
+            % load regular video
+            BpodSystem.PluginObjects.V.Videos{5} = struct;
+            BpodSystem.PluginObjects.V.Videos{5}.nFrames = FullOptoVideoFrames; 
+            BpodSystem.PluginObjects.V.Videos{5}.Data = FullOptoVideo;      
+    
+            % load gray probe trial video
+            BpodSystem.PluginObjects.V.Videos{3} = struct;
+            BpodSystem.PluginObjects.V.Videos{3}.nFrames = FullOptoVideoFrames; 
+            BpodSystem.PluginObjects.V.Videos{3}.Data = FullOptoProbeVideo;             
+                  
+            % audio for opto delay shift
+            OptoAudioStimOffsetNumSamples = VideoOptoDelayDur * SF; % get duration of gray opto delay in number of audio samples for period between audio stim 
+        
+            OptoAudioStimOffset = zeros(1, OptoAudioStimOffsetNumSamples);
+    
+            OptoAudioStimSound = [OptoAudioStimOffset AudioStimSound];
+    
+    
+            %% update trial-specific valve times using calibration table according to set reward amount    
+            RewardAmount_uL = 0;
+            CenterValveTime = 0;
+            if ~ProbeTrialTypes(currentTrial)
+                RewardAmount_uL = S.GUI.CenterValveAmount_uL;
+                CenterValveTime = GetValveTimes(RewardAmount_uL, [2]); 
+            end
+    
+            % init reward times, update based on reward rep
+            RewardTime = CenterValveTime;
+    
+            ExperimenterTrialInfo.CenterValveAmount_uL = S.GUI.CenterValveAmount_uL;
+            ExperimenterTrialInfo.CenterValveTime = CenterValveTime;
+            
+            %% get PreRewardDelay, auto or manual
+           
+            % when auto pre reward delay becomes enabled, auto pre reward delay starts at
+            % gui param
+            if S.GUI.EnableAutoPreRewardDelay ~= PreviousEnableAutoPreRewardDelay
+                PreviousEnableAutoPreRewardDelay = S.GUI.EnableAutoPreRewardDelay;
+                if S.GUI.EnableAutoPreRewardDelay
+                    disp('set auto pre reward delay to gui param')
+                    AutoPreRewardDelay_s = S.GUI.PreRewardDelay_s;
+                end
+            end
+            
+            % if after first trial, auto pre reward delay enabled, and previous
+            % trial was rewarded, and isn't a warmup trial, then increment the auto pre reward delay
+            % value
+            if  (S.GUI.EnableAutoPreRewardDelay && ...
+                (currentTrial > 1) && ...      
+                (WarmupTrialsCounter <= 0) && ...
+                ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))            
+                % disp(['WarmupTrialsCounter: ' num2str(WarmupTrialsCounter)])
+                
+                AutoPreRewardDelay_s = AutoPreRewardDelay_s + S.GUI.AutoPreRewardDelayStep_s;
+                disp(['AutoPreRewardDelay_s incremented: ' num2str(AutoPreRewardDelay_s)])
+            end
+            
+            % if auto pre reward delay enabled, then set pre reward delay to
+            % the minimum of auto value or upper bound
+            % otherwise set to gui param
+            if (S.GUI.EnableAutoPreRewardDelay && ...      
+                (WarmupTrialsCounter <= 0))
+                PreRewardDelay_s = min(AutoPreRewardDelay_s, S.GUI.AutoPreRewardDelayMax_s); 
+                S.GUI.PreRewardDelay_s = AutoPreRewardDelay_s;
+            else
+                PreRewardDelay_s = S.GUI.PreRewardDelay_s;
+            end
+    
+            disp(['using PreRewardDelay_s: ' num2str(PreRewardDelay_s)]);
+    
+            ExperimenterTrialInfo.PreRewardDelay_s = PreRewardDelay_s;
+    
+            %% get pre vis stim delay based on trial type gui params, also experimenter info previsdelay/trial type
+    
+            switch S.GUI.SelfTimedMode
+                case 0 
+                    ExperimenterTrialInfo.ProtocolMode = 'Visually Guided';
+                    switch TrialTypes(currentTrial)
+                        case 1
+                            ExperimenterTrialInfo.TrialType = 'Short Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+                        case 2
+                            ExperimenterTrialInfo.TrialType = 'Long Pre Vis Delay';   % check variable states as field/value struct for experimenter info
+                    end
+                case 1
+                    ExperimenterTrialInfo.ProtocolMode = 'Self Timed';
+                    switch TrialTypes(currentTrial)
+                        case 1
+                            ExperimenterTrialInfo.TrialType = 'Short Pre Press Delay';   % check variable states as field/value struct for experimenter info
+                        case 2
+                            ExperimenterTrialInfo.TrialType = 'Long Pre Press Delay';   % check variable states as field/value struct for experimenter info
+                    end      
+            end
+           
+            % exp info indicate auto delay enabled
+            if S.GUI.EnableAutoDelay
+                ExperimenterTrialInfo.EnableAutoDelay = 'Auto Delay Enabled';
+            end
+    
+            % if auto delay enabled, prev trial rewarded, and not warmup, update respective
+            % gui param
+            if  (currentTrial>1 && ...      
+                S.GUI.EnableAutoDelay && ...
+                (WarmupTrialsCounter <= 0) && ...
+                isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Reward') && ...
+                ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
+                switch (TrialTypes(currentTrial-1))
+                    case 1
+                        if (S.GUI.PrePress2DelayLong_s >= MinShortLongDelaySeparation)
+                            S.GUI.PrePress2DelayShort_s = min(S.GUI.PrePress2DelayShort_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxShort_s);
+                            disp(['PrePress2DelayShort_s incremented: ' num2str(S.GUI.PrePress2DelayShort_s)])
+                        end
+                    case 2
+                        S.GUI.PrePress2DelayLong_s = min(S.GUI.PrePress2DelayLong_s + S.GUI.AutoDelayStep_s, S.GUI.AutoDelayMaxLong_s);
+                        disp(['PrePress2DelayLong_s incremented: ' num2str(S.GUI.PrePress2DelayLong_s)])
+                end            
+            end
+    
+            % use delay for current trial type
+            switch TrialTypes(currentTrial)
+                case 1
+                    PressVisDelay_s = S.GUI.PrePress2DelayShort_s;
+                    disp(['using short delay: ' num2str(PressVisDelay_s)])
+                case 2
+                    PressVisDelay_s = S.GUI.PrePress2DelayLong_s;
+                    disp(['using long delay: ' num2str(PressVisDelay_s)])
+            end      
+    
+            %% Vis 2 Jitter
+            % if vis-guided, add jitter to pre vis 2 delay within margin
+            % add v_3_8
+            %if long - short >= 100 + 2*gui_margin
+        
+            % ShortDelayTrials = find(TrialTypes==1);
+            % LongDelayTrials = find(TrialTypes==2);
+            % 
+            if (S.GUI.EnablePreVis2DelayJitter && ...
+                ~S.GUI.SelfTimedMode) 
+    
+                % check that (short+margin_max) and (long-margin_min) has at
+                % least 100ms gap at the start of short/long block
+                % MinShortLongDelayJitterSeparation = MinShortLongDelaySeparation?
+                MinShortLongDelayJitterSeparation = 0.100;
+    
+                if StartOfBlock(currentTrial)
+                    DelayMinSeparationCondition = (S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s) >= MinShortLongDelayJitterSeparation + 2*S.GUI.PreVis2DelayMargin_s;
+                    if DelayMinSeparationCondition
+                        ApplyJitterInThisBlock = true;
+                    else
+                        ApplyJitterInThisBlock = false;                    
+                    end
+                end
+    
+                % draw jitter from normal distribution using 
+                % mean = PressVisDelay_s 
+                % sigma (std dev) = S.GUI.PreVis2DelayJitterStd
+                % within cutoff margin of S.GUI.PreVis2DelayMargin_s
+                if ApplyJitterInThisBlock
+                    % Vis2Jitter(currentTrial) = (2* S.GUI.PreVis2DelayMargin_s).*rand(1,1) - S.GUI.PreVis2DelayMargin_s;
+                    
+                    LB = PressVisDelay_s - S.GUI.PreVis2DelayMargin_s;
+                    UB = PressVisDelay_s + S.GUI.PreVis2DelayMargin_s;
+                    % test = [];  % testing to check distribution
+                    % idx = 1;
+                    % while idx < 1000
+                    withinMargin = 0;
+                    while ~withinMargin
+                        drawNormal = normrnd(PressVisDelay_s, S.GUI.PreVis2DelayJitterStd);
+                        if (drawNormal >= LB) && (drawNormal <= UB)
+                            withinMargin = 1;
+                            Vis2Jitter(currentTrial) = drawNormal;
+                        end
+                    end
+                    %     test(idx) = drawNormal;
+                    %     idx = idx + 1;
+                    % end
+                    PressVisDelay_s = PressVisDelay_s + Vis2Jitter(currentTrial);
+                    disp(['vis 2 jitter: ' num2str(Vis2Jitter(currentTrial))]);   
+                else
+                    disp(['short/long delay too close to add vis 2 jitter: ' num2str(S.GUI.PrePress2DelayLong_s - S.GUI.PrePress2DelayShort_s)]);
+                end
+    
+                % set minimum press vis delay of 100ms
+                if PressVisDelay_s < 0.100
+                    PressVisDelay_s = 0.100;
+                end
+            end
+    
+             
+            %% get press window
+    
+            % update auto window reduce if enabled
+            if  (currentTrial>1 && ...      
+                S.GUI.EnableAutoPressWinReduce && ...
+                (WarmupTrialsCounter <= 0) && ...
+                ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1)))
+                S.GUI.Press1Window_s = max(S.GUI.Press1Window_s - S.GUI.AutoPressWinReduceStep, S.GUI.AutoPressWinReduceMin);
+                S.GUI.Press2Window_s = max(S.GUI.Press2Window_s - S.GUI.AutoPressWinReduceStep, S.GUI.AutoPressWinReduceMin);
+            end
+    
+            % local vars for checking if warmup extend
+            Press1Window_s = S.GUI.Press1Window_s;
+            Press2Window_s = S.GUI.Press2Window_s;
+    
+            %% fixed dur Pre-Vis ITI
+            PreVisStimITI = S.GUI.ITI_Pre; % updated V_3_3; updated V_3_7            
+            ExperimenterTrialInfo.PreVisStimITI = PreVisStimITI;
+             
+            %% Draw trial-specific ITI post for end of trial ITI    
+            BpodSystem.Data.EndOfTrialITI = m_TrialConfig.GetITI(S); % updated V_3_3; updated V_3_7
+            ExperimenterTrialInfo.EndOfTrialITI = BpodSystem.Data.EndOfTrialITI;   
+    
+    
+            %% set state matrix variables        
+            
+            VisDetectGray1OutputAction = {'RotaryEncoder1', ['E']};
+            % different vis stim for probe trials
+            if ~ProbeTrialTypes(currentTrial)
+                VisDetect2OutputAction = {'SoftCode', 5,'RotaryEncoder1', ['E']};
+            else
+                VisDetect2OutputAction = {'SoftCode', 3,'RotaryEncoder1', ['E']};
+            end
+            VisDetectGray2OutputAction = {'RotaryEncoder1', ['E']};
+    
+            LeverRetractFinal_StateChangeConditions = {};
+    
+            WaitForPress1_StateChangeConditions = {};        
+            WaitForPress1_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};
+            Press1_OutputActions = {'RotaryEncoder1', ['E']};
+            PreRetract1Delay_OutputActions = {};
+            LeverRetract1_OutputActions = {'SoftCode', 8};
+            DidNotPress1_OutputActions = {};
+            LeverRetract1_StateChangeConditions = {};
+            EarlyPress1_OutputActions = {};        
+        
+            PreDelayGap_OutputActions = {};
+            WaitForPress2_StateChangeConditions = {};
+            WaitForPress2_OutputActions = {'SoftCode', 7,'RotaryEncoder1', ['E']};             
+            Press2_OutputActions = {'RotaryEncoder1', ['E']};
+            DidNotPress2_OutputActions = {};
+            EarlyPress2_OutputActions = {};
+               
+            PreRewardDelay_OutputActions = {};
+    
+            Punish_OutputActions = {};
+    
+            if ProbeTrialTypes(currentTrial)
+                Reward_OutputActions = {};
+            else
+                Reward_OutputActions = {'Valve2', 1};
+            end
+    
+            PostRewardDelay_StateChangeConditions = {};
+    
+            %% Opto timers
+    
+            % Define Opto Timer Trigger and Cancel for Segment 1 and Segment 2
+            % seg1:
+            % vis1 and/or wait1: timer 1 and 5: '000010001'
+            TimerTrigger_V1W1 = {'GlobalTimerTrig', '000010001'};
+            TimerCancel_V1W1 = {'GlobalTimerCancel', '000010001'};
+    
+            % seg delay:
+            % vis1 and/or wait1: timer 4 and 6: '000101000'
+            TimerTrigger_PressDelay = {'GlobalTimerTrig', '000101000'};
+            TimerCancel_PressDelay = {'GlobalTimerCancel', '000101000'};
+    
+            % seg2:
+            % vis2 and/or wait2: timer 3 and 7: '001000100'
+            TimerTrigger_V2W2 = {'GlobalTimerTrig', '001000100'};
+            TimerCancel_V2W2 = {'GlobalTimerCancel', '001000100'};
+    
+            % shutter reset timer: timer 2: '000000010'
+            TimerShutterReset = {'GlobalTimerTrig', '000000010'};
+    
+            % press timers: timer 8 and 9: 
+            % currently using seg delay timers 4 & 6 since press states have
+            % unknown immediate start time of opto, update to use different
+            % timers if seg delay changes
+            
+            TimerTrigger_Press = {'GlobalTimerTrig', '110000000'};
+            TimerCancel_Press = {'GlobalTimerCancel', '110000000'};
+    
+    
+            % set visual stimulus 1&2 state outputs (referred to as audStimOpto
+            % since the audio starts in those states)
+    
+            % set audio stim based on audio enable
+            if S.GUI.AudioStimEnable
+                AudStim = {'HiFi1', ['P', 6]};
+            else
+                AudStim = {};
+            end
+    
+            % set visual stimulus output actions
+            % add audio output to vis stim state output
+            VisualStimulus1_OutputActions = AudStim;
+            VisualStimulus2_OutputActions = AudStim;
+    
+            % if opto is enabled, add opto triggers to vis stim output actions
+            % update after opto proto is defined to create separate function to abstract global timer
+            if m_Opto.EnableOpto && (OptoTrialTypes(currentTrial) == 2)
+                %%%%%%%%%%%%%%% segment either %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    
+                %%%%%%%%%%%%%%% segment 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       
+                % if any segment 1 opto is active,
+                % cancel timers and reset shutter when press1, didnotpress1, earlypress1 starts            
+                if S.GUI.OptoVis1 || S.GUI.OptoWaitForPress1 || S.GUI.OptoPress1            
+                    if S.GUI.OptoPress1
+                        PreRetract1Delay_OutputActions = [Press1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                    else
+                        Press1_OutputActions = [Press1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                    end
+                    DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                    EarlyPress1_OutputActions = [EarlyPress1_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                end
+    
+                if S.GUI.OptoVis1
+                    VisDetectGray1OutputAction = [VisDetectGray1OutputAction , TimerTrigger_V1W1];
+                end                       
+    
+                if S.GUI.OptoVis1 && ~S.GUI.OptoWaitForPress1
+                    %WaitForPress1_OutputActions = [WaitForPress1_OutputActions, TimerCancel_V1W1];
+                end
+    
+                if ~S.GUI.OptoVis1 && S.GUI.OptoWaitForPress1
+                    VisualStimulus1_OutputActions = [VisualStimulus1_OutputActions, TimerTrigger_V1W1];
+                end
+    
+                if ~S.GUI.OptoWaitForPress1 && S.GUI.OptoPress1
+                    Press1_OutputActions = [Press1_OutputActions, TimerTrigger_Press];
+                end
+    
+                % can use these later if we need to reduce the number of cases
+                % in which the 25ms shutter reset is used since it's only
+                % needed when variable-time opto segments are used (such as
+                % waitforpress)
+                % if S.GUI.OptoWaitForPress1
+                %     DidNotPress1_OutputActions = [DidNotPress1_OutputActions, TimerCancel_V1W1];                
+                % end
+                
+                %%%%%%%%%%%%%%% segment 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+                % if any segment 2 (including prepressdelay) opto is active,
+                % cancel timers and reset shutter when press2, didnotpress2, earlypress2 starts
+                if S.GUI.OptoPrePressDelay || S.GUI.OptoVis2 || S.GUI.OptoWaitForPress2 || S.GUI.OptoPress2
+                    if S.GUI.OptoPress2
+                        PreRewardDelay_OutputActions = [PreRewardDelay_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                    else
+                        Press2_OutputActions = [Press2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                    end                                   
+                    DidNotPress2_OutputActions = [DidNotPress2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                    EarlyPress2_OutputActions = [EarlyPress2_OutputActions, TimerShutterReset, {'GlobalTimerCancel', '111111101'}];
+                end
+    
+                % cases depending on PrePressDelay opto on/off
+                if S.GUI.OptoPrePressDelay
+                    PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_PressDelay];
                    
-        %% adjust for warmup trials
-        % For warmup trials, wait for press is extended by additional warmup param, after warmup wait for press is S.GUI.PressWindow_s
+                    if ~S.GUI.OptoVis2
+                        VisDetectGray2OutputAction = [VisDetectGray2OutputAction, TimerCancel_PressDelay];
+                        if S.GUI.OptoWaitForPress2                        
+                            VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];
+                        end
+                    end
+    
+                    if ~S.GUI.OptoWaitForPress2
+                        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_PressDelay];
+                        if S.GUI.OptoPress2
+                            Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
+                        end
+                    end
+                                  
+                else
+                    if S.GUI.OptoVis2
+                        VisDetectGray2OutputAction = [VisDetectGray2OutputAction , TimerTrigger_V2W2];
+                    end             
         
-        % check if user has changed number of warmup trials    
-        if S.GUI.NumEasyWarmupTrials ~= LastNumEasyWarmupTrials
-            WarmupTrialsCounter = S.GUI.NumEasyWarmupTrials;    % update warmup trial counter to current gui param
-            LastNumEasyWarmupTrials = S.GUI.NumEasyWarmupTrials;    % store current value to check for change again
-        end
+                    if S.GUI.OptoVis2 && ~S.GUI.OptoWaitForPress2
+                        WaitForPress2_OutputActions = [WaitForPress2_OutputActions, TimerCancel_V2W2];
+                    end
+    
+                    if ~S.GUI.OptoVis2 && S.GUI.OptoWaitForPress2               
+                        VisualStimulus2_OutputActions = [VisualStimulus2_OutputActions, TimerTrigger_V2W2];             
+                    end    
+    
+    
+                    if S.GUI.OptoWaitForPress2 && S.GUI.SelfTimedMode
+                        PreDelayGap_OutputActions = [PreDelayGap_OutputActions, TimerTrigger_V2W2];
+                    end   
+    
+                    if ~S.GUI.OptoWaitForPress2
+                        if S.GUI.OptoPress2
+                            Press2_OutputActions = [Press2_OutputActions, TimerTrigger_Press];
+                        end
+                    end
+                end
+    
+                % need the punish shutter retract?
+                % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
+            end
+    
+            %% update trial-specific Audio
+            % load sound wave to hifi
+            % H.load(7, AudioStimSound);
+            H.load(7, OptoAudioStimSound);
+        
+            % toggle punish sound on/off
+            EarlyPressPunish_OutputActions = {};
+            if (S.GUI.IncorrectSound && ...
+               ~ProbeTrialTypes(currentTrial))
+                    Punish_OutputActions = [Punish_OutputActions, 'HiFi1', ['P' 2]];
+                    EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
+            end
+    
+            LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'};
+            WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
+            LeverRetract1_StateChangeConditions = {'SoftCode2', 'PreDelayGap'};
+            
+            if ~S.GUI.SelfTimedMode
+                PreDelayGap_StateChangeConditions = {'Tup', 'PreVis2Delay'};                    
+            else
+                PreDelayGap_StateChangeConditions = {'Tup', 'PrePress2Delay'};
+            end
+    
+            WaitForPress2_StateChangeConditions = {'Tup', 'DidNotPress2', 'RotaryEncoder1_3', 'Press2'};             
+            PostRewardDelay_StateChangeConditions = {'Tup', 'LeverRetractFinal'};
                        
-        if WarmupTrialsCounter > 0
-            ExperimenterTrialInfo.Warmup = true;   % check variable states as field/value struct for experimenter info
-            ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % check variable states as field/value struct for experimenter info
-            % if warmup trial, increase wait for press by gui param PressWindowExtend_s
-            % Press1Window_s = S.GUI.Press1Window_s + S.GUI.PressWindowExtend_s;
-            % Press2Window_s = S.GUI.Press2Window_s + S.GUI.PressWindowExtend_s;
-
-            PressVisDelay_s = min(S.GUI.PrePress2DelayShort_s, PressVisDelay_s);
-
-            Threshold = S.GUI.WarmupThreshold;
-
-            BpodSystem.Data.IsWarmupTrial(currentTrial) = 1;            
-
-            TrialDifficulty = 1;  % set warmup trial to easy     
-        else    
-            Threshold = S.GUI.Threshold;
-
-            BpodSystem.Data.IsWarmupTrial(currentTrial) = 0;
-
-            TrialDifficulty = 2;
-
-            ExperimenterTrialInfo.Warmup = false;   % check variable states as field/value struct for experimenter info
-            ExperimenterTrialInfo.WarmupTrialsRemaining = 0;   % check variable states as field/value struct for experimenter info
-        end
-
-        BpodSystem.Data.PressThresholdUsed(currentTrial) = Threshold;
-
-        % decrement
-        if WarmupTrialsCounter > 0
-	        WarmupTrialsCounter = WarmupTrialsCounter - 1;
-        end
+            %% adjust for warmup trials
+            % For warmup trials, wait for press is extended by additional warmup param, after warmup wait for press is S.GUI.PressWindow_s
+            
+            % check if user has changed number of warmup trials    
+            if S.GUI.NumEasyWarmupTrials ~= LastNumEasyWarmupTrials
+                WarmupTrialsCounter = S.GUI.NumEasyWarmupTrials;    % update warmup trial counter to current gui param
+                LastNumEasyWarmupTrials = S.GUI.NumEasyWarmupTrials;    % store current value to check for change again
+            end
+                           
+            if WarmupTrialsCounter > 0
+                ExperimenterTrialInfo.Warmup = true;   % check variable states as field/value struct for experimenter info
+                ExperimenterTrialInfo.WarmupTrialsRemaining = WarmupTrialsCounter;   % check variable states as field/value struct for experimenter info
+                % if warmup trial, increase wait for press by gui param PressWindowExtend_s
+                % Press1Window_s = S.GUI.Press1Window_s + S.GUI.PressWindowExtend_s;
+                % Press2Window_s = S.GUI.Press2Window_s + S.GUI.PressWindowExtend_s;
+    
+                PressVisDelay_s = min(S.GUI.PrePress2DelayShort_s, PressVisDelay_s);
+    
+                Threshold = S.GUI.WarmupThreshold;
+    
+                BpodSystem.Data.IsWarmupTrial(currentTrial) = 1;            
+    
+                TrialDifficulty = 1;  % set warmup trial to easy     
+            else    
+                Threshold = S.GUI.Threshold;
+    
+                BpodSystem.Data.IsWarmupTrial(currentTrial) = 0;
+    
+                TrialDifficulty = 2;
+    
+                ExperimenterTrialInfo.Warmup = false;   % check variable states as field/value struct for experimenter info
+                ExperimenterTrialInfo.WarmupTrialsRemaining = 0;   % check variable states as field/value struct for experimenter info
+            end
+    
+            BpodSystem.Data.PressThresholdUsed(currentTrial) = Threshold;
+    
+            % decrement
+            if WarmupTrialsCounter > 0
+	            WarmupTrialsCounter = WarmupTrialsCounter - 1;
+            end
+            
+            ExperimenterTrialInfo.Press1Window = Press1Window_s;
+            ExperimenterTrialInfo.Press2Window = Press2Window_s;
+    
+            %% update encoder threshold from params
+    
+            DetectPressThreshold = S.GUI.RetractThreshold + 0.1;
+    
+            BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
+            pause(0.05);
+            % BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
+            BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold DetectPressThreshold];    % udate threshold from GUI params
+            BpodSystem.PluginObjects.R.startUSBStream;  % restart encoder USB streaming
         
-        ExperimenterTrialInfo.Press1Window = Press1Window_s;
-        ExperimenterTrialInfo.Press2Window = Press2Window_s;
-
-        %% update encoder threshold from params
-
-        DetectPressThreshold = S.GUI.RetractThreshold + 0.1;
-
-        BpodSystem.PluginObjects.R.stopUSBStream;   % stop USB streaming to update encoder params
-        pause(0.05);
-        % BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold];    % udate threshold from GUI params
-        BpodSystem.PluginObjects.R.thresholds = [Threshold S.GUI.EarlyPressThreshold DetectPressThreshold];    % udate threshold from GUI params
-        BpodSystem.PluginObjects.R.startUSBStream;  % restart encoder USB streaming
-    
-        BpodSystem.Data.TrialData{1, S.GUI.currentTrial}.LeverResetPos = []; % array for lever reset positions
-    
-        %% difficulty-specific state values
-     
-        switch TrialDifficulty
-            case 1
-                ExperimenterTrialInfo.Difficulty = 'EasyWarmup';   % check variable states as field/value struct for experimenter info
-            case 2
-                ExperimenterTrialInfo.Difficulty = 'Normal';   % check variable states as field/value struct for experimenter info
-        end           
-                              
-        %% add console print for experimenter trial information, these vars are here to make them easier to see when printed on console
+            BpodSystem.Data.TrialData{1, S.GUI.currentTrial}.LeverResetPos = []; % array for lever reset positions
         
-        ExperimenterTrialInfo.SessionType = OptoStateExpInfo;
-        ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
-        ExperimenterTrialInfo.MatlabVer = BpodSystem.Data.MatVer;
-
-        ExperimenterTrialInfo.PrePress2Delay_s = PressVisDelay_s;
-
-        strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
-        disp(strExperimenterTrialInfo);          
+            %% difficulty-specific state values
+         
+            switch TrialDifficulty
+                case 1
+                    ExperimenterTrialInfo.Difficulty = 'EasyWarmup';   % check variable states as field/value struct for experimenter info
+                case 2
+                    ExperimenterTrialInfo.Difficulty = 'Normal';   % check variable states as field/value struct for experimenter info
+            end           
+                                  
+            %% add console print for experimenter trial information, these vars are here to make them easier to see when printed on console
+            
+            ExperimenterTrialInfo.SessionType = OptoStateExpInfo;
+            ExperimenterTrialInfo.OptoTrial = OptoTrialExpInfo;  
+            ExperimenterTrialInfo.MatlabVer = BpodSystem.Data.MatVer;
     
-        %% construct state matrix
+            ExperimenterTrialInfo.PrePress2Delay_s = PressVisDelay_s;
     
-        sma = NewStateMatrix(); % Assemble state matrix
+            strExperimenterTrialInfo = formattedDisplayText(ExperimenterTrialInfo,'UseTrueFalseForLogical',true);
+            disp(strExperimenterTrialInfo);          
         
-        sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim, PressVisDelay_s);
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-        % adding variables to improve readability, starting with V_3_8
-        % output action variables
-        StartSyncSignal = {'BNC1', 1};
-        debugSyncSignal = {}; % using start sync signal when developing/debugging, could expand to other signals for differentiation on voltage recordings if needed
-                                % set to empty {} when not
-                                % developing/debugging
-        RotaryEncoderStart = {'RotaryEncoder1', ['E#' 0]}; % enable rotary encoder and set time sync
-        HiFiStart = {['' 'HiFi1'],'*'}; % push newly uploaded waves to front (playback) buffers
-        PlayVis1 = {'SoftCode', 5};
-        MoveServoOut = {'SoftCode', 7};
-        MoveServoIn = {'SoftCode', 8};
-
-        Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
+            %% construct state matrix
+        
+            sma = NewStateMatrix(); % Assemble state matrix
+            
+            sma = m_Opto.InsertGlobalTimer(BpodSystem, sma, S, VisStim, PressVisDelay_s);
+    
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+            % adding variables to improve readability, starting with V_3_8
+            % output action variables
+            StartSyncSignal = {'BNC1', 1};
+            debugSyncSignal = {}; % using start sync signal when developing/debugging, could expand to other signals for differentiation on voltage recordings if needed
+                                    % set to empty {} when not
+                                    % developing/debugging
+            RotaryEncoderStart = {'RotaryEncoder1', ['E#' 0]}; % enable rotary encoder and set time sync
+            HiFiStart = {['' 'HiFi1'],'*'}; % push newly uploaded waves to front (playback) buffers
+            PlayVis1 = {'SoftCode', 5};
+            MoveServoOut = {'SoftCode', 7};
+            MoveServoIn = {'SoftCode', 8};
+    
+            Start_OutputActions = [HiFiStart, RotaryEncoderStart, StartSyncSignal];
 	
-        %% Get end of session reward pulses
 
-        if ~S.GUI.EnableRewardPulses
+        % if ~S.GUI.EnableRewardPulses
+            BpodSystem.Data.IsRewardPulse(currentTrial) = 0;
 
             sma = AddState(sma, 'Name', 'Start', ...
                 'Timer', 0.068,...
@@ -1567,18 +1570,20 @@ try
                 'StateChangeConditions', {'Tup', 'ITI'},...
                 'OutputActions', {});         
             
-            if ~S.GUI.EnableRewardPulses
-                ITI_StateChangeConditions = {'Tup', '>exit'};
-            else
-                ITI_StateChangeConditions = {'Tup', 'RewardPulse1'};
-            end
+            % if ~S.GUI.EnableRewardPulses
+            %     ITI_StateChangeConditions = {'Tup', '>exit'};
+            % else
+            %     ITI_StateChangeConditions = {'Tup', 'RewardPulse1'};
+            % end
     
             sma = AddState(sma, 'Name', 'ITI', ...
                 'Timer', BpodSystem.Data.EndOfTrialITI,...
-                'StateChangeConditions', ITI_StateChangeConditions,...
+                'StateChangeConditions', {'Tup', '>exit'},...
                 'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '111111111'});
 
         else
+            BpodSystem.Data.IsRewardPulse(currentTrial) = 1;
+            
             NumCompletedRewardPulses = NumCompletedRewardPulses + 1;
 
             RewardInterval = 0;
@@ -1594,7 +1599,9 @@ try
                 RewardInterval = m_TrialConfig.GetExpDist(S.GUI.RewardIntervalMin, S.GUI.RewardIntervalMax, S.GUI.RewardIntervalMean);                           
             else
                 RewardInterval = S.GUI.RewardIntervalFixed;
-            end        
+            end      
+
+            sma = NewStateMatrix(); % Assemble state matrix
 
             sma = AddState(sma, 'Name', 'RewardPulse', ...
                 'Timer', RewardPulseTime,...
@@ -1668,7 +1675,7 @@ try
                 StateTiming();
             end
     
-            if ~S.GUI.EnableRewardPulses
+            if ~EnableRewardPulses
                 BpodSystem.Data.EncoderData{currentTrial} = BpodSystem.PluginObjects.R.readUSBStream(); % Get rotary encoder data captured since last call to R.readUSBStream()
                 % Align this trial's rotary encoder timestamps to state machine trial-start (timestamp of '#' command sent from state machine to encoder module in 'TrialStart' state)
                 BpodSystem.Data.EncoderData{currentTrial}.Times = BpodSystem.Data.EncoderData{currentTrial}.Times - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1); % Align timestamps to state machine's trial time 0
@@ -1829,6 +1836,8 @@ try
         BpodSystem.Data.TrialSettings(currentTrial).GUI.AssistedTrials = [];
 
         
+        S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin
+        EnableRewardPulses = S.GUI.EnableRewardPulses;
 
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file 

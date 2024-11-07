@@ -38,10 +38,10 @@ function [S] = SetParams(obj, BpodSystem)
                 % S.GUI.ServoInPos = 1810.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig1'
-                S.GUI.ServoInPos = 1603.00; % lever start pos
+                S.GUI.ServoInPos = 1602.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig2'
-                S.GUI.ServoInPos = 1688.00; % lever start pos
+                S.GUI.ServoInPos = 1689.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever            
         end
 
@@ -158,34 +158,20 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIPanels.AssistedTrials = {'AssistedTrials', 'ATRangeStart', 'ATRangeStop'};
 
         % init cue params
-                      % Reward Pulse
+                      
+        % Reward Pulse
         S.GUI.EnableRewardPulses = 0;
         S.GUIMeta.EnableRewardPulses.Style = 'checkbox';
-        
-        % S.GUI.NumPulsesDist = 1;
-        % S.GUIMeta.NumPulsesDist.Style = 'popupmenu';
-        % S.GUIMeta.NumPulsesDist.String = {'Fixed', 'Random'};                       
+                            
         S.GUI.NumPulses = 15;
-        % S.GUI.NumPulsesMin = 5;    % Minimum NumPulses (in seconds)
-        % S.GUI.NumPulsesMax = 15;    % Maximum NumPulses (in seconds)
-        % S.GUI.NumPulsesMean = 8;   % Mean NumPulses (in seconds)        
-        
-        % S.GUI.PulseAmountDist = 1;
-        % S.GUIMeta.PulseAmountDist.Style = 'popupmenu';
-        % S.GUIMeta.PulseAmountDist.String = {'Fixed', 'Random'};        
         S.GUI.PulseAmount_uL = 1;
-        % S.GUI.PulseAmountMin = 1;    % Minimum NumPulses (in seconds)
-        % S.GUI.PulseAmountMax = 15;    % Maximum NumPulses (in seconds)
-        % S.GUI.PulseAmountMean = 8;   % Mean NumPulses (in seconds)         
-
         S.GUI.RewardIntervalDist = 1;
         S.GUIMeta.RewardIntervalDist.Style = 'popupmenu';
         S.GUIMeta.RewardIntervalDist.String = {'Fixed', 'Exponential'};        
         S.GUI.RewardIntervalFixed = 3;
-        S.GUI.RewardIntervalMin = 1;    % Minimum NumPulses (in seconds)
+        S.GUI.RewardIntervalMin = 2;    % Minimum NumPulses (in seconds)
         S.GUI.RewardIntervalMax = 5;    % Maximum NumPulses (in seconds)
-        S.GUI.RewardIntervalMean = 3;   % Mean NumPulses (in seconds)
-        
+        S.GUI.RewardIntervalMean = 3;   % Mean NumPulses (in seconds)     
         % S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulsesDist', 'NumPulses', 'NumPulsesMin', 'NumPulsesMax', 'NumPulsesMean', 'PulseAmountDist', 'PulseAmount_uL','PulseAmountMin','PulseAmountMax','PulseAmountMean', 'IPIDist', 'IPI_s','IPIMin','IPIMax','IPIMean'};
         S.GUIPanels.RewardPulse = {'EnableRewardPulses', 'NumPulses', 'PulseAmount_uL', 'RewardIntervalDist', 'RewardIntervalFixed','RewardIntervalMin','RewardIntervalMax','RewardIntervalMean'};
 
