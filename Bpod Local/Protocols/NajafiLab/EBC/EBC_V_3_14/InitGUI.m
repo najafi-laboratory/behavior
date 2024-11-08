@@ -47,6 +47,7 @@ function [S] = SetParams(obj, BpodSystem)
         % Define a button for activating the airpuff pulse
         S.GUI.ActivateAirPuffPulse = @(src,event)fnActivateAirPuffPulse;
         S.GUIMeta.ActivateAirPuffPulse.Style = 'pushbutton';
+        %S.GUIMeta.DeliverAirpuffPulse.Style = 'pushbutton';
         S.GUI.AirPuff_Pulse_Dur = 0.02; % Default amount as specified
         S.GUIPanels.AirPuffPulse = {'ActivateAirPuffPulse', 'AirPuff_Pulse_Dur'};
 
