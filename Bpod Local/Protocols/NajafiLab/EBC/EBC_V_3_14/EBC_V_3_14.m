@@ -477,13 +477,27 @@ try
             fprintf('Experimenter Initials: %s\n', S.GUI.ExperimenterInitials);
             fprintf('Protocol Version: %s\n', protocol_version);
             fprintf('Block Type: %s\n', currentBlockType);
-            fprintf('ISI: %.3f ms\n', ISI*1000); % where ISI = AirPuff_OnsetDelay - LED_offset;
-            fprintf('Short Block LED Duration: %.3f ms\n', S.GUI.LED_Dur_Short);
-            fprintf('Short Block Puff Duration: %.3f ms\n', S.GUI.AirPuff_Dur);
-            fprintf('Short Block LED/Puff Onset Delay: %.3f ms\n', S.GUI.AirPuff_OnsetDelay_Short);
-            fprintf('Long Block LED Duration: %.3f ms\n', S.GUI.LED_Dur_Long);
-            fprintf('Long Block Puff Duration: %.3f ms\n', S.GUI.AirPuff_Dur);
-            fprintf('Long Block LED/Puff Onset Delay: %.3f ms\n', S.GUI.AirPuff_OnsetDelay_Long);
+	    fprintf('ISI: %.3f sec\n', ISI); % already in seconds
+            %fprintf('ISI: %.3f ms\n', ISI*1000); % where ISI = AirPuff_OnsetDelay - LED_offset;
+            %fprintf('Short Block LED Duration: %.3f ms\n', S.GUI.LED_Dur_Short);
+	    fprintf('Short Block LED Duration: %.3f sec\n', S.GUI.LED_Dur_Short);
+            %fprintf('Short Block Puff Duration: %.3f ms\n', S.GUI.AirPuff_Dur);
+	    fprintf('Short Block Puff Duration: %.3f sec\n', S.GUI.AirPuff_Dur);
+            %fprintf('Short Block LED/Puff Onset Delay: %.3f ms\n', S.GUI.AirPuff_OnsetDelay_Short);
+	    fprintf('Short Block LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_Short);
+            %fprintf('Long Block LED Duration: %.3f ms\n', S.GUI.LED_Dur_Long);
+	    fprintf('Long Block LED Duration: %.3f sec\n', S.GUI.LED_Dur_Long);
+	    %fprintf('Long Block Puff Duration: %.3f ms\n', S.GUI.AirPuff_Dur);
+     	    fprintf('Long Block Puff Duration: %.3f sec\n', S.GUI.AirPuff_Dur);
+            %fprintf('Long Block LED/Puff Onset Delay: %.3f ms\n', S.GUI.AirPuff_OnsetDelay_Long);
+	    fprintf('Long Block LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_Long);
+	    
+
+
+
+
+
+
 
 
             SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
