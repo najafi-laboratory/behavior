@@ -324,7 +324,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             end
 
             maxEyeAreaPixels = max(obj.FullEyeAreaPixels); % max eye area 
-            obj.minFur = obj.totalEllipsePixels - maxEyeAreaPixels; % minimum fur
+            % obj.minFur = obj.totalEllipsePixels - maxEyeAreaPixels; % minimum fur
             % fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels-obj.minFur)); 
 
             % process fec data using max eye open
