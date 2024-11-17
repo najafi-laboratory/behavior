@@ -268,7 +268,8 @@ classdef EyelidAnalyzer_PostProcessing < handle
             % load all trial videos to get max eye open
             % obj.nTrials
             % maxTrials = obj.nTrials + 1;
-            maxTrials = 5;
+            maxTrials = obj.nTrials + 1;
+            % maxTrials = 0;
             % checkVidTrials = 0;
             obj.FullEyeAreaPixels = [];
             while obj.trialNum < maxTrials
@@ -357,7 +358,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             save(savePath, 'SessionData');
 
             obj.trialNum = 1;
-            checkVidTrials = 0;
+            checkVidTrials = 5;
             while obj.trialNum < checkVidTrials
                 obj.setTrialData()
 
