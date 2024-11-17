@@ -306,7 +306,8 @@ classdef EyelidAnalyzer_PostProcessing < handle
                     set(obj.imgOrigHandle, 'CData', obj.frame);
     
                     obj.updateBinaryVideo;   
-                    obj.calculatePostFEC('time');
+                    obj.calculatePostFEC(obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes(obj.frameIndex));
+                    obj.frameIndex = obj.frameIndex +1;
                 end
 
                 obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECRaw = obj.fecDataRaw;
@@ -511,8 +512,10 @@ classdef EyelidAnalyzer_PostProcessing < handle
                 set(obj.imgOrigHandle, 'CData', obj.frame);
 
                 obj.updateBinaryVideo;   
-                obj.calculateFEC('pretrial');                
+                obj.calculateFEC('pretrial', obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes(obj.frameIndex)); 
+                obj.frameIndex = obj.frameIndex +1;                
             else
+                obj.frameIndex = 1;
                 % Now, to restart from the beginning, reset the CurrentTime property
                 % obj.vid.CurrentTime = 0;
                 if obj.trialNum < obj.nTrials
@@ -910,7 +913,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.imgBinHandle, 'CData', obj.binFrame);
         end
 
-        function calculateFEC(obj, mode)
+        function calculateFEC(obj, mode, currentTime)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
             obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
@@ -927,7 +930,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             %     case 'trial'
             %         currentTime = seconds(datetime('now') - obj.trialVidStartTime);
             % end
-            currentTime = obj.vid.CurrentTime;
+            % currentTime = obj.vid.CurrentTime;
             
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];
@@ -967,7 +970,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.FECStartThreshLine,'xdata', [0 currentTime], 'ydata', [obj.FECTrialStartThreshPercent  obj.FECTrialStartThreshPercent]);
         end
 
-        function calculatePostFEC(obj, blah)
+        function calculatePostFEC(obj, currentTime)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
             obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
@@ -990,7 +993,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
 
             obj.fec = fec * 100;  % Convert to percentage
 
-            currentTime = obj.vid.CurrentTime;
+            % currentTime = obj.vid.CurrentTime;
                      
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];

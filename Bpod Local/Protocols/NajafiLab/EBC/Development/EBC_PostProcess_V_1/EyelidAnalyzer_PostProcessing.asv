@@ -267,7 +267,9 @@ classdef EyelidAnalyzer_PostProcessing < handle
 
             % load all trial videos to get max eye open
             % obj.nTrials
+            % maxTrials = obj.nTrials + 1;
             maxTrials = obj.nTrials + 1;
+            % maxTrials = 0;
             % checkVidTrials = 0;
             obj.FullEyeAreaPixels = [];
             while obj.trialNum < maxTrials
@@ -304,7 +306,8 @@ classdef EyelidAnalyzer_PostProcessing < handle
                     set(obj.imgOrigHandle, 'CData', obj.frame);
     
                     obj.updateBinaryVideo;   
-                    obj.calculatePostFEC('time');
+                    obj.calculatePostFEC(obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes(obj.frameIndex));
+                    obj.frameIndex = obj.frameIndex +1;
                 end
 
                 obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECRaw = obj.fecDataRaw;
@@ -323,14 +326,14 @@ classdef EyelidAnalyzer_PostProcessing < handle
             end
 
             maxEyeAreaPixels = max(obj.FullEyeAreaPixels); % max eye area 
-            obj.minFur = obj.totalEllipsePixels - maxEyeAreaPixels; % minimum fur
+            % obj.minFur = obj.totalEllipsePixels - maxEyeAreaPixels; % minimum fur
             % fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels-obj.minFur)); 
 
             % process fec data using max eye open
             obj.trialNum = 1;
             while obj.trialNum < maxTrials
                 test1 = obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC;
-                test2 = 100 * (1 - (obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels ./ maxEyeAreaPixels;
+                test2 = 100 * (1 - (obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels ./ maxEyeAreaPixels));
                 % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECRaw = obj.fecDataRaw;
                 obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC = 100*(1 - (obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels ./ maxEyeAreaPixels));
                 % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes = obj.fecTimes;            
@@ -908,7 +911,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.imgBinHandle, 'CData', obj.binFrame);
         end
 
-        function calculateFEC(obj, mode)
+        function calculateFEC(obj, mode, currentTime)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
             obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
@@ -965,7 +968,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.FECStartThreshLine,'xdata', [0 currentTime], 'ydata', [obj.FECTrialStartThreshPercent  obj.FECTrialStartThreshPercent]);
         end
 
-        function calculatePostFEC(obj, blah)
+        function calculatePostFEC(obj, currentTime)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
             obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
@@ -988,7 +991,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
 
             obj.fec = fec * 100;  % Convert to percentage
 
-            currentTime = obj.vid.CurrentTime;
+            % currentTime = obj.vid.CurrentTime;
                      
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];
