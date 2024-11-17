@@ -1,6 +1,9 @@
 clc;close all;clear
 
-data_files = dir('E4L7_EBC_V_3_12_20241108_173608.mat');
+directory = 'C:\behavior\session_data\E4L7\';
+filename = 'E4L7_EBC_V_3_12_20241104_143943_PP.mat';
+path = fullfile(directory, filename);
+data_files = dir(path);
 % data_files = dir('*_EBC_*.mat');
 CR_threshold = 0.05;
 
@@ -16,7 +19,7 @@ x_fill_longLED = [];
 
 for ctr_file=1:length(data_files)
 
-load(data_files(ctr_file).name)
+load(fullfile(data_files(ctr_file).folder, data_files(ctr_file).name))
 
 delete(strrep(data_files(ctr_file).name, '.mat', '.pdf'))
 
