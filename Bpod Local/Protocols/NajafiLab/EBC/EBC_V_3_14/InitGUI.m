@@ -15,9 +15,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ITI_Extra = 3;
 
         S.GUI.LED_OnsetDelay = 0;
-        S.GUI.LED_Dur = 0.5;
-        S.GUI.LED_Dur_Short = 0.5;
-        S.GUI.LED_Dur_Long = 0.5;
+        S.GUI.LED_Dur = 0.05;
+        S.GUI.LED_Dur_Short = 0.05;
+        S.GUI.LED_Dur_Long = 0.05;
 
         S.GUI.BlockLength = 50;
         S.GUI.Margine = 5;
@@ -47,6 +47,7 @@ function [S] = SetParams(obj, BpodSystem)
         % Define a button for activating the airpuff pulse
         S.GUI.ActivateAirPuffPulse = @(src,event)fnActivateAirPuffPulse;
         S.GUIMeta.ActivateAirPuffPulse.Style = 'pushbutton';
+        %S.GUIMeta.DeliverAirpuffPulse.Style = 'pushbutton';
         S.GUI.AirPuff_Pulse_Dur = 0.02; % Default amount as specified
         S.GUIPanels.AirPuffPulse = {'ActivateAirPuffPulse', 'AirPuff_Pulse_Dur'};
 
