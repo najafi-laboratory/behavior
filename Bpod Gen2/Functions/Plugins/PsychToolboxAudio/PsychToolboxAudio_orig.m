@@ -67,18 +67,6 @@ classdef PsychToolboxAudio < handle
                     CandidateDevices = [asioList wasapiList];
                     deviceType = [zeros(1,length(asioList)) ones(1,length(wasapiList))];
                     CardFound = 0; i = 0; 
-                    CardFound = 1;
-                    DeviceID = devices(CandidateDevices(1)).DeviceIndex;
-                    BpodSystem.Data.RigName = 'JoystickRig1';
-                    switch BpodSystem.Data.RigName
-                        case 'JoystickRig1'
-                            DeviceID = 4;
-
-                        otherwise
-
-                    end
-                    
-
                     while (CardFound == 0) && (i < length(CandidateDevices))
                         i = i + 1;
                         if devices(CandidateDevices(i)).NrOutputChannels > 3
@@ -133,14 +121,12 @@ classdef PsychToolboxAudio < handle
                 else
                     bufferSize = 32;
                 end
-                % obj.MasterOutput = PsychPortAudio('Open', DeviceID, 9, 4, obj.SamplingRate, obj.nOutputChannels , bufferSize);
-                obj.MasterOutput = PsychPortAudio('Open', DeviceID, 9, 4, obj.SamplingRate, 2 , bufferSize);
+                obj.MasterOutput = PsychPortAudio('Open', DeviceID, 9, 4, obj.SamplingRate, obj.nOutputChannels , bufferSize);
                 PsychPortAudio('Start', obj.MasterOutput, 0, 0, 1);
                 for i = 1:obj.MaxSounds
                     obj.SlaveOutput(i) = PsychPortAudio('OpenSlave', obj.MasterOutput);
                 end
-                % Data = zeros(obj.nOutputChannels,obj.SamplingRate/1000);
-                Data = zeros(2,obj.SamplingRate/1000);
+                Data = zeros(obj.nOutputChannels,obj.SamplingRate/1000);
                 PsychPortAudio('FillBuffer', obj.SlaveOutput(1), Data);
                 PsychPortAudio('Start', obj.SlaveOutput(1));
             else
@@ -172,8 +158,8 @@ classdef PsychToolboxAudio < handle
                     waveform(2,:) = waveform;
                 end
                 % Add a 1ms sync pulse on ch3+4 (center L and center R)
-                % waveform(3:obj.nOutputChannels,:) = zeros(obj.nOutputChannels-2,Siz(2));
-                % waveform(3:obj.nOutputChannels,1:(obj.SamplingRate/1000)) = ones(obj.nOutputChannels-2,(obj.SamplingRate/1000));
+                waveform(3:obj.nOutputChannels,:) = zeros(obj.nOutputChannels-2,Siz(2));
+                waveform(3:obj.nOutputChannels,1:(obj.SamplingRate/1000)) = ones(obj.nOutputChannels-2,(obj.SamplingRate/1000));
                 PsychPortAudio('FillBuffer', obj.SlaveOutput(soundIndex), waveform);
             else
                 global BpodSystem
