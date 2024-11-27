@@ -40,7 +40,7 @@ try
     %% Assert HiFi module is present + USB-paired (via USB button on console GUI)
     
     switch BpodSystem.Data.RigName
-        case 'JoystickRig1'
+        case 'JoystickRig3'
             % Program sound server
             if ~isfield(BpodSystem.PluginObjects, 'Sound')
                 BpodSystem.PluginObjects.Sound = PsychToolboxAudio;
@@ -63,7 +63,9 @@ try
         case 'JoystickRig1'
             M = PololuMaestro('COM15'); 
         case 'JoystickRig2'
-            M = PololuMaestro('COM8');             
+            M = PololuMaestro('COM8'); 
+        case 'JoystickRig3'
+            M = PololuMaestro('COM10'); 
     end 
     
     %% Assert Stepper + Rotary Encoder modules are present + USB-paired (via USB button on console GUI)
@@ -227,7 +229,7 @@ try
     % SF = 44100; % Use lower sampling rate (samples/sec) to allow for longer duration audio file (max length limited by HiFi)
 
     switch BpodSystem.Data.RigName
-        case 'JoystickRig1'
+        case 'JoystickRig3'
             disp('Setup Sound Card Audio...');
 
         otherwise
@@ -248,7 +250,7 @@ try
     AudioStimSound = ApplySoundEnvelope(AudioStimSound, Envelope);
     
     switch BpodSystem.Data.RigName
-        case 'JoystickRig1'
+        case 'JoystickRig3'
             disp('Setup Sound Card Audio...');
             BpodSystem.PluginObjects.Sound.load(13, IncorrectSound);
             BpodSystem.PluginObjects.Sound.load(14, EarlyPressPunishSound);            
@@ -281,7 +283,9 @@ try
         case 'JoystickRig1'
             MonitorID = 1;
         case 'JoystickRig2'
-            MonitorID = 1;            
+            MonitorID = 1;   
+        case 'JoystickRig3'
+            MonitorID = 2;            
     end    
 
     BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(MonitorID, 0, [0 0], [180 180], 0); % Assumes second monitor is screen #2. Sync patch = 180x180 pixels
@@ -763,7 +767,7 @@ try
                 IncorrectSound = GenerateWhiteNoise(SF, S.GUI.PunishSoundDuration_s, 1, 1)*S.GUI.IncorrectSoundVolume_percent; % white noise punish sound
                 IncorrectSound = ApplySoundEnvelope(IncorrectSound, Envelope);
                 switch BpodSystem.Data.RigName
-                    case 'JoystickRig1'
+                    case 'JoystickRig3'
                         disp('Setup Sound Card Audio...');
                         BpodSystem.PluginObjects.Sound.load(13, IncorrectSound);            
                     otherwise
@@ -779,7 +783,7 @@ try
                 EarlyPressPunishSound = GenerateWhiteNoise(SF, S.GUI.EarlyPressPunishSoundDuration_s, 1, 1)*S.GUI.EarlyPressPunishSoundVolume_percent; % white noise punish sound
                 EarlyPressPunishSound = ApplySoundEnvelope(EarlyPressPunishSound, Envelope);
                 switch BpodSystem.Data.RigName
-                    case 'JoystickRig1'
+                    case 'JoystickRig3'
                         disp('Setup Sound Card Audio...');
                         BpodSystem.PluginObjects.Sound.load(14, EarlyPressPunishSound);            
                     otherwise
@@ -1123,7 +1127,7 @@ try
     
             % set audio stim based on audio enable
             switch BpodSystem.Data.RigName
-                case 'JoystickRig1'
+                case 'JoystickRig3'
                     disp('Setup Sound Card Audio...');
                     BpodSystem.PluginObjects.Sound.load(15, OptoAudioStimSound);
                     if S.GUI.AudioStimEnable
@@ -1370,8 +1374,17 @@ try
             RotaryEncoderStart = {'RotaryEncoder1', ['E#' 0]}; % enable rotary encoder and set time sync
 
 
-            AudioStart = {['' 'HiFi1'],'*'}; % push newly uploaded waves to front (playback) buffers
+            
 
+            % set audio stim based on audio enable
+            switch BpodSystem.Data.RigName
+                case 'JoystickRig3'
+                    disp('Setup Sound Card Audio...');
+                    AudioStart = {};
+                otherwise
+                    disp('Setup Hifi Audio...');
+                    AudioStart = {['' 'HiFi1'],'*'}; % push newly uploaded waves to front (playback) buffers
+            end  
 
 
             PlayVis1 = {'SoftCode', 5};
@@ -2041,6 +2054,8 @@ function SetRigID(BpodSystem)
             BpodSystem.Data.RigName = 'JoystickRig1';
         case 'COS-3A17904'
             BpodSystem.Data.RigName = 'JoystickRig2';
+        case 'COS-3A14773'
+            BpodSystem.Data.RigName = 'JoystickRig3';            
     end
 end
 
@@ -2089,7 +2104,10 @@ function PrintInterruptLog(BpodSystem)
             fprintf(fid,'%s\n\n', 'Joystick Rig1 - Behavior Room');
         case 'JoystickRig2'
             % rig specs
-            fprintf(fid,'%s\n\n', 'Joystick Rig2 - Behavior Room');            
+            fprintf(fid,'%s\n\n', 'Joystick Rig2 - Behavior Room');  
+        case 'JoystickRig3'
+            % rig specs
+            fprintf(fid,'%s\n\n', 'Joystick Rig3 - Behavior Room');             
     end
 
     SessionData = BpodSystem.Data;
