@@ -55,7 +55,7 @@ try
             case 'ImagingRig'
                 M = PololuMaestro('COM5');
             case '2AFCRig1' 
-                M = PololuMaestro('COM5');
+                M = PololuMaestro('COM16');
             case '2AFCRig2'
                 M = PololuMaestro('COM5');
         end
@@ -98,6 +98,7 @@ try
     % Side Outcome Plot
     BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [50 540 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
     BpodSystem.GUIHandles.OutcomePlot = axes('Position', [.075 .35 .89 .55]);
+    OutcomePlot = BpodSystem.GUIHandles.OutcomePlot;
     TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
     m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 0);
@@ -390,13 +391,15 @@ try
             BpodSystem.Data.JitterFlag(currentTrial) = JitterFlag;
             m_PostProcess.SaveProcessedSessionData(BpodSystem, VisStim, GrayPerturbISI);
             m_Plotter.UpdateOutcomePlot(BpodSystem, TrialTypes, 1);
-            % if mod(currentTrial, 60)
+            if (currentTrial > 0) && (mod(currentTrial, 60) == 0)
                 saveas(BpodSystem.GUIHandles.OutcomePlot, ['outcome_images\outcome_plot_' num2str(outcomePlotCntr) '.png']);
                 outcomePlotCntr = outcomePlotCntr + 1;
+                % store plot handle
+                
                 % tic
                 % exportgraphics(BpodSystem.GUIHandles.OutcomePlot, 'plot2.pdf', 'ContentType', 'vector', 'Append', true);
                 % toc
-            % end
+            end
             StateTiming();
             SaveBpodSessionData;
 
@@ -404,8 +407,10 @@ try
         end
         HandlePauseCondition;
         if BpodSystem.Status.BeingUsed == 0
-            M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos));
-            M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos));             
+            % also save outcome plot when stopping trial
+            % saveas(OutcomePlot, ['outcome_images\outcome_plot_' num2str(outcomePlotCntr) '.png']);
+            M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos));
+            M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos));             
             M = [];
             BpodSystem.PluginObjects.V = [];
             BpodSystem.setStatusLED(1);
@@ -471,8 +476,8 @@ catch MatlabException
     BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
 
     % set servos to out position
-    M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos));
-    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos)); 
+    M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos));
+    M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos)); 
     M = [];
 end
 end
@@ -492,7 +497,9 @@ function SetRigID(BpodSystem)
         case 'COS-3A14773'
             BpodSystem.Data.RigName = 'JoystickRig3';     
         case 'COS-3A11264'
-            BpodSystem.Data.RigName = '2AFCRig2';            
+            BpodSystem.Data.RigName = '2AFCRig2';   
+        case 'COS-3A11215'
+            BpodSystem.Data.RigName = '2AFCRig1';             
     end
 end
 
