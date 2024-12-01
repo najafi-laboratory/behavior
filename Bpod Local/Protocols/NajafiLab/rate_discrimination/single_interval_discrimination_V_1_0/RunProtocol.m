@@ -181,15 +181,16 @@ switch Opstring
             end
         end
     case 'Stop'
-        SavePlot;
+        BpodSystem.Status.BeingUsed = 0;
         if ~isempty(BpodSystem.Status.CurrentProtocolName)
             disp(' ')
             disp([BpodSystem.Status.CurrentProtocolName ' ended'])
+            SavePlot;
         end
         warning off % Suppress warning, in case protocol folder has already been removed
         rmpath(fullfile(BpodSystem.Path.ProtocolFolder, BpodSystem.Status.CurrentProtocolName));
         warning on
-        BpodSystem.Status.BeingUsed = 0;
+        % BpodSystem.Status.BeingUsed = 0;
         BpodSystem.Status.CurrentProtocolName = '';
         BpodSystem.Path.Settings = '';
         BpodSystem.Status.Live = 0;

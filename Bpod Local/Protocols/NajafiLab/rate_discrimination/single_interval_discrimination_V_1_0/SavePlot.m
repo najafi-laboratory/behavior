@@ -1,10 +1,11 @@
 function SavePlot
 global BpodSystem
 
-if (BpodSystem.Data.CurrentTrial > 0) && (mod(BpodSystem.Data.CurrentTrial, 60) == 0)
+if ((BpodSystem.Data.CurrentTrial > 0) && (mod(BpodSystem.Data.CurrentTrial, 4) == 0)) ...
+    || (BpodSystem.Status.BeingUsed == 0)
     BpodSystem.Data.PlotCntr = BpodSystem.Data.PlotCntr + 1;
 
-    SessionData = BpodSystem.Data;
+    % SessionData = BpodSystem.Data;
     %save(BpodSystem.Path.CurrentDataFile, 'SessionData');  % store in orginal file path
     
     % get pre-set file path BpodSystem.Path.CurrentDataFile
@@ -25,10 +26,17 @@ if (BpodSystem.Data.CurrentTrial > 0) && (mod(BpodSystem.Data.CurrentTrial, 60) 
     %     AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, i}];
     % end
     
-    AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2}];    % behavior dir
-    AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
-    AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 6}];    % subject name
-    subject = AlternateFilePath{1, 6};
+    switch BpodSystem.Data.RigName
+        case '2AFCRig1'
+            AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2} ...
+                filesep AlternateFilePath{1, 3}];    % behavior dir
+            AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
+            AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 7}];    % subject name
+        otherwise        
+            AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2}];    % behavior dir
+            AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
+            AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 6}];    % subject name
+    end
     
     % make data folder for current test subject if it doesn't already
     % exist
