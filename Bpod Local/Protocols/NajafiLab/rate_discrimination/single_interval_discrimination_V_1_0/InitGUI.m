@@ -52,11 +52,11 @@ function [S] = SetParams(obj, BpodSystem)
                 S.GUI.RightServoInPos = 1160;
                 S.GUI.LeftServoInPos = 1690;
             case '2AFCRig2'
-                S.GUI.RightServoInPos = 1153.25;
-                S.GUI.LeftServoInPos = 1887.25;
+                S.GUI.RightServoInPos = 1140.00;
+                S.GUI.LeftServoInPos = 1900.00;
             case '2AFCRig1'
-                S.GUI.RightServoInPos = 1094.00;
-                S.GUI.LeftServoInPos = 1750.25;                
+                S.GUI.RightServoInPos = 1080.00;
+                S.GUI.LeftServoInPos = 1770.00;                
         end
 
         S.GUI.ServoDeflection = -100;
