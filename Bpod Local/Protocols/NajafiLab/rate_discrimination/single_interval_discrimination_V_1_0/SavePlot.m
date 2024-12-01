@@ -1,7 +1,7 @@
 function SavePlot
 global BpodSystem
 
-if ((BpodSystem.Data.CurrentTrial > 0) && (mod(BpodSystem.Data.CurrentTrial, 4) == 0)) ...
+if ((BpodSystem.Data.CurrentTrial > 0) && (mod(BpodSystem.Data.CurrentTrial, 60) == 0)) ...
     || (BpodSystem.Status.BeingUsed == 0)
     BpodSystem.Data.PlotCntr = BpodSystem.Data.PlotCntr + 1;
 
