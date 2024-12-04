@@ -20,7 +20,7 @@ from plot import plot_decision_outcome
 
 if __name__ == "__main__":
 
-    subject_list = ['LCHR_TS02']
+    subject_list = ['LCHR_TS01']
     # subject_list = ['LCHR_TS02', 'YH10', 'LG03', 'VT01']
 
     session_data = DataIO.run(subject_list)
