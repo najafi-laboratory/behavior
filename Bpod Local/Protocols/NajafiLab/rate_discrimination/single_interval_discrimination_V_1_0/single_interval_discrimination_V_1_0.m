@@ -183,18 +183,31 @@ try
         % if repeatedincorrect anti-bias enabled, and previous trial was
         % punish, then draw probabilities for current trial based on trial
         % type (left or right)
-        [TrialTypes, AntiBiasVar] = m_TrialConfig.RepeatedIncorrect( ...
-            BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
+        % [TrialTypes, AntiBiasVar] = m_TrialConfig.RepeatedIncorrect( ...
+        %     BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
+        % 
+        % [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = m_TrialConfig.AntiBiasValveAdjust( ...
+        %     BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
     
-        [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = m_TrialConfig.AntiBiasValveAdjust( ...
-            BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
-    
+        LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
+        RightValveAmount_uL = S.GUI.RightValveAmount_uL;
+
         LeftValveTime   = m_TrialConfig.Amount2Time(LeftValveAmount_uL, 1);
         RightValveTime  = m_TrialConfig.Amount2Time(RightValveAmount_uL, 3);
     
-        [TrialTypes] = m_TrialConfig.ManuallFraction( ...
-            S, currentTrial, TrialTypes);        
-    
+        % [TrialTypes] = m_TrialConfig.ManuallFraction( ...
+        %     S, currentTrial, TrialTypes); 
+
+        if S.GUI.ManualSideAct
+            switch S.GUI.ManualSide
+                case 1
+                    TrialTypes(currentTrial) = 1;
+                case 2
+                    TrialTypes(currentTrial) = 2;
+            end
+        end
+
+        % 
         %% get difficulty level for this trial
         
         [TrialDifficulty] = m_TrialConfig.SamplingDiff(S);

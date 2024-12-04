@@ -140,7 +140,12 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.BiasIndexThres = 0.5;
         S.GUI.AdjustValvePercent = 0.25;
         S.GUI.AdjustFraction = 0.9;
-        S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFraction'};
+        S.GUI.ManualSideAct = 0;
+        S.GUIMeta.ManualSideAct.Style = 'checkbox';
+        S.GUI.ManualSide = 1;
+        S.GUIMeta.ManualSide.Style = 'popupmenu';
+        S.GUIMeta.ManualSide.String = {'Left', 'Right'};
+        S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFraction', 'ManualSideAct', 'ManualSide'};
 
         % choice params
         S.GUI.ChoiseWindowStartDelay = 0;
