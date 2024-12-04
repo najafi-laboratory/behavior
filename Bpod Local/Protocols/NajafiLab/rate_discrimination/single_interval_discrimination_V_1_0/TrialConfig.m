@@ -305,12 +305,34 @@ function [PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
     % for now, skip difficulty calculation
     EasyMaxInfo = 'Deactivated';
     % PostPertISI = 0;
+    switch S.GUI.TrainingLevel
+        case 1 % Naive
+            PostPertISI = GetISIMean(obj, S, TrialTypes, currentTrial);
+        case 2 % Mid1       
+            PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
+        case 3 % Mid2
+            PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
+        case 4 % Well
+            PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
+    end   
+end
+
+function [PostPertISI] = GetISIMean(obj, S, TrialTypes, currentTrial)
     switch TrialTypes(currentTrial)
         case 1 % trial is left with short ISI
             PostPertISI = S.GUI.ISIShortMean_s;
         case 2 % trial is right with long ISI
             PostPertISI = S.GUI.ISILongMean_s;
-    end    
+    end     
+end
+
+function [PostPertISI] = GetISIFromDist(obj, S, TrialTypes, currentTrial)
+    switch TrialTypes(currentTrial)
+        case 1 % trial is left with short ISI
+            PostPertISI = DrawFromUniform(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s)
+        case 2 % trial is right with long ISI
+            PostPertISI = DrawFromUniform(obj, S.GUI.ISILongMin_s, S.GUI.ISILongMax_s);
+    end 
 end
 
 function [GrayPerturbISI] = SetPostPertISI( ...
@@ -333,14 +355,14 @@ function [ITI] = GetITI( ...
     if (S.GUI.SetManualITI == 1)
         ITI = S.GUI.ManualITI;
     else
-        while (ITI < S.GUI.ITIMin || ITI > S.GUI.ITIMax)
-            ITI = -log(rand) * S.GUI.ITIMean;
-        end
-        % uniform distribution
-        a = S.GUI.ITIMin;  % Lower bound
-        b = S.GUI.ITIMax;  % Upper bound
+        % exponential distribution
+        % while (ITI < S.GUI.ITIMin || ITI > S.GUI.ITIMax)
+        %     ITI = -log(rand) * S.GUI.ITIMean;
+        % end
         
-        r = a + (b-a)*rand();  % Single random value between a and b        
+        % uniform distribution
+        ITI = DrawFromUniform(obj, S.GUI.ITIMin, S.GUI.ITIMax);
+
         switch S.GUI.TrainingLevel
             case 1                
                 ITI = S.GUI.ITIMin;
@@ -354,6 +376,12 @@ function [ITI] = GetITI( ...
     end
 end
 
+function [r] = DrawFromUniform(obj, lb, ub)
+    % uniform distribution
+    a = lb;  % Lower bound
+    b = ub;  % Upper bound    
+    r = a + (b-a)*rand();  % Single random value between a and b    
+end
 
 function [TimeOutPunish] = GetTimeOutPunish( ...
         obj, S)
@@ -367,9 +395,9 @@ function [TimeOutPunish] = GetTimeOutPunish( ...
                 case 2 % Mid1
                     TimeOutPunish = 2.0;
                 case 3 % Mid2
-                    TimeOutPunish = 2.5;
+                    TimeOutPunish = 2.0;
                 case 4 % Well
-                    TimeOutPunish = 3.0;
+                    TimeOutPunish = 2.0;
             end
         end
     else
@@ -389,11 +417,11 @@ function [ChoiceWindow] = GetChoiceWindow( ...
             case 1
                 ChoiceWindow = 10;
             case 2
-                ChoiceWindow = 10;
+                ChoiceWindow = 5;
             case 3
-                ChoiceWindow = 5;
+                ChoiceWindow = 3;
             case 4
-                ChoiceWindow = 5;
+                ChoiceWindow = 1;
         end
     end
 end
