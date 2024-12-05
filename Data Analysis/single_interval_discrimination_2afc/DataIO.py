@@ -98,10 +98,11 @@ def read_trials(subject):
             else:
                 trial_stim_start.append(np.array([np.nan]))
             # stimulus sequence.
+            # if photodiode high/low toggle and same number of high/low and at least 2 highs/lows
             if ('BNC1High' in trial_events.keys() and
                 'BNC1Low' in trial_events.keys() and
                 np.array(trial_events['BNC1High']).reshape(-1).shape[0]==np.array(trial_events['BNC1Low']).reshape(-1).shape[0] and
-                np.array(trial_events['BNC1High']).reshape(-1).shape[0] >= 3
+                np.array(trial_events['BNC1High']).reshape(-1).shape[0] >= 2
                 ):
                 stim_seq = 1000*np.array([trial_events['BNC1High'], trial_events['BNC1Low']])
             else:
@@ -110,8 +111,9 @@ def read_trials(subject):
             # pre prerturbation isi.
             pre_isi_perc = np.mean(stim_seq[0,1:3] - stim_seq[1,0:2])
             # pre_isi_emp = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PreISI'])
+            pre_isi_emp = np.float64(0)  # no pre isi for single interval            
             trial_isi_pre_perc.append(pre_isi_perc)
-            # trial_isi_pre_emp.append(pre_isi_emp)
+            trial_isi_pre_emp.append(pre_isi_emp)
             # post perturbation isi.
             if stim_seq.shape[1]<4:
                 isi_post_perc = np.nan
