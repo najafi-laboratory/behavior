@@ -7,7 +7,10 @@ from scipy.stats import sem
 def get_bin_stat(decision, isi='post'):
     bin_size=100
     least_trials=5
-    bins = np.arange(0, 1000 + bin_size, bin_size)
+    # set bins across isi range
+    # short ISI: [50, 400, 750]ms.  associated with left lick
+    # long ISI: [750, 1100, 1450]ms.  associated with right lick
+    bins = np.arange(0, 1500 + bin_size, bin_size)
     bins = bins - bin_size / 2
     if isi=='pre':
         row = 4

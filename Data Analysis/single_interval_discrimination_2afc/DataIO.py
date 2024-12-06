@@ -145,23 +145,27 @@ def read_trials(subject):
                     else:
                         correctness.append(np.zeros_like(lick_right))
                 if len(licking_events) > 0:
-                    licking_events = np.concatenate(licking_events).reshape(1,-1)
-                    correctness = np.concatenate(correctness).reshape(1,-1)
-                    direction = np.concatenate(direction).reshape(1,-1)
+                    licking_events = np.concatenate(licking_events).reshape(1,-1)                    
+                    correctness = np.concatenate(correctness).reshape(1,-1)                    
+                    direction = np.concatenate(direction).reshape(1,-1)                    
+                    # lick array
+                    # row 1 time of lick event
+                    # row 2 direction - 0 left, 1 right
+                    # row 3 correctness - 0 incorrect, 1 correct
                     lick = np.concatenate([1000*licking_events, direction, correctness])
                     # all licking events.
                     trial_lick.append(lick)
-                    # reaction licking.
+                    # reaction licking. ie. licks after start if vis stim
                     reaction_idx = np.where(lick[0]>1000*trial_states['VisStimTrigger'][1])[0]
                     if len(reaction_idx)>0:
                         lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
                         trial_reaction.append(lick_reaction)
                     else:
                         trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
-                    # effective licking to outcome.
+                    # effective licking to outcome. ie. licks after start of window choice
                     decision_idx = np.where(lick[0]>1000*trial_states['WindowChoice'][1])[0]
                     if (len(decision_idx)>0 and
-                        stim_seq.shape[1]>3
+                        stim_seq.shape[1]>=2
                         ):
                         lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
                         trial_decision.append(lick_decision)
