@@ -108,13 +108,16 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
             % left bias
             if (AntiBiasVar.BiasIndex >= S.GUI.BiasIndexThres)
                 AntiBiasVar.ValveFlag = 'LeftBias';
+                disp('Left Bias Detected');
             % right bias
             elseif (AntiBiasVar.BiasIndex <= - S.GUI.BiasIndexThres)
                 AntiBiasVar.ValveFlag = 'RightBias';
+                disp('Right Bias Detected');
             % no bias
             elseif (AntiBiasVar.BiasIndex > - S.GUI.BiasIndexThres && ...
                     AntiBiasVar.BiasIndex <   S.GUI.BiasIndexThres)
                 AntiBiasVar.ValveFlag = 'NoBias';
+                disp('No Bias');
             % keep
             else
                 AntiBiasVar.ValveFlag = AntiBiasVar.ValveFlag;
@@ -128,13 +131,15 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
             case 'NoBias' % no bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
                 RightValveAmount_uL = S.GUI.RightValveAmount_uL;
+                disp('No Valve Adjust');
             case 'LeftBias' % left bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL * S.GUI.AdjustValvePercent;
                 RightValveAmount_uL = S.GUI.RightValveAmount_uL;
+                disp('Reduce Left Valve 25%');
             case 'RightBias' % right bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
                 RightValveAmount_uL = S.GUI.RightValveAmount_uL * S.GUI.AdjustValvePercent;
-
+                disp('Reduce Right Valve 25%');
         end
     end
     % update trial type with fraction according to bias flag with
@@ -148,10 +153,14 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
                 SideProbabilities = [1-S.GUI.AdjustFraction, S.GUI.AdjustFraction];
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;
+                disp('Reduce Left trial to 10%');
+                disp('Increase Right trial to 90%');
             case 'RightBias' % right bias
                 SideProbabilities = [S.GUI.AdjustFraction, 1-S.GUI.AdjustFraction];
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;
+                disp('Reduce Right trial to 10%');
+                disp('Increase Left trial to 90%');                
         end
     end
     % main process
@@ -165,6 +174,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
         [TrialTypes] = UpdateTrialType( ...
                 S, AntiBiasVar, TrialTypes, currentTrial);
     end
+
 end
 
 
@@ -194,12 +204,15 @@ function [TrialTypes, AntiBiasVar] = RepeatedIncorrect( ...
         % punish, then draw probabilities for current trial based on trial
         % type (left or right)
         if (S.GUI.RepeatedIncorrect == 1)
+            disp('Previous Trial Incorrect.  Adjusting repeated probability.')
             if (AntiBiasVar.IncorrectFlag == 1)
                 switch AntiBiasVar.IncorrectType
                     case 1
                         SideProbabilities = [S.GUI.RepeatedProb, 1-S.GUI.RepeatedProb];
+                        disp('Previous Left Trial Incorrect.  Update to Left Side Trial.')
                     case 2
                         SideProbabilities = [1-S.GUI.RepeatedProb, S.GUI.RepeatedProb];
+                        disp('Previous Right Trial Incorrect.  Update to Right Side Trial.')
                 end
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;
@@ -433,13 +446,13 @@ function [ChangeMindDur] = GetChangeMindDur( ...
         ChangeMindDur = S.GUI.ChangeMindDur;
     else
         switch S.GUI.TrainingLevel
-            case 1
+            case 1 % naive
                 ChangeMindDur = 10;
-            case 2
+            case 2 % mid 1
                 ChangeMindDur = 5;
-            case 3
+            case 3 % mid 2
                 ChangeMindDur = 0;
-            case 4
+            case 4 % well
                 ChangeMindDur = 0;
         end
     end

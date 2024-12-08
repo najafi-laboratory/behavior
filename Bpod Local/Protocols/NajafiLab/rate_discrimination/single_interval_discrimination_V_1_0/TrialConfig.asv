@@ -108,13 +108,16 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
             % left bias
             if (AntiBiasVar.BiasIndex >= S.GUI.BiasIndexThres)
                 AntiBiasVar.ValveFlag = 'LeftBias';
+                disp('Left Bias Detected');
             % right bias
             elseif (AntiBiasVar.BiasIndex <= - S.GUI.BiasIndexThres)
                 AntiBiasVar.ValveFlag = 'RightBias';
+                disp('Right Bias Detected');
             % no bias
             elseif (AntiBiasVar.BiasIndex > - S.GUI.BiasIndexThres && ...
                     AntiBiasVar.BiasIndex <   S.GUI.BiasIndexThres)
                 AntiBiasVar.ValveFlag = 'NoBias';
+                disp('No Bias');
             % keep
             else
                 AntiBiasVar.ValveFlag = AntiBiasVar.ValveFlag;
@@ -128,13 +131,15 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
             case 'NoBias' % no bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
                 RightValveAmount_uL = S.GUI.RightValveAmount_uL;
+                disp('No Valve Adjust');
             case 'LeftBias' % left bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL * S.GUI.AdjustValvePercent;
                 RightValveAmount_uL = S.GUI.RightValveAmount_uL;
+                disp('Reduce Left Valve 25%');
             case 'RightBias' % right bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
                 RightValveAmount_uL = S.GUI.RightValveAmount_uL * S.GUI.AdjustValvePercent;
-
+                disp('Reduce Right Valve 25%');
         end
     end
     % update trial type with fraction according to bias flag with
@@ -148,6 +153,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
                 SideProbabilities = [1-S.GUI.AdjustFraction, S.GUI.AdjustFraction];
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;
+                disp('Reduce Left trial to 10%');
             case 'RightBias' % right bias
                 SideProbabilities = [S.GUI.AdjustFraction, 1-S.GUI.AdjustFraction];
                 [TrialSide] = SampleSide(obj, SideProbabilities);
@@ -165,6 +171,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
         [TrialTypes] = UpdateTrialType( ...
                 S, AntiBiasVar, TrialTypes, currentTrial);
     end
+
 end
 
 
@@ -308,7 +315,7 @@ function [PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
     switch S.GUI.TrainingLevel
         case 1 % Naive
             PostPertISI = GetISIMean(obj, S, TrialTypes, currentTrial);
-        case 2 % Mid1
+        case 2 % Mid1       
             PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
         case 3 % Mid2
             PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
@@ -329,7 +336,7 @@ end
 function [PostPertISI] = GetISIFromDist(obj, S, TrialTypes, currentTrial)
     switch TrialTypes(currentTrial)
         case 1 % trial is left with short ISI
-            PostPertISI = DrawFromUniform(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s);
+            PostPertISI = DrawFromUniform(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s)
         case 2 % trial is right with long ISI
             PostPertISI = DrawFromUniform(obj, S.GUI.ISILongMin_s, S.GUI.ISILongMax_s);
     end 
@@ -433,13 +440,13 @@ function [ChangeMindDur] = GetChangeMindDur( ...
         ChangeMindDur = S.GUI.ChangeMindDur;
     else
         switch S.GUI.TrainingLevel
-            case 1
+            case 1 % naive
                 ChangeMindDur = 10;
-            case 2
+            case 2 % mid 1
                 ChangeMindDur = 5;
-            case 3
+            case 3 % mid 2
                 ChangeMindDur = 0;
-            case 4
+            case 4 % well
                 ChangeMindDur = 0;
         end
     end

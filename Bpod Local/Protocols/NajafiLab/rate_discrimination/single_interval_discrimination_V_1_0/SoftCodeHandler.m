@@ -25,7 +25,8 @@ function HandleMoveSpouts(code)
             switch true
                 case code == 254
                     M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection));
-                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));        
+                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));
+                    SendBpodSoftCode(1); % Indicate spout move-in start
                 case code == 9
                     M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos));
                     M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos)); 
