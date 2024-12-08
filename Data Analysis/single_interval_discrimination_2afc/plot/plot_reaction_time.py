@@ -40,11 +40,14 @@ def get_reaction(subject_session_data):
     isi_pre_emp = np.concatenate(isi_pre_emp).reshape(1,-1)
     isi_post_emp = subject_session_data['isi_post_emp']
     isi_post_emp = np.concatenate(isi_post_emp).reshape(1,-1)
-    stim_start = subject_session_data['stim_start']
-    stim_start = np.concatenate(stim_start).reshape(-1)
+    choice_start = subject_session_data['choice_start']
+    choice_start = np.concatenate(choice_start).reshape(-1)
+    # stim_start = subject_session_data['stim_start']
+    # stim_start = np.concatenate(stim_start).reshape(-1)
     # reaction = np.concatenate([reaction, jitter_flag, isi_pre_emp, isi_post_emp], axis=0)
     reaction = np.concatenate([reaction, jitter_flag, isi_post_emp], axis=0)
-    reaction[0,:] -= stim_start
+    # reaction[0,:] -= stim_start
+    reaction[0,:] -= choice_start
     non_nan = (1-np.isnan(np.sum(reaction, axis=0))).astype('bool')
     reaction = reaction[:,non_nan]
     # row 0: time.
@@ -101,7 +104,7 @@ def run(ax, subject_session_data):
     ax.spines['top'].set_visible(False)
     ax.set_xlim([0, max_time])
     ax.set_ylim([0.20, 1.05])
-    ax.set_xlabel('reaction time (since stim onset) / s')
+    ax.set_xlabel('reaction time (since choice window start) / s')
     ax.set_ylabel('correct prob.')
     ax.set_xticks(np.arange(0, max_time, 1000))
     ax.set_yticks([0.25, 0.50, 0.75, 1])

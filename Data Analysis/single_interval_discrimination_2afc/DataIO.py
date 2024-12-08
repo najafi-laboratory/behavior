@@ -50,6 +50,10 @@ def read_trials(subject):
     session_raw_data = []
     session_dates = []
     session_outcomes = []
+    session_outcomes_left = []
+    session_outcomes_right = []
+    session_gocue_start = []
+    session_choice_start = []
     session_lick = []
     session_reaction = []
     session_decision = []
@@ -60,6 +64,12 @@ def read_trials(subject):
     session_isi_post_perc = []
     session_isi_post_emp = []
     session_jitter_flag = []
+    states = [
+        'Reward',
+        'RewardNaive',
+        'ChangingMindReward',
+        'Punish',
+        'PunishNaive']
     for f in tqdm(range(len(file_names))):
         fname = file_names[f]
         # one session data.
@@ -76,6 +86,10 @@ def read_trials(subject):
         session_dates.append(fname[-19:-11])
         # loop over one session for extracting data
         trial_outcomes = []
+        trial_outcomes_left = []
+        trial_outcomes_right = []
+        trial_gocue_start = []
+        trial_choice_start = []
         trial_lick = []
         trial_reaction = []
         trial_decision = []
@@ -91,6 +105,11 @@ def read_trials(subject):
             # outcome
             outcome = states_labeling(trial_states)
             trial_outcomes.append(outcome)
+            # left and right outcomes
+            if trial_types[i] == 1:
+                trial_outcomes_left.append(outcome)
+            else:
+                trial_outcomes_right.append(outcome)
             # stimulus start.
             if ('VisStimTrigger' in trial_states.keys() and
                 not np.isnan(trial_states['VisStimTrigger'][0])):
@@ -122,6 +141,18 @@ def read_trials(subject):
             isi_post_emp = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
             trial_isi_post_perc.append(isi_post_perc)
             trial_isi_post_emp.append(isi_post_emp)
+            # go cue
+            if ('GoCue' in trial_states.keys() and
+                not np.isnan(trial_states['GoCue'][0])):
+                trial_gocue_start.append(trial_states['GoCue'][0])
+            else:
+                trial_gocue_start.append(np.nan)
+            # choice window
+            if ('WindowChoice' in trial_states.keys() and
+                not np.isnan(trial_states['WindowChoice'][0])):
+                trial_choice_start.append(trial_states['WindowChoice'][0])
+            else:
+                trial_choice_start.append(np.nan)                                
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
                 not np.isnan(trial_states['VisStimTrigger'][1])):
@@ -150,12 +181,12 @@ def read_trials(subject):
                     direction = np.concatenate(direction).reshape(1,-1)                    
                     # lick array
                     # row 1 time of lick event
-                    # row 2 direction - 0 left, 1 right
+                    # row 2 lick direction - 0 left, 1 right
                     # row 3 correctness - 0 incorrect, 1 correct
                     lick = np.concatenate([1000*licking_events, direction, correctness])
                     # all licking events.
                     trial_lick.append(lick)
-                    # reaction licking. ie. licks after start if vis stim
+                    # reaction licking. ie. licks after start of vis stim
                     reaction_idx = np.where(lick[0]>1000*trial_states['VisStimTrigger'][1])[0]
                     if len(reaction_idx)>0:
                         lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
@@ -171,6 +202,18 @@ def read_trials(subject):
                         trial_decision.append(lick_decision)
                     else:
                         trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
+                    # left and right outcomes
+                    
+                    
+                    # if outcome == 'RewardNaive' or 
+                    # outcome == 'Reward' or
+                    # outcome == 'ChangingMindReward':
+                    #     # left side 
+                    #     if trial_types[i] == 1:
+                            
+                    #     # right side
+                    #     else:
+                    #     trial_side_outcomes
                 else:
                     trial_lick.append(np.array([[np.nan], [np.nan], [np.nan]]))
                     trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
@@ -181,6 +224,10 @@ def read_trials(subject):
                 trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
         # save one session data
         session_outcomes.append(trial_outcomes)
+        session_outcomes_left.append(trial_outcomes_left)
+        session_outcomes_right.append(trial_outcomes_right)
+        session_gocue_start.append(trial_gocue_start)
+        session_choice_start.append(trial_choice_start)        
         session_lick.append(trial_lick)
         session_reaction.append(trial_reaction)
         session_decision.append(trial_decision)
@@ -199,6 +246,10 @@ def read_trials(subject):
         'raw' : session_raw_data,
         'dates' : session_dates,
         'outcomes' : session_outcomes,
+        'outcomes_left' : session_outcomes_left,
+        'outcomes_right' : session_outcomes_right,
+        'gocue_start' : session_gocue_start,
+        'choice_start' : session_choice_start,
         'lick' : session_lick,
         'reaction' : session_reaction,
         'decision' : session_decision,
