@@ -59,7 +59,7 @@ def run(ax, subject_session_data):
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.yaxis.grid(True)
+    ax.yaxis.grid(False)
     ax.set_xlabel('training session')
     ax.set_ylabel('number of trials')
     ax.set_xticks(np.arange(len(outcomes))+1)

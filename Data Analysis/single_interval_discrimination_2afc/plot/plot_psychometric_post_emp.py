@@ -86,8 +86,16 @@ def run(ax, subject_session_data):
         bin_mean_jitter - bin_sem_jitter,
         bin_mean_jitter + bin_sem_jitter,
         color='royalblue', alpha=0.2)
-    ax.hlines(0.5, 0.0, 1000, linestyle=':', color='grey')
-    ax.vlines(500, 0.0, 1.0, linestyle=':', color='grey')
+    ax.vlines(
+        400, 0.0, 1.0,
+        linestyle=':', color='mediumseagreen',
+        label='Short ISI Mean')  
+    ax.vlines(
+        1100, 0.0, 1.0,
+        linestyle=':', color='mediumseagreen',
+        label='Long ISI Mean') 
+    ax.hlines(0.5, 0.0, 1500, linestyle=':', color='grey')
+    # ax.vlines(500, 0.0, 1.0, linestyle=':', color='grey')
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)

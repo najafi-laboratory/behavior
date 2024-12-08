@@ -95,10 +95,10 @@ def run(ax, subject_session_data):
         0.5, 0.0, max_time,
         linestyle=':', color='grey',
         label='chance level')
-    ax.vlines(
-        1300, 0.0, 1.0,
-        linestyle=':', color='mediumseagreen',
-        label='perturbation')
+    # ax.vlines(
+    #     1300, 0.0, 1.0,
+    #     linestyle=':', color='mediumseagreen',
+    #     label='perturbation')
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
