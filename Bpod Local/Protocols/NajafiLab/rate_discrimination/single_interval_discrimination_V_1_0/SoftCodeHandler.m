@@ -18,6 +18,7 @@ end
 
 
 function HandleMoveSpouts(code)
+    global AntiBiasVar
     global S
     switch S.GUI.EnableMovingSpouts
         case 1
@@ -25,11 +26,12 @@ function HandleMoveSpouts(code)
             switch true
                 case code == 254
                     M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection));
-                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));
-                    SendBpodSoftCode(1); % Indicate spout move-in start
+                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));        
                 case code == 9
-                    M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos));
-                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos)); 
+                    M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust));
+                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)); 
+                    disp(['Moving right servo to: ', num2str(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust)]);
+                    disp(['Moving left servo to: ', num2str(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)]);
             end
         case 0
     end

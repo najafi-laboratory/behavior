@@ -5,6 +5,7 @@ try
 
     global BpodSystem
     global M
+    global AntiBiasVar
     
     % counter for plot filenames
     BpodSystem.Data.PlotCntr = 1;
@@ -83,6 +84,9 @@ try
     AntiBiasVar.CompletedHist.right = [];
     AntiBiasVar.BiasIndex           = 0;
     AntiBiasVar.ValveFlag           = 'NoBias';
+    AntiBiasVar.ServoAdjust         = 0;
+    AntiBiasVar.ServoLeftAdjust     = 0;
+    AntiBiasVar.ServoRightAdjust    = 0;
     
     % draw perturbation interval from uniform distribution in range
     PerturbInterval.EasyMinPercent       = 3/4;
@@ -170,6 +174,14 @@ try
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
     
+    debug = True;
+    if debug
+        S.GUI.SetManualITI = 1;
+        S.GUI.ManualITI = 0;
+        S.GUI.PostRewardDelay = 0;
+
+        S.GUI.TimeOutPunish = 
+    end
     
     %% Main trial loop
     
@@ -185,16 +197,32 @@ try
         % type (left or right)
         [TrialTypes, AntiBiasVar] = m_TrialConfig.RepeatedIncorrect( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
-    
+
         [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = m_TrialConfig.AntiBiasValveAdjust( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
     
+        % LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
+        % RightValveAmount_uL = S.GUI.RightValveAmount_uL;
+
         LeftValveTime   = m_TrialConfig.Amount2Time(LeftValveAmount_uL, 1);
         RightValveTime  = m_TrialConfig.Amount2Time(RightValveAmount_uL, 3);
     
+        m_TrialConfig.AntiBiasServoAdjust( ...
+            BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
+
         [TrialTypes] = m_TrialConfig.ManuallFraction( ...
-            S, currentTrial, TrialTypes);        
-    
+            S, currentTrial, TrialTypes); 
+
+        if S.GUI.ManualSideAct
+            switch S.GUI.ManualSide
+                case 1
+                    TrialTypes(currentTrial) = 1;
+                case 2
+                    TrialTypes(currentTrial) = 2;
+            end
+        end
+
+        % 
         %% get difficulty level for this trial
         
         [TrialDifficulty] = m_TrialConfig.SamplingDiff(S);
@@ -215,7 +243,7 @@ try
         DURA.TimeOutPunish = m_TrialConfig.GetTimeOutPunish(S);
         DURA.ITI = m_TrialConfig.GetITI(S);
         DURA.ChoiceWindow = m_TrialConfig.GetChoiceWindow(S);
-        % DURA.ChangeMindDur = m_TrialConfig.GetChangeMindDur(S);
+        DURA.ChangeMindDur = m_TrialConfig.GetChangeMindDur(S);
         
     
         %% set vis stim perturbation ISI duration according to trial-specific difficulty level
@@ -423,6 +451,7 @@ try
             M = [];
             BpodSystem.PluginObjects.V = [];
             BpodSystem.setStatusLED(1);
+            AntiBiasVar = [];
             return
         end
     
@@ -431,6 +460,7 @@ try
     M = [];
     BpodSystem.PluginObjects.V = [];
     BpodSystem.setStatusLED(1);
+    AntiBiasVar = [];
 
 catch MatlabException
     disp(MatlabException.identifier);
@@ -488,6 +518,8 @@ catch MatlabException
     M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos));
     M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos)); 
     M = [];
+
+    AntiBiasVar = [];
 end
 end
 

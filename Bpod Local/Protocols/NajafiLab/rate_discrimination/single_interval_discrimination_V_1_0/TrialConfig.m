@@ -98,6 +98,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
         LeftACC  = sum(AntiBiasVar.CompletedHist.left(end-S.GUI.NumMonitorTrials+1:end)) / S.GUI.NumMonitorTrials;
         RightACC = sum(AntiBiasVar.CompletedHist.right(end-S.GUI.NumMonitorTrials+1:end)) / S.GUI.NumMonitorTrials;
         AntiBiasVar.BiasIndex = LeftACC - RightACC;
+        disp(['Bias Index: ', num2str(AntiBiasVar.BiasIndex)]);
     end
     % update whether adjustment is necessary
     function [AntiBiasVar] = BiasDetection( ...
@@ -177,6 +178,39 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
 
 end
 
+% automatically adjust servo
+function [AntiBiasVar] = AntiBiasServoAdjust( ...
+        obj, BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes)
+    % global AntiBiasVar
+    switch AntiBiasVar.ValveFlag
+        case 'NoBias' % no bias
+            AntiBiasVar = AntiBiasVar;
+        case 'LeftBias' % left bias
+            if abs(AntiBiasVar.ServoRightAdjust) < S.GUI.ServoIncrementMax
+                if AntiBiasVar.ServoRightTrialsSinceAdjust >= 3
+                    AntiBiasVar.ServoRightTrialsSinceAdjust = 0;
+                    AntiBiasVar.ServoRightAdjust = AntiBiasVar.ServoRightAdjust - S.GUI.ServoBiasIncrement;
+                    disp('Setting Right Spout Closer');    
+                else
+                    AntiBiasVar.ServoRightTrialsSinceAdjust = AntiBiasVar.ServoRightTrialsSinceAdjust + 1;
+                end
+            end
+        case 'RightBias' % right bias
+            if abs(AntiBiasVar.ServoLeftAdjust) < S.GUI.ServoIncrementMax
+                if AntiBiasVar.ServoLeftTrialsSinceAdjust >= 3
+                    AntiBiasVar.ServoLeftTrialsSinceAdjust = 0;
+                    AntiBiasVar.ServoLeftAdjust = AntiBiasVar.ServoLeftAdjust + S.GUI.ServoBiasIncrement;
+                    disp('Setting Left Spout Closer'); 
+                else
+                    AntiBiasVar.ServoLeftTrialsSinceAdjust = AntiBiasVar.ServoLeftTrialsSinceAdjust + 1;
+                end
+            end        
+    end
+    disp(['ServoRightAdjust: ', num2str(AntiBiasVar.ServoRightAdjust)]);    
+    disp(['ServoRightTrialsSinceAdjust: ', num2str(AntiBiasVar.ServoRightTrialsSinceAdjust)]);
+    disp(['ServoLeftAdjust: ', num2str(AntiBiasVar.ServoLeftAdjust)]);  
+    disp(['ServoLeftTrialsSinceAdjust: ', num2str(AntiBiasVar.ServoLeftTrialsSinceAdjust)]);
+end
 
 % repeat incorrect trials until it is correct 
 function [TrialTypes, AntiBiasVar] = RepeatedIncorrect( ...
@@ -300,7 +334,7 @@ function [PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
         obj, TrialDifficulty, PerturbInterval, PerturbDurFullRange);
     switch S.GUI.EasyMax
         case 1 % default
-            if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3)
+            if (S.GUI.TrainingLevel == 1 || S.GUI.TrainingLevel == 2 || S.GUI.TrainingLevel == 3 || S.GUI.TrainingLevel == 4)
                 PostPertISI = PerturbDurMax/1000;
                 EasyMaxInfo = 'Activated';
             else
@@ -321,11 +355,13 @@ function [PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
     switch S.GUI.TrainingLevel
         case 1 % Naive
             PostPertISI = GetISIMean(obj, S, TrialTypes, currentTrial);
-        case 2 % Mid1       
+        case 2 % Early       
+            PostPertISI = GetISIMean(obj, S, TrialTypes, currentTrial);
+        case 3 % Mid1       
             PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
-        case 3 % Mid2
+        case 4 % Mid2
             PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
-        case 4 % Well
+        case 5 % Well
             PostPertISI = GetISIFromDist(obj, S, TrialTypes, currentTrial);
     end   
 end
@@ -380,10 +416,12 @@ function [ITI] = GetITI( ...
             case 1                
                 ITI = S.GUI.ITIMin;
             case 2
-                ITI = S.GUI.ITIMean;
+                ITI = S.GUI.ITIMin;                
             case 3
-                ITI = 2.5;
+                ITI = S.GUI.ITIMean;
             case 4
+                ITI = 2.5;
+            case 5
                 ITI = 3.0;
         end        
     end
@@ -405,11 +443,13 @@ function [TimeOutPunish] = GetTimeOutPunish( ...
             switch S.GUI.TrainingLevel
                 case 1 % Naive
                     TimeOutPunish = 2.0;
-                case 2 % Mid1
+                case 2 % Early
+                    TimeOutPunish = 2.0;                    
+                case 3 % Mid1
                     TimeOutPunish = 2.0;
-                case 3 % Mid2
+                case 4 % Mid2
                     TimeOutPunish = 2.0;
-                case 4 % Well
+                case 5 % Well
                     TimeOutPunish = 2.0;
             end
         end
@@ -430,10 +470,12 @@ function [ChoiceWindow] = GetChoiceWindow( ...
             case 1
                 ChoiceWindow = 10;
             case 2
-                ChoiceWindow = 5;
+                ChoiceWindow = 5;                
             case 3
-                ChoiceWindow = 3;
+                ChoiceWindow = 5;
             case 4
+                ChoiceWindow = 3;
+            case 5
                 ChoiceWindow = 1;
         end
     end
@@ -448,17 +490,33 @@ function [ChangeMindDur] = GetChangeMindDur( ...
         switch S.GUI.TrainingLevel
             case 1 % naive
                 ChangeMindDur = 10;
-            case 2 % mid 1
+            case 2 % early
+                ChangeMindDur = 5;                
+            case 3 % mid 1
                 ChangeMindDur = 5;
-            case 3 % mid 2
+            case 4 % mid 2
                 ChangeMindDur = 0;
-            case 4 % well
+            case 5 % well
                 ChangeMindDur = 0;
         end
     end
 end
 
-
+function [PostVisStimDelay] = GetPostVisStimDelay( ...
+        obj, S)
+    switch S.GUI.TrainingLevel
+        case 1 % naive
+            PostVisStimDelay = S.GUI.PostVisStimDelayMin_s;
+        case 2 % early
+            PostVisStimDelay = DrawFromUniform(obj, S.GUI.PostVisStimDelayMin_s, S.GUI.PostVisStimDelayMax_s);
+        case 3 % mid 1
+            PostVisStimDelay = S.GUI.PostVisStimDelayMean_s;
+        case 4 % mid 2
+            PostVisStimDelay = S.GUI.PostVisStimDelayMin_s;
+        case 5 % well
+            PostVisStimDelay = S.GUI.PostVisStimDelayMin_s;
+    end
+end
 
 %% moving spouts
 

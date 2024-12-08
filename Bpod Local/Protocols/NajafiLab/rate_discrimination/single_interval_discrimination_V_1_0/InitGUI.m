@@ -40,7 +40,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.MaxTrials = 1000;
         S.GUI.TrainingLevel = 2;
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
-        S.GUIMeta.TrainingLevel.String = {'Naive', 'Mid 1', 'Mid 2', 'Well'};
+        S.GUIMeta.TrainingLevel.String = {'Naive', 'Early', 'Mid 1', 'Mid 2', 'Well'};
         S.GUI.NumNaiveWarmup = 15;
         S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup'};
         
@@ -60,8 +60,12 @@ function [S] = SetParams(obj, BpodSystem)
         end
 
         S.GUI.ServoDeflection = -100;
+        S.GUI.ServoBiasIncrement = 4;
+        S.GUI.ServoIncrementMax = 25;
+        S.GUI.ResetServoAdjust = 0;
+        S.GUIMeta.ResetServoAdjust.Style = 'checkbox';
 
-        S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection'};
+        S.GUIPanels.Servos = {'EnableMovingSpouts', 'RightServoInPos', 'LeftServoInPos', 'ServoDeflection', 'ServoBiasIncrement', 'ServoIncrementMax', 'ResetServoAdjust'};
 
         % difficulty params
         S.GUI.PercentEasy = 100;
@@ -99,7 +103,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ISIShortMean_s = 0.400;
         % S.GUI.ISIShortMax_s = 0.750;
         % S.GUI.ISILongMin_s = 0.750;
-        S.GUI.ISILongMean_s = 1.150;
+        S.GUI.ISILongMean_s = 1.100;
         % S.GUI.ISILongMax_s = 1.450;                
         S.GUI.ISIShortMin_s = 0.200;
         S.GUI.ISIShortMax_s = 0.600;
@@ -120,9 +124,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.PreVisStimDelayMin_s = 0.200;
         S.GUI.PreVisStimDelayMean_s = 0.500;
         S.GUI.PreVisStimDelayMax_s = 0.800;        
-        S.GUI.PostVisStimDelayMin_s = 0.100;
+        S.GUI.PostVisStimDelayMin_s = 0.050;
         S.GUI.PostVisStimDelayMean_s = 0.200;
-        S.GUI.PostVisStimDelayMax_s = 0.300;        
+        S.GUI.PostVisStimDelayMax_s = 0.200;        
         S.GUI.PreGoCueDelay_s = 0;
         S.GUI.EasyMax = 1;
         S.GUIMeta.EasyMax.Style = 'popupmenu';
@@ -156,8 +160,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ManuallChangeMindDur.Style = 'checkbox';
         S.GUI.ChangeMindDur = 2;
         S.GUI.CenterValveAmount_uL = 0;
-        S.GUI.LeftValveAmount_uL = 3;
-        S.GUI.RightValveAmount_uL = 3;
+        S.GUI.LeftValveAmount_uL = 4;
+        S.GUI.RightValveAmount_uL = 4;
         S.GUI.OutcomeFeedbackDelay = 0;
         S.GUIPanels.Choice = {'ChoiseWindowStartDelay', 'ManualChoiceWindow', 'ChoiceWindow_s', 'ManuallChangeMindDur', 'ChangeMindDur', 'CenterValveAmount_uL', 'LeftValveAmount_uL', 'RightValveAmount_uL', 'OutcomeFeedbackDelay'};
 

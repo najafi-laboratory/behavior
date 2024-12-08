@@ -98,6 +98,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
         LeftACC  = sum(AntiBiasVar.CompletedHist.left(end-S.GUI.NumMonitorTrials+1:end)) / S.GUI.NumMonitorTrials;
         RightACC = sum(AntiBiasVar.CompletedHist.right(end-S.GUI.NumMonitorTrials+1:end)) / S.GUI.NumMonitorTrials;
         AntiBiasVar.BiasIndex = LeftACC - RightACC;
+        disp(['Bias Index: ', num2str(AntiBiasVar.BiasIndex)]);
     end
     % update whether adjustment is necessary
     function [AntiBiasVar] = BiasDetection( ...
@@ -154,10 +155,13 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;
                 disp('Reduce Left trial to 10%');
+                disp('Increase Right trial to 90%');
             case 'RightBias' % right bias
                 SideProbabilities = [S.GUI.AdjustFraction, 1-S.GUI.AdjustFraction];
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;
+                disp('Reduce Right trial to 10%');
+                disp('Increase Left trial to 90%');                
         end
     end
     % main process
@@ -174,6 +178,23 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
 
 end
 
+% automatically adjust servo
+function AntiBiasServoAdjust( ...
+        obj, BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes)
+    if AntiBiasVar.ServoAdjust < S.GUI.ServoIncrementMax
+        switch AntiBiasVar.ValveFlag
+            case 'NoBias' % no bias
+                TrialTypes = TrialTypes;
+            case 'LeftBias' % left bias
+                AntiBiasVar.ServoAdjust = AntiBiasVar.ServoAdjust + S.GUI.ServoBiasIncrement;
+                AntiBiasVar.ServoRightAdjust = AntiBiasVar.ServoRightAdjust - AntiBiasVar.ServoAdjust;
+            case 'RightBias' % right bias
+                AntiBiasVar.ServoAdjust = AntiBiasVar.ServoAdjust + S.GUI.ServoBiasIncrement;
+                AntiBiasVar.ServoLeftAdjust = AntiBiasVar.ServoLeftAdjust + AntiBiasVar.ServoAdjust;
+                disp('Increase Left trial to 90%');                
+        end
+    end
+end
 
 % repeat incorrect trials until it is correct 
 function [TrialTypes, AntiBiasVar] = RepeatedIncorrect( ...
@@ -201,12 +222,15 @@ function [TrialTypes, AntiBiasVar] = RepeatedIncorrect( ...
         % punish, then draw probabilities for current trial based on trial
         % type (left or right)
         if (S.GUI.RepeatedIncorrect == 1)
+            disp('Previous Trial Incorrect.  Adjusting repeated probability.')
             if (AntiBiasVar.IncorrectFlag == 1)
                 switch AntiBiasVar.IncorrectType
                     case 1
                         SideProbabilities = [S.GUI.RepeatedProb, 1-S.GUI.RepeatedProb];
+                        disp('Previous Left Trial Incorrect.  Update to Left Side Trial.')
                     case 2
                         SideProbabilities = [1-S.GUI.RepeatedProb, S.GUI.RepeatedProb];
+                        disp('Previous Right Trial Incorrect.  Update to Right Side Trial.')
                 end
                 [TrialSide] = SampleSide(obj, SideProbabilities);
                 TrialTypes(currentTrial) = TrialSide;

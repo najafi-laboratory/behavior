@@ -5,6 +5,7 @@ try
 
     global BpodSystem
     global M
+    global AntiBiasVar
     
     % counter for plot filenames
     BpodSystem.Data.PlotCntr = 1;
@@ -83,6 +84,11 @@ try
     AntiBiasVar.CompletedHist.right = [];
     AntiBiasVar.BiasIndex           = 0;
     AntiBiasVar.ValveFlag           = 'NoBias';
+    % AntiBiasVar.ServoAdjust         = 0;
+    AntiBiasVar.ServoRightAdjust    = 0;
+    AntiBiasVar.ServoRightTrialsSinceAdjust     = 20;
+    AntiBiasVar.ServoLeftAdjust     = 0;
+    AntiBiasVar.ServoLeftTrialsSinceAdjust     = 20;    
     
     % draw perturbation interval from uniform distribution in range
     PerturbInterval.EasyMinPercent       = 3/4;
@@ -170,6 +176,15 @@ try
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
     
+    debug = false;
+    if debug
+        S.GUI.SetManualITI = 1;
+        S.GUI.ManualITI = 0;
+        S.GUI.PostRewardDelay = 0;
+        S.GUI.ManuallTimeOutPunish = 1;
+        S.GUI.TimeOutPunish = 0;
+        S.GUI.NumNaiveWarmup = 0;
+    end
     
     %% Main trial loop
     
@@ -195,6 +210,16 @@ try
         LeftValveTime   = m_TrialConfig.Amount2Time(LeftValveAmount_uL, 1);
         RightValveTime  = m_TrialConfig.Amount2Time(RightValveAmount_uL, 3);
     
+        AntiBiasVar = m_TrialConfig.AntiBiasServoAdjust( ...
+            BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
+
+        if S.GUI.ResetServoAdjust
+            AntiBiasVar.ServoRightAdjust    = 0;
+            AntiBiasVar.ServoRightTrialsSinceAdjust     = 20;
+            AntiBiasVar.ServoLeftAdjust     = 0;
+            AntiBiasVar.ServoLeftTrialsSinceAdjust     = 20;
+        end
+
         [TrialTypes] = m_TrialConfig.ManuallFraction( ...
             S, currentTrial, TrialTypes); 
 
@@ -229,6 +254,7 @@ try
         DURA.ITI = m_TrialConfig.GetITI(S);
         DURA.ChoiceWindow = m_TrialConfig.GetChoiceWindow(S);
         DURA.ChangeMindDur = m_TrialConfig.GetChangeMindDur(S);
+        DURA.PostVisStimDelay = m_TrialConfig.GetPostVisStimDelay(S);
         
     
         %% set vis stim perturbation ISI duration according to trial-specific difficulty level
@@ -352,7 +378,15 @@ try
             case 1 % naive
                 ExperimenterTrialInfo.TrainingLevel = 'Naive';
                 StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
-            case 2 % Mid Trained
+            case 2 % early Trained
+                if (currentTrial <= S.GUI.NumNaiveWarmup)
+                    ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
+                    StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
+                else
+                    ExperimenterTrialInfo.TrainingLevel = 'Early Trained';
+                    StateEarlyTrain(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
+                end                
+            case 3 || 4 % Mid Trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
                     StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
@@ -360,7 +394,7 @@ try
                     ExperimenterTrialInfo.TrainingLevel = 'Mid Trained';
                     StateMidTrain(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
                 end
-            case 3 % well trained
+            case 5 % well trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
                     StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
@@ -436,6 +470,7 @@ try
             M = [];
             BpodSystem.PluginObjects.V = [];
             BpodSystem.setStatusLED(1);
+            AntiBiasVar = [];
             return
         end
     
@@ -444,6 +479,7 @@ try
     M = [];
     BpodSystem.PluginObjects.V = [];
     BpodSystem.setStatusLED(1);
+    AntiBiasVar = [];
 
 catch MatlabException
     disp(MatlabException.identifier);
@@ -501,6 +537,8 @@ catch MatlabException
     M.setMotor(0, m_TrialConfig.ConvertMaestroPos(S.GUI.RightServoInPos));
     M.setMotor(1, m_TrialConfig.ConvertMaestroPos(S.GUI.LeftServoInPos)); 
     M = [];
+
+    AntiBiasVar = [];
 end
 end
 
