@@ -186,10 +186,18 @@ def read_trials(subject):
                     lick = np.concatenate([1000*licking_events, direction, correctness])
                     # all licking events.
                     trial_lick.append(lick)
-                    # reaction licking. ie. licks after start of vis stim
+                    # reaction licking. ie. the lick after start of vis stim
+                    # check that licks are after 'VisStimTrigger'
                     reaction_idx = np.where(lick[0]>1000*trial_states['VisStimTrigger'][1])[0]
-                    if len(reaction_idx)>0:
-                        lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
+
+                    if i == 99:
+                        print('bug')
+                    # reaction_idx = np.where(lick[0]>1000*trial_states['AudStimTrigger'][1])[0] # does this get first lick or left lick preferential?
+                    if len(reaction_idx)>0:                       
+                        # lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
+                        # get earliest lick as 'reaction'
+                        lick_reaction = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)
+                        
                         trial_reaction.append(lick_reaction)
                     else:
                         trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
@@ -198,7 +206,9 @@ def read_trials(subject):
                     if (len(decision_idx)>0 and
                         stim_seq.shape[1]>=2
                         ):
-                        lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
+                        # lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
+                        # get earliest lick as 'decision'
+                        lick_decision = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)
                         trial_decision.append(lick_decision)
                     else:
                         trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))

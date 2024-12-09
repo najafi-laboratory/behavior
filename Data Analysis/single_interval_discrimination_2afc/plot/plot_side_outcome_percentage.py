@@ -65,8 +65,20 @@ def run(ax, subject_session_data):
     ax.yaxis.grid(False)
     ax.set_xlabel('training session')
     ax.set_ylabel('number of trials')
-    ax.set_xticks(np.arange(len(outcomes_left))+1)
+    top_labels = []
+    for i in range(len(dates)):
+        top_labels.append('L')  # Label for the first bar
+        top_labels.append('R')  # Label for the second bar
+    # Update x-ticks and x-tick labels
+    tick_positions_bottom = np.arange(len(outcomes_left))+1
+    tick_positions_top = np.repeat(tick_positions_bottom, 2)  # Repeat x positions for each set of bars (top labels)
+    ax.set_xticks(tick_positions_bottom)
+    ax.set_xticks(tick_positions_top)  # Set the tick positions for the top labels
+    ax.set_xticklabels(top_labels, rotation=45, ha='right')  # Set the top labels and rotate    
     ax.set_yticks(np.arange(6)*0.2)
     ax.set_xticklabels(dates, rotation='vertical')
+    
+
+    
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     ax.set_title('reward/punish percentage for completed trials')

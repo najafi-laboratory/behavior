@@ -5,7 +5,7 @@ from scipy.stats import sem
 # bin the data with timestamps.
 
 def get_bin_stat(decision, isi='post'):
-    bin_size=100
+    bin_size=50
     least_trials=5
     # set bins across isi range
     # short ISI: [50, 400, 750]ms.  associated with left lick
@@ -87,23 +87,28 @@ def run(ax, subject_session_data):
         bin_mean_jitter + bin_sem_jitter,
         color='royalblue', alpha=0.2)
     ax.vlines(
-        400, 0.0, 1.0,
-        linestyle=':', color='mediumseagreen',
-        label='Short ISI Mean')  
+        50, 0.0, 1.0,
+        linestyle='--', color='tomato',
+        label='Short ISI Min')  
     ax.vlines(
-        1100, 0.0, 1.0,
-        linestyle=':', color='mediumseagreen',
-        label='Long ISI Mean') 
-    ax.hlines(0.5, 0.0, 1500, linestyle=':', color='grey')
+        1450, 0.0, 1.0,
+        linestyle='--', color='tomato',
+        label='Long ISI Max') 
+    ax.vlines(
+        750, 0.0, 1.0,
+        linestyle='--', color='mediumseagreen',
+        label='Category Boundary')     
+    ax.hlines(0.5, 0.0, 1500, linestyle='--', color='grey')
     # ax.vlines(500, 0.0, 1.0, linestyle=':', color='grey')
     ax.tick_params(tick1On=False)
+    ax.tick_params(axis='x', rotation=45)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xlim([-50,1600])
     ax.set_ylim([-0.05,1.05])
     ax.set_xticks(np.arange(11)*150)
     ax.set_yticks(np.arange(5)*0.25)
-    ax.set_xlabel('post perturbation isi')
+    ax.set_xlabel('isi')
     ax.set_ylabel('prob. of choosing the right side (mean$\pm$sem)')
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    ax.set_title('average psychometric function (empirical mean)')
+    ax.set_title('average psychometric function')

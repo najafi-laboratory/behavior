@@ -34,11 +34,11 @@ if __name__ == "__main__":
     for i in range(len(session_data)):
         fig = plt.figure(layout='constrained', figsize=(35, 20))
         gs = GridSpec(4, 7, figure=fig)
-        plot_outcome.run(plt.subplot(gs[0, 0:3]), session_data[i])
-        plot_complete_trials.run(plt.subplot(gs[1, 0:3]), session_data[i])
-        plot_side_outcome_percentage.run(plt.subplot(gs[2, 0:3]), session_data[i])
-        plot_psychometric_post_emp.run(plt.subplot(gs[1, 4]), session_data[i])
-        plot_reaction_time.run(plt.subplot(gs[0, 4]), session_data[i])
+        # plot_outcome.run(plt.subplot(gs[0, 0:3]), session_data[i])
+        # plot_complete_trials.run(plt.subplot(gs[1, 0:3]), session_data[i])
+        plot_side_outcome_percentage.run(plt.subplot(gs[0, 0:3]), session_data[i])
+        plot_psychometric_post_emp.run(plt.subplot(gs[1, 0]), session_data[i])
+        plot_reaction_time.run(plt.subplot(gs[1, 1]), session_data[i])
         
         
         # plot_psychometric_post_emp.run(plt.subplot(gs[2, 0]), session_data[i])
