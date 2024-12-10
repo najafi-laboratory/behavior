@@ -2,6 +2,8 @@
 
 import os
 import fitz
+from datetime import datetime
+import random
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
@@ -24,7 +26,7 @@ if __name__ == "__main__":
     pdf_plot = 1    
 
     # subject_list = ['LCHR_TS02']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
     # subject_list = ['LCHR_TS02', 'YH10', 'LG03', 'VT01']
 
     session_data = DataIO.run(subject_list)
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     #     plot_psychometric_post_perc.run(plt.subplot(gs[3, 0]), session_data[i])
     #     plot_psychometric_pre_emp.run(plt.subplot(gs[2, 1]), session_data[i])
     #     plot_psychometric_pre_perc.run(plt.subplot(gs[3, 1]), session_data[i])
-    #     plot_psychometric_epoch_emp.run([plt.subplot(gs[i, 3]) for i in range(3)], session_data[i])
+        plot_psychometric_epoch_emp.run([plt.subplot(gs[i, 3]) for i in range(3)], session_data[i])
     #     plot_psychometric_epoch_perc.run([plt.subplot(gs[i, 4]) for i in range(3)], session_data[i])
         # plot_reaction_time.run(plt.subplot(gs[0, 5]), session_data[i])
         # plot_decision_time.run(plt.subplot(gs[1, 5]), session_data[i])
@@ -60,7 +62,13 @@ if __name__ == "__main__":
             subject_report.insert_pdf(roi_fig)
             roi_fig.close()
             os.remove(fname)
-    if pdf_plot:        
-        subject_report.save('./figures/single_interval_subject_report.pdf')
+    if pdf_plot:    
+        # Get the current date
+        current_date = datetime.now()
+        # Format the date as 'yyyymmdd'
+        formatted_date = current_date.strftime('%Y%m%d')
+        # Random integer between 1 and 100
+        random_integer = str(random.randint(1000, 9999))  
+        subject_report.save('./figures/single_interval_subject_report_'+formatted_date+'_'+random_integer+'.pdf')
         subject_report.close()
 

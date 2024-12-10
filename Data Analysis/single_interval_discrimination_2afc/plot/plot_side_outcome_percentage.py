@@ -73,10 +73,10 @@ def run(ax, subject_session_data):
     tick_positions_bottom = np.arange(len(outcomes_left))+1
     tick_positions_top = np.repeat(tick_positions_bottom, 2)  # Repeat x positions for each set of bars (top labels)
     ax.set_xticks(tick_positions_bottom)
-    ax.set_xticks(tick_positions_top)  # Set the tick positions for the top labels
-    ax.set_xticklabels(top_labels, rotation=45, ha='right')  # Set the top labels and rotate    
+    # ax.set_xticks(tick_positions_top)  # Set the tick positions for the top labels
+    # ax.set_xticklabels(top_labels, rotation=45, ha='right')  # Set the top labels and rotate    
     ax.set_yticks(np.arange(6)*0.2)
-    ax.set_xticklabels(dates, rotation='vertical')
+    ax.set_xticklabels(dates, rotation=45)
     
 
     
