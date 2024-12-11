@@ -86,14 +86,14 @@ def run(ax, subject_session_data):
         bin_mean_jitter - bin_sem_jitter,
         bin_mean_jitter + bin_sem_jitter,
         color='royalblue', alpha=0.2)
-    ax.vlines(
-        50, 0.0, 1.0,
-        linestyle='--', color='tomato',
-        label='Short ISI Min')  
-    ax.vlines(
-        1450, 0.0, 1.0,
-        linestyle='--', color='tomato',
-        label='Long ISI Max') 
+    # ax.vlines(
+    #     50, 0.0, 1.0,
+    #     linestyle='--', color='tomato',
+    #     label='Short ISI Min')  
+    # ax.vlines(
+    #     1450, 0.0, 1.0,
+    #     linestyle='--', color='tomato',
+    #     label='Long ISI Max') 
     ax.vlines(
         750, 0.0, 1.0,
         linestyle='--', color='mediumseagreen',
