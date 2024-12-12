@@ -72,7 +72,7 @@ def run(ax, subject_session_data):
             dates_label[i] = dates[i] + '(chemo)'
         if jitter_session[i] == 1:
             dates_label[i] = dates_label[i] + '(jitter)'
-    ax.set_xticklabels(dates_label, rotation='vertical')
+    ax.set_xticklabels(dates_label, rotation=45)
     ind = 0
     for xtick in ax.get_xticklabels():
         if jitter_session[ind] == 1:

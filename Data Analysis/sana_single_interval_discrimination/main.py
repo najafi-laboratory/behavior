@@ -57,7 +57,7 @@ if __name__ == "__main__":
     session_data_path = 'C:\\behavior\\session_data'
     output_dir_onedrive = './figures/'
     output_dir_local = './figures/'
-    last_day = '20241210'
+    last_day = '20241211'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     subject_list = ['LCHR_TS01', 'LCHR_TS02']
 
@@ -84,10 +84,14 @@ if __name__ == "__main__":
     for ch in chemo_sessions:
         if '2024' + ch in dates:
             Chemo[dates.index('2024' + ch)] = 1
+        else:
+            Chemo[dates.index('2024' + ch)] = 0
+    
     session_data[0]['Chemo'] = Chemo
     ##########
     
     for i in range(len(session_data)):
+        session_data[i]['Chemo'] = np.zeros(session_data[i]['total_sessions'])  
         
         fig = plt.figure(layout='constrained', figsize=(30, 15))
         gs = GridSpec(4, 6, figure=fig)
@@ -96,12 +100,12 @@ if __name__ == "__main__":
         # plot_early_lick_outcome.run(plt.subplot(gs[3, 3:5]), session_data[i])
         # plot_psychometric_post.run(plt.subplot(gs[2, 2]), session_data[i])
         # plot_psychometric_percep.run(plt.subplot(gs[3, 2]), session_data[i])
-        # plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], session_data[i])
+        plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], session_data[i])
         # plot_reaction_time.run(plt.subplot(gs[0, 4]), session_data[i])
         # plot_reaction_outcome.run(plt.subplot(gs[0, 5]), session_data[i])
         # plot_decision_time.run(plt.subplot(gs[1, 4]), session_data[i])
         # plot_decision_outcome.run(plt.subplot(gs[1, 5]), session_data[i])
-        #             #plot_strategy.run(plt.subplot(gs[2, 5]), session_data[i])
+                    #plot_strategy.run(plt.subplot(gs[2, 5]), session_data[i])
         # plot_decision_time_isi.run(plt.subplot(gs[2, 4]), session_data[i])
         # plot_reaction_time_isi.run(plt.subplot(gs[2, 5]), session_data[i])
                     # plot_short_long_percentage.run(plt.subplot(gs[2, 0:2]), session_data[i])

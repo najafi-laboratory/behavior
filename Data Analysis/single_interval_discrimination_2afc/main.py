@@ -27,7 +27,8 @@ if __name__ == "__main__":
     pdf_plot2 = 1
 
     # subject_list = ['LCHR_TS02']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS02', 'YH10', 'LG03', 'VT01']
 
     session_data = DataIO.run(subject_list)
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         plot_psychometric_post_emp.run(plt.subplot(gs[1, 0]), session_data[i])
         plot_reaction_time.run(plt.subplot(gs[1, 1]), session_data[i])
         
-        plot_psychometric_epoch_emp.run([plt.subplot(gs[i, 3]) for i in range(3)], session_data[i])
+        # plot_psychometric_epoch_emp.run([plt.subplot(gs[i, 3]) for i in range(3)], session_data[i])
         # plot_psychometric_post_emp.run(plt.subplot(gs[2, 0]), session_data[i])
     #     plot_psychometric_post_perc.run(plt.subplot(gs[3, 0]), session_data[i])
     #     plot_psychometric_pre_emp.run(plt.subplot(gs[2, 1]), session_data[i])
@@ -74,6 +75,7 @@ if __name__ == "__main__":
         subject_report.close()
 
     # subject_list = ['LCHR_TS02']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
     subject_list = ['LCHR_TS01_daily', 'LCHR_TS02_daily', 'LG08_TS03_daily']
     # subject_list = ['LCHR_TS02', 'YH10', 'LG03', 'VT01']
 

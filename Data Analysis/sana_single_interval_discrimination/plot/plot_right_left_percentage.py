@@ -45,14 +45,14 @@ def run(ax, subject_session_data):
         session_id, choice,
         edgecolor='white',
         width=width,
-        color='black',
+        color='lightcoral',
         label='Left choice')
     ax.bar(
         session_id, choice_right,
         edgecolor='white',
         width=width,
         bottom = choice,
-        color='gray',
+        color='mediumpurple',
         label='Right choice')
     ax.tick_params(tick1On=False)
     ax.spines['left'].set_visible(False)
@@ -64,7 +64,7 @@ def run(ax, subject_session_data):
     ax.set_ylabel('fraction of left choice')
     ax.set_ylim(0 , 1)
     ax.set_xticks(np.arange(len(dates))+1)
-    ax.set_xticklabels(dates, rotation='vertical')
+    ax.set_xticklabels(dates, rotation=45)
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     ax.set_title('left vs right choice fraction')
     ind = 0

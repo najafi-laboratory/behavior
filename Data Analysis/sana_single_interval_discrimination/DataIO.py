@@ -52,6 +52,7 @@ def read_trials(subject , session_data_path):
     session_outcomes = []
     session_outcomes_clean = []
     session_outcomes_time = []
+    session_choice_start = []    
     session_lick = []
     session_reaction = []
     session_decision = []
@@ -89,6 +90,7 @@ def read_trials(subject , session_data_path):
         trial_outcomes = []
         trial_outcomes_clean = []
         trial_outcomes_time = []
+        trial_choice_start = []        
         trial_lick = []
         trial_reaction = []
         trial_decision = []
@@ -119,7 +121,7 @@ def read_trials(subject , session_data_path):
             if ('BNC1High' in trial_events.keys() and
                 'BNC1Low' in trial_events.keys() and
                 np.array(trial_events['BNC1High']).reshape(-1).shape[0]==np.array(trial_events['BNC1Low']).reshape(-1).shape[0] and
-                np.array(trial_events['BNC1High']).reshape(-1).shape[0] >= 3
+                np.array(trial_events['BNC1High']).reshape(-1).shape[0] >= 2
                 ):
                 stim_seq = 1000*np.array([trial_events['BNC1High'], trial_events['BNC1Low']])
             else:
@@ -204,6 +206,10 @@ def read_trials(subject , session_data_path):
                 outcome_clean = 'Switching'
             
             ##########
+            
+            # revert to prev version
+            outcome_clean = outcome
+            
             trial_outcomes_clean.append(outcome_clean)
             
             
@@ -214,7 +220,7 @@ def read_trials(subject , session_data_path):
             # post perturbation isi.
             if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice'):
                 stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
-                if stim_seq.shape[1]<4:
+                if stim_seq.shape[1]<2:
                     stim_post_isi = np.nan
                     number_flash = np.nan
                     if outcome == 'Reward':
@@ -244,6 +250,13 @@ def read_trials(subject , session_data_path):
             trial_post_isi_mean.append(stim_post_isi_mean)
             trial_post_isi_type.append(int(1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI']) > 500))
             
+            # choice window
+            if ('WindowChoice' in trial_states.keys() and
+                not np.isnan(trial_states['WindowChoice'][0])):
+                trial_choice_start.append(trial_states['WindowChoice'][0])
+            else:
+                trial_choice_start.append(np.nan)              
+            
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
                 not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice'):
@@ -252,7 +265,8 @@ def read_trials(subject , session_data_path):
                 correctness = []
                 num_left = 0
                 if 'Port1In' in trial_events.keys():
-                    lick_left = np.array(trial_events['Port1In']).reshape(-1)
+                    # get lick time relative to window
+                    lick_left = np.array(trial_events['Port1In'] - trial_states['WindowChoice'][0]).reshape(-1)
                     licking_events.append(lick_left)
                     direction.append(np.zeros_like(lick_left))
                     num_left = len(lick_left)
@@ -261,33 +275,49 @@ def read_trials(subject , session_data_path):
                     else:
                         correctness.append(np.zeros_like(lick_left))
                 if 'Port3In' in trial_events.keys():
-                    lick_right = np.array(trial_events['Port3In']).reshape(-1)
+                    # get lick time relative to window
+                    lick_right = np.array(trial_events['Port3In'] - trial_states['WindowChoice'][0]).reshape(-1)                    
+                    trial_states['WindowChoice'][1]
                     licking_events.append(lick_right)
                     direction.append(np.ones_like(lick_right))
                     if trial_types[i] == 2:
                         correctness.append(np.ones_like(lick_right))
                     else:
                         correctness.append(np.zeros_like(lick_right))
-                if len(licking_events) > 0:
+                if len(licking_events) > 0:                    
                     licking_events = np.concatenate(licking_events).reshape(1,-1)
                     correctness = np.concatenate(correctness).reshape(1,-1)
                     direction = np.concatenate(direction).reshape(1,-1)
+                    # lick array
+                    # row 1 time of lick event
+                    # row 2 lick direction - 0 left, 1 right
+                    # row 3 correctness - 0 incorrect, 1 correct                    
                     lick = np.concatenate([1000*licking_events, direction, correctness])
                     lick = lick[: , lick[0, :].argsort()]
                     # all licking events.
                     trial_lick.append(lick)
-                    # reaction licking.
+                    # reaction licking. ie. the lick after start of vis stim
+                    # check that licks are after 'VisStimTrigger'
                     reaction_idx = np.where(lick[0]>1000*trial_states['VisStimTrigger'][1])[0]
-                    if len(reaction_idx)>0:
-                        lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
+                    if len(reaction_idx)>0:                     
+                        # lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
+                        # get earliest lick as 'reaction'
+                        lick_reaction = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)                        
                         trial_reaction.append(lick_reaction)
                     else:
                         trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
+                    # effective licking to outcome. ie. licks after start of window choice
                     decision_idx = np.where(lick[0]>1000*trial_states['WindowChoice'][1])[0]
+                    
+                    # licks always after window
+                    decision_idx = [1]
+                    
                     if (len(decision_idx)>0 and
-                        stim_seq.shape[1]>3
+                        stim_seq.shape[1]>=2
                         ):
-                        lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
+                        # lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
+                        # get earliest lick as 'decision'
+                        lick_decision = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)
                         trial_decision.append(lick_decision)
                     else:
                         trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
@@ -303,6 +333,7 @@ def read_trials(subject , session_data_path):
         session_outcomes.append(trial_outcomes)
         session_outcomes_clean.append(trial_outcomes_clean)
         session_outcomes_time.append(trial_outcomes_time)
+        session_choice_start.append(trial_choice_start)             
         session_lick.append(trial_lick)
         session_reaction.append(trial_reaction)
         session_decision.append(trial_decision)
@@ -327,6 +358,7 @@ def read_trials(subject , session_data_path):
         'outcomes' : session_outcomes,
         'outcomes_clean' : session_outcomes_clean,
         'outcomes_time' : session_outcomes_time,
+        'choice_start' : session_choice_start,        
         'lick' : session_lick,
         'reaction' : session_reaction,
         'decision' : session_decision,

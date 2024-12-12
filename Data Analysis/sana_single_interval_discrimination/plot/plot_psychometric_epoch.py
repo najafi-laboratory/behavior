@@ -3,9 +3,14 @@ import matplotlib.pyplot as plt
 from scipy.stats import sem
 
 def get_bin_stat(decision, isi='post'):
-    bin_size=100
+    # bin_size=100
+    bin_size=50
     least_trials=5
-    bins = np.arange(0, 1000 + bin_size, bin_size)
+    # set bins across isi range
+    # short ISI: [50, 400, 750]ms.  associated with left lick
+    # long ISI: [750, 1100, 1450]ms.  associated with right lick
+    # bins = np.arange(0, 1000 + bin_size, bin_size)
+    bins = np.arange(0, 1500 + bin_size, bin_size)
     bins = bins - bin_size / 2
     bin_indices = np.digitize(decision[3,:], bins) - 1
     bin_mean = []
@@ -28,8 +33,10 @@ def get_bin_stat(decision, isi='post'):
 def plot_curves(ax, subject,jitter_session, dates, decision, post_isi_mean,j,r, k ,n_jitter,n_control , n_chemo, chemo_labels):
     decision = np.concatenate([decision, post_isi_mean], axis=0)
     non_nan = (1-np.isnan(np.sum(decision, axis=0))).astype('bool')
-    ax.hlines(0.5, 0.0, 1000, linestyle='--' , color='silver' , lw = 0.5)
-    ax.vlines(500, 0.0, 1.0, linestyle='--' , color='silver', lw = 0.5)
+    # ax.hlines(0.5, 0.0, 1000, linestyle='--' , color='silver' , lw = 0.5)
+    ax.hlines(0.5, 0.0, 1600, linestyle='--' , color='silver' , lw = 0.5)
+    # ax.vlines(500, 0.0, 1.0, linestyle='--' , color='silver', lw = 0.5)
+    ax.vlines(750, 0.0, 1.0, linestyle='--' , color='silver', lw = 0.5)
     extra = 1
     decision = decision[:,non_nan]
     bin_mean, bin_sem, bin_isi = get_bin_stat(decision)
@@ -49,11 +56,14 @@ def plot_curves(ax, subject,jitter_session, dates, decision, post_isi_mean,j,r, 
         markersize=4,
         color = c)
     ax.tick_params(tick1On=False)
+    ax.tick_params(axis='x', rotation=45)    
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.set_xlim([-50,1050])
+    # ax.set_xlim([-50,1050])
+    ax.set_xlim([-50,1600])
     ax.set_ylim([-0.05,1.05])
-    ax.set_xticks(np.arange(6)*200)
+    # ax.set_xticks(np.arange(6)*200)
+    ax.set_xticks(np.arange(11)*150)
     ax.set_yticks(np.arange(5)*0.25)
     ax.set_xlabel('post perturbation isi')
     ax.set_ylabel('right fraction')

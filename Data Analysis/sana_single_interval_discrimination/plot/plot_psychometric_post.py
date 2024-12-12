@@ -86,12 +86,12 @@ def run(ax, subject_session_data):
     ax.plot(
         bin_isi_fix,
         bin_mean_fix,
-        color='black', marker='.', label='fix', markersize=4)
+        color='indigo', marker='.', label='fix', markersize=4)
     ax.fill_between(
         bin_isi_fix,
         bin_mean_fix - bin_sem_fix,
         bin_mean_fix + bin_sem_fix,
-        color='black', alpha=0.2)
+        color='violet', alpha=0.2)
     ax.vlines(
         750, 0.0, 1.0,
         linestyle='--', color='mediumseagreen',
@@ -126,6 +126,7 @@ def run(ax, subject_session_data):
     ax.hlines(0.5, 0.0, 1500, linestyle='--', color='grey')
     # ax.vlines(500, 0.0, 1.0, linestyle=':', color='grey')
     ax.tick_params(tick1On=False)
+    ax.tick_params(axis='x', rotation=45)    
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.set_xlim([-50,1600])

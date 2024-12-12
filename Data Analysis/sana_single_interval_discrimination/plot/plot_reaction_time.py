@@ -52,10 +52,14 @@ def get_reaction(subject_session_data):
     pre_isi = np.concatenate(pre_isi).reshape(1,-1)
     post_isi_mean = subject_session_data['isi_post_emp']
     post_isi_mean = np.concatenate(post_isi_mean).reshape(1,-1)
-    stim_start = subject_session_data['stim_start']
-    stim_start = np.concatenate(stim_start).reshape(-1)
-    reaction = np.concatenate([reaction, jitter_flag, pre_isi, post_isi_mean], axis=0)
-    reaction[0,:] -= stim_start
+    choice_start = subject_session_data['choice_start']
+    choice_start = np.concatenate(choice_start).reshape(-1)    
+    # stim_start = subject_session_data['stim_start']
+    # stim_start = np.concatenate(stim_start).reshape(-1)
+    # reaction = np.concatenate([reaction, jitter_flag, pre_isi, post_isi_mean], axis=0)
+    reaction = np.concatenate([reaction, jitter_flag, post_isi_mean], axis=0)
+    # reaction[0,:] -= stim_start
+    reaction[0,:] -= choice_start
     non_nan = (1-np.isnan(np.sum(reaction, axis=0))).astype('bool')
     reaction = reaction[:,non_nan]
     # row 0: time.
@@ -78,7 +82,7 @@ def run(ax, subject_session_data):
     ax.plot(
         bin_time_fix,
         bin_mean_fix,
-        color='black',
+        color='indigo',
         marker='.',
         label='fix',
         markersize=4)
@@ -86,7 +90,7 @@ def run(ax, subject_session_data):
         bin_time_fix,
         bin_mean_fix - bin_sem_fix,
         bin_mean_fix + bin_sem_fix,
-        color='black',
+        color='violet',
         alpha=0.2)
     ax.plot(
         bin_time_chemo,

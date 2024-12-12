@@ -190,14 +190,11 @@ def read_trials(subject):
                     # check that licks are after 'VisStimTrigger'
                     reaction_idx = np.where(lick[0]>1000*trial_states['VisStimTrigger'][1])[0]
 
-                    if i == 99:
-                        print('bug')
                     # reaction_idx = np.where(lick[0]>1000*trial_states['AudStimTrigger'][1])[0] # does this get first lick or left lick preferential?
                     if len(reaction_idx)>0:                       
                         # lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
                         # get earliest lick as 'reaction'
-                        lick_reaction = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)
-                        
+                        lick_reaction = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)                        
                         trial_reaction.append(lick_reaction)
                     else:
                         trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
@@ -212,18 +209,6 @@ def read_trials(subject):
                         trial_decision.append(lick_decision)
                     else:
                         trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
-                    # left and right outcomes
-                    
-                    
-                    # if outcome == 'RewardNaive' or 
-                    # outcome == 'Reward' or
-                    # outcome == 'ChangingMindReward':
-                    #     # left side 
-                    #     if trial_types[i] == 1:
-                            
-                    #     # right side
-                    #     else:
-                    #     trial_side_outcomes
                 else:
                     trial_lick.append(np.array([[np.nan], [np.nan], [np.nan]]))
                     trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
