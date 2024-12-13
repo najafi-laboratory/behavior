@@ -29,6 +29,7 @@ from plot import plot_right_left_percentage
 from plot import plot_category_each_session
 from plot import plot_average_licking
 from plot import plot_early_lick_outcome
+from plot import plot_side_outcome_percentage
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -54,12 +55,14 @@ from plot_strategy import decision_time_dist
 import warnings
 warnings.filterwarnings('ignore')
 if __name__ == "__main__":
-    session_data_path = 'C:\\behavior\\session_data'
+    # session_data_path = 'C:\\behavior\\session_data'
+    session_data_path = 'C:\\localscratch\\behavior\\session_data'
     output_dir_onedrive = './figures/'
     output_dir_local = './figures/'
-    last_day = '20241211'
+    last_day = '20241212'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
 
     session_data = DataIO.run(subject_list , session_data_path)
     
@@ -96,20 +99,22 @@ if __name__ == "__main__":
         fig = plt.figure(layout='constrained', figsize=(30, 15))
         gs = GridSpec(4, 6, figure=fig)
         # plot_outcome.run(plt.subplot(gs[0, 0:3]), session_data[i])
-        # plot_complete_trials.run(plt.subplot(gs[1, 0:3]), session_data[i])
+        plot_complete_trials.run(plt.subplot(gs[0, 0:3]), session_data[i])
         # plot_early_lick_outcome.run(plt.subplot(gs[3, 3:5]), session_data[i])
-        # plot_psychometric_post.run(plt.subplot(gs[2, 2]), session_data[i])
+        plot_psychometric_post.run(plt.subplot(gs[2, 2]), session_data[i])
         # plot_psychometric_percep.run(plt.subplot(gs[3, 2]), session_data[i])
         plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], session_data[i])
-        # plot_reaction_time.run(plt.subplot(gs[0, 4]), session_data[i])
-        # plot_reaction_outcome.run(plt.subplot(gs[0, 5]), session_data[i])
+        plot_reaction_time.run(plt.subplot(gs[0, 4]), session_data[i])
+        plot_reaction_outcome.run(plt.subplot(gs[0, 5]), session_data[i])
+        # plot_reaction_time.run(plt.subplot(gs[1, 4]), session_data[i])
         # plot_decision_time.run(plt.subplot(gs[1, 4]), session_data[i])
         # plot_decision_outcome.run(plt.subplot(gs[1, 5]), session_data[i])
                     #plot_strategy.run(plt.subplot(gs[2, 5]), session_data[i])
         # plot_decision_time_isi.run(plt.subplot(gs[2, 4]), session_data[i])
         # plot_reaction_time_isi.run(plt.subplot(gs[2, 5]), session_data[i])
                     # plot_short_long_percentage.run(plt.subplot(gs[2, 0:2]), session_data[i])
-        plot_right_left_percentage.run(plt.subplot(gs[3, 0:2]), session_data[i])
+        plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), session_data[i])
+        plot_right_left_percentage.run(plt.subplot(gs[2, 0:2]), session_data[i])
         plt.suptitle(session_data[i]['subject'])
         fname = os.path.join(str(i).zfill(4)+'.pdf')
         fig.set_size_inches(30, 15)

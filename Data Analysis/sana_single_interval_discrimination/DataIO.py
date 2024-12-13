@@ -50,6 +50,8 @@ def read_trials(subject , session_data_path):
     session_raw_data = []
     session_dates = []
     session_outcomes = []
+    session_outcomes_left = []
+    session_outcomes_right = []    
     session_outcomes_clean = []
     session_outcomes_time = []
     session_choice_start = []    
@@ -88,6 +90,8 @@ def read_trials(subject , session_data_path):
         session_dates.append(fname[-19:-11])
         # loop over one session for extracting data
         trial_outcomes = []
+        trial_outcomes_left = []
+        trial_outcomes_right = []        
         trial_outcomes_clean = []
         trial_outcomes_time = []
         trial_choice_start = []        
@@ -110,6 +114,11 @@ def read_trials(subject , session_data_path):
             outcome , outcome_time = states_labeling(trial_states)
             outcome_clean = outcome
             trial_outcomes.append(outcome)
+            # left and right outcomes
+            if trial_types[i] == 1:
+                trial_outcomes_left.append(outcome)
+            else:
+                trial_outcomes_right.append(outcome)            
             trial_outcomes_time.append(outcome_time)
             # stimulus start.
             if ('VisStimTrigger' in trial_states.keys() and
@@ -331,6 +340,8 @@ def read_trials(subject , session_data_path):
                 trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
         # save one session data
         session_outcomes.append(trial_outcomes)
+        session_outcomes_left.append(trial_outcomes_left)
+        session_outcomes_right.append(trial_outcomes_right)        
         session_outcomes_clean.append(trial_outcomes_clean)
         session_outcomes_time.append(trial_outcomes_time)
         session_choice_start.append(trial_choice_start)             
@@ -356,6 +367,8 @@ def read_trials(subject , session_data_path):
         'raw' : session_raw_data,
         'dates' : session_dates,
         'outcomes' : session_outcomes,
+        'outcomes_left' : session_outcomes_left,
+        'outcomes_right' : session_outcomes_right,        
         'outcomes_clean' : session_outcomes_clean,
         'outcomes_time' : session_outcomes_time,
         'choice_start' : session_choice_start,        

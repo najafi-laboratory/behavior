@@ -68,7 +68,7 @@ def plot_curves(ax, subject,jitter_session, dates, decision, post_isi_mean,j,r, 
     ax.set_xlabel('post perturbation isi')
     ax.set_ylabel('right fraction')
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    ax.set_title('single session psychometric function for post pert isi')
+    ax.set_title('single session psychometric function for isi')
 
 def run(axs, subject_session_data):
     max_sessions = 5

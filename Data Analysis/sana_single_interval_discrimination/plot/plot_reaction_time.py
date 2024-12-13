@@ -134,9 +134,9 @@ def run(ax, subject_session_data):
     ax.hlines(
         0.5, 0.0, max_time,
         linestyle=':', color='grey')
-    ax.vlines(
-        1300, 0.0, 1.0,
-        linestyle=':', color='mediumseagreen')
+    # ax.vlines(
+    #     1300, 0.0, 1.0,
+    #     linestyle=':', color='mediumseagreen')
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)

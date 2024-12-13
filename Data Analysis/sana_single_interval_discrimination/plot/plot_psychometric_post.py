@@ -137,4 +137,4 @@ def run(ax, subject_session_data):
     ax.set_xlabel('post perturbation isi')
     ax.set_ylabel('prob. of choosing the right side (mean$\pm$sem)')
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    ax.set_title('average psychometric function (empirical mean)')
+    ax.set_title('average psychometric function')
