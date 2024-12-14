@@ -59,7 +59,7 @@ if __name__ == "__main__":
     session_data_path = 'C:\\localscratch\\behavior\\session_data'
     output_dir_onedrive = './figures/'
     output_dir_local = './figures/'
-    last_day = '20241212'
+    last_day = '20241213'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
@@ -124,7 +124,8 @@ if __name__ == "__main__":
         subject_report.insert_pdf(roi_fig)
         roi_fig.close()
         os.remove(fname)
-    subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
+    # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
+    subject_report.save(output_dir_onedrive+single_interval_report+'_'+last_day+'.pdf')
     subject_report.close()
     for i in range(len(session_data)):
         plot_trial_outcomes.run(session_data[i],output_dir_onedrive, output_dir_local,last_day)
