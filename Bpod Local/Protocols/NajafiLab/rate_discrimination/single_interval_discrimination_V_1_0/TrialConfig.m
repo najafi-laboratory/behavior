@@ -5,7 +5,29 @@ classdef TrialConfig
 %% trial generation
 
 function [TrialTypes] = GenTrials(obj, S)
-    TrialTypes = ceil(rand(1, 1106)*2); 
+    TrialTypes = ceil(rand(1, 1106)*2);     
+end
+
+function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, TrialTypes)       
+    % modify trial types so that there are no more than 3 consecutive same
+    % types
+    MaxSameConsecutiveTrials = 3;
+    %NewTrialTypes = TrialTypes;
+    for i = MaxSameConsecutiveTrials:length(TrialTypes) 
+        if (i > MaxSameConsecutiveTrials)
+            PrevMaxTrials = TrialTypes(i-3:i-1);
+            if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
+                NewSameAsPrevMax = true;
+                while NewSameAsPrevMax
+                    DrawTrialType = unidrnd(2,1,1);       
+                    if ~all(PrevMaxTrials == DrawTrialType)
+                        NewSameAsPrevMax = false;
+                    end
+                end
+                TrialTypes(i) = DrawTrialType;
+            end
+        end   
+    end
 end
 
 %% random isi
@@ -58,6 +80,7 @@ end
 % automatically adjust side valve
 function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = AntiBiasValveAdjust( ...
         obj, BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes)
+
     % add the last outcome to history
     function [AntiBiasVar] = AddLastCorrectness( ...
             AntiBiasVar, TrialTypes, currentTrial, correctness)
@@ -128,6 +151,8 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
     % adjust valve time according to bias flag
     function [LeftValveAmount_uL, RightValveAmount_uL] = UpdateValveTime( ...
             S, AntiBiasVar)
+        LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
+        RightValveAmount_uL = S.GUI.RightValveAmount_uL;        
         switch AntiBiasVar.ValveFlag
             case 'NoBias' % no bias
                 LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
@@ -174,6 +199,10 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
                 S, AntiBiasVar);
         [TrialTypes] = UpdateTrialType( ...
                 S, AntiBiasVar, TrialTypes, currentTrial);
+  
+    else
+        LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
+        RightValveAmount_uL = S.GUI.RightValveAmount_uL;     
     end
 
 end
@@ -210,6 +239,58 @@ function [AntiBiasVar] = AntiBiasServoAdjust( ...
     disp(['ServoRightTrialsSinceAdjust: ', num2str(AntiBiasVar.ServoRightTrialsSinceAdjust)]);
     disp(['ServoLeftAdjust: ', num2str(AntiBiasVar.ServoLeftAdjust)]);  
     disp(['ServoLeftTrialsSinceAdjust: ', num2str(AntiBiasVar.ServoLeftTrialsSinceAdjust)]);
+end
+
+% automatically adjust servo
+function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeTrials( ...
+        obj, BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL)    
+
+    if (currentTrial > 1 && ...
+        ~AntiBiasVar.IsProbeTrial && ...
+        ~strcmp(AntiBiasVar.ValveFlag, 'NoBias') && ...
+        (isfield(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States, 'Punish') && ...
+                    ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Punish(1))))            
+            AntiBiasVar.IsProbeTrial = true;
+            AntiBiasVar.MoveCorrectSpout     = false;
+            AntiBiasVar.NumSpoutSelectTrials = 3;
+            AntiBiasVar.NumProbeTrials = 10;    
+    end
+
+    if AntiBiasVar.IsProbeTrial
+        if AntiBiasVar.NumProbeTrials > 0
+            LeftValveAmount_uL = 0;
+            RightValveAmount_uL = 0;
+            AntiBiasVar.NumProbeTrials = AntiBiasVar.NumProbeTrials - 1;
+        else
+            AntiBiasVar.IsProbeTrial = false;            
+            AntiBiasVar.NumProbeTrials = 10;
+            AntiBiasVar.NumSpoutSelectTrials = 3;
+        end
+
+        if AntiBiasVar.NumSpoutSelectTrials > 0
+            AntiBiasVar.MoveCorrectSpout     = true;
+            AntiBiasVar.NumSpoutSelectTrials = AntiBiasVar.NumSpoutSelectTrials - 1;
+            switch AntiBiasVar.ValveFlag
+                    case 'LeftBias' % left bias
+                        
+                    case 'RightBias' % right bias
+        
+                    end            
+        else
+            AntiBiasVar.MoveCorrectSpout     = false;
+        end           
+    else
+
+    end
+
+    disp(['IsProbeTrial: ', num2str(AntiBiasVar.IsProbeTrial)]);    
+    disp(['ValveFlag: ', AntiBiasVar.ValveFlag]);  
+    disp(['NumProbeTrials: ', num2str(AntiBiasVar.NumProbeTrials)]); 
+    disp(['MoveCorrectSpout: ', num2str(AntiBiasVar.MoveCorrectSpout)]); 
+    disp(['NumSpoutSelectTrials: ', num2str(AntiBiasVar.NumSpoutSelectTrials)]); 
+
+     
+
 end
 
 % repeat incorrect trials until it is correct 

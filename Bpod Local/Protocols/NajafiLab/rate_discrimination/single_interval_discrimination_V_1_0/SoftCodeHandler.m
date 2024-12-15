@@ -18,8 +18,10 @@ end
 
 
 function HandleMoveSpouts(code)
+    global BpodSystem
     global AntiBiasVar
     global S
+    global TargetConfig
     switch S.GUI.EnableMovingSpouts
         case 1
             global M
@@ -28,8 +30,17 @@ function HandleMoveSpouts(code)
                     M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection));
                     M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection));        
                 case code == 9
-                    M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust));
-                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)); 
+                    if AntiBiasVar.MoveCorrectSpout
+                        switch BpodSystem.Data.TrialTypes(end)
+                            case 1
+                                M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)); 
+                            case 2
+                                M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust));
+                        end
+                    else
+                        M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)); 
+                        M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust));
+                    end                                            
                     disp(['Moving right servo to: ', num2str(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust)]);
                     disp(['Moving left servo to: ', num2str(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)]);
             end

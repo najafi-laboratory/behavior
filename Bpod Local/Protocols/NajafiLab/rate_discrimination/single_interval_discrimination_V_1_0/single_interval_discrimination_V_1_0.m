@@ -6,6 +6,7 @@ try
     global BpodSystem
     global M
     global AntiBiasVar
+    global TargetConfig
     
     % counter for plot filenames
     BpodSystem.Data.PlotCntr = 1;
@@ -74,6 +75,8 @@ try
     % set max number of trials
     
     BpodSystem.Data.TrialTypes = [];
+    BpodSystem.Data.IsProbeTrial = [];
+    BpodSystem.Data.MoveCorrectSpout= [];    
     BpodSystem.Data.OptoType = [];
     BpodSystem.Data.ProcessedSessionData = {};
     
@@ -88,7 +91,11 @@ try
     AntiBiasVar.ServoRightAdjust    = 0;
     AntiBiasVar.ServoRightTrialsSinceAdjust     = 20;
     AntiBiasVar.ServoLeftAdjust     = 0;
-    AntiBiasVar.ServoLeftTrialsSinceAdjust     = 20;    
+    AntiBiasVar.ServoLeftTrialsSinceAdjust     = 20;
+    AntiBiasVar.IsProbeTrial = false;
+    AntiBiasVar.MoveCorrectSpout     = false;
+    AntiBiasVar.NumSpoutSelectTrials = 3;
+    AntiBiasVar.NumProbeTrials = 10;
     
     % draw perturbation interval from uniform distribution in range
     PerturbInterval.EasyMinPercent       = 3/4;
@@ -104,6 +111,10 @@ try
     [TrialTypes] = m_TrialConfig.GenTrials(S);
     [TrialTypes] = m_TrialConfig.AdjustWarmupTrials(S, TrialTypes);
     [OptoType]    = m_Opto.GenOptoType(S);
+
+    % adjust warmup trials to have no more than 'max' number of consecutive
+    % same-side trials
+    % TrialTypes = m_TrialConfig.AdjustMaxConsecutiveSameSideTrials(TrialTypes);
 
     % Side Outcome Plot
     BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [50 540 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
@@ -207,6 +218,12 @@ try
         % LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
         % RightValveAmount_uL = S.GUI.RightValveAmount_uL;
 
+        BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
+        [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = m_TrialConfig.AntiBiasProbeTrials( ...
+            BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL);
+        BpodSystem.Data.IsProbeTrial(currentTrial) = AntiBiasVar.IsProbeTrial;
+        BpodSystem.Data.MoveCorrectSpout(currentTrial) = AntiBiasVar.MoveCorrectSpout;
+        
         LeftValveTime   = m_TrialConfig.Amount2Time(LeftValveAmount_uL, 1);
         RightValveTime  = m_TrialConfig.Amount2Time(RightValveAmount_uL, 3);
     
@@ -337,6 +354,8 @@ try
             case 2
                 TrialTarget = TargetConfig.Right;
         end
+
+
     
     
         %% set softcode for hardware control output actions
