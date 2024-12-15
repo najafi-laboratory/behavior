@@ -125,7 +125,7 @@ if __name__ == "__main__":
         roi_fig.close()
         os.remove(fname)
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
-    subject_report.save(output_dir_onedrive+single_interval_report+'_'+last_day+'.pdf')
+    subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+last_day+'.pdf')
     subject_report.close()
     for i in range(len(session_data)):
         plot_trial_outcomes.run(session_data[i],output_dir_onedrive, output_dir_local,last_day)
