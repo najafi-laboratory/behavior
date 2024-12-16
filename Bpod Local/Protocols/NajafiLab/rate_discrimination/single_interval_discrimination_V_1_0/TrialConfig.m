@@ -264,7 +264,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
         else
             AntiBiasVar.IsProbeTrial = false;            
             AntiBiasVar.NumProbeTrials = 10;
-            AntiBiasVar.NumSpoutSelectTrials = 3;
+
         end
 
         if AntiBiasVar.NumSpoutSelectTrials > 0
@@ -280,7 +280,9 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
             AntiBiasVar.MoveCorrectSpout     = false;
         end           
     else
-
+            AntiBiasVar.MoveCorrectSpout     = false;
+            AntiBiasVar.NumSpoutSelectTrials = 3;
+            AntiBiasVar.NumProbeTrials = 10;
     end
 
     disp(['IsProbeTrial: ', num2str(AntiBiasVar.IsProbeTrial)]);    
