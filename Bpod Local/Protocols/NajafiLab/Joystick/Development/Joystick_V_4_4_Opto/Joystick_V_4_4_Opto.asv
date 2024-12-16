@@ -1344,15 +1344,15 @@ try
             %% update trial-specific Audio
             % load sound wave to hifi
             % H.load(7, AudioStimSound);
-            % H.load(7, OptoAudioStimSound);
+            H.load(7, OptoAudioStimSound);
 
             % toggle punish sound on/off
-            % EarlyPressPunish_OutputActions = {};
-            % if (S.GUI.IncorrectSound && ...
-            %    ~ProbeTrialTypes(currentTrial))
-            %         Punish_OutputActions = [Punish_OutputActions, 'HiFi1', ['P' 2]];
-            %         EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
-            % end
+            EarlyPressPunish_OutputActions = {};
+            if (S.GUI.IncorrectSound && ...
+               ~ProbeTrialTypes(currentTrial))
+                    Punish_OutputActions = [Punish_OutputActions, 'HiFi1', ['P' 2]];
+                    EarlyPressPunish_OutputActions = {'HiFi1', ['P' 3]};          
+            end
     
             LeverRetractFinal_StateChangeConditions = {'SoftCode2', 'ITI_Switch'};
             WaitForPress1_StateChangeConditions = {'Tup', 'DidNotPress1', 'RotaryEncoder1_3', 'Press1'};
