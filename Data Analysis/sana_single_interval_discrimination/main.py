@@ -5,6 +5,8 @@ import fitz
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import numpy as np
+from datetime import datetime
+import random
 
 import DataIO
 import DataIO_all
@@ -35,6 +37,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import sem
 import os
+import sys
 import fitz
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -55,11 +58,19 @@ from plot_strategy import decision_time_dist
 import warnings
 warnings.filterwarnings('ignore')
 if __name__ == "__main__":
-    # session_data_path = 'C:\\behavior\\session_data'
-    session_data_path = 'C:\\localscratch\\behavior\\session_data'
-    output_dir_onedrive = './figures/'
-    output_dir_local = './figures/'
-    last_day = '20241213'
+    # Get the current date
+    current_date = datetime.now()
+    # Format the date as 'yyyymmdd'
+    formatted_date = current_date.strftime('%Y%m%d')
+    
+    
+    session_data_path = 'C:\\behavior\\session_data'
+    # session_data_path = 'C:\\localscratch\\behavior\\session_data'
+    # output_dir_onedrive = './figures/'
+    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\0_Data_analysis\\Behavior\\Single_Interval_Discrimination\\'
+    # output_dir_local = './figures/'
+    output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
+    # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
@@ -125,11 +136,18 @@ if __name__ == "__main__":
         roi_fig.close()
         os.remove(fname)
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
-    subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+last_day+'.pdf')
+    subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
+    subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
     subject_report.close()
     for i in range(len(session_data)):
-        plot_trial_outcomes.run(session_data[i],output_dir_onedrive, output_dir_local,last_day)
+        plot_trial_outcomes.run(session_data[i],output_dir_onedrive, output_dir_local,formatted_date)
         #plot_category_each_session.run(session_data[i],output_dir_onedrive, output_dir_local,last_day)
+        
+        
+        # import os
+        # import sys
+        # os.makedirs(output_figs_dir, exist_ok = True)
+        # os.makedirs(output_imgs_dir, exist_ok = True)
 
 #%%
 

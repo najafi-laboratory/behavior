@@ -113,7 +113,10 @@ def read_trials(subject , session_data_path):
             # outcome
             outcome , outcome_time = states_labeling(trial_states)
             outcome_clean = outcome
-            trial_outcomes.append(outcome)
+            
+            
+            
+            # trial_outcomes.append(outcome)
             # left and right outcomes
             if trial_types[i] == 1:
                 trial_outcomes_left.append(outcome)
@@ -219,8 +222,14 @@ def read_trials(subject , session_data_path):
             # revert to prev version
             outcome_clean = outcome
             
-            trial_outcomes_clean.append(outcome_clean)
-            
+            # filter MoveCorrectSpout AntiBias
+            if ('MoveCorrectSpout' in raw_data.keys()):
+                if (raw_data['MoveCorrectSpout'][i]):
+                    outcome = 'MoveCorrectSpout'                    
+                    outcome_clean = 'MoveCorrectSpout'            
+                        
+            trial_outcomes.append(outcome)                    
+            trial_outcomes_clean.append(outcome_clean)            
             
             # pre_isi_emp = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PreISI'])
             pre_isi_emp = np.float64(0)  # no pre isi for single interval              
@@ -268,7 +277,7 @@ def read_trials(subject , session_data_path):
             
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
-                not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice'):
+                not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
                 licking_events = []
                 direction = []
                 correctness = []

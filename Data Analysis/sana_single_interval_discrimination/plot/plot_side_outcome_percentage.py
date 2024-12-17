@@ -4,12 +4,14 @@ states = [
     'Reward',
     'RewardNaive',
     'ChangingMindReward',
+    'MoveCorrectSpout',
     'Punish',
     'PunishNaive']
 colors = [
     'limegreen',
     'springgreen',
     'dodgerblue',
+    'indigo',
     'coral',
     'violet']
 
