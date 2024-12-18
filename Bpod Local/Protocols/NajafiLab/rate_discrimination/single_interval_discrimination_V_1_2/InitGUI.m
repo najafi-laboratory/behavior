@@ -52,8 +52,8 @@ function [S] = SetParams(obj, BpodSystem)
                 S.GUI.RightServoInPos = 1160;
                 S.GUI.LeftServoInPos = 1690;
             case '2AFCRig2'
-                S.GUI.RightServoInPos = 1142.00;
-                S.GUI.LeftServoInPos = 1898.00;
+                S.GUI.RightServoInPos = 1138.00;
+                S.GUI.LeftServoInPos = 1902.00;
                 % S.GUI.RightServoInPos = 1136.00;
                 % S.GUI.LeftServoInPos = 1904.00;
             case '2AFCRig1'
@@ -142,7 +142,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.RepeatedIncorrect = 0;
         S.GUIMeta.RepeatedIncorrect.Style = 'checkbox';
         S.GUI.RepeatedProb = 1.0;
-        S.GUI.AdjustValve = 1;
+        S.GUI.AdjustValve = 0;
         S.GUIMeta.AdjustValve.Style = 'checkbox';
         S.GUI.NumMonitorTrials = 3;
         S.GUI.BiasIndexThres = 0.5;
@@ -164,7 +164,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.ProbeWaterDistribution = 1;
         S.GUIMeta.ProbeWaterDistribution.Style = 'popupmenu';
         S.GUIMeta.ProbeWaterDistribution.String = {'Water Off', 'Water On', 'Random'};        
-        S.GUI.ManualSingleSpoutAct = 1;
+        S.GUI.ManualSingleSpoutAct = 0;
         S.GUIMeta.ManualSingleSpoutAct.Style = 'checkbox';          
         S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFractionAct', 'AdjustFraction', 'ManualSideAct', 'ManualSide', 'AntiBiasProbeAct', 'AutoSingleSpout', 'ProbeWaterDistribution', 'ManualSingleSpoutAct'};
 

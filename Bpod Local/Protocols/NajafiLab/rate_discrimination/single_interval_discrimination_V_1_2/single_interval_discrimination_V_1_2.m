@@ -93,6 +93,7 @@ try
     AntiBiasVar.ServoLeftAdjust     = 0;
     AntiBiasVar.ServoLeftTrialsSinceAdjust     = 20;
     AntiBiasVar.IsProbeTrial = false;
+    AntiBiasVar.AutoMoveSpout = false;
     AntiBiasVar.MoveCorrectSpout     = false;
     AntiBiasVar.NumSpoutSelectTrials = 3;
     AntiBiasVar.NumProbeTrials = 10;
@@ -238,6 +239,8 @@ try
         [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = m_TrialConfig.AntiBiasProbeTrials( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL);
        
+        [AntiBiasVar] = m_TrialConfig.ManualSingleSpout( ...
+            BpodSystem, S, AntiBiasVar);
         
         BpodSystem.Data.IsProbeTrial(currentTrial) = AntiBiasVar.IsProbeTrial;
         BpodSystem.Data.MoveCorrectSpout(currentTrial) = AntiBiasVar.MoveCorrectSpout;

@@ -344,6 +344,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
             if AntiBiasVar.NumSpoutSelectTrials > 0
                 if (S.GUI.AutoSingleSpout == 1)
                     AntiBiasVar.MoveCorrectSpout     = true;
+                    AntiBiasVar.AutoMoveSpout = true;
                 end
                 AntiBiasVar.NumSpoutSelectTrials = AntiBiasVar.NumSpoutSelectTrials - 1;
                 switch AntiBiasVar.ValveFlag
@@ -354,14 +355,17 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
                         end            
             else
                 AntiBiasVar.MoveCorrectSpout     = false;
+                AntiBiasVar.AutoMoveSpout = false;
             end           
         else
             AntiBiasVar.MoveCorrectSpout     = false;
+            AntiBiasVar.AutoMoveSpout = false;
             AntiBiasVar.NumSpoutSelectTrials = 3;
             AntiBiasVar.NumProbeTrials = 10;
         end
     else
         AntiBiasVar.MoveCorrectSpout     = false;
+        AntiBiasVar.AutoMoveSpout = false;
         AntiBiasVar.NumSpoutSelectTrials = 3;
         AntiBiasVar.NumProbeTrials = 10;
     end
@@ -379,7 +383,9 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = ManualSingleSp
     if (S.GUI.ManualSingleSpoutAct == 1)
         AntiBiasVar.MoveCorrectSpout     = true;
     else
-        AntiBiasVar.MoveCorrectSpout     = false;
+        if ~AntiBiasVar.AutoMoveSpout
+            AntiBiasVar.MoveCorrectSpout     = false;
+        end
     end
 end
 

@@ -283,8 +283,8 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL, TrialTypes] = An
     end     
 
     % adjust servo positions
-    if (AntiBiasServoAdjustAct == 1)
-        AntiBiasVar = m_TrialConfig.AntiBiasServoAdjust( ...
+    if (S.GUI.AntiBiasServoAdjustAct == 1)
+        AntiBiasVar = AntiBiasServoAdjust( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes);
     end
 
@@ -297,7 +297,7 @@ end
 % anti bias probe trials
 function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeTrials( ...
         obj, BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL)    
-    if (AntiBiasProbeAct == 1)
+    if (S.GUI.AntiBiasProbeAct == 1)
         if (currentTrial > 1 && ...
             ~AntiBiasVar.IsProbeTrial && ...
             ~strcmp(AntiBiasVar.ValveFlag, 'NoBias') && ...
@@ -305,6 +305,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
                         ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Punish(1))))            
                 AntiBiasVar.IsProbeTrial = true;
                 AntiBiasVar.MoveCorrectSpout     = false;
+                AntiBiasVar.AutoMoveSpout = false;
                 AntiBiasVar.NumSpoutSelectTrials = 3;
                 AntiBiasVar.NumProbeTrials = 10;    
         end
@@ -321,7 +322,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
                         LeftValveAmount_uL = S.GUI.LeftValveAmount_uL;
                         RightValveAmount_uL = S.GUI.RightValveAmount_uL;
                     case 3
-                        WaterState = round(DrawFromUniform(0, 1));
+                        WaterState = round(obj.DrawFromUniform(0, 1));
                         switch WaterState
                             case 0
                                 LeftValveAmount_uL = 0;
@@ -344,6 +345,7 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
             if AntiBiasVar.NumSpoutSelectTrials > 0
                 if (S.GUI.AutoSingleSpout == 1)
                     AntiBiasVar.MoveCorrectSpout     = true;
+                    AntiBiasVar.AutoMoveSpout = true;
                 end
                 AntiBiasVar.NumSpoutSelectTrials = AntiBiasVar.NumSpoutSelectTrials - 1;
                 switch AntiBiasVar.ValveFlag
@@ -354,14 +356,17 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
                         end            
             else
                 AntiBiasVar.MoveCorrectSpout     = false;
+                AntiBiasVar.AutoMoveSpout = false;
             end           
         else
             AntiBiasVar.MoveCorrectSpout     = false;
+            AntiBiasVar.AutoMoveSpout = false;
             AntiBiasVar.NumSpoutSelectTrials = 3;
             AntiBiasVar.NumProbeTrials = 10;
         end
     else
         AntiBiasVar.MoveCorrectSpout     = false;
+        AntiBiasVar.AutoMoveSpout = false;
         AntiBiasVar.NumSpoutSelectTrials = 3;
         AntiBiasVar.NumProbeTrials = 10;
     end
@@ -374,12 +379,14 @@ function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = AntiBiasProbeT
 end
 
 % anti bias manual single spout
-function [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = ManualSingleSpout( ...
-        obj, BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL) 
+function [AntiBiasVar] = ManualSingleSpout( ...
+        obj, BpodSystem, S, AntiBiasVar) 
     if (S.GUI.ManualSingleSpoutAct == 1)
         AntiBiasVar.MoveCorrectSpout     = true;
     else
-        AntiBiasVar.MoveCorrectSpout     = false;
+        if ~AntiBiasVar.AutoMoveSpout
+            AntiBiasVar.MoveCorrectSpout     = false;
+        end
     end
 end
 
