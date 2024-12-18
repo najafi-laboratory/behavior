@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG11_TS05', 'LG09_TS05']
 
     session_data = DataIO.run(subject_list , session_data_path)
     
