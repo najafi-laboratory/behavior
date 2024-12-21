@@ -117,11 +117,7 @@ def read_trials(subject , session_data_path):
             
             
             # trial_outcomes.append(outcome)
-            # left and right outcomes
-            if trial_types[i] == 1:
-                trial_outcomes_left.append(outcome)
-            else:
-                trial_outcomes_right.append(outcome)            
+           
             trial_outcomes_time.append(outcome_time)
             # stimulus start.
             if ('VisStimTrigger' in trial_states.keys() and
@@ -229,7 +225,13 @@ def read_trials(subject , session_data_path):
                     outcome_clean = 'MoveCorrectSpout'            
                         
             trial_outcomes.append(outcome)                    
-            trial_outcomes_clean.append(outcome_clean)            
+            trial_outcomes_clean.append(outcome_clean)        
+            
+            # left and right outcomes
+            if trial_types[i] == 1:
+                trial_outcomes_left.append(outcome)
+            else:
+                trial_outcomes_right.append(outcome)             
             
             # pre_isi_emp = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PreISI'])
             pre_isi_emp = np.float64(0)  # no pre isi for single interval              
