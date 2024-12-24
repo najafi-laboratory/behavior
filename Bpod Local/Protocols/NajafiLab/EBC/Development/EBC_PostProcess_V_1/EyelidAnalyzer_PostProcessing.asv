@@ -45,6 +45,10 @@ classdef EyelidAnalyzer_PostProcessing < handle
         fpsCheck = 0;
         fps
         frame
+        frameIndex
+        FullFECRaw
+        FullFEC 
+        FullEyeAreaPixels
         
         hasSSImg = false;
         hFig
@@ -76,6 +80,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
         subjectName
         SessionDataDir
         SessionData
+        SessionDataPath = []
 
         tAdjustThresh
         tCurrentTrialNumber_nonTimeout;
@@ -93,12 +98,14 @@ classdef EyelidAnalyzer_PostProcessing < handle
         trialVideoDir = 'C:\behavior\video_data\';
         trialStartTime
         trialVidStartTime
+        trialNum
         
         vid        
         video
         % vidWriter
         vidTimer
         vidTimerPeriod = 0.030;
+        vidNumFrames
 
         startTime  % To store the start time of the video
         stopTime      
@@ -229,11 +236,192 @@ classdef EyelidAnalyzer_PostProcessing < handle
             obj.axOriginal.YAxis.LimitsChangedFcn = @obj.SetBinZoom;
         end
 
+        function StopVideo(obj)
+            if ~isempty(obj.vidTimer) && isvalid(obj.vidTimer)
+                stop(obj.vidTimer);
+                disp(['Video Update Timer Stopped']);
+                obj.vidTimer = [];
+            end
+            
+            % if ~isempty(obj.vid) && isvalid(obj.vid)
+            %     stop(obj.vid);
+            %     disp(['Video Update Timer Stopped']);
+            % end            
+        end
+
+        function ProcessFEC(obj)
+            obj.StopVideo();
+
+            if isobject(obj.roiHandle) && isvalid(obj.roiHandle)  
+                % obj.roiPosition = getPosition(obj.roiHandle);  % Get ROI position before getting images 
+                obj.roiPosition = obj.roiHandle.Position;
+            end            
+            
+            obj.trialNum = 1;
+
+            % Get a list of all .avi files in the specified directory
+            fileList = dir(fullfile(obj.trialVideoDir, '*.avi'));
+
+            fileNames = {fileList.name};
+            sortedFileNames = sort(fileNames);            
+
+            % load all trial videos to get max eye open
+            % obj.nTrials
+            % maxTrials = obj.nTrials + 1;
+            maxTrials = obj.nTrials + 1;
+            % maxTrials = 0;
+            % checkVidTrials = 0;
+            obj.FullEyeAreaPixels = [];
+            while obj.trialNum < maxTrials
+                obj.setTrialData()
+
+                % Substring to match (e.g., 'video')
+                substring = ['_TrialVid_', num2str(obj.trialNum), '_'];
+                
+                % Find the indices of the files containing the substring
+                vidIndex = find(contains({fileList.name}, substring));
+    
+                videoFile = fileList(vidIndex).name;
+                videoPath = [obj.trialVideoDir, videoFile];
+    
+                % Specify the path to your .avi file
+                % videoFile = [obj.trialVideoDir, obj.subjectName, 'TrialVid_', ];  % Change this to your .avi file path
+                
+                % Create a VideoReader object to read the video
+                obj.vid = VideoReader(videoPath);
+                
+                % Get information about the video (optional)
+                disp(['Trial: ', num2str(obj.trialNum)]);
+                disp(['Video: ', num2str(videoFile)]);
+                disp(['Frame Rate: ', num2str(obj.vid.FrameRate)]);
+                disp(['Number of Frames: ', num2str(obj.vid.NumFrames)]);
+                disp(['Video Duration: ', num2str(obj.vid.Duration), ' seconds']); 
+                disp(['-----------------------------------------']);
+    
+                obj.frameIndex = 1;      
+
+                while hasFrame(obj.vid)
+                    obj.frame = readFrame(obj.vid);
+                    % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+                    set(obj.imgOrigHandle, 'CData', obj.frame);
+    
+                    obj.updateBinaryVideo;   
+                    obj.calculatePostFEC(obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes(obj.frameIndex));
+                    obj.frameIndex = obj.frameIndex +1;
+                end
+
+                obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECRaw = obj.fecDataRaw;
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC = obj.fecData;
+                obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes = obj.fecTimes;            
+                obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels = obj.arrEyeAreaPixels;
+                obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.totalEllipsePixels = obj.arrTotalEllipsePixels;
+              
+                % obj.FullFECRaw = [obj.FullFECRaw, obj.fecDataRaw];
+                % obj.FullFEC = [obj.FullFEC, obj.fecData];
+
+                obj.FullEyeAreaPixels = [obj.FullEyeAreaPixels, obj.arrEyeAreaPixels];
+             
+                % pause(3);
+                obj.trialNum = obj.trialNum + 1;                
+            end
+
+            maxEyeAreaPixels = max(obj.FullEyeAreaPixels); % max eye area 
+            % obj.minFur = obj.totalEllipsePixels - maxEyeAreaPixels; % minimum fur
+            % fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels-obj.minFur)); 
+
+            % process fec data using max eye open
+            obj.trialNum = 1;
+            while obj.trialNum < maxTrials
+                test1 = obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC;
+                test2 = 100 * (1 - (obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels ./ maxEyeAreaPixels));
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECRaw = obj.fecDataRaw;
+                obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC = 100*(1 - (obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels ./ maxEyeAreaPixels));
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes = obj.fecTimes;            
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels = obj.arrEyeAreaPixels;
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.totalEllipsePixels = obj.arrTotalEllipsePixels;
+                % 
+                % obj.FullFECRaw = [obj.FullFECRaw, obj.fecDataRaw];
+                % obj.FullFEC = [obj.FullFEC, obj.fecData];
+                % 
+                % obj.FullEyeAreaPixels = [obj.FullEyeAreaPixels, obj.arrEyeAreaPixels];
+                
+                set(obj.fecPlot, 'XData', obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes, 'YData', obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC);
+                
+                % pause(1);
+                obj.trialNum = obj.trialNum + 1;                
+            end            
+            % pause(3);
+
+            SessionData =  obj.SessionData.SessionData;
+
+            savePath = 'C:\behavior\session_data\E4L7\E4L7_EBC_V_3_12_20241104_143943_PP.mat';
+
+            save(savePath, 'SessionData');
+
+            obj.trialNum = 1;
+            checkVidTrials = 5;
+            while obj.trialNum < checkVidTrials
+                obj.setTrialData()
+
+                % Substring to match (e.g., 'video')
+                substring = ['_TrialVid_', num2str(obj.trialNum), '_'];
+                
+                % Find the indices of the files containing the substring
+                vidIndex = find(contains({fileList.name}, substring));
+    
+                videoFile = fileList(vidIndex).name;
+                videoPath = [obj.trialVideoDir, videoFile];
+    
+                % Specify the path to your .avi file
+                % videoFile = [obj.trialVideoDir, obj.subjectName, 'TrialVid_', ];  % Change this to your .avi file path
+                
+                % Create a VideoReader object to read the video
+                obj.vid = VideoReader(videoPath);
+                
+                % Get information about the video (optional)
+                disp(['Trial: ', num2str(obj.trialNum)]);
+                disp(['Video: ', num2str(videoFile)]);
+                disp(['Frame Rate: ', num2str(obj.vid.FrameRate)]);
+                disp(['Number of Frames: ', num2str(obj.vid.NumFrames)]);
+                disp(['Video Duration: ', num2str(obj.vid.Duration), ' seconds']); 
+                disp(['-----------------------------------------']);
+    
+                obj.frameIndex = 1;      
+
+                while hasFrame(obj.vid)
+                    obj.frame = readFrame(obj.vid);
+                    % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+                    set(obj.imgOrigHandle, 'CData', obj.frame);
+    
+                    obj.updateBinaryVideo;   
+                    % obj.calculatePostFEC('time');
+                    set(obj.fecPlot, 'XData', obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes(1:obj.frameIndex), 'YData', obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC(1:obj.frameIndex));
+                    pause(0.004);
+                    obj.frameIndex = obj.frameIndex +1;
+                end
+                % 
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECRaw = obj.fecDataRaw;
+                % % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FEC = obj.fecData;
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.FECTimes = obj.fecTimes;            
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.eyeAreaPixels = obj.arrEyeAreaPixels;
+                % obj.SessionData.SessionData.RawEvents.Trial{1, obj.trialNum}.Data.totalEllipsePixels = obj.arrTotalEllipsePixels;
+              
+                % obj.FullFECRaw = [obj.FullFECRaw, obj.fecDataRaw];
+                % obj.FullFEC = [obj.FullFEC, obj.fecData];
+
+                % obj.FullEyeAreaPixels = [obj.FullEyeAreaPixels, obj.arrEyeAreaPixels];
+             
+                % pause(3);
+                obj.trialNum = obj.trialNum + 1;                
+            end
+            
+
+        end
 
         function LoadFirstVideo(obj, x, y)
 
-            obj.SessionData = ['C:\behavior\session_data\E4L7\E4L7_EBC_V_3_12_20241104_143943.mat'];
-            load(obj.SessionData);
+            obj.SessionDataPath = ['C:\behavior\session_data\E4L7\E4L7_EBC_V_3_12_20241104_143943.mat'];
+            obj.SessionData = load(obj.SessionDataPath);
             
             dateStr = '241104';
             
@@ -247,8 +435,11 @@ classdef EyelidAnalyzer_PostProcessing < handle
             fileNames = {fileList.name};
             sortedFileNames = sort(fileNames);
 
+            obj.nTrials = obj.SessionData.SessionData.nTrials;
+            obj.trialNum = 1;
+
             % Substring to match (e.g., 'video')
-            substring = ['_TrialVid_', '1', '_'];
+            substring = ['_TrialVid_', num2str(obj.trialNum), '_'];
             
             % Find the indices of the files containing the substring
             vidIndex = find(contains({fileList.name}, substring));
@@ -260,17 +451,18 @@ classdef EyelidAnalyzer_PostProcessing < handle
             % videoFile = [obj.trialVideoDir, obj.subjectName, 'TrialVid_', ];  % Change this to your .avi file path
             
             % Create a VideoReader object to read the video
-            vidObj = VideoReader(videoPath);
+            obj.vid = VideoReader(videoPath);
             
             % Get information about the video (optional)
-            disp(['Frame Rate: ', num2str(vidObj.FrameRate)]);
-            disp(['Number of Frames: ', num2str(vidObj.NumFrames)]);
-            disp(['Video Duration: ', num2str(vidObj.Duration), ' seconds']); 
+            disp(['Frame Rate: ', num2str(obj.vid.FrameRate)]);
+            disp(['Number of Frames: ', num2str(obj.vid.NumFrames)]);
+            disp(['Video Duration: ', num2str(obj.vid.Duration), ' seconds']); 
 
+            obj.frameIndex = 1;
 
             % Create and start a timer to update the video display
             if isempty(obj.vidTimer) || ~isvalid(obj.vidTimer)
-                obj.vidTimer = timer('TimerFcn',@(x,y)obj.updatePostProcessVideo(), 'ExecutionMode', 'fixedSpacing', 'Period', 0.030);
+                obj.vidTimer = timer('TimerFcn',@(x,y)obj.updatePostProcessVideo(), 'ExecutionMode', 'fixedSpacing', 'Period', 1/250);
                 start(obj.vidTimer);
                 disp(['Video Update Timer Started']);
             else
@@ -279,37 +471,98 @@ classdef EyelidAnalyzer_PostProcessing < handle
             end  
 
             
-            obj.frame = getsnapshot(obj.vid);
-            rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
-            set(obj.imgOrigHandle, 'CData', rgbFrame);
-
 
             % Check if any .avi files were found
-            if isempty(fileList)
-                disp('No .avi files found in the specified directory.');
-            else
-                % Display the list of .avi files found
-                disp('List of .avi files found:');
-                for k = 1:length(fileList)
-                    disp(fileList(k).name);
-                end
-            end
-
-            obj.nTrials = SessionData.nTrials;
-
-            for trial = 1:obj.nTrials
-                % filePath = [obj.trialVideoDir, obj.subjectName, '_', 
-                % Check if the file exists
-                if exist(filePath, 'file') == 2
-                    disp(['File exists: ', filePath]);
-                else
-                    disp(['File does not exist: ', filePath]);
-                end
-            end
+            % if isempty(fileList)
+            %     disp('No .avi files found in the specified directory.');
+            % else
+            %     % Display the list of .avi files found
+            %     disp('List of .avi files found:');
+            %     for k = 1:length(fileList)
+            %         disp(fileList(k).name);
+            %     end
+            % end
+            % 
+            % obj.nTrials = SessionData.nTrials;
+            % 
+            % for trial = 1:obj.nTrials
+            %     % filePath = [obj.trialVideoDir, obj.subjectName, '_', 
+            %     % Check if the file exists
+            %     if exist(filePath, 'file') == 2
+            %         disp(['File exists: ', filePath]);
+            %     else
+            %         disp(['File does not exist: ', filePath]);
+            %     end
+            % end
 
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
            
         end
+
+        function updatePostProcessVideo(obj, ~, ~)
+           if isobject(obj.roiHandle) && isvalid(obj.roiHandle)  
+                % obj.roiPosition = getPosition(obj.roiHandle);  % Get ROI position before getting images 
+                obj.roiPosition = obj.roiHandle.Position;
+            end
+
+            
+            if hasFrame(obj.vid)
+                obj.frame = readFrame(obj.vid);
+                % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+                set(obj.imgOrigHandle, 'CData', obj.frame);
+
+                obj.updateBinaryVideo;   
+                obj.calculateFEC('pretrial');                
+            else
+                % Now, to restart from the beginning, reset the CurrentTime property
+                % obj.vid.CurrentTime = 0;
+                if obj.trialNum < obj.nTrials
+                    obj.trialNum = obj.trialNum + 1;
+                else
+                    obj.trialNum = 0;
+                end
+
+                % Get a list of all .avi files in the specified directory
+                fileList = dir(fullfile(obj.trialVideoDir, '*.avi'));
+    
+                fileNames = {fileList.name};
+                sortedFileNames = sort(fileNames);
+
+                % Substring to match (e.g., 'video')
+                substring = ['_TrialVid_', num2str(obj.trialNum), '_'];
+                
+                % Find the indices of the files containing the substring
+                vidIndex = find(contains({fileList.name}, substring));
+    
+                videoFile = fileList(vidIndex).name;
+                videoPath = [obj.trialVideoDir, videoFile];
+    
+                % Specify the path to your .avi file
+                % videoFile = [obj.trialVideoDir, obj.subjectName, 'TrialVid_', ];  % Change this to your .avi file path
+                
+                % Create a VideoReader object to read the video
+                obj.vid = VideoReader(videoPath);
+                
+                % Get information about the video (optional)
+                disp(['Frame Rate: ', num2str(obj.vid.FrameRate)]);
+                disp(['Number of Frames: ', num2str(obj.vid.NumFrames)]);
+                disp(['Video Duration: ', num2str(obj.vid.Duration), ' seconds']);                 
+            end
+
+            % obj.updateBinaryVideo;   
+            % obj.calculateFEC('pretrial');
+            % if obj.vid.FramesAvailable > 0
+            %     % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])
+            %     % [data, time, metadata] = getdata(obj.vid, obj.vid.FramesAvailable);
+            %     % obj.frame = data(:,:,:,end);
+            %     obj.frame = getsnapshot(obj.vid);
+            %     rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+            %     set(obj.imgOrigHandle, 'CData', rgbFrame);
+            %     flushdata(obj.vid);
+            %     obj.updateBinaryVideo;   
+            %     obj.calculateFEC('pretrial');
+            % end
+        end        
 
 
         function SetBinZoom(obj, x, y)
@@ -658,7 +911,7 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.imgBinHandle, 'CData', obj.binFrame);
         end
 
-        function calculateFEC(obj, mode)
+        function calculateFEC(obj, mode, currentTime)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
             obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
@@ -669,12 +922,13 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.tFECVal, 'String', num2str(fec, '%.3f'));
 
             obj.fec = fec * 100;  % Convert to percentage
-            switch mode
-                case 'pretrial'
-                    currentTime = seconds(datetime('now') - obj.startTime);
-                case 'trial'
-                    currentTime = seconds(datetime('now') - obj.trialVidStartTime);
-            end
+            % switch mode
+            %     case 'pretrial'
+            %         currentTime = seconds(datetime('now') - obj.startTime);
+            %     case 'trial'
+            %         currentTime = seconds(datetime('now') - obj.trialVidStartTime);
+            % end
+            currentTime = obj.vid.CurrentTime;
             
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];
@@ -722,13 +976,13 @@ classdef EyelidAnalyzer_PostProcessing < handle
                         
             obj.arrTotalEllipsePixels = [obj.arrTotalEllipsePixels obj.totalEllipsePixels];
             obj.arrEyeAreaPixels = [obj.arrEyeAreaPixels obj.eyeAreaPixels];            
-            obj.arrFECTrialStartThresh = [obj.arrFECTrialStartThresh obj.FECTrialStartThresh];            
+            % obj.arrFECTrialStartThresh = [obj.arrFECTrialStartThresh obj.FECTrialStartThresh];            
 
             % calculate raw fec
             fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels));
 
             % get raw fec data
-            obj.fecDataRaw = [obj.fecDataRaw, obj.fec];
+            obj.fecDataRaw = [obj.fecDataRaw, fec];
 
             % calculate fec adjusted by max_eye_open_baseline
             fec = 1 - (obj.eyeAreaPixels / (obj.totalEllipsePixels-obj.minFur));            
@@ -736,6 +990,8 @@ classdef EyelidAnalyzer_PostProcessing < handle
             set(obj.tFECVal, 'String', num2str(fec, '%.3f'));
 
             obj.fec = fec * 100;  % Convert to percentage
+
+            % currentTime = obj.vid.CurrentTime;
                      
             obj.fecData = [obj.fecData, obj.fec];
             obj.fecTimes = [obj.fecTimes, currentTime];

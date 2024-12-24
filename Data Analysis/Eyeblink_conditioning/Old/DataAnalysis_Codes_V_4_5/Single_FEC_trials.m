@@ -1,6 +1,9 @@
 clc;close all;clear
 
-data_files = dir('E4L7_EBC_V_3_12_20241108_173608.mat');
+directory = 'C:\localscratch\behavior\session_data\E4L7\';
+filename = 'E4L7_EBC_V_3_12_20241030_132332.mat';
+path = fullfile(directory, filename);
+data_files = dir(path);
 % data_files = dir('*_EBC_*.mat');
 CR_threshold = 0.05;
 
@@ -16,7 +19,7 @@ x_fill_longLED = [];
 
 for ctr_file=1:length(data_files)
 
-load(data_files(ctr_file).name)
+load(fullfile(data_files(ctr_file).folder, data_files(ctr_file).name))
 
 delete(strrep(data_files(ctr_file).name, '.mat', '.pdf'))
 
@@ -137,6 +140,62 @@ color_str = 'b';
 if(CR_plus_eval(FEC_led_aligned_trimmed,FEC_trimmed,t1,t2,t_LED,t_puff,CR_threshold))
 color_str = 'r';
 end
+
+% Notch filter parameters
+f0 = 30;    % Notch frequency (30 Hz)
+Q = 30;     % Quality factor, which determines the width of the notch
+
+band_increment = 5;
+
+% Design the notch filter
+d = designfilt('bandstopiir', ...
+               'FilterOrder', 2, ...
+               'HalfPowerFrequency1', f0-band_increment, ...
+               'HalfPowerFrequency2', f0+band_increment, ...
+               'SampleRate', fps);
+
+% Display the filter response
+fvtool(d);
+
+% Apply the notch filter
+filtered_signal = filter(d, FEC_trimmed);
+
+% Plot the original and filtered signals
+figure;
+subplot(2,1,1);
+plot(FEC_led_aligned_trimmed, FEC_trimmed);
+title('Original Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(2,1,2);
+plot(FEC_led_aligned_trimmed, filtered_signal);
+title('Filtered Signal (30 Hz Notch)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+% Define window size (odd number for symmetry)
+window_size = 5;  % Adjust this size based on the level of smoothing you need
+
+% Create the averaging filter using a moving average window
+averaging_filter = ones(1, window_size) / window_size;
+
+% Apply the filter using conv function (with 'same' to keep signal length the same)
+smoothed_signal = conv(FEC_trimmed, averaging_filter, 'same');
+
+% Plot the original and smoothed signals
+figure;
+subplot(2,1,1);
+plot(FEC_led_aligned_trimmed, FEC_trimmed);
+title('Original Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+subplot(2,1,2);
+plot(FEC_led_aligned_trimmed, smoothed_signal);
+title('Smoothed Signal (Averaging Filter)');
+xlabel('Time (s)');
+ylabel('Amplitude');
 
 plot(FEC_led_aligned_trimmed,FEC_trimmed, 'Color', color_str);hold on
     

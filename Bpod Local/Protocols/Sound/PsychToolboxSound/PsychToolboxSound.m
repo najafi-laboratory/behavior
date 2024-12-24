@@ -74,6 +74,10 @@ SF = 192000; % Sound card sampling rate
 LeftSound = GenerateSineWave(SF, S.GUI.SinWaveFreqLeft, S.GUI.SoundDuration); % Sampling freq (hz), Sine frequency (hz), duration (s)
 RightSound = GenerateSineWave(SF, S.GUI.SinWaveFreqRight, S.GUI.SoundDuration); % Sampling freq (hz), Sine frequency (hz), duration (s)
 PunishSound = ((rand(1,SF*.5)*2) - 1);
+
+Envelope = 1/(SF*0.001):1/(SF*0.001):1;
+PunishSound = GenerateWhiteNoise(SF, 1, 1, 1); % white noise punish sound
+PunishSound = ApplySoundEnvelope(PunishSound, Envelope);
 % Generate early withdrawal sound
 W1 = GenerateSineWave(SF, 1000, .5); W2 = GenerateSineWave(SF, 1200, .5); EarlyWithdrawalSound = W1+W2;
 P = SF/100; Interval = P;
@@ -169,6 +173,16 @@ for currentTrial = 1:MaxTrials
         return
     end
 end
+
+% generate full envelope for sound given the sound and front part of
+% envelope, return enveloped sound
+function [SoundWithEnvelope] = ApplySoundEnvelope(Sound, Envelope)
+BackOfTheEnvelope = fliplr(Envelope);   % flipe front envelope to get back envelope
+IdxsBetweenTheEnvelope = length(Sound) - 2 * length(Envelope); % indices between front and back of envelope
+FullEnvelope = [Envelope ones(1, IdxsBetweenTheEnvelope) BackOfTheEnvelope];  % full envelope
+SoundWithEnvelope = Sound .* FullEnvelope;    % apply envelope element-wise
+
+
 
 function UpdateSideOutcomePlot(TrialTypes, Data)
 % Determine outcomes from state data and score as the SideOutcomePlot plugin expects

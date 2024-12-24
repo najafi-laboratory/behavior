@@ -24,6 +24,9 @@ classdef PsychToolboxAudio < handle
     properties (SetAccess = private)
         SamplingRate = 192000;
         MaxSounds = 32;
+        DeviceID = 0;
+        bufferSize = 0;
+        CardOpen = false;
     end
     properties (Access = private)
         SoundCard
@@ -67,6 +70,18 @@ classdef PsychToolboxAudio < handle
                     CandidateDevices = [asioList wasapiList];
                     deviceType = [zeros(1,length(asioList)) ones(1,length(wasapiList))];
                     CardFound = 0; i = 0; 
+                    CardFound = 1;
+                    DeviceID = devices(CandidateDevices(1)).DeviceIndex;
+                    % BpodSystem.Data.RigName = 'JoystickRig3';
+                    switch BpodSystem.Data.RigName
+                        case 'JoystickRig3'
+                            DeviceID = 2;
+                        case 'JoystickRig4'
+                            DeviceID = 4;
+                        otherwise
+                    end
+                    
+
                     while (CardFound == 0) && (i < length(CandidateDevices))
                         i = i + 1;
                         if devices(CandidateDevices(i)).NrOutputChannels > 3
@@ -121,12 +136,17 @@ classdef PsychToolboxAudio < handle
                 else
                     bufferSize = 32;
                 end
-                obj.MasterOutput = PsychPortAudio('Open', DeviceID, 9, 4, obj.SamplingRate, obj.nOutputChannels , bufferSize);
+                % obj.MasterOutput = PsychPortAudio('Open', DeviceID, 9, 4, obj.SamplingRate, obj.nOutputChannels , bufferSize);
+                obj.DeviceID = DeviceID;
+                obj.bufferSize = bufferSize;
+                obj.MasterOutput = PsychPortAudio('Open', DeviceID, 9, 4, obj.SamplingRate, 2 , bufferSize);
+                % obj.MusterOutput = obj.MasterOutput;
                 PsychPortAudio('Start', obj.MasterOutput, 0, 0, 1);
                 for i = 1:obj.MaxSounds
                     obj.SlaveOutput(i) = PsychPortAudio('OpenSlave', obj.MasterOutput);
                 end
-                Data = zeros(obj.nOutputChannels,obj.SamplingRate/1000);
+                % Data = zeros(obj.nOutputChannels,obj.SamplingRate/1000);
+                Data = zeros(2,obj.SamplingRate/1000);
                 PsychPortAudio('FillBuffer', obj.SlaveOutput(1), Data);
                 PsychPortAudio('Start', obj.SlaveOutput(1));
             else
@@ -157,9 +177,26 @@ classdef PsychToolboxAudio < handle
                 if Siz(1) == 1 % If mono, send the same signal on both channels
                     waveform(2,:) = waveform;
                 end
+                % skip channel 3&4 sync pulse, maybe look for later on
+                % sound card
                 % Add a 1ms sync pulse on ch3+4 (center L and center R)
-                waveform(3:obj.nOutputChannels,:) = zeros(obj.nOutputChannels-2,Siz(2));
-                waveform(3:obj.nOutputChannels,1:(obj.SamplingRate/1000)) = ones(obj.nOutputChannels-2,(obj.SamplingRate/1000));
+                % waveform(3:obj.nOutputChannels,:) = zeros(obj.nOutputChannels-2,Siz(2));
+                % waveform(3:obj.nOutputChannels,1:(obj.SamplingRate/1000)) = ones(obj.nOutputChannels-2,(obj.SamplingRate/1000));
+
+                % some of the lab computers seem to lose track of the sound
+                % card device, adding code from above so device is
+                % considered valid when filling sound buffer
+
+                % if ~obj.CardOpen
+                %     obj.MasterOutput = PsychPortAudio('Open', obj.DeviceID, 9, 4, obj.SamplingRate, 2 , obj.bufferSize);
+                %     PsychPortAudio('Start', obj.MasterOutput, 0, 0, 1);
+                %     for i = 1:obj.MaxSounds
+                %         obj.SlaveOutput(i) = PsychPortAudio('OpenSlave', obj.MasterOutput);
+                %     end
+                %     obj.CardOpen = true;
+                % end
+
+
                 PsychPortAudio('FillBuffer', obj.SlaveOutput(soundIndex), waveform);
             else
                 global BpodSystem

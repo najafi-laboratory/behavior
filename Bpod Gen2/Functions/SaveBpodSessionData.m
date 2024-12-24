@@ -40,9 +40,17 @@ AlternateCurrentDataFileDir = [AlternateFilePath{1, 1}]; % add drive
 %     AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, i}];
 % end
 
-AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2}];    % behavior dir
-AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
-AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 6}];    % subject name
+switch BpodSystem.Data.RigName
+    case '2AFCRig1'
+        AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2} ...
+            filesep AlternateFilePath{1, 3}];    % behavior dir
+        AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
+        AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 7}];    % subject name
+    otherwise        
+        AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 2}];    % behavior dir
+        AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep 'session_data']; % session_data
+        AlternateCurrentDataFileDir = [AlternateCurrentDataFileDir filesep AlternateFilePath{1, 6}];    % subject name
+end
 
 % make data folder for current test subject if it doesn't already
 % exist
