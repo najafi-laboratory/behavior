@@ -72,23 +72,22 @@ def get_reaction(subject_session_data):
     return reaction_fix, reaction_jitter, reaction_chemo , reaction_opto
 
 
-def run(ax, subject_session_data, start_from='std'):
+def run(ax, subject_session_data):
+    start_date = subject_session_data['non_naive']
+    dates = subject_session_data['dates']
+    if start_date in dates:
+        start_idx = dates.index(start_date)
+    else:
+        return
     
     subject_session_data_copy = subject_session_data.copy()
     
-    if not start_from=='std':
-        start_date = subject_session_data[start_from]
-        dates = subject_session_data['dates']
-        if start_date in dates:
-            start_idx = dates.index(start_date)
-        else:
-            return
-        
-        for key in subject_session_data_copy.keys():
-            # print(key)
-            if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
-                subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:] 
-                
+    for key in subject_session_data_copy.keys():
+        # print(key)
+        if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == 3:
+            subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]    
+    
+    
     max_time = 5000
     reaction_fix, reaction_jitter, reaction_chemo, reaction_opto = get_reaction(subject_session_data_copy)
     bin_mean_fix, bin_sem_fix, bin_time_fix = get_bin_stat(reaction_fix, max_time)
@@ -163,11 +162,4 @@ def run(ax, subject_session_data, start_from='std'):
     ax.set_xticks(np.arange(0, max_time, 1000))
     ax.set_yticks([0.25, 0.50, 0.75, 1])
     ax.legend(loc='upper left', ncol=1, bbox_to_anchor=(1, 1))
-    
-    if start_from=='start_date':
-        ax.set_title('average reaction time curve from ' + start_date)
-    elif start_from=='non_naive':
-        ax.set_title('average reaction time curve non-naive')
-    else:
-        ax.set_title('average reaction time curve')    
-    
+    ax.set_title('average reaction time curve (no naive)')

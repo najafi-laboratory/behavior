@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import fitz
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import numpy as np
 from datetime import datetime
 import random
+from scipy.stats import sem
 import psytrack as psy
-import DataIOPsyTrack
-
 import DataIO
 import DataIO_all
+import DataIOPsyTrack
+
+
 from plot import plot_outcome
 from plot import plot_complete_trials
 from plot import plot_psychometric_post
+# from plot import plot_psychometric_post_no_naive
 from plot import plot_psychometric_pre
 from plot import plot_psychometric_epoch
 from plot import plot_psychometric_percep
 from plot import plot_reaction_time
+# from plot import plot_reaction_time_no_naive
 from plot import plot_decision_time
 from plot import plot_reaction_outcome
 from plot import plot_decision_outcome
@@ -37,18 +42,7 @@ from plot import plot_side_outcome_percentage
 from plot import plot_psytrack_bias
 from plot import plot_psytrack_performance
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.stats import sem
-import os
-import sys
-import fitz
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-import numpy as np
 
-import DataIO
-import DataIO_all
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
 from plot_strategy import count_short_long
@@ -71,22 +65,24 @@ if __name__ == "__main__":
     session_data_path = 'C:\\behavior\\session_data'
     # session_data_path = 'C:\\localscratch\\behavior\\session_data'
     # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\0_Data_analysis\\Behavior\\Single_Interval_Discrimination\\'
+    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2_Data_analysis\\Behavior\\Single_Interval_Discrimination\\'
     # output_dir_local = './figures/'
     output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG11_TS05', 'LG09_TS04']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
     # subject_list = ['LCHR_TS01_update']
+    # subject_list = ['LCHR_TS02']
 
-    session_data = DataIOPsyTrack.run(subject_list , session_data_path)
+    M = DataIOPsyTrack.run(subject_list , session_data_path)
     
 
     subject_report = fitz.open()
-    subject_session_data = session_data[0]
-    # subject_session_data = session_data
+    subject_session_data = M[0]
+    # subject_session_data = M
     
+    # Chemo
     #########
     Chemo = np.zeros(subject_session_data['total_sessions'])
     if subject_list[0] == 'YH7':
@@ -106,10 +102,43 @@ if __name__ == "__main__":
         else:
             Chemo[dates.index('2024' + ch)] = 0
     
-    session_data[0]['Chemo'] = Chemo
+    M[0]['Chemo'] = Chemo
+    
+    
+    # start date of non-naive
+    NonNaive = {'LCHR_TS01_update': '20241215',
+                'LCHR_TS01': '20241203',
+                'LCHR_TS02': '20241203',
+                'LG08_TS03': '20241215',
+                'LG09_TS04': '20241222',
+                'LG11_TS05': '20241222'}
+    
+    # Start date for averaging
+    StartDate = {'LCHR_TS01_update': '20241215',
+                'LCHR_TS01': '20241222',
+                'LCHR_TS02': '20241222',
+                'LG08_TS03': '20241222',
+                'LG09_TS04': '20241222',
+                'LG11_TS05': '20241222'}
+    
+    # add start dates to session data
+    for i in range(len(M)):
+        M[i]['non_naive'] = NonNaive[M[i]['name']]
+        M[i]['start_date'] = StartDate[M[i]['name']]
+    
+    
+    # MoveCorrectSpout - First Session 
+    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20241214',
+                             'LCHR_TS01': '20241214',
+                             'LCHR_TS02': '20241214',
+                             'LG08_TS03': '20241215',
+                             'LG09_TS04': '20241221',
+                             'LG11_TS05': '20241218'}
+    
+ 
     ##########
     # PsyTrack
-    size = len(session_data)
+    size = len(M)
     weights = [{}] * size  # List of empty dictionaries
     K = [[]] * size  # List of zeros 
     hyper = [{}] * size  # List of empty dictionaries
@@ -120,9 +149,11 @@ if __name__ == "__main__":
     wMode = [[]] * size  # List of zeros 
     hess_info = [{}] * size  # List of empty dictionaries
     
-    M = session_data
-    
-    for i in range(len(session_data)):
+    for i in range(len(M)):
+        # MoveCorrectSpout - First Session           
+        # MCSS_idx = M[i]['dates'].index(MoveCorrectSpoutStart[M[i]['name']])
+        M[i]['move_correct_spout'] = MoveCorrectSpoutStart[M[i]['name']]
+        
         M[i]['inputs'] = {}
 
         weights[i] = {'bias': 1}  # a special key
@@ -151,35 +182,39 @@ if __name__ == "__main__":
         optList[i] = ['sigma']
         # optList[i] = ['sigma']
 
-        new_M[i] = psy.trim(M[i], END=10000)  # trim dataset to first 10,000 trials
+        new_M[i] = psy.trim(M[i], END=100000)  # trim dataset to first 10,000 trials
 
         hyp[i], evd[i], wMode[i], hess_info[i] = psy.hyperOpt(new_M[i], hyper[i], weights[i], optList[i])
         
         
     
-    for i in range(len(session_data)):
-        session_data[i]['Chemo'] = np.zeros(session_data[i]['total_sessions'])  
+    for i in range(len(M)):
+        M[i]['Chemo'] = np.zeros(M[i]['total_sessions'])  
         
         fig = plt.figure(layout='constrained', figsize=(30, 15))
         gs = GridSpec(4, 6, figure=fig)
-        # plot_outcome.run(plt.subplot(gs[0, 0:3]), session_data[i])
-        plot_complete_trials.run(plt.subplot(gs[0, 0:3]), session_data[i])
-        # plot_early_lick_outcome.run(plt.subplot(gs[3, 3:5]), session_data[i])
-        plot_psychometric_post.run(plt.subplot(gs[2, 2]), session_data[i])
-        # plot_psychometric_percep.run(plt.subplot(gs[3, 2]), session_data[i])
-        plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], session_data[i])
-        plot_reaction_time.run(plt.subplot(gs[0, 4]), session_data[i])
-        # plot_reaction_outcome.run(plt.subplot(gs[0, 5]), session_data[i])
+        # plot_outcome.run(plt.subplot(gs[0, 0:3]), M[i])
+        plot_complete_trials.run(plt.subplot(gs[0, 0:3]), M[i])
+        # plot_early_lick_outcome.run(plt.subplot(gs[3, 3:5]), M[i])
+        plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
+        plot_psychometric_post.run(plt.subplot(gs[1, 5]), M[i], start_from='non_naive')
+        # plot_psychometric_post_no_naive.run(plt.subplot(gs[1, 5]), M[i])
+        # plot_psychometric_percep.run(plt.subplot(gs[3, 2]), M[i])
+        plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
+        plot_reaction_time.run(plt.subplot(gs[0, 4]), M[i], start_from='start_date')
+        plot_reaction_time.run(plt.subplot(gs[0, 5]), M[i], start_from='non_naive')
+        # plot_reaction_time_no_naive.run(plt.subplot(gs[0, 5]), M[i])
+        # plot_reaction_outcome.run(plt.subplot(gs[0, 5]), M[i])
         
-        # plot_reaction_time.run(plt.subplot(gs[1, 4]), session_data[i])
-        # plot_decision_time.run(plt.subplot(gs[1, 4]), session_data[i])
-        # plot_decision_outcome.run(plt.subplot(gs[1, 5]), session_data[i])
-                    #plot_strategy.run(plt.subplot(gs[2, 5]), session_data[i])
-        # plot_decision_time_isi.run(plt.subplot(gs[2, 4]), session_data[i])
-        # plot_reaction_time_isi.run(plt.subplot(gs[2, 5]), session_data[i])
-                    # plot_short_long_percentage.run(plt.subplot(gs[2, 0:2]), session_data[i])
-        plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), session_data[i])
-        plot_right_left_percentage.run(plt.subplot(gs[2, 0:2]), session_data[i])
+        # plot_reaction_time.run(plt.subplot(gs[1, 4]), M[i])
+        # plot_decision_time.run(plt.subplot(gs[1, 4]), M[i])
+        # plot_decision_outcome.run(plt.subplot(gs[1, 5]), M[i])
+                    #plot_strategy.run(plt.subplot(gs[2, 5]), M[i])
+        # plot_decision_time_isi.run(plt.subplot(gs[2, 4]), M[i])
+        # plot_reaction_time_isi.run(plt.subplot(gs[2, 5]), M[i])
+                    # plot_short_long_percentage.run(plt.subplot(gs[2, 0:2]), M[i])
+        plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
+        plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])
         
         # fig_bias = psy.plot_bias(new_M[i])
 
@@ -188,12 +223,12 @@ if __name__ == "__main__":
         # Modify the properties of the first subplot (axs[0])
         # axes[0].set_yticklabels(['Left', 0, 'Right'])
          
-        plot_psytrack_performance.run(plt.subplot(gs[3, 0:3]), new_M[i])        
-        plot_psytrack_bias.run(plt.subplot(gs[3, 3:6]), new_M[i])
+        plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
+        plot_psytrack_bias.run(plt.subplot(gs[3, 0:3]), M[i])
 
         
         
-        plt.suptitle(session_data[i]['subject'])
+        plt.suptitle(M[i]['subject'])
         fname = os.path.join(str(i).zfill(4)+'.pdf')
         fig.set_size_inches(30, 15)
         fig.savefig(fname, dpi=300)
@@ -206,9 +241,9 @@ if __name__ == "__main__":
     subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
     subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
     subject_report.close()
-    for i in range(len(session_data)):
-        plot_trial_outcomes.run(session_data[i],output_dir_onedrive, output_dir_local,formatted_date)
-        #plot_category_each_session.run(session_data[i],output_dir_onedrive, output_dir_local,last_day)
+    for i in range(len(M)):
+        plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)
+        #plot_category_each_session.run(M[i],output_dir_onedrive, output_dir_local,last_day)
         
         
         # import os

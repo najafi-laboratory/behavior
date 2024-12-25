@@ -79,8 +79,17 @@ def run(ax, subject_session_data, xval_pL=None, sigma=50, figsize=(5, 1.5)):
     # Plot vertical session lines
     if 'dayLength' in dat and dat['dayLength'] is not None:
         days = np.cumsum(dat['dayLength'])
+        i = 0
         for d in days:
-            ax.axvline(d, c='k', lw=0.5, alpha=0.5, zorder=0)
+            # ax.axvline(d, c='k', lw=0.5, alpha=0.5, zorder=0)
+            if i < len(dat['dates'])-1:
+                if dat['dates'][i+1] == dat['move_correct_spout']:
+                    ax.axvline(d, color='violet', lw=3, zorder=0)
+                else:
+                    ax.axvline(d, c='k', lw=0.5, alpha=0.5, zorder=0)
+            else:                    
+                ax.axvline(d, c='k', lw=0.5, alpha=0.5, zorder=0)
+            i += 1
     
     # Add plotting details
     ax.axhline(0, c='k', ls='--', lw=1, alpha=0.5, zorder=1)
@@ -90,6 +99,8 @@ def run(ax, subject_session_data, xval_pL=None, sigma=50, figsize=(5, 1.5)):
     ax.spines['top'].set_visible(False)    
     # ax.yticks([-0.5,0,0.5])
     ax.set_yticks([-0.5,0,0.5])
+    ax.set_xticks(np.concatenate((np.array([0]), days[0:-1])), dat['dates'], rotation=45)
+    
     # ax.xlim(0, N); ax.ylim(-0.5, 0.5)
     # ax.set_xlim(0, N); ax.set_ylim(-0.5, 0.5)
     ax.set_xlim(0, N); ax.set_ylim(-1.0, 1.0)

@@ -77,22 +77,21 @@ def get_decision(subject_session_data):
     return decision_fix, decision_jitter, decision_chemo, decision_opto
 
 
-def run(ax, subject_session_data, start_from='std'):
-
+def run(ax, subject_session_data):
+   
+    start_date = subject_session_data['non_naive']
+    dates = subject_session_data['dates']
+    if start_date in dates:
+        start_idx = dates.index(start_date)
+    else:
+        return
+    
     subject_session_data_copy = subject_session_data.copy()
     
-    if not start_from=='std':
-        start_date = subject_session_data[start_from]
-        dates = subject_session_data['dates']
-        if start_date in dates:
-            start_idx = dates.index(start_date)
-        else:
-            return
-            
-        for key in subject_session_data_copy.keys():
-            # print(key)
-            if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
-                subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]  
+    for key in subject_session_data_copy.keys():
+        # print(key)
+        if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == 3:
+            subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]
     
     decision_fix, decision_jitter, decision_chemo, decision_opto = get_decision(subject_session_data_copy)
     bin_mean_fix, bin_sem_fix, bin_isi_fix = get_bin_stat(decision_fix)
@@ -153,9 +152,4 @@ def run(ax, subject_session_data, start_from='std'):
     ax.set_xlabel('post perturbation isi')
     ax.set_ylabel('prob. of choosing the right side (mean$\pm$sem)')
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-    if start_from=='start_date':
-        ax.set_title('average psychometric function from ' + start_date)
-    elif start_from=='non_naive':
-        ax.set_title('average psychometric function non-naive')
-    else:
-        ax.set_title('average psychometric function')
+    ax.set_title('average psychometric function (no naive)')

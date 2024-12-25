@@ -40,20 +40,21 @@ def run(ax, subject_session_data):
         choice.append(left/(left+right))
         choice_right.append(right/(left+right))
     
-        
-    ax.bar(
-        session_id, choice,
-        edgecolor='white',
-        width=width,
-        color='lightcoral',
-        label='Left choice')
     ax.bar(
         session_id, choice_right,
         edgecolor='white',
         width=width,
-        bottom = choice,
         color='mediumpurple',
         label='Right choice')
+        # bottom = choice,    
+    ax.bar(
+        session_id, choice,
+        edgecolor='white',
+        width=width,
+        bottom = choice_right,        
+        color='lightcoral',
+        label='Left choice')
+
     ax.tick_params(tick1On=False)
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)

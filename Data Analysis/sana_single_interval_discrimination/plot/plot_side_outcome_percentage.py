@@ -33,6 +33,8 @@ def run(ax, subject_session_data):
     if max_sessions != -1 and len(dates) > max_sessions:
         start_idx = len(dates) - max_sessions
     dates = dates[start_idx:]
+    outcomes_left = outcomes_left[start_idx:]
+    outcomes_right = outcomes_right[start_idx:]
     session_id = np.arange(len(outcomes_left)) + 1    
     left_counts = get_side_outcomes(outcomes_left, states)
     right_counts = get_side_outcomes(outcomes_right, states)    
@@ -43,7 +45,7 @@ def run(ax, subject_session_data):
     right_bottom[:,1:] = right_bottom[:,:-1]
     right_bottom[:,0] = 0       
     width = 0.25
-    for i in range(len(states)):      
+    for i in range(len(states)):
         # Plot the left bars
         ax.bar(
             session_id - width / 2, left_counts[:,i],  # Shift left by width/2
@@ -51,15 +53,16 @@ def run(ax, subject_session_data):
             edgecolor='white',
             width=width,
             color=colors[i],
-            label=states[i])
+            label=states[i])        
         # Plot the right bars
         ax.bar(
             session_id + width / 2, right_counts[:,i],  # Shift right by width/2
             bottom=right_bottom[:,i],
             edgecolor='white',
             width=width,
-            color=colors[i])  # Optionally update label for right bars     
-        
+            color=colors[i])  # Optionally update label for right bars  
+
+   
     ax.tick_params(tick1On=False)
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)
