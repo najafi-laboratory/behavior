@@ -2161,7 +2161,7 @@ function PrintInterruptLog(BpodSystem)
     [SessionFilepath, SessionFileName, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
 
     % LogFileDir = 'C:\data analysis\behavior\joystick\logs\';
-    LogFileDir = 'C:\Users\gtg424h\OneDrive - Georgia Institute of Technology\Najafi_Lab\0_Data_analysis\InterruptLogs\';    
+    LogFileDir = 'C:\Users\gtg424h\OneDrive - Georgia Institute of Technology\Najafi_Lab\2_Data_Analysis\z_InterruptLogs\';    
     % LogFileName = [LogFileDir, num2str(session_date), '_BPod-matlab_interrupt_log_', SessionFileName];    
     LogFileName = [LogFileDir, SessionFileName, '_InterruptCount'];
 
