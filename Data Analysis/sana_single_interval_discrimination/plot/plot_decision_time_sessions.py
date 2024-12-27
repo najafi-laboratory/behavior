@@ -81,7 +81,8 @@ def get_decision(subject_session_data):
 
 
 def run(ax, subject_session_data, start_from='std'):
-    
+        
+ 
     subject_session_data_copy = subject_session_data.copy()
     
     if not start_from=='std':
@@ -100,109 +101,147 @@ def run(ax, subject_session_data, start_from='std'):
     # max_time = 5000
     max_time = 1000 # choice window is 5s, although most licks are 1s or less
     decision_fix, decision_jitter, decision_chemo, decision_opto = get_decision(subject_session_data_copy)
+    
+    
+    trial_num_fix = range(len(decision_fix[0]))
+    
+    correctness_fix = decision_fix[2,:]
+    reward_fix = decision_fix[:,decision_fix[2,:] == 1][0]
+    reward_fix_trial_num = np.where(decision_fix[2,:] == 1)
+    punish_fix = decision_fix[:,decision_fix[2,:] == 0][0]
+    punish_fix_trial_num = np.where(decision_fix[2,:] == 0)
+    
+    ax.plot(
+        trial_num_fix,
+        decision_fix[0],
+        color='indigo',
+        marker='.',
+        label='fix',
+        markersize=4,
+        alpha=0.2)
+    
+    ax.scatter(
+        reward_fix_trial_num,
+        reward_fix,
+        color='green',
+        marker='.',
+        label='reward')
+    
+    ax.scatter(
+        punish_fix_trial_num,
+        punish_fix,
+        color='red',
+        marker='.',
+        label='punish')    
+    
     bin_mean_fix, bin_sem_fix, bin_time_fix, trials_per_bin_fix = get_bin_stat(decision_fix, max_time)
     bin_mean_jitter, bin_sem_jitter, bin_time_jitter, trials_per_bin_jitter = get_bin_stat(decision_jitter, max_time)
     bin_mean_chemo, bin_sem_chemo, bin_time_chemo, trials_per_bin_chemo = get_bin_stat(decision_chemo, max_time)
     bin_mean_opto, bin_sem_opto, bin_time_opto, trials_per_bin_opto = get_bin_stat(decision_opto, max_time)
-    ax.plot(
-        bin_time_fix,
-        bin_mean_fix,
-        color='indigo',
-        marker='.',
-        label='fix',
-        markersize=4)
-    ax.fill_between(
-        bin_time_fix,
-        bin_mean_fix - bin_sem_fix,
-        bin_mean_fix + bin_sem_fix,
-        color='violet',
-        alpha=0.2)
-    ax.plot(
-        bin_time_jitter,
-        bin_mean_jitter,
-        color='limegreen',
-        marker='.',
-        label='jitter',
-        markersize=4)
-    ax.fill_between(
-        bin_time_jitter,
-        bin_mean_jitter - bin_sem_jitter,
-        bin_mean_jitter + bin_sem_jitter,
-        color='limegreen',
-        alpha=0.2)
-    ax.plot(
-        bin_time_chemo,
-        bin_mean_chemo,
-        color='red',
-        marker='.',
-        label='chemo',
-        markersize=4)
-    ax.fill_between(
-        bin_time_chemo,
-        bin_mean_chemo - bin_sem_chemo,
-        bin_mean_chemo + bin_sem_chemo,
-        color='red',
-        alpha=0.2)
-    ax.plot(
-        bin_time_opto,
-        bin_mean_opto,
-        color='dodgerblue',
-        marker='.',
-        label='opto',
-        markersize=4)
-    ax.fill_between(
-        bin_time_opto,
-        bin_mean_opto - bin_sem_opto,
-        bin_mean_opto + bin_sem_opto,
-        color='dodgerblue',
-        alpha=0.2)
-    ax.hlines(
-        0.5, 0.0, max_time,
-        linestyle=':', color='grey')
+    # ax.plot(
+    #     bin_time_fix,
+    #     bin_mean_fix,
+    #     color='indigo',
+    #     marker='.',
+    #     label='fix',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_fix,
+    #     bin_mean_fix - bin_sem_fix,
+    #     bin_mean_fix + bin_sem_fix,
+    #     color='violet',
+    #     alpha=0.2)
+    # ax.plot(
+    #     bin_time_jitter,
+    #     bin_mean_jitter,
+    #     color='limegreen',
+    #     marker='.',
+    #     label='jitter',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_jitter,
+    #     bin_mean_jitter - bin_sem_jitter,
+    #     bin_mean_jitter + bin_sem_jitter,
+    #     color='limegreen',
+    #     alpha=0.2)
+    # ax.plot(
+    #     bin_time_chemo,
+    #     bin_mean_chemo,
+    #     color='red',
+    #     marker='.',
+    #     label='chemo',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_chemo,
+    #     bin_mean_chemo - bin_sem_chemo,
+    #     bin_mean_chemo + bin_sem_chemo,
+    #     color='red',
+    #     alpha=0.2)
+    # ax.plot(
+    #     bin_time_opto,
+    #     bin_mean_opto,
+    #     color='dodgerblue',
+    #     marker='.',
+    #     label='opto',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_opto,
+    #     bin_mean_opto - bin_sem_opto,
+    #     bin_mean_opto + bin_sem_opto,
+    #     color='dodgerblue',
+    #     alpha=0.2)
+    # ax.hlines(
+    #     0.5, 0.0, max_time,
+    #     linestyle=':', color='grey')
     # ax.vlines(
     #     1300, 0.0, 1.0,
     #     linestyle=':', color='mediumseagreen')
+    y_axis_lim = 700
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     # ax.set_xlim([0, max_time])
-    ax.set_xlim([0, 650])
+    # ax.set_xlim([100, 300])
     # ax.set_xlim([0, 1000])
-    ax.set_ylim([0.20, 1.05])
-    ax.set_xlabel('decision time (since choice window onset) / s')
-    ax.set_ylabel('correct prob.')
+    ax.hlines(np.arange(0, y_axis_lim, 50), 0, len(trial_num_fix), linestyle=':', color='grey')
+    ax.set_ylim([0.0, 600])
+    ax.set_xlabel('trial number')
+    ax.set_ylabel('decision time across trials (since choice window onset) / s')
     # ax.set_xticks(np.arange(0, max_time, 1000))
     # ax.set_xticks(np.arange(0, max_time, 100))
-    ax.set_xticks(np.arange(0, 650, 100))
+    ax.set_xticks(np.arange(0, len(trial_num_fix), 100))
     ax.tick_params(axis='x', rotation=45)
     # ax.set_xticklabels(rotation=45)
-    ax.set_yticks([0.25, 0.50, 0.75, 1])
+    # ax.set_yticks([0.25, 0.50, 0.75, 1])
+    # ax.set_yticks(np.arange(0, max_time, 1000))
+    ax.set_yticks(np.arange(0, y_axis_lim, 50))
     
     
     # Create a second axis on the right side with a different scale
     # ax2 = ax.figure.add_axes(ax.get_position())  # Copy position from ax1
-    ax2 = ax.twinx()
+    
     # ax2.set_frame_on(False)  # Hide the box of the second axis
     # ax2.plot(x, y2, 'b-', label='2*cos(x)')
-    ax2.set_ylabel('trials per bin')
     # ax2.tick_params(axis='y', labelcolor='b')    
     
-    ax2.plot(
-        bin_time_fix,
-        trials_per_bin_fix,
-        color='gray',
-        marker='.',
-        label='fix',
-        markersize=4)
+    # ax2 = ax.twinx()
+    # ax2.set_ylabel('trials per bin')
+    # ax2.plot(
+    #     bin_time_fix,
+    #     trials_per_bin_fix,
+    #     color='gray',
+    #     marker='.',
+    #     label='fix',
+    #     markersize=4)
     
     
     # ax.legend(loc='upper left', ncol=1, bbox_to_anchor=(1, 1))
     ax.legend(loc='best', ncol=1, bbox_to_anchor=(1, 1))
-    ax.set_title('average decision time curve')
+    # ax.set_title('average decision time curve')
     
     if start_from=='start_date':
-        ax.set_title('average decision time curve from ' + start_date)
+        ax.set_title('response time across trials from ' + start_date)
     elif start_from=='non_naive':
-        ax.set_title('average decision time curve non-naive')
+        ax.set_title('response time across trials non-naive')
     else:
-        ax.set_title('average decision time curve')      
+        ax.set_title('response time across trials')      

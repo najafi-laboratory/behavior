@@ -10,6 +10,7 @@ from datetime import datetime
 import random
 from scipy.stats import sem
 import psytrack as psy
+import pickle
 import DataIO
 import DataIO_all
 import DataIOPsyTrack
@@ -25,6 +26,8 @@ from plot import plot_psychometric_percep
 from plot import plot_reaction_time
 # from plot import plot_reaction_time_no_naive
 from plot import plot_decision_time
+from plot import plot_decision_time_side
+from plot import plot_decision_time_sessions
 from plot import plot_reaction_outcome
 from plot import plot_decision_outcome
 from plot import plot_single_trial_licking
@@ -73,9 +76,29 @@ if __name__ == "__main__":
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
     # subject_list = ['LCHR_TS01_update']
+    # subject_list = ['LCHR_TS02_update']
+    # subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']
     # subject_list = ['LCHR_TS02']
+    # subject_list = ['LG09_TS04']
+    # subject_list = ['LG09_TS04_update']
 
-    M = DataIOPsyTrack.run(subject_list , session_data_path)
+
+    save_file = 0
+    load_file = 0
+    
+    if save_file:
+        M = DataIOPsyTrack.run(subject_list , session_data_path)
+        #######
+        #  save extracted/processed data
+        ######
+        # Save the variable to a file
+        with open('M.pkl', 'wb') as file:
+            pickle.dump(M, file)
+    
+    if load_file:
+        with open('M.pkl', 'rb') as file:
+            M = pickle.load(file)
+         
     
 
     subject_report = fitz.open()
@@ -106,34 +129,52 @@ if __name__ == "__main__":
     
     
     # start date of non-naive
-    NonNaive = {'LCHR_TS01_update': '20241215',
+    NonNaive = {'LCHR_TS01_update': '20241222',
                 'LCHR_TS01': '20241203',
                 'LCHR_TS02': '20241203',
+                'LCHR_TS02_update': '20241203',
                 'LG08_TS03': '20241215',
                 'LG09_TS04': '20241222',
+                'LG09_TS04_update': '20241222',
                 'LG11_TS05': '20241222'}
     
     # Start date for averaging
-    StartDate = {'LCHR_TS01_update': '20241215',
+    StartDate = {'LCHR_TS01_update': '20241222',
                 'LCHR_TS01': '20241222',
                 'LCHR_TS02': '20241222',
-                'LG08_TS03': '20241222',
-                'LG09_TS04': '20241222',
-                'LG11_TS05': '20241222'}
+                'LCHR_TS02_update': '20241222',
+                'LG08_TS03': '20241225',
+                'LG09_TS04': '20241225',
+                'LG09_TS04_update': '20241225',
+                'LG11_TS05': '20241225'}
+
+    # MoveCorrectSpout - First Session 
+    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20241222',
+                             'LCHR_TS01': '20241214',
+                             'LCHR_TS02': '20241214',
+                             'LCHR_TS02_update': '20241214',
+                             'LG08_TS03': '20241225',
+                             'LG09_TS04': '20241226',
+                             'LG09_TS04_update': '20241225',
+                             'LG11_TS05': '20241226'}
+    
+    # Start date for averaging
+    StartDate = {'LCHR_TS01_update': '20241220',
+                'LCHR_TS01': '20241220',
+                'LCHR_TS02': '20241220',
+                'LCHR_TS02_update': '20241220',
+                'LG08_TS03': '20241220',
+                'LG09_TS04': '20241220',
+                'LG09_TS04_update': '20241220',
+                'LG11_TS05': '20241220'}    
     
     # add start dates to session data
     for i in range(len(M)):
         M[i]['non_naive'] = NonNaive[M[i]['name']]
         M[i]['start_date'] = StartDate[M[i]['name']]
+        M[i]['move_correct_spout'] = MoveCorrectSpoutStart[M[i]['name']]
     
-    
-    # MoveCorrectSpout - First Session 
-    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20241214',
-                             'LCHR_TS01': '20241214',
-                             'LCHR_TS02': '20241214',
-                             'LG08_TS03': '20241215',
-                             'LG09_TS04': '20241221',
-                             'LG11_TS05': '20241218'}
+
     
  
     ##########
@@ -152,7 +193,7 @@ if __name__ == "__main__":
     for i in range(len(M)):
         # MoveCorrectSpout - First Session           
         # MCSS_idx = M[i]['dates'].index(MoveCorrectSpoutStart[M[i]['name']])
-        M[i]['move_correct_spout'] = MoveCorrectSpoutStart[M[i]['name']]
+        # M[i]['move_correct_spout'] = MoveCorrectSpoutStart[M[i]['name']]
         
         M[i]['inputs'] = {}
 
@@ -182,9 +223,9 @@ if __name__ == "__main__":
         optList[i] = ['sigma']
         # optList[i] = ['sigma']
 
-        new_M[i] = psy.trim(M[i], END=100000)  # trim dataset to first 10,000 trials
+        # new_M[i] = psy.trim(M[i], END=100000)  # trim dataset to first 10,000 trials
 
-        hyp[i], evd[i], wMode[i], hess_info[i] = psy.hyperOpt(new_M[i], hyper[i], weights[i], optList[i])
+        # hyp[i], evd[i], wMode[i], hess_info[i] = psy.hyperOpt(new_M[i], hyper[i], weights[i], optList[i])
         
         
     
@@ -193,16 +234,54 @@ if __name__ == "__main__":
         
         fig = plt.figure(layout='constrained', figsize=(30, 15))
         gs = GridSpec(4, 6, figure=fig)
-        # plot_outcome.run(plt.subplot(gs[0, 0:3]), M[i])
+
         plot_complete_trials.run(plt.subplot(gs[0, 0:3]), M[i])
-        # plot_early_lick_outcome.run(plt.subplot(gs[3, 3:5]), M[i])
+        plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
+        plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])        
+
+        plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
+       
+        plot_psychometric_post.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
         plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
-        plot_psychometric_post.run(plt.subplot(gs[1, 5]), M[i], start_from='non_naive')
+        plot_psychometric_post.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')
+       
+        plot_decision_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')                  
+        plot_decision_time.run(plt.subplot(gs[1, 5]), M[i], start_from='start_date')
+        plot_decision_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        
+
+        plot_psytrack_bias.run(plt.subplot(gs[3, 0:3]), M[i])  
+        plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
+              
+        
+        plt.suptitle(M[i]['subject'])
+        fname = os.path.join(str(i).zfill(4)+'.pdf')
+        fig.set_size_inches(30, 15)
+        fig.savefig(fname, dpi=300)
+        plt.close()
+        roi_fig = fitz.open(fname)
+        subject_report.insert_pdf(roi_fig)
+        roi_fig.close()
+        os.remove(fname)
+
+                    
+        fig = plt.figure(layout='constrained', figsize=(30, 15))
+        gs = GridSpec(4, 6, figure=fig)
+        
+        
+        plot_decision_time_side.run(plt.subplot(gs[0, 1]), M[i], start_from='std')                  
+        plot_decision_time_isi.run(plt.subplot(gs[0, 2]), M[i], start_from='start_date')
+        plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], start_from='start_date')
+        # plot_reaction_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')                  
+        # plot_reaction_time.run(plt.subplot(gs[1, 5]), M[i], start_from='start_date')
+        # plot_reaction_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        
+        
+        
+        # plot_outcome.run(plt.subplot(gs[0, 0:3]), M[i])        
+        # plot_early_lick_outcome.run(plt.subplot(gs[3, 3:5]), M[i])          
+        
         # plot_psychometric_post_no_naive.run(plt.subplot(gs[1, 5]), M[i])
         # plot_psychometric_percep.run(plt.subplot(gs[3, 2]), M[i])
-        plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
-        plot_reaction_time.run(plt.subplot(gs[0, 4]), M[i], start_from='start_date')
-        plot_reaction_time.run(plt.subplot(gs[0, 5]), M[i], start_from='non_naive')
+        
         # plot_reaction_time_no_naive.run(plt.subplot(gs[0, 5]), M[i])
         # plot_reaction_outcome.run(plt.subplot(gs[0, 5]), M[i])
         
@@ -213,8 +292,7 @@ if __name__ == "__main__":
         # plot_decision_time_isi.run(plt.subplot(gs[2, 4]), M[i])
         # plot_reaction_time_isi.run(plt.subplot(gs[2, 5]), M[i])
                     # plot_short_long_percentage.run(plt.subplot(gs[2, 0:2]), M[i])
-        plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
-        plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])
+
         
         # fig_bias = psy.plot_bias(new_M[i])
 
@@ -223,11 +301,7 @@ if __name__ == "__main__":
         # Modify the properties of the first subplot (axs[0])
         # axes[0].set_yticklabels(['Left', 0, 'Right'])
          
-        plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
-        plot_psytrack_bias.run(plt.subplot(gs[3, 0:3]), M[i])
 
-        
-        
         plt.suptitle(M[i]['subject'])
         fname = os.path.join(str(i).zfill(4)+'.pdf')
         fig.set_size_inches(30, 15)
