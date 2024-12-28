@@ -28,7 +28,8 @@ function HandleMoveSpouts(code)
             switch true
                 case code == 254
                     M.setMotor(0, ConvertMaestroPos(S.GUI.RightServoInPos - S.GUI.ServoDeflection), S.GUI.ServoVelocity);
-                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection), S.GUI.ServoVelocity);        
+                    M.setMotor(1, ConvertMaestroPos(S.GUI.LeftServoInPos + S.GUI.ServoDeflection), S.GUI.ServoVelocity);
+                    SendBpodSoftCode(1);  % indicate maestro cmd to move servo out sent
                 case code == 9
                     if AntiBiasVar.MoveCorrectSpout
                         switch BpodSystem.Data.TrialTypes(end)
@@ -43,6 +44,7 @@ function HandleMoveSpouts(code)
                     end                                            
                     disp(['Moving right servo to: ', num2str(S.GUI.RightServoInPos + AntiBiasVar.ServoRightAdjust)]);
                     disp(['Moving left servo to: ', num2str(S.GUI.LeftServoInPos + AntiBiasVar.ServoLeftAdjust)]);
+                    SendBpodSoftCode(2); % indicate maestro cmd to move servo in sent
             end
         case 0
     end
