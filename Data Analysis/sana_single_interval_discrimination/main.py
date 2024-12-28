@@ -82,6 +82,7 @@ if __name__ == "__main__":
     # subject_list = ['LG09_TS04']
     # subject_list = ['LG09_TS04_update']
 
+    M = DataIOPsyTrack.run(subject_list , session_data_path)
 
     save_file = 0
     load_file = 0
