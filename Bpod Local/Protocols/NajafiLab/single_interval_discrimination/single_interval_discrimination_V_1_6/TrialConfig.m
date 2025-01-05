@@ -9,12 +9,14 @@ function [TrialTypes] = GenTrials(obj, S)
 end
 
 function [ProbeTrials] = GenProbeTrials(obj, S)
-    ProbeTrials = zeros(1, S.GUI.MaxTrials);     
-    a = 1;  % lower bound
-    b = S.GUI.MaxTrials; % upper bound
-    n = round(S.GUI.ProbeTrialsFraction * S.GUI.MaxTrials); % get integer number of probe trials using probe trial percentage
-    randomNumbers = randperm(b - a + 1, n) + a - 1; % random permutation of probe trial indices
-    ProbeTrials(randomNumbers) = 1; % set probe trial flag to 1 at generated indices
+    ProbeTrials = zeros(1, S.GUI.MaxTrials);  
+    if S.GUI.ProbeTrialsAct
+        a = 1;  % lower bound
+        b = S.GUI.MaxTrials; % upper bound
+        n = round(S.GUI.ProbeTrialsFraction * S.GUI.MaxTrials); % get integer number of probe trials using probe trial percentage
+        randomNumbers = randperm(b - a + 1, n) + a - 1; % random permutation of probe trial indices
+        ProbeTrials(randomNumbers) = 1; % set probe trial flag to 1 at generated indices
+    end
 end
 
 function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, TrialTypes)       

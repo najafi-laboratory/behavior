@@ -179,7 +179,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.ManualSingleSpoutAct.Style = 'checkbox';          
         S.GUIPanels.Contingency_Bias = {'ShortISIFraction', 'RepeatedIncorrect', 'RepeatedProb', 'AdjustValve', 'NumMonitorTrials', 'BiasIndexThres', 'AdjustValvePercent', 'AdjustFractionAct', 'AdjustFraction', 'ManualSideAct', 'ManualSide', 'AntiBiasProbeAct', 'AutoSingleSpout', 'ProbeWaterDistribution', 'ManualSingleSpoutAct'};
 
-        S.GUI.ProbeTrialsAct = 1;
+        S.GUI.ProbeTrialsAct = 0;
         S.GUIMeta.ProbeTrialsAct.Style = 'checkbox';
         S.GUI.ProbeTrialsFraction = 0.10;
         S.GUIPanels.ProbeTrials = {'ProbeTrialsAct', 'ProbeTrialsFraction'};
