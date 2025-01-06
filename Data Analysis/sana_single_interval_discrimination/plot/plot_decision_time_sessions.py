@@ -41,6 +41,15 @@ def separate_fix_jitter(decision):
 
 def get_decision(subject_session_data):
     decision = subject_session_data['decision']
+    num_non_nan = []
+    for session in decision:
+        session = np.concatenate(session, axis=1)
+        sess_non_nan = (1-np.isnan(np.sum(session, axis=0)))
+        # num_non_nan.append(np.sum(sess_non_nan)-1)
+        num_non_nan.append(np.sum(sess_non_nan))
+    sess_trial_start = [1] + num_non_nan[0:-1]
+    sess_trial_start = np.cumsum(sess_trial_start)
+    # num_trials = [len(session) + 1 for session in decision]
     decision = [np.concatenate(d, axis=1) for d in decision]
     decision = np.concatenate(decision, axis=1)
     jitter_flag = subject_session_data['jitter_flag']
@@ -77,10 +86,10 @@ def get_decision(subject_session_data):
     # row 4: pre pert isi.
     # row 5: post pert isi.
     decision_fix, decision_jitter, decision_chemo, decision_opto = separate_fix_jitter(decision)
-    return decision_fix, decision_jitter, decision_chemo, decision_opto
+    return decision_fix, decision_jitter, decision_chemo, decision_opto, sess_trial_start
 
 
-def run(ax, subject_session_data, start_from='std'):
+def run(ax, subject_session_data, max_rt=700, plot_type='std', start_from='std'):
         
  
     subject_session_data_copy = subject_session_data.copy()
@@ -100,25 +109,62 @@ def run(ax, subject_session_data, start_from='std'):
     
     # max_time = 5000
     max_time = 1000 # choice window is 5s, although most licks are 1s or less
-    decision_fix, decision_jitter, decision_chemo, decision_opto = get_decision(subject_session_data_copy)
+    decision_fix, decision_jitter, decision_chemo, decision_opto, sess_trial_start = get_decision(subject_session_data_copy)
     
     
-    trial_num_fix = range(len(decision_fix[0]))
+    trial_num_fix = range(1, len(decision_fix[0])+1)
     
     correctness_fix = decision_fix[2,:]
     reward_fix = decision_fix[:,decision_fix[2,:] == 1][0]
-    reward_fix_trial_num = np.where(decision_fix[2,:] == 1)
+    reward_fix_trial_num = np.where(decision_fix[2,:] == 1)[0]+1
     punish_fix = decision_fix[:,decision_fix[2,:] == 0][0]
-    punish_fix_trial_num = np.where(decision_fix[2,:] == 0)
+    punish_fix_trial_num = np.where(decision_fix[2,:] == 0)[0]+1
     
-    ax.plot(
-        trial_num_fix,
-        decision_fix[0],
-        color='indigo',
-        marker='.',
-        label='fix',
-        markersize=4,
-        alpha=0.2)
+    if plot_type=='std':
+        ax.plot(
+            trial_num_fix,
+            decision_fix[0],
+            color='indigo',
+            marker='.',
+            label='fix',
+            markersize=4,
+            alpha=0.2)    
+    
+    if plot_type=='trial-side':
+        # not yet implemented
+        left_idx = np.where(decision_fix[1,:] == 0)
+        right_idx = np.where(decision_fix[1,:] == 1)
+        left_trials_fix = decision_fix[0,left_idx][0]
+        trial_num_left = (left_idx[0]+1).tolist()
+        right_trials_fix = decision_fix[0,right_idx][0]
+        trial_num_right = (right_idx[0]+1).tolist()
+    elif plot_type=='lick-side':
+        left_idx = np.where(decision_fix[1,:] == 0)
+        right_idx = np.where(decision_fix[1,:] == 1)
+        left_trials_fix = decision_fix[0,left_idx][0]
+        trial_num_left = (left_idx[0]+1).tolist()
+        right_trials_fix = decision_fix[0,right_idx][0]
+        trial_num_right = (right_idx[0]+1).tolist()
+
+    if (plot_type=='trial-side') or (plot_type=='lick-side'):
+        ax.plot(
+            trial_num_left,
+            left_trials_fix,
+            color='dodgerblue',
+            marker='.',
+            label='left',
+            markersize=4,
+            alpha=0.8)    
+        
+        ax.plot(
+            trial_num_right,
+            right_trials_fix,
+            color='indianred',
+            marker='.',
+            label='right',
+            markersize=4,
+            alpha=0.8)     
+
     
     ax.scatter(
         reward_fix_trial_num,
@@ -196,7 +242,7 @@ def run(ax, subject_session_data, start_from='std'):
     # ax.vlines(
     #     1300, 0.0, 1.0,
     #     linestyle=':', color='mediumseagreen')
-    y_axis_lim = 700
+    y_axis_lim = max_rt
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -204,12 +250,18 @@ def run(ax, subject_session_data, start_from='std'):
     # ax.set_xlim([100, 300])
     # ax.set_xlim([0, 1000])
     ax.hlines(np.arange(0, y_axis_lim, 50), 0, len(trial_num_fix), linestyle=':', color='grey')
+    ax.vlines(sess_trial_start, 0, y_axis_lim, linestyle=':', color='grey')
     ax.set_ylim([0.0, 600])
     ax.set_xlabel('trial number')
     ax.set_ylabel('decision time across trials (since choice window onset) / s')
     # ax.set_xticks(np.arange(0, max_time, 1000))
     # ax.set_xticks(np.arange(0, max_time, 100))
-    ax.set_xticks(np.arange(0, len(trial_num_fix), 100))
+    
+    
+    # ax.set_xticks(np.arange(0, len(trial_num_fix), 100))
+    ax.set_xticks(sess_trial_start, dates[start_idx:], rotation=45)
+    
+    
     ax.tick_params(axis='x', rotation=45)
     # ax.set_xticklabels(rotation=45)
     # ax.set_yticks([0.25, 0.50, 0.75, 1])

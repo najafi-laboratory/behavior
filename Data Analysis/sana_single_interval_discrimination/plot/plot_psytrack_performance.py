@@ -94,4 +94,4 @@ def run(ax, subject_session_data, xval_pL=None, sigma=50, figsize=(5, 1.5)):
     # ax.set_xlim(0, N); ax.set_ylim(0.3, 1.0)
     ax.set_xlim(0, N); ax.set_ylim(0.0, 1.0)
     # ax.xlabel('Trial #'); ax.ylabel('Performance')
-    ax.set_xlabel('Trial #'); ax.set_ylabel('Performance')
+    ax.set_xlabel('trials (concatenated sessions)'); ax.set_ylabel('Performance')

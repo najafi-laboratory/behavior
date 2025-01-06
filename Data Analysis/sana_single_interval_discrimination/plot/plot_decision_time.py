@@ -3,8 +3,9 @@ from scipy.stats import sem
 
 def get_bin_stat(decision, max_time):
     # bin_size=250
-    # bin_size=25
-    bin_size=5    
+    bin_size=25
+    # bin_size=5    
+    # bin_size=100
     least_trials=3
     bins = np.arange(0, max_time + bin_size, bin_size)
     bins = bins - bin_size / 2

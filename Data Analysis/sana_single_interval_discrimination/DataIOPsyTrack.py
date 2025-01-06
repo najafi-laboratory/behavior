@@ -72,6 +72,9 @@ def read_trials(subject , session_data_path):
     session_pre_isi_emp = []
     session_post_isi_type = []
     
+    session_MoveCorrectSpout = []
+    session_TrialTypes = []
+    
     #PsyTrack
     session_name = subject
     session_y = []
@@ -113,6 +116,7 @@ def read_trials(subject , session_data_path):
         # session date
         session_dates.append(fname[-19:-11])
         # loop over one session for extracting data
+        
         trial_outcomes = []
         trial_outcomes_left = []
         trial_outcomes_right = []        
@@ -131,6 +135,7 @@ def read_trials(subject , session_data_path):
         trial_post_isi_mean = []
         trial_pre_isi_emp = []
         trial_post_isi_type = []
+        trial_MoveCorrectSpout = []
         for i in range(nTrials):
             trial_states = raw_data['RawEvents']['Trial'][i]['States']
             trial_events = raw_data['RawEvents']['Trial'][i]['Events']
@@ -246,7 +251,12 @@ def read_trials(subject , session_data_path):
             if ('MoveCorrectSpout' in raw_data.keys()):
                 if (raw_data['MoveCorrectSpout'][i]):
                     outcome = 'MoveCorrectSpout'                    
-                    outcome_clean = 'MoveCorrectSpout'            
+                    outcome_clean = 'MoveCorrectSpout'
+                    trial_MoveCorrectSpout.append(1)
+                else:
+                    trial_MoveCorrectSpout.append(0)
+            else:
+                trial_MoveCorrectSpout.append(0)                    
                         
             trial_outcomes.append(outcome)                    
             trial_outcomes_clean.append(outcome_clean)        
@@ -304,18 +314,16 @@ def read_trials(subject , session_data_path):
                 not np.isnan(trial_states['WindowChoice'][0])):
                 trial_choice_start.append(trial_states['WindowChoice'][0])
             else:
-                trial_choice_start.append(np.nan)              
-            
+                trial_choice_start.append(np.nan)     
+                
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
                 not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
                 licking_events = []
                 direction = []
                 correctness = []
-                num_left = 0
-                
-                #PsyTrack
-                trial_dayLength += 1  
+                trial_type = []
+                num_left = 0            
                 
                 if 'Port1In' in trial_events.keys():
                     # get lick time relative to window
@@ -384,6 +392,7 @@ def read_trials(subject , session_data_path):
                         
                         #PsyTrack
                         # lick array
+                        trial_dayLength += 1                          
 
                         # row 2 lick direction - 0 left, 1 right                        
                         trial_y.append(int(lick_decision[1]))
@@ -393,8 +402,6 @@ def read_trials(subject , session_data_path):
                         else:
                             trial_answer.append(2)                            
                         
-                        
-                        
                         # row 3 correctness - 0 incorrect, 1 correct
                         if lick_decision[2] == 0:
                             trial_correct.append(0)
@@ -403,14 +410,17 @@ def read_trials(subject , session_data_path):
                         
                     else:
                         trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
+
                 else:
                     trial_lick.append(np.array([[np.nan], [np.nan], [np.nan]]))
                     trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
                     trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
+
             else:
                 trial_lick.append(np.array([[np.nan], [np.nan], [np.nan]]))
                 trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
                 trial_decision.append(np.array([[np.nan], [np.nan], [np.nan]]))
+
         # save one session data
         #PsyTrack
         session_y.append(trial_y)
@@ -439,6 +449,8 @@ def read_trials(subject , session_data_path):
         session_post_isi_mean.append(trial_post_isi_mean)
         session_jitter_flag.append(trial_jitter_flag)
         session_opto_flag.append(optotag)
+        session_MoveCorrectSpout.append(trial_MoveCorrectSpout)
+        session_TrialTypes.append(trial_types)
         
     #PsyTrack
     y = []
@@ -495,7 +507,9 @@ def read_trials(subject , session_data_path):
         'isi_post_emp' : session_post_isi_mean,
         'jitter_flag' : session_jitter_flag,
         'post_isi_type' : session_post_isi_type,
-        'opto_flag' : session_opto_flag
+        'opto_flag' : session_opto_flag,
+        'move_correct_spout_flag' : session_MoveCorrectSpout,
+        'trial_type' : session_TrialTypes
     }
     return data
 

@@ -102,9 +102,9 @@ def run(ax, subject_session_data, xval_pL=None, sigma=50, figsize=(5, 1.5)):
     ax.set_xticks(np.concatenate((np.array([0]), days[0:-1])), dat['dates'], rotation=45)
     
     # ax.xlim(0, N); ax.ylim(-0.5, 0.5)
-    # ax.set_xlim(0, N); ax.set_ylim(-0.5, 0.5)
-    ax.set_xlim(0, N); ax.set_ylim(-1.0, 1.0)
+    ax.set_xlim(0, N); ax.set_ylim(-0.5, 0.5)
+    # ax.set_xlim(0, N); ax.set_ylim(-1.0, 1.0)
     # ax.xlabel('Trial #'); ax.ylabel('Bias')
-    ax.set_xlabel('Trial #'); ax.set_ylabel('Bias')
+    ax.set_xlabel('trials (concatenated sessions)'); ax.set_ylabel('Bias')
     
     ax.set_yticklabels(['Left', 0, 'Right'])

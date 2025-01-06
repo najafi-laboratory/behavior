@@ -61,6 +61,7 @@ def run(
     dates = session_data['dates']
     raw_data = session_data['raw']
     subject = session_data['subject']
+    moveCorrectSpout = session_data['move_correct_spout_flag']
     # chemo_labels = session_data['Chemo']
     chemo_labels = []
     jitter_flag = session_data['jitter_flag']
@@ -131,15 +132,22 @@ def run(
                 row = row + 1
                 col = 0
             
-            
+            moveCorrectSpoutSess = moveCorrectSpout[sess]
             outcome = outcomes[sess]
             raw_data = session_data['raw'][sess]
             trial_types = np.array(raw_data['TrialTypes'])
             x = np.arange(len(trial_types))+1
             
+            # spacing_factor = 10
+            # x = [xi * spacing_factor for xi in x]
+            moveCorrectSpoutIdx = [i for i, num in enumerate(moveCorrectSpoutSess) if num == 1]
+            moveCorrectSpoutX = x[moveCorrectSpoutIdx]
+            moveCorrectSpoutY = 3-trial_types[moveCorrectSpoutIdx]
+            
             color_code = []
             edge = []
             for i in range(len(outcome)):
+            # for i in range(200):
                 a = 0
                 for j in range(len(states)):
                     if outcome[i] == states[j]:
@@ -154,7 +162,16 @@ def run(
                 else:
                     edge.append(color_code[-1])
             
-            axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor =edge)
+            # trials_per_row = 130
+            # x = x[0:trials_per_row-1]
+            # trial_types = trial_types[0:trials_per_row-1]
+            # color_code = color_code[0:trials_per_row-1]
+            # edge = edge[0:trials_per_row-1]
+            # axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor =edge, s=5)
+            axs[row].scatter(moveCorrectSpoutX, moveCorrectSpoutY, marker='+', color='purple', s=100, label='Selected Points', zorder=1)
+            axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor ='black', s=10, linewidth=0.25, zorder=2)
+            # axs[row].set_title(dates[sess], fontsize=14)
+            axs[row].set_title(dates[sess])
             # if chemo_labels[sess] == 1:
             #     if jitter_session[sess] == 0:
             #         axs[row].set_title(session_date, color = 'red')
@@ -167,10 +184,12 @@ def run(
             #         axs[row].set_title(session_date + ' (jittered)', color = 'black')
             axs[row].set_ylim(0.5 , 2.5)
             axs[row].set_xticks(np.arange(len(outcome)//20)*20)
+            # axs[row].set_xticks(np.arange(trials_per_row))
+            # spacing = 200
+            # axs[row].set_xticks(range(min(x), max(x)+spacing, spacing))
             
-            col = col + 1
-                    
-                                
+            col = col + 1                   
+                   
         top_left_trial = bottom_right_trial
         bottom_right_trial = top_left_trial + plots_per_page                                                            
         current_page = current_page + 1
@@ -179,8 +198,10 @@ def run(
         output_dir_local
 
         output_pdf_dir =  output_dir_onedrive + subject + '/'
+        output_pdf_dir_local = output_dir_local + subject + '/'
         output_pdf_pages_dir = output_dir_local + subject + '/bpod/bpod_' + session_date + '/'
         os.makedirs(output_pdf_dir, exist_ok = True)
+        os.makedirs(output_pdf_dir_local, exist_ok = True)
         os.makedirs(output_pdf_pages_dir, exist_ok = True)
         output_pdf_filename = output_pdf_pages_dir + subject +  session_date + '_outcome' + str(page)
         pdf_paths.append(output_pdf_filename + '.pdf')      
@@ -205,6 +226,10 @@ def run(
     outputStream = open(r'' + output_pdf_dir + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
     output.write(outputStream)
     outputStream.close()
+    
+    outputStream = open(r'' + output_pdf_dir_local + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
+    output.write(outputStream)
+    outputStream.close()    
 
 
         

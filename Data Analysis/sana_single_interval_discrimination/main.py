@@ -68,7 +68,7 @@ if __name__ == "__main__":
     session_data_path = 'C:\\behavior\\session_data'
     # session_data_path = 'C:\\localscratch\\behavior\\session_data'
     # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2_Data_analysis\\Behavior\\Single_Interval_Discrimination\\'
+    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Single_Interval_Discrimination\\'
     # output_dir_local = './figures/'
     output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
     # last_day = '20241215'
@@ -94,7 +94,8 @@ if __name__ == "__main__":
         ######
         # Save the variable to a file
         with open('M.pkl', 'wb') as file:
-            pickle.dump(M, file)
+            for item in M:
+                pickle.dump(item, file)
     
     if load_file:
         with open('M.pkl', 'rb') as file:
@@ -134,40 +135,40 @@ if __name__ == "__main__":
                 'LCHR_TS01': '20241203',
                 'LCHR_TS02': '20241203',
                 'LCHR_TS02_update': '20241203',
-                'LG08_TS03': '20241215',
-                'LG09_TS04': '20241222',
+                'LG08_TS03': '20241228',
+                'LG09_TS04': '20241227',
                 'LG09_TS04_update': '20241222',
-                'LG11_TS05': '20241222'}
+                'LG11_TS05': '20241230'}
     
     # Start date for averaging
     StartDate = {'LCHR_TS01_update': '20241222',
                 'LCHR_TS01': '20241222',
                 'LCHR_TS02': '20241222',
                 'LCHR_TS02_update': '20241222',
-                'LG08_TS03': '20241225',
-                'LG09_TS04': '20241225',
+                'LG08_TS03': '20241228',
+                'LG09_TS04': '20241227',
                 'LG09_TS04_update': '20241225',
-                'LG11_TS05': '20241225'}
+                'LG11_TS05': '20241216'}
 
     # MoveCorrectSpout - First Session 
     MoveCorrectSpoutStart = {'LCHR_TS01_update': '20241222',
                              'LCHR_TS01': '20241214',
                              'LCHR_TS02': '20241214',
                              'LCHR_TS02_update': '20241214',
-                             'LG08_TS03': '20241225',
-                             'LG09_TS04': '20241226',
+                             'LG08_TS03': '20241215',
+                             'LG09_TS04': '20241221',
                              'LG09_TS04_update': '20241225',
-                             'LG11_TS05': '20241226'}
+                             'LG11_TS05': '20241218'}
     
     # Start date for averaging
-    StartDate = {'LCHR_TS01_update': '20241220',
-                'LCHR_TS01': '20241220',
-                'LCHR_TS02': '20241220',
-                'LCHR_TS02_update': '20241220',
-                'LG08_TS03': '20241220',
-                'LG09_TS04': '20241220',
-                'LG09_TS04_update': '20241220',
-                'LG11_TS05': '20241220'}    
+    StartDate = {'LCHR_TS01_update': '20241226',
+                'LCHR_TS01': '20241226',
+                'LCHR_TS02': '20241226',
+                'LCHR_TS02_update': '20241226',
+                'LG08_TS03': '20241226',
+                'LG09_TS04': '20241226',
+                'LG09_TS04_update': '20241230',
+                'LG11_TS05': '20241226'}    
     
     # add start dates to session data
     for i in range(len(M)):
@@ -271,7 +272,14 @@ if __name__ == "__main__":
         
         plot_decision_time_side.run(plt.subplot(gs[0, 1]), M[i], start_from='std')                  
         plot_decision_time_isi.run(plt.subplot(gs[0, 2]), M[i], start_from='start_date')
-        plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], start_from='start_date')
+        # plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='std')
+        # plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='std')
+        plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='start_date')
+        plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='start_date')
+                
+        
+        # plot_decision_time_sessions.run(plt.subplot(gs[3:4, 0:6]), M[i], plot_type='choice-side', start_from='std')
+        
         # plot_reaction_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')                  
         # plot_reaction_time.run(plt.subplot(gs[1, 5]), M[i], start_from='start_date')
         # plot_reaction_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        

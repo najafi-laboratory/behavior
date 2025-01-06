@@ -123,7 +123,7 @@ def run(ax, subject_session_data, start_from='std'):
     ax.plot(
         bin_time_left_fix,
         bin_mean_left_fix,
-        color='indianred',
+        color='dodgerblue',
         marker='.',
         label='fix_left',
         markersize=4)
@@ -131,14 +131,14 @@ def run(ax, subject_session_data, start_from='std'):
         bin_time_left_fix,
         bin_mean_left_fix - bin_sem_left_fix,
         bin_mean_left_fix + bin_sem_left_fix,
-        color='lightcoral',
+        color='violet',
         alpha=0.2)
     
     # right
     ax.plot(
         bin_time_right_fix,
         bin_mean_right_fix,
-        color='indigo',
+        color='indianred',
         marker='.',
         label='fix_right',
         markersize=4)
@@ -146,7 +146,7 @@ def run(ax, subject_session_data, start_from='std'):
         bin_time_right_fix,
         bin_mean_right_fix - bin_sem_right_fix,
         bin_mean_right_fix + bin_sem_right_fix,
-        color='violet',
+        color='lightcoral',
         alpha=0.2)
     
     # ax.plot(
