@@ -68,19 +68,25 @@ if __name__ == "__main__":
     session_data_path = 'C:\\behavior\\session_data'
     # session_data_path = 'C:\\localscratch\\behavior\\session_data'
     # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Single_Interval_Discrimination\\'
+    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Oddball_Interval_Discrimination\\'
+    if not os.path.exists(output_dir_onedrive):
+        os.makedirs(output_dir_onedrive)
     # output_dir_local = './figures/'
-    output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
+    output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\OddballIntervalDiscrimination\\FIGS\\'
+    if not os.path.exists(output_dir_local):
+        os.makedirs(output_dir_local)
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
     # subject_list = ['LCHR_TS01_update']
     # subject_list = ['LCHR_TS02_update']
     # subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']
     # subject_list = ['LCHR_TS02']
     # subject_list = ['LG09_TS04']
     # subject_list = ['LG09_TS04_update']
+    subject_list = ['LG08_TS03', 'LG09_TS04', 'LG11_TS05']
+    # subject_list = ['LG09_TS04', 'LG11_TS05']
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -155,20 +161,29 @@ if __name__ == "__main__":
                              'LCHR_TS01': '20241214',
                              'LCHR_TS02': '20241214',
                              'LCHR_TS02_update': '20241214',
-                             'LG08_TS03': '20241215',
-                             'LG09_TS04': '20241221',
-                             'LG09_TS04_update': '20241225',
-                             'LG11_TS05': '20241218'}
+                             'LG08_TS03': '20250106',
+                             'LG09_TS04': '20250106',
+                             'LG09_TS04_update': '20250106',
+                             'LG11_TS05': '20250106'}
     
     # Start date for averaging
     StartDate = {'LCHR_TS01_update': '20241226',
                 'LCHR_TS01': '20241226',
                 'LCHR_TS02': '20241226',
                 'LCHR_TS02_update': '20241226',
-                'LG08_TS03': '20241226',
-                'LG09_TS04': '20241226',
-                'LG09_TS04_update': '20241230',
-                'LG11_TS05': '20241226'}    
+                'LG08_TS03': '20250106',
+                'LG09_TS04': '20250106',
+                'LG09_TS04_update': '20250106',
+                'LG11_TS05': '20250106'}   
+    
+    StartDate = {'LCHR_TS01_update': '20241226',
+                'LCHR_TS01': '20241226',
+                'LCHR_TS02': '20241226',
+                'LCHR_TS02_update': '20241226',
+                'LG08_TS03': '20250106',
+                'LG09_TS04': '20250108',
+                'LG09_TS04_update': '20250106',
+                'LG11_TS05': '20250108'}   
     
     # add start dates to session data
     for i in range(len(M)):
@@ -321,8 +336,8 @@ if __name__ == "__main__":
         roi_fig.close()
         os.remove(fname)
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
-    subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
-    subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
+    subject_report.save(output_dir_onedrive+'oddball_interval_report'+'_'+formatted_date+'.pdf')
+    subject_report.save(output_dir_local+'oddball_interval_report'+'_'+formatted_date+'.pdf')
     subject_report.close()
     for i in range(len(M)):
         plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)

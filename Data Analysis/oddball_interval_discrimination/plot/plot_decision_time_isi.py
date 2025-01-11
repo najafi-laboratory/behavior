@@ -155,7 +155,7 @@ def run(ax, subject_session_data, start_from='std'):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     # ax.vlines(500, 1200, 3500, linestyle=':', color='grey')
-    ax.vlines(750, 0, 3500, linestyle=':', color='grey')
+    ax.vlines(700, 0, 3500, linestyle=':', color='grey')
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)

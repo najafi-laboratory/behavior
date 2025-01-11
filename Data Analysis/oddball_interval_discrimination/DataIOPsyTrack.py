@@ -278,7 +278,10 @@ def read_trials(subject , session_data_path):
             trial_pre_isi_emp.append(pre_isi_emp)
             # post perturbation isi.
             if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice'):
-                stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+                
+                # update for oddball, get change point flag and isi dur
+                # stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+                stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'][6])
                 if stim_seq.shape[1]<2:
                     stim_post_isi = np.nan
                     number_flash = np.nan
@@ -342,7 +345,7 @@ def read_trials(subject , session_data_path):
                     # lick_right = np.array(trial_events['Port3In'] - trial_states['WindowChoice'][0]).reshape(-1)                  
                     # get lick time
                     lick_right = np.array(trial_events['Port3In']).reshape(-1)                    
-                    trial_states['WindowChoice'][1]
+                    # trial_states['WindowChoice'][1]
                     licking_events.append(lick_right)
                     direction.append(np.ones_like(lick_right))
                     if trial_types[i] == 2:
@@ -376,7 +379,7 @@ def read_trials(subject , session_data_path):
                    # effective licking to outcome. ie. licks after start of window choice
                     # decision_idx = np.where(lick[0]>1000*trial_states['WindowChoice'][0])[0]
                     # lick = lick[:,np.where(lick[0]>1000*trial_states['WindowChoice'][0])].reshape(3,1)
-                    lick = lick[:,lick[0]>1000*trial_states['WindowChoice'][0]]
+                    lick = lick[:,lick[0]>1000*trial_states['WindowChoice'][0]]                    
                     
                     # licks always after window
                     # decision_idx = [0]

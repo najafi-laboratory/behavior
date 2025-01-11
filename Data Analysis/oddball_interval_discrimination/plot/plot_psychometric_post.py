@@ -109,7 +109,7 @@ def run(ax, subject_session_data, start_from='std'):
         bin_mean_fix + bin_sem_fix,
         color='violet', alpha=0.2)
     ax.vlines(
-        750, 0.0, 1.0,
+        700, 0.0, 1.0,
         linestyle='--', color='mediumseagreen',
         label='Category Boundary')      
     # ax.plot(

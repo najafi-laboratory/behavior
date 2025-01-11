@@ -36,7 +36,7 @@ def plot_curves(ax, subject,jitter_session, dates, decision, post_isi_mean,j,r, 
     # ax.hlines(0.5, 0.0, 1000, linestyle='--' , color='silver' , lw = 0.5)
     ax.hlines(0.5, 0.0, 1600, linestyle='--' , color='silver' , lw = 0.5)
     # ax.vlines(500, 0.0, 1.0, linestyle='--' , color='silver', lw = 0.5)
-    ax.vlines(750, 0.0, 1.0, linestyle='--' , color='silver', lw = 0.5)
+    ax.vlines(700, 0.0, 1.0, linestyle='--' , color='silver', lw = 0.5)
     extra = 1
     decision = decision[:,non_nan]
     bin_mean, bin_sem, bin_isi = get_bin_stat(decision)
