@@ -1,8 +1,8 @@
-function single_interval_discrimination_V_1_6
+function oddball_interval_discrimination_V_1_1
 try
     % using try/catch for protocol code to allow for disconnecting from
     % modules and logging crash reports when exceptions thrown
-    protocol_version = 'single_interval_discrimination_V_1_6';
+    protocol_version = 'oddball_interval_discrimination_V_1_1';
 
 
     global BpodSystem
@@ -29,7 +29,7 @@ try
     end
 
     EnableMovingSpouts = 1;    
-    EnableOpto         = 0;
+    EnableOpto         = 1;
     
     %% Import scripts
     
@@ -118,6 +118,8 @@ try
     [TrialTypes] = m_TrialConfig.AdjustWarmupTrials(S, TrialTypes);
     [ProbeTrials] = m_TrialConfig.GenProbeTrials(S);
     [OptoType]    = m_Opto.GenOptoType(S);
+    
+    
 
     % adjust warmup trials to have no more than 'max' number of consecutive
     % same-side trials
@@ -260,7 +262,6 @@ try
         end
 
         BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
-
         
         [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = m_TrialConfig.AntiBiasProbeTrials( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL);
@@ -311,6 +312,11 @@ try
         %     S, TrialTypes, currentTrial, PostPertISI);
         GrayPerturbISI = PostPertISI;
         GrayPrePerturbISI = PrePertISI;
+        [OddballISI] = m_TrialConfig.GetOddballISI( ...
+                S, TrialDifficulty, PerturbInterval, TrialTypes, currentTrial);
+
+        [ChangePoint] = m_TrialConfig.GetChangePoint(S);
+        BpodSystem.Data.TrialVars.Trial{currentTrial}.ChangePoint = ChangePoint;
     
         BpodSystem.Data.TrialVars.Trial{currentTrial}.PostPertISI = PostPertISI + S.GUI.GratingDur_s; % not sure, maybe need for data analysis to compare to prev 2afc
         BpodSystem.Data.TrialVars.Trial{currentTrial}.PostPertISIWithoutGrating = PostPertISI; 
@@ -331,7 +337,7 @@ try
         [VisStim] = m_AVstimConfig.GetVisStimImg(S, BpodSystem, FPS, VisStim);
 
         VisStim = m_AVstimConfig.GetVideoDataPre(S, BpodSystem, FPS, VisStim, GrayPrePerturbISI, JitterFlag);
-        VisStim = m_AVstimConfig.GetVideoDataPost(S, BpodSystem, FPS, VisStim, GrayPerturbISI, JitterFlag);
+        VisStim = m_AVstimConfig.GetVideoDataPost(S, BpodSystem, FPS, VisStim, GrayPerturbISI, JitterFlag, ChangePoint, OddballISI);
         % VisStim = m_AVstimConfig.GetVideoDataExtra(S, BpodSystem, FPS, VisStim, GrayPerturbISI, JitterFlag);
     
         % combine full video
@@ -426,18 +432,13 @@ try
                 ExperimenterTrialInfo.Opto = 'on';
         end
 
-        if (currentTrial <= S.GUI.NumNaiveWarmup)
-            BpodSystem.Data.WarmupTrials(currentTrial) = 1;
-        else
-            BpodSystem.Data.WarmupTrials(currentTrial) = 0;
-        end
-
         switch S.GUI.TrainingLevel
             case 1 % naive
                 ExperimenterTrialInfo.TrainingLevel = 'Naive';
                 StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
             case 2 % early Trained
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
+                    BpodSystem.Data.WarmupTrials(currentTrial) = 1
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
                     StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
                 else
@@ -498,13 +499,15 @@ try
         disp(strExperimenterTrialInfo);
     
         RawEvents = RunStateMachine;
-            
+        
+    
         %% save data and update plot
     
         if ~isempty(fieldnames(RawEvents))
             BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents);
             BpodSystem.Data.TrialSettings(currentTrial) = S;
             BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
+            BpodSystem.Data.ProbeTrials(currentTrial) = ProbeTrials(currentTrial);
             BpodSystem.Data.OptoType(currentTrial) = OptoType(currentTrial);
             BpodSystem.Data.JitterFlag(currentTrial) = JitterFlag;
             m_PostProcess.SaveProcessedSessionData(BpodSystem, VisStim, GrayPerturbISI);

@@ -741,9 +741,9 @@ function [PostVisStimDelay] = GetPostVisStimDelay( ...
         case 3 % mid 1
             PostVisStimDelay = S.GUI.PostVisStimDelayMean_s;
         case 4 % mid 2
-            PostVisStimDelay = S.GUI.PostVisStimDelayMin_s;
+            PostVisStimDelay = S.GUI.PostVisStimDelayMean_s;
         case 5 % well
-            PostVisStimDelay = S.GUI.PostVisStimDelayMin_s;
+            PostVisStimDelay = S.GUI.PostVisStimDelayMean_s;
     end
 end
 

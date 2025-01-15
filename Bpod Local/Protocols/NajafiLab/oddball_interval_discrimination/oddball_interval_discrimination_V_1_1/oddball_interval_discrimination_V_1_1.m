@@ -83,6 +83,7 @@ try
     BpodSystem.Data.MoveCorrectSpout= [];    
     BpodSystem.Data.OptoType = [];
     BpodSystem.Data.ProcessedSessionData = {};
+    BpodSystem.Data.WarmupTrials = [];
     
     % initialize anti-bias variables
     AntiBiasVar.IncorrectFlag       = 0;
@@ -261,7 +262,6 @@ try
         end
 
         BpodSystem.Data.TrialTypes(currentTrial) = TrialTypes(currentTrial);
-
         
         [AntiBiasVar, LeftValveAmount_uL, RightValveAmount_uL] = m_TrialConfig.AntiBiasProbeTrials( ...
             BpodSystem, S, AntiBiasVar, currentTrial, TrialTypes, LeftValveAmount_uL, RightValveAmount_uL);
@@ -432,6 +432,12 @@ try
                 ExperimenterTrialInfo.Opto = 'on';
         end
 
+        if (currentTrial <= S.GUI.NumNaiveWarmup)
+            BpodSystem.Data.WarmupTrials(currentTrial) = 1;
+        else
+            BpodSystem.Data.WarmupTrials(currentTrial) = 0;
+        end
+        
         switch S.GUI.TrainingLevel
             case 1 % naive
                 ExperimenterTrialInfo.TrainingLevel = 'Naive';
@@ -451,7 +457,6 @@ try
                     case 4
                         ExperimenterTrialInfo.TrainingLevel = 'Mid 2';
                 end
-
                 if (currentTrial <= S.GUI.NumNaiveWarmup)
                     ExperimenterTrialInfo.TrainingLevel = 'Naive warmup';
                     StateNaive(sma, S, SCOA, TrialTarget, VisStim.Data.VisStimDuration, DURA);
