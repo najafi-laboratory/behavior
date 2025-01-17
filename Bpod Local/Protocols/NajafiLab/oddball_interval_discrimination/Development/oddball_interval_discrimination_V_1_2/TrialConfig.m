@@ -506,6 +506,36 @@ function [PerturbDurMin, PerturbDurMax] = GetPerturDurMinMax( ...
     end
 end
 
+% get change point
+function [ChangePoint] = GetChangePoint( ...
+        obj, S)
+    ChangePoint = 7;
+end
+
+function OddballISI = GetOddballISI( ...
+        obj, S, TrialDifficulty, PerturbInterval, TrialTypes, currentTrial)
+    switch S.GUI.TrainingLevel
+        case 1 % Naive
+            OddballISI = GetOddballISIMean(obj, S, TrialTypes, currentTrial);
+        case 2 % Early       
+            OddballISI = GetOddballISIMean(obj, S, TrialTypes, currentTrial);
+        case 3 % Mid1       
+            OddballISI = GetOddballISIMean(obj, S, TrialTypes, currentTrial);
+        case 4 % Mid2
+            OddballISI = GetOddballISIMean(obj, S, TrialTypes, currentTrial);
+        case 5 % Well
+            OddballISI = GetOddballISIMean(obj, S, TrialTypes, currentTrial);
+    end     
+end
+
+function [OddballISI] = GetOddballISIMean(obj, S, TrialTypes, currentTrial)
+    switch TrialTypes(currentTrial)
+        case 1 % trial is left with short ISI
+            OddballISI = S.GUI.OddballISIShortMean_s;
+        case 2 % trial is right with long ISI
+            OddballISI = S.GUI.OddballISILongMean_s;
+    end     
+end
 
 % default: naive/mid1 is activated. mid2/well is deactivated.
 function [PrePertISI, PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
@@ -549,6 +579,9 @@ function [PrePertISI, PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
         case 5 % Well
             [PrePertISI, PostPertISI] = GetISIFromDist(obj, S, TrialTypes, currentTrial);
     end   
+
+    PostPertISI = S.GUI.ISIOrig_s;
+
 end
 
 function [PostPertISI] = GetISIMean(obj, S, TrialTypes, currentTrial)

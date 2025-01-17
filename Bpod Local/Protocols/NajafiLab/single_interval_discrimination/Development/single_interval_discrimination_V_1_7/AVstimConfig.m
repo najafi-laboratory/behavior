@@ -174,8 +174,13 @@ function [VisStim] = GetVideoDataPost( ...
             VisStim.Data.PostUnit.Video  = [VisStim.GrayPost.Video VisStim.Grating.Video VisStim.GrayPost.Video];
             Seq = [zeros(1, length(VisStim.GrayPost.Video)) ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx zeros(1, length(VisStim.GrayPost.Video))];
         else
-            VisStim.Data.PostUnit.Video  = [VisStim.Grating.Video VisStim.GrayPost.Video];
-            Seq = [ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx zeros(1, length(VisStim.GrayPost.Video))];
+            if numImages < PostPertFlashes
+                VisStim.Data.PostUnit.Video  = [VisStim.Grating.Video VisStim.GrayPost.Video];
+                Seq = [ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx zeros(1, length(VisStim.GrayPost.Video))];
+            else
+                VisStim.Data.PostUnit.Video  = [VisStim.Grating.Video];
+                Seq = [ones(1, length(VisStim.Grating.Video)) * VisStim.SampleGratingIdx];                
+            end
         end
         VisStim.Data.PostUnit.Dur    = GetVideoDur(obj, FPS, VisStim.Data.PostUnit.Video);
         VisStim.Data.PostUnit.Frames = GetFrames(obj, FPS, VisStim.Data.PostUnit.Dur);
@@ -183,7 +188,9 @@ function [VisStim] = GetVideoDataPost( ...
         VisStim.ProcessedData.Seq = [VisStim.ProcessedData.Seq, Seq];
         VisStim.ProcessedData.PrePost = [VisStim.ProcessedData.PrePost, ones(1, length(VisStim.Data.PostUnit.Video))];
         VideoSeq = [VideoSeq, VisStim.Data.PostUnit.Video];
-        PostISIinfo = [PostISIinfo, VisStim.GrayPost.Dur];
+        if numImages < PostPertFlashes
+            PostISIinfo = [PostISIinfo, VisStim.GrayPost.Dur];
+        end
     end
     VisStim.Data.Post.Video  = VideoSeq;
     VisStim.Data.Post.Dur    = GetVideoDur(obj, FPS, VisStim.Data.Post.Video);

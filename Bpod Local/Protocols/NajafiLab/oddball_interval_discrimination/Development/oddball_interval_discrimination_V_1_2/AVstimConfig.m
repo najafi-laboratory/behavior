@@ -147,7 +147,7 @@ end
 
 
 function [VisStim] = GetVideoDataPost( ...
-        obj, S, BpodSystem, FPS, VisStim, GrayPerturbISI, RandomISI)
+        obj, S, BpodSystem, FPS, VisStim, GrayPerturbISI, RandomISI, ChangePoint, OddballISI)
     VideoSeq = [];
     PostISIinfo = [];
     % might use loop later for fixed stim dur or number of images
@@ -158,13 +158,17 @@ function [VisStim] = GetVideoDataPost( ...
     if S.GUI.PrePertFlashRep > 0
         PostPertFlashes = 1;
     else
-        PostPertFlashes = 2;
+        PostPertFlashes = 9;
     end
+
     for numImages = 1:PostPertFlashes
         if (RandomISI == 1 && S.GUI.ActRandomISI == 1)
             ISI = GetRandomISI(obj, S, GrayPerturbISI);
         else
             ISI = GrayPerturbISI;
+        end
+        if numImages == ChangePoint
+            ISI = OddballISI;
         end
         VisStim.GrayPost.Frames = GetFrames(obj, FPS, ISI);
         VisStim.GrayPost.Video  = GetUnitVideo(obj, VisStim.Img.GrayFrame_SyncBlk, VisStim.GrayPost.Frames);
@@ -197,6 +201,7 @@ function [VisStim] = GetVideoDataPost( ...
     VisStim.Data.Post.Frames = GetFrames(obj, FPS, VisStim.Data.Post.Dur);
     VisStim.PostISIinfo = PostISIinfo;
     VisStim.ProcessedData.PostMeanISI = GrayPerturbISI;
+    VisStim.ProcessedData.PostOddballISI = OddballISI;
 end
 
 
