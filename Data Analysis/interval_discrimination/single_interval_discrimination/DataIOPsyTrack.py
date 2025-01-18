@@ -422,7 +422,21 @@ def read_trials(subject , session_data_path):
                     if len(reaction_idx)>0:                     
                         # lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
                         # get earliest lick as 'reaction'
-                        lick_reaction = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)                        
+                        if i == 56:
+                            print(i)
+                        # find minimum reaction time as lick
+                        # if mouse licked both spouts at same time (somehow?), check if trial rewarded to select lick column
+                        lick_min_idx = np.where(lick[0] == np.min(lick[0]))
+                        lick_copy_min = lick.copy()[:, lick_min_idx]
+                        if lick_copy_min.size > 3:
+                            print(i)
+                            print('double')   
+                            lick_copy_min = lick_copy_min.reshape(3, 2)
+                            if outcome == 'Reward':                                
+                                lick_min_idx = np.where(lick_copy_min[2] == 1)
+                            else:
+                                lick_min_idx = np.where(lick_copy_min[2] == 0)                            
+                        lick_reaction = lick.copy()[:, lick_min_idx].reshape(3,1)                        
                         trial_reaction.append(lick_reaction)
                     else:
                         trial_reaction.append(np.array([[np.nan], [np.nan], [np.nan]]))
@@ -442,7 +456,20 @@ def read_trials(subject , session_data_path):
                         ):
                         # lick_decision = lick.copy()[:, decision_idx[0]].reshape(3,1)
                         # get earliest lick as 'decision'
-                        lick_decision = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))].reshape(3,1)
+                        # find minimum reaction time as lick
+                        # if mouse licked both spouts at same time (somehow?, happens trial 57 TS01 1-16-25), check if trial rewarded to select lick column
+                        lick_min_idx = np.where(lick[0] == np.min(lick[0]))                        
+                        lick_copy_min = lick.copy()[:, np.where(lick[0] == np.min(lick[0]))]
+                        if lick_copy_min.size > 3:
+                            print(i)
+                            print('double')   
+                            lick_copy_min = lick_copy_min.reshape(3, 2)
+                            if outcome == 'Reward':                                
+                                lick_min_idx = np.where(lick_copy_min[2] == 1)
+                            else:
+                                lick_min_idx = np.where(lick_copy_min[2] == 0)               
+                      
+                        lick_decision = lick.copy()[:, lick_min_idx].reshape(3,1)
                         trial_decision.append(lick_decision)
                                                                   
                                                 

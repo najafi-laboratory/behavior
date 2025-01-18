@@ -77,16 +77,16 @@ if __name__ == "__main__":
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
-    subject_list = ['LCHR_TS01_update']
+    # subject_list = ['LCHR_TS01_update']
     # subject_list = ['LCHR_TS02_update']
     # subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']
     # subject_list = ['LCHR_TS02']
     # subject_list = ['LG09_TS04']
     # subject_list = ['LG09_TS04_update']
-    # subject_list = ['LCHR_TS01', 'LCHR_TS02']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS01']
 
-    # M = DataIOPsyTrack.run(subject_list , session_data_path)
+    M = DataIOPsyTrack.run(subject_list , session_data_path)
 
     save_file = 0
     load_file = 0
