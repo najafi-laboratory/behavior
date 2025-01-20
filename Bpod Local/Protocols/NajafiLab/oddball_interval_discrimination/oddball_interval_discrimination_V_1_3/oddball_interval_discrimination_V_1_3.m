@@ -1,8 +1,8 @@
-function oddball_interval_discrimination_V_1_2
+function oddball_interval_discrimination_V_1_3
 try
     % using try/catch for protocol code to allow for disconnecting from
     % modules and logging crash reports when exceptions thrown
-    protocol_version = 'oddball_interval_discrimination_V_1_2';
+    protocol_version = 'oddball_interval_discrimination_V_1_3';
 
 
     global BpodSystem
