@@ -40,7 +40,7 @@ function HandleMoveSpouts(code)
                             case 1
                                 M.setMotor(1, ConvertMaestroPos(LeftServoSetPosition), S.GUI.ServoVelocity);
                                 while ~LeftServoIsAtSetPosition
-                                    LeftServoIsAtSetPosition = M.checkPosition(0,LeftServoSetPosition,3);                            
+                                    LeftServoIsAtSetPosition = M.checkPosition(1,LeftServoSetPosition,3);                            
                                 end                                
                             case 2
                                 M.setMotor(0, ConvertMaestroPos(RightServoSetPosition), S.GUI.ServoVelocity);
@@ -57,7 +57,7 @@ function HandleMoveSpouts(code)
                             RightServoIsAtSetPosition = M.checkPosition(0,RightServoSetPosition,3);
                             % position = M.getPosition(1);
                             % disp(position)
-                            LeftServoIsAtSetPosition = M.checkPosition(0,LeftServoSetPosition,3);                            
+                            LeftServoIsAtSetPosition = M.checkPosition(1,LeftServoSetPosition,3);                            
                         end
                     end                                            
                     disp(['Moving left servo to: ', num2str(LeftServoSetPosition)]);
