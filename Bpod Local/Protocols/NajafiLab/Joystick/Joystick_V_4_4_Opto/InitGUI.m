@@ -39,7 +39,7 @@ function [S] = SetParams(obj, BpodSystem)
         % updates compatible across rigs
         switch BpodSystem.Data.RigName
             case 'ImagingRig'
-                S.GUI.ServoInPos = 1578.00; % lever start pos
+                S.GUI.ServoInPos = 1568.00; % lever start pos
                 % S.GUI.ServoInPos = 1810.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig1'
