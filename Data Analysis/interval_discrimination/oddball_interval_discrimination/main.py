@@ -89,6 +89,7 @@ if __name__ == "__main__":
     # subject_list = ['LG09_TS04_update']
     subject_list = ['LG08_TS03', 'LG09_TS04', 'LG11_TS05']
     # subject_list = ['LG09_TS04', 'LG11_TS05']
+    # subject_list = ['LG11_TS05']
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -143,10 +144,10 @@ if __name__ == "__main__":
                 'LCHR_TS01': '20241203',
                 'LCHR_TS02': '20241203',
                 'LCHR_TS02_update': '20241203',
-                'LG08_TS03': '20241228',
-                'LG09_TS04': '20241227',
+                'LG08_TS03': '20250115',
+                'LG09_TS04': '20250117',
                 'LG09_TS04_update': '20241222',
-                'LG11_TS05': '20241230'}
+                'LG11_TS05': '20250115'}
     
     # Start date for averaging
     StartDate = {'LCHR_TS01_update': '20241222',
@@ -182,10 +183,10 @@ if __name__ == "__main__":
                 'LCHR_TS01': '20241226',
                 'LCHR_TS02': '20241226',
                 'LCHR_TS02_update': '20241226',
-                'LG08_TS03': '20250106',
-                'LG09_TS04': '20250108',
+                'LG08_TS03': '20250120',
+                'LG09_TS04': '20250120',
                 'LG09_TS04_update': '20250106',
-                'LG11_TS05': '20250108'}   
+                'LG11_TS05': '20250120'}   
     
     # add start dates to session data
     for i in range(len(M)):

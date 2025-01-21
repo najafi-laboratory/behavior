@@ -332,8 +332,9 @@ def read_trials(subject , session_data_path):
             trial_pre_isi.append(stim_pre_isi)
             trial_pre_isi_emp.append(pre_isi_emp)
             # post perturbation isi.
-            if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice'):
-                stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+            if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
+                # stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+                stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'][0])
                 if stim_seq.shape[1]<2:
                     stim_post_isi = np.nan
                     number_flash = np.nan
@@ -373,7 +374,9 @@ def read_trials(subject , session_data_path):
                 
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
-                not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
+                i > 14 and not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and 
+                not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice' and 
+                not outcome_clean == 'MoveCorrectSpout'):
                 licking_events = []
                 direction = []
                 correctness = []
@@ -422,8 +425,6 @@ def read_trials(subject , session_data_path):
                     if len(reaction_idx)>0:                     
                         # lick_reaction = lick.copy()[:, reaction_idx[0]].reshape(3,1)
                         # get earliest lick as 'reaction'
-                        if i == 56:
-                            print(i)
                         # find minimum reaction time as lick
                         # if mouse licked both spouts at same time (somehow?), check if trial rewarded to select lick column
                         lick_min_idx = np.where(lick[0] == np.min(lick[0]))

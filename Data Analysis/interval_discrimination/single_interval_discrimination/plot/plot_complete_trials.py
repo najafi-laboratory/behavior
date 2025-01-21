@@ -57,12 +57,17 @@ def run(ax, subject_session_data):
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.hlines(0.5,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5)    
+    ax.hlines(0.5,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5) 
+    ax.hlines(0.75,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5)    
     #ax.yaxis.grid(True)
     ax.set_xlabel('training session')
     ax.set_ylabel('number of trials')
     ax.set_xticks(np.arange(len(outcomes))+1)
     ax.set_yticks(np.arange(6)*0.2)
+    # # Create the second Y axis
+    # ax2 = ax.twinx()
+    # # Synchronize the tick marks between both Y axes
+    # ax2.set_yticks(ax.get_yticks())  # Set ax2's ticks to be the same as ax1's
     #ax.set_xticklabels(dates, rotation='vertical')
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     ax.set_title('reward/punish percentage for completed trials')

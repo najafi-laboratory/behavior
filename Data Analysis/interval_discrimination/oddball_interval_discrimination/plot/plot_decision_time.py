@@ -17,7 +17,8 @@ def get_bin_stat(decision, max_time):
         correctness = decision[2, bin_indices == i].copy()
         m = np.mean(correctness) if len(correctness) > least_trials else np.nan
         s = sem(correctness) if len(correctness) > least_trials else np.nan
-        num_trials = np.sum(bin_indices[bin_indices == i]) if len(correctness) > least_trials else np.nan
+        # num_trials = np.sum(bin_indices[bin_indices == i]) if len(correctness) > least_trials else np.nan
+        num_trials = len(bin_indices[bin_indices == i]) if len(correctness) > least_trials else np.nan
         trials_per_bin.append(num_trials)  
         bin_mean.append(m)
         bin_sem.append(s)

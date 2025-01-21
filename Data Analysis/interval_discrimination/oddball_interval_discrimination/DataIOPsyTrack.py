@@ -332,8 +332,10 @@ def read_trials(subject , session_data_path):
             trial_pre_isi.append(stim_pre_isi)
             trial_pre_isi_emp.append(pre_isi_emp)
             # post perturbation isi.
-            if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice'):
-                stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+            if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
+                # stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
+                # update to account for change point when adding more change points
+                stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'][6])                
                 if stim_seq.shape[1]<2:
                     stim_post_isi = np.nan
                     number_flash = np.nan
@@ -373,7 +375,9 @@ def read_trials(subject , session_data_path):
                 
             # lick events.
             if ('VisStimTrigger' in trial_states.keys() and
-                not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
+                i > 14 and not np.isnan(trial_states['VisStimTrigger'][1]) and not outcome_clean == 'EarlyLick' and 
+                not outcome_clean == 'Switching' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'LateChoice' and 
+                not outcome_clean == 'MoveCorrectSpout'):
                 licking_events = []
                 direction = []
                 correctness = []

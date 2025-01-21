@@ -47,6 +47,8 @@ from plot import plot_psytrack_performance
 from plot import plot_pupil_area
 from plot import plot_sdt_d_prime
 from plot import plot_sdt_criterion
+from plot import plot_isi_distribution
+from plot import plot_isi_distribution_epoch
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -77,13 +79,13 @@ if __name__ == "__main__":
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
-    # subject_list = ['LCHR_TS01_update']
+    subject_list = ['LCHR_TS01_update']
     # subject_list = ['LCHR_TS02_update']
     # subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']
     # subject_list = ['LCHR_TS02']
     # subject_list = ['LG09_TS04']
     # subject_list = ['LG09_TS04_update']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS01']
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
@@ -283,6 +285,7 @@ if __name__ == "__main__":
         plot_decision_time_isi.run(plt.subplot(gs[0, 2]), M[i], start_from='start_date')
         plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='std')
         plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='std')
+        
         # plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='start_date')
         # plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='start_date')
                      
@@ -296,10 +299,6 @@ if __name__ == "__main__":
         
             # if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
             #     subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:] 
- 
-    
-         
-
         plt.suptitle(M[i]['subject'])
         fname = os.path.join(str(i).zfill(4)+'.pdf')
         fig.set_size_inches(30, 15)
@@ -309,7 +308,31 @@ if __name__ == "__main__":
         subject_report.insert_pdf(roi_fig)
         roi_fig.close()
         os.remove(fname)
+        
+        
+        ################################# pg 2
+        fig = plt.figure(layout='constrained', figsize=(30, 15))
+        gs = GridSpec(4, 6, figure=fig)        
+        
+        
+        plot_isi_distribution_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
+        
+        plot_isi_distribution.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
+        # plot_isi_distribution.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
+        # plot_isi_distribution.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')        
+        
+        plt.suptitle(M[i]['subject'])
+        fname = os.path.join(str(i).zfill(4)+'.pdf')
+        fig.set_size_inches(30, 15)
+        fig.savefig(fname, dpi=300)
+        plt.close()
+        roi_fig = fitz.open(fname)
+        subject_report.insert_pdf(roi_fig)
+        roi_fig.close()
+        os.remove(fname)           
+    
          
+        ################################# pg 3         
         fig = plt.figure(layout='constrained', figsize=(30, 15))
         gs = GridSpec(4, 6, figure=fig)        
         

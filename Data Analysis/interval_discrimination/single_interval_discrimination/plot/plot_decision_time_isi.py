@@ -161,7 +161,7 @@ def run(ax, subject_session_data, start_from='std'):
     ax.spines['top'].set_visible(False)
     # ax.set_xlim([-50,1050])
     ax.set_xlim([-50,1600])
-    ax.set_ylim([0,500])
+    ax.set_ylim([0,600])
     # ax.set_xticks(np.arange(6)*200)
     ax.set_xticks(np.arange(11)*150)
     ax.tick_params(axis='x', rotation=45)

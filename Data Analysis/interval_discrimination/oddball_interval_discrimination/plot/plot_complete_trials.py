@@ -58,6 +58,7 @@ def run(ax, subject_session_data):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.hlines(0.5,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5)    
+    ax.hlines(0.75,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5)    
     #ax.yaxis.grid(True)
     ax.set_xlabel('training session')
     ax.set_ylabel('number of trials')
