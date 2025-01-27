@@ -326,6 +326,32 @@ classdef OptoConfig
                         % duration of LED pulse 0V is cycle period minus 5V dur
                         T = LEDOnDur + LEDOffDur;
                         PMTOffDur =  T - PMTCloseDur;
+                    case 4
+                        LEDOnDur = S.GUI.LEDOnPulseDur_ms/1000;
+                        LEDOffDur = S.GUI.LEDOffPulseDur_ms/1000;
+
+                        LED1OnsetDelay = 0;
+                        LED2OnsetDelay = 0;
+                        LED3OnsetDelay = 0;
+                        LED4OnsetDelay = 0;
+
+                        LoopLED1 = 0;
+                        LoopLED2 = 0;
+                        LoopLED3 = 0;
+                        LoopLED4 = 0;          
+
+                        LoopPMT1 = 0;
+                        LoopPMT2 = 0;
+                        LoopPMT3 = 0;
+                        LoopPMT4 = 0;
+
+                        PMT1OnsetDelay = 0;
+                        PMT2OnsetDelay = 0;
+                        PMT3OnsetDelay = 0;
+                        PMT4OnsetDelay = 0;
+
+                        PMTCloseDur = 0;
+                        PMTOffDur = 0;
                 end 
 
                 % seg1:
@@ -363,52 +389,8 @@ classdef OptoConfig
                     'GlobalTimerEvents', 0, 'OffsetValue', 0);
 
                 
-                if S.GUI.OptoITI      
-                   
-                    MaxNumPulses = floor(BpodSystem.Data.EndOfTrialITI / (LEDOnDur + LEDOffDur));
-                    MaxNumPulses = min(MaxNumPulses, MaxLoopNum);
-
-                    switch S.GUI.OptoITICycleType
-                        case 1
-                            NumPulses = min(S.GUI.OptoITINumPulses, MaxNumPulses);
-                        case 2
-                            ITIPulseCycleDuration = min(S.GUI.OptoITIDur_s, BpodSystem.Data.EndOfTrialITI);
-                            NumPulses = round(ITIPulseCycleDuration / (LEDOnDur + LEDOffDur));
-                    end
-                           
-
-                    switch NumPulses
-                        % if 0, then set opto to loop continuously
-                        case 0
-                            LoopLED5 = 1;
-                            ITIPulseCycleDuration = BpodSystem.Data.EndOfTrialITI;
-                        % if 1, then single opto pulse
-                        case 1
-                            LoopLED5 = 0;
-                            ITIPulseCycleDuration = (LEDOnDur + LEDOffDur);
-                        % otherwise, set integer number of pulses > 1
-                        otherwise
-                            % LoopLED5 = S.GUI.OptoITINumPulses;
-                            LoopLED5 = NumPulses;
-                            ITIPulseCycleDuration = (LEDOnDur + LEDOffDur) * NumPulses;
-                            ITIPulseCycleDuration = min(ITIPulseCycleDuration, BpodSystem.Data.EndOfTrialITI);
-                    end
-
-
-
-                    % align ITI opto to start or stop of ITI state
-                    if S.GUI.OptoITIAlignment == 1
-                        LED5OnsetDelay = 0;
-                    else
-                        LED5OnsetDelay = BpodSystem.Data.EndOfTrialITI - ITIPulseCycleDuration;
-                    end
     
-                    % timer 10-13 used elsewhere in proto
-                    sma = SetGlobalTimer(sma, 'TimerID', 14, 'Duration', LEDOnDur, 'OnsetDelay', LED5OnsetDelay,...
-                        'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
-                        'Loop', LoopLED5, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
-                        'GlobalTimerEvents', 0, 'OffsetValue', 0);
-                end
+                
 
                 % shutter timers
                 % seg 1
@@ -439,7 +421,57 @@ classdef OptoConfig
                 sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', 0.030, 'OnsetDelay', 0,...
                     'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
                     'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
-                    'GlobalTimerEvents', 0, 'OffsetValue', 0);                 
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);    
+
+                %%%%%%%%%%%%%%% ITI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                % currently using pulsed regardless of type setting
+                
+                % find max number of pulses within ITI dur
+                MaxNumPulses = floor(BpodSystem.Data.EndOfTrialITI / (LEDOnDur + LEDOffDur));
+                MaxNumPulses = min(MaxNumPulses, MaxLoopNum);
+               
+                % get number of pulses whether cycle type is defined by
+                % numpulses or duration
+                switch S.GUI.OptoITICycleType
+                    case 1
+                        NumPulses = min(S.GUI.OptoITINumPulses, MaxNumPulses);
+                    case 2
+                        % ITIPulseCycleDuration = min(S.GUI.OptoITIDur_s, BpodSystem.Data.EndOfTrialITI);
+                        NumPulses = round(S.GUI.OptoITIDur_s / (LEDOnDur + LEDOffDur));
+                        NumPulses = min(NumPulses, MaxNumPulses);
+                end
+                       
+                % set loop flag depending on num pulses
+                % get cycle duration to use for calculating delay onset
+                switch NumPulses
+                    % if 0, then set opto to loop continuously
+                    case 0
+                        LoopLED5 = 1;
+                        ITIPulseCycleDuration = BpodSystem.Data.EndOfTrialITI;
+                    % if 1, then single opto pulse
+                    case 1
+                        LoopLED5 = 0;
+                        ITIPulseCycleDuration = (LEDOnDur + LEDOffDur);
+                    % otherwise, set integer number of pulses > 1
+                    otherwise
+                        % LoopLED5 = S.GUI.OptoITINumPulses;
+                        LoopLED5 = NumPulses;
+                        ITIPulseCycleDuration = (LEDOnDur + LEDOffDur) * NumPulses;
+                        ITIPulseCycleDuration = min(ITIPulseCycleDuration, BpodSystem.Data.EndOfTrialITI);
+                end
+
+                % align ITI opto to start or stop of ITI state
+                if S.GUI.OptoITIAlignment == 1
+                    LED5OnsetDelay = 0;
+                else
+                    LED5OnsetDelay = BpodSystem.Data.EndOfTrialITI - ITIPulseCycleDuration;
+                end
+
+                % timer 10-13 used elsewhere in proto
+                sma = SetGlobalTimer(sma, 'TimerID', 14, 'Duration', LEDOnDur, 'OnsetDelay', LED5OnsetDelay,...
+                    'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    'Loop', LoopLED5, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);
             end
         end
     end

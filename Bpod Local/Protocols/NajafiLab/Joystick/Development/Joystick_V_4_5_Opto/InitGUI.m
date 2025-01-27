@@ -101,7 +101,7 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.SessionType.String = {'Opto', 'Control'};
         S.GUI.PulseType = 3;
         S.GUIMeta.PulseType.Style = 'popupmenu';
-        S.GUIMeta.PulseType.String = {'ContinuousOpto', 'SquareWaveOpto_ContinuousShutter', 'SquareWaveOpto_PulsedShutter'};
+        S.GUIMeta.PulseType.String = {'ContinuousOpto', 'SquareWaveOpto_ContinuousShutter', 'SquareWaveOpto_PulsedShutter', 'Continuous_RampDown'};
         S.GUI.MaxOptoDur_s = 2.5;
         S.GUI.LEDOnPulseDur_ms = 7.8;
         S.GUI.LEDOffPulseDur_ms = 92.2;
@@ -130,18 +130,18 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoITI = 1;
         S.GUIMeta.OptoITI.Style = 'checkbox';
 
-        S.GUI.OptoITICycleType = 2; % S.GUI.OptoTrialTypeSeq = 5;
+        S.GUI.OptoITICycleType = 2;
         S.GUIMeta.OptoITICycleType.Style = 'popupmenu';
         S.GUIMeta.OptoITICycleType.String = {'NumPulses', 'Duration'};
 
         S.GUI.OptoITINumPulses = 5;
         S.GUI.OptoITIDur_s = 1;
 
-        S.GUI.OptoITIAlignment = 1; % S.GUI.OptoTrialTypeSeq = 5;
+        S.GUI.OptoITIAlignment = 1;
         S.GUIMeta.OptoITIAlignment.Style = 'popupmenu';
         S.GUIMeta.OptoITIAlignment.String = {'StateStart', 'StateStop'};                       
 
-        S.GUI.OptoTrialTypeSeq = 5; % S.GUI.OptoTrialTypeSeq = 5;
+        S.GUI.OptoTrialTypeSeq = 1; % S.GUI.OptoTrialTypeSeq = 5;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
         S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block', 'On Epoch'};               
         S.GUI.OnFraction = 0.35;    % S.GUI.OnFraction = 0.35;         
