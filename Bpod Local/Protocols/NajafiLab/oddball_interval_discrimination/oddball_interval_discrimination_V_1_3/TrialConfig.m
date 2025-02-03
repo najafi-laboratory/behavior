@@ -26,7 +26,7 @@ function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, S, TrialTypes)
     %NewTrialTypes = TrialTypes;
     for i = MaxSameConsecutiveTrials:length(TrialTypes) 
         if (i > MaxSameConsecutiveTrials)
-            PrevMaxTrials = TrialTypes(i-3:i-1);
+            PrevMaxTrials = TrialTypes(i-MaxSameConsecutiveTrials:i-1);
             if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
                 NewSameAsPrevMax = true;
                 while NewSameAsPrevMax

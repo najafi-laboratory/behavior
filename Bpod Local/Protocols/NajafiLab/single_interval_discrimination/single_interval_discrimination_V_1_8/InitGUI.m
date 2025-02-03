@@ -6,17 +6,7 @@ function [S] = SetParams(obj, BpodSystem)
     S = BpodSystem.ProtocolSettings;
     if isempty(fieldnames(S))
 
-        S.GUI.ExperimenterInitials = 'Initials';
-        S.GUIPanels.SessionInfo = {'ExperimenterInitials'};
 
-        % Optogentic params
-        S.GUI.OptoSession = 0;
-        S.GUIMeta.OptoSession.Style = 'checkbox';
-        S.GUIPanels.Opto = {'OptoSession'};
-        S.GUI.LEDOnPulseDur = 0.0078;
-        S.GUI.OnFraction = 0.3;
-        S.GUI.OptoFreq = 0.1;      
-        S.GUIPanels.Opto = {'OptoSession', 'LEDOnPulseDur', 'OnFraction', 'OptoFreq'};
         
         % chemogentic
         S.GUI.ChemoSession = 0;
@@ -37,6 +27,18 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.TimeOutPunish = 2;
         S.GUIPanels.ITI_Dist = {'SetManualITI', 'ManualITI', 'ITIMin', 'ITIMax', 'ITIMean', 'ActTimeOutPunish', 'ManuallTimeOutPunish', 'TimeOutPunish'};
 
+        S.GUI.ExperimenterInitials = 'Initials';
+        S.GUIPanels.SessionInfo = {'ExperimenterInitials'};
+
+        % Optogentic params
+        S.GUI.OptoSession = 0;
+        S.GUIMeta.OptoSession.Style = 'checkbox';
+        S.GUIPanels.Opto = {'OptoSession'};
+        S.GUI.LEDOnPulseDur = 0.0078;
+        S.GUI.OnFraction = 0.3;
+        S.GUI.OptoFreq = 0.1;      
+        S.GUIPanels.Opto = {'OptoSession', 'LEDOnPulseDur', 'OnFraction', 'OptoFreq'};
+
         % training level params
         S.GUI.NoInit = 0;
         S.GUIMeta.NoInit.Style = 'checkbox';
@@ -45,8 +47,10 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
         S.GUIMeta.TrainingLevel.String = {'Naive', 'Early', 'Mid 1', 'Mid 2', 'Well'};
         S.GUI.NumNaiveWarmup = 15;
+        S.GUI.ActMaxSameSide = 0;
+        S.GUIMeta.ActMaxSameSide.Style = 'checkbox';         
         S.GUI.MaxSameSide = 3;
-        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup', 'MaxSameSide'};
+        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup', 'ActMaxSameSide', 'MaxSameSide'};
         
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
