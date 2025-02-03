@@ -45,7 +45,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
         S.GUIMeta.TrainingLevel.String = {'Naive', 'Early', 'Mid 1', 'Mid 2', 'Well'};
         S.GUI.NumNaiveWarmup = 15;
-        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup'};
+        S.GUI.MaxSameSide = 3;
+        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup', 'MaxSameSide'};
         
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
@@ -55,8 +56,8 @@ function [S] = SetParams(obj, BpodSystem)
                 S.GUI.RightServoInPos = 1160;
                 S.GUI.LeftServoInPos = 1690;
             case '2AFCRig2'
-                S.GUI.RightServoInPos = 1138.00;  % close
-                S.GUI.LeftServoInPos = 1902.00;   % close
+                S.GUI.RightServoInPos = 1132.00;  % close
+                S.GUI.LeftServoInPos = 1914.00;   % close
                 % S.GUI.RightServoInPos = 1148.00;    % med
                 % S.GUI.LeftServoInPos = 1892.00;     % med           
                 % S.GUI.RightServoInPos = 1136.00;
@@ -68,7 +69,7 @@ function [S] = SetParams(obj, BpodSystem)
                 % S.GUI.LeftServoInPos = 1770.00;     % med            
         end
 
-        S.GUI.ServoDeflection = -100;
+        S.GUI.ServoDeflection = -90;
         S.GUI.ServoVelocity = 1;
         S.GUI.AntiBiasServoAdjustAct = 0;
         S.GUIMeta.AntiBiasServoAdjustAct.Style = 'checkbox';        

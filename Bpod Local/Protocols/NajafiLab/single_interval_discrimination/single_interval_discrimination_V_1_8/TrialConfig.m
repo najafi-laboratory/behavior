@@ -5,7 +5,8 @@ classdef TrialConfig
 %% trial generation
 
 function [TrialTypes] = GenTrials(obj, S)
-    TrialTypes = ceil(rand(1, S.GUI.MaxTrials)*2);     
+    TrialTypes = ceil(rand(1, S.GUI.MaxTrials)*2);
+
 end
 
 function [ProbeTrials] = GenProbeTrials(obj, S)
@@ -19,10 +20,10 @@ function [ProbeTrials] = GenProbeTrials(obj, S)
     end
 end
 
-function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, TrialTypes)       
+function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, S, TrialTypes)       
     % modify trial types so that there are no more than 3 consecutive same
     % types
-    MaxSameConsecutiveTrials = 3;
+    MaxSameConsecutiveTrials = S.GUI.MaxSameSide;
     %NewTrialTypes = TrialTypes;
     for i = MaxSameConsecutiveTrials:length(TrialTypes) 
         if (i > MaxSameConsecutiveTrials)
