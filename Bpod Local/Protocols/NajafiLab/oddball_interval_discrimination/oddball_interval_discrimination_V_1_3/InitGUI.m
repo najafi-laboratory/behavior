@@ -45,7 +45,8 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
         S.GUIMeta.TrainingLevel.String = {'Naive', 'Early', 'Mid 1', 'Mid 2', 'Well'};
         S.GUI.NumNaiveWarmup = 15;
-        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup'};
+        S.GUI.MaxSameSide = 3;
+        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup', 'MaxSameSide'};
         
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;
