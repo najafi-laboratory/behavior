@@ -322,7 +322,7 @@ end
 
 
 function [FullAudio] = GenAudioStim( ...
-        obj, S, VisStim, SF, Envelope)
+        obj, S, VisStim, SF, Envelope, BpodSystem, ChangePoint)
     AudioStimSound = GenSinSound( ...
         obj, S.GUI.AudioStimFreq_Hz, S.GUI.GratingDur_s, S.GUI.AudioStimVolume_percent, SF, Envelope);
     [GoCueSound] = GenSinSound( ...
@@ -342,13 +342,19 @@ function [FullAudio] = GenAudioStim( ...
     if ~isempty(VisStim.PostISIinfo)
         for i = 1 : length(VisStim.PostISIinfo)
             GrayNumSamples = ceil(VisStim.PostISIinfo(i) * SF);
-            NoSoundPostPert = zeros(1, GrayNumSamples);
+            NoSoundPostPert = zeros(1, GrayNumSamples);            
+            GrayGratingNumSamples = ceil(length(AudioStimSound));
+            NoSoundGrayGrating = zeros(1, GrayGratingNumSamples);
             % if including pre pert, then post is ISI->grating pattern
             % otherwise its grating->ISI
             if S.GUI.PrePertFlashRep > 0
                 AudioSeqPost = [AudioSeqPost NoSoundPostPert AudioStimSound];
             else
-                AudioSeqPost = [AudioSeqPost AudioStimSound NoSoundPostPert];
+                if (i == ChangePoint) && (BpodSystem.Data.TrialTypes(BpodSystem.Data.CurrentTrial) == 2)
+                    AudioSeqPost = [AudioSeqPost NoSoundGrayGrating NoSoundPostPert];
+                else
+                    AudioSeqPost = [AudioSeqPost AudioStimSound NoSoundPostPert];
+                end
             end
             
         end

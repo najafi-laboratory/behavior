@@ -367,7 +367,7 @@ try
         %% Generate audio stim based on vis stim for this trial, account for shift due to gray frames
         
         [FullAudio] = m_AVstimConfig.GenAudioStim( ...
-        S, VisStim, SF, Envelope);
+        S, VisStim, SF, Envelope, BpodSystem, ChangePoint);
         H.load(5, FullAudio);
 
         
