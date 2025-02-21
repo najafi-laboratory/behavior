@@ -32,7 +32,7 @@ function [S] = SetParams(obj, BpodSystem)
                 
         S.GUI.AirPuff_Dur = 0.02;
 
-        S.GUI.AirPuff_OnsetDelay = S.GUI.LED_Dur - S.GUI.AirPuff_Dur;       
+        % S.GUI.AirPuff_OnsetDelay = S.GUI.LED_Dur - S.GUI.AirPuff_Dur;       
 
         S.GUI.AirPuff_OnsetDelay_SingleBlock = 0.400; % Default ISI for single block
         S.GUI.AirPuff_OnsetDelay_Short = 0.200;
@@ -50,7 +50,7 @@ function [S] = SetParams(obj, BpodSystem)
         
         % GUI Panels
         S.GUIPanels.EBC = {'ExperimenterInitials', 'SleepDeprived', 'num_warmup_trials', 'ITI_Pre', 'ITI_Post', 'ITI_Extra', ...
-            'TrialTypeSequence', 'LED_Dur', 'AirPuff_OnsetDelay', ...
+            'TrialTypeSequence', 'LED_Dur', ...
             'AirPuff_OnsetDelay_SingleBlock', 'AirPuff_OnsetDelay_Short', 'AirPuff_OnsetDelay_Long', ...
             'AirPuff_Dur', 'CheckEyeOpenAveragingBaseline', 'CheckEyeOpenTimeout', 'BlockLength', 'Margine'};
 
