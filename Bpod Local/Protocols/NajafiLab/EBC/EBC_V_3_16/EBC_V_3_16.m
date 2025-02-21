@@ -85,13 +85,7 @@ try
     numWarmupTrials = S.GUI.num_warmup_trials; % Get number of warm-up trials from GUI
     isWarmupPhase = true;
    
-    % Determine ISI for warm-up trials
-    switch S.GUI.TrialTypeSequence
-        case 1  % singleBlock
-            warmup_AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_SingleBlock;
-        case {2, 3, 4}  % doubleBlock (short first, long first, or random first)
-            warmup_AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
-    end
+
     
     %% Define block parameters
     % Define block parameters
@@ -126,6 +120,7 @@ try
     end
     %% Initialize Experiment Loop
     currentBlockIndex = 1;
+    currentTrialInBlock = 1;
 
     % Initialize for the experiment loop
     % currentBlockIndex = 1;
@@ -141,17 +136,19 @@ try
     % Initialize Warm-Up Phase
   
     
-    % Ensure warm-up trials execute first
+   
     if isWarmupPhase
         % Warm-up trials logic runs separately before normal trials
         disp('Running Warm-Up Trials...');
     else
         % Initialize Trial Type Sequence for normal trials
         switch S.GUI.TrialTypeSequence
-            case 1  % singleBlock → No alternation, use constant ISI
+
+           case 1  % singleBlock → No alternation, use constant ISI
                 currentBlockType = 'single';
                 AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_SingleBlock;
-    
+
+     
             case 2  % doubleBlock_shortFirst → Start with short delay, then alternate
                 currentBlockType = 'short';
                 AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
@@ -170,7 +167,7 @@ try
                 end
         end
     end
-    currentTrialInBlock = 1;    % Track the current trial within the block
+       % Track the current trial within the block
 
     for currentTrial = 1:MaxTrials        
         %% sync trial-specific parameters from GUI
@@ -191,15 +188,55 @@ try
         % for the online experimenter plot
         % Warm-up Phase
         if isWarmupPhase
-            AirPuff_OnsetDelay = warmup_AirPuff_OnsetDelay;
-         
-            if currentTrial >= numWarmupTrials
-                isWarmupPhase = false; % End warm-up phase and switch to normal trials
-                currentTrialInBlock = 1; % Reset block trial counter
+
+            % Determine ISI for warm-up trials
+            switch S.GUI.TrialTypeSequence
+                case 1  % singleBlock
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_SingleBlock;
+                    currentBlockType = 'warm_up';
+                case {2, 3, 4}  % doubleBlock (short first, long first, or random first)
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
+                    currentBlockType ='warm_up';
             end
-    
+
+
+            if currentTrial == numWarmupTrials+1
+                isWarmupPhase = false; % End warm-up phase and switch to normal trials
+                currentBlockIndex = 1; % Reset block trial counter
+                % currentTrialInBlock = 1; 
+
+                if S.GUI.TrialTypeSequence == 1 %Single Block mood
+                    currentBlockType = 'single';
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_SingleBlock;
+                else %Double Block mood
+                    currentBlockIndex = 1; 
+                    currentTrialInBlock = 1;
+                    currentBlockType = 'short'; %default start type, change based on mood
+                    AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
+                    if S.GUI.TrialTypeSequence == 3
+                        currentBlockType = 'long';
+                        AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
+                    elseif S.GUI.TrialTypeSequence == 4
+                        if rand<0.5
+                            currentBlockType = 'short';
+                            AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
+                        else
+                            currentBlockType = 'long';
+                            AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
+                        end
+                    end
+
+                    % if strcmp(currentBlockType, 'short')
+                    %     AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Short;
+                    % else
+                    %     AirPuff_OnsetDelay = S.GUI.AirPuff_OnsetDelay_Long;
+                    % end
+
+                    
+                end
+            end    
+
         else
- 
            switch S.GUI.TrialTypeSequence
                 case 1  % singleBlock → No alternation, use a constant ISI
                     currentBlockType = 'single';
@@ -329,7 +366,7 @@ try
         % LED Timer generated using behavior port 1 Pulse Width Modulation 
         % pin (PWM).  Starts after S.GUI.LED_OnsetDelay, on during
         % S.GUI.LED_Dur.
-        sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', LED_Dur, 'OnsetDelay', S.GUI.LED_OnsetDelay,...
+        sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', S.GUI.LED_Dur, 'OnsetDelay', S.GUI.LED_OnsetDelay,...
             'Channel', 'PWM3', 'PulseWidthByte', 255, 'PulseOffByte', 0,...
             'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0); 
 
@@ -492,6 +529,9 @@ try
             % fprintf('ISI: %.3f ms\n', ISI*1000); % where ISI = AirPuff_OnsetDelay - LED_offset;
             fprintf('LED Duration: %.3f sec\n', S.GUI.LED_Dur);
             fprintf('AirPuff Duration: %.3f sec\n', S.GUI.AirPuff_Dur);
+
+            fprintf('warm_up trial numbers: %d\n', S.GUI.num_warmup_trials);
+            
             fprintf('doubleBlock_shortFirst LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_Short);
             fprintf('doubleBlock_longFirst LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_Long);
             fprintf('Single Block LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_SingleBlock);
