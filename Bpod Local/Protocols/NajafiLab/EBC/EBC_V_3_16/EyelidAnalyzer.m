@@ -27,7 +27,7 @@ classdef EyelidAnalyzer < handle
         EBC_vid_log_trial
         eyeAreaPixels            
         eyeOpen = false;
-        eyeOpenAvgWindow = 0.1;  % 100ms
+        eyeOpenAvgWindow = 0.2;  % 200ms
         
         fec
         fecAVG = 100;
@@ -232,14 +232,24 @@ classdef EyelidAnalyzer < handle
         end
 
         function onGUIClose(obj, ~, ~)
-            % close(obj.EBC_vid_log_trial);
+            close(obj.EBC_vid_log_trial);
+
             delete(obj.vid)
-            clear obj.vid
+            % delete(obj.src)
 
             obj.stopPreTrialVideo(); % Ensure the live video is stopped
+
             % obj.saveSettings(); % Save settings before closing
+
             delete(obj.hFig); % Close the figure
+            % close(obj.hFig); % Close the figure
             % delete(timerfindall)
+
+            clear obj.vid;
+            % clear obj.src;
+            clear obj.hFig;
+
+            java.lang.System.gc();
         end     
 
         function stopPreTrialVideo(obj, ~, ~)
@@ -599,13 +609,13 @@ classdef EyelidAnalyzer < handle
 
             avgWindowStart = currentTime - obj.eyeOpenAvgWindow;
             if avgWindowStart > 0
-                avgWindowStartIdx = find(obj.fecTimes < avgWindowStart);
-                if ~isempty(avgWindowStartIdx)
+                avgWindowStartIdx = find(obj.fecTimes > avgWindowStart);
+                if length(avgWindowStartIdx) > 2
                     % check time difference to see if enough values for
                     % averaging window
                     % fecTimesAvgWindowLength = obj.fecTimes(averagingWindowIdxs(end)) - obj.fecTimes(averagingWindowIdxs(1));
                     % if fecTimesAvgWindowLength > obj.eyeOpenAvgWindow
-                        FECWindow = obj.fecData(avgWindowStartIdx(end):end);
+                        FECWindow = obj.fecData(avgWindowStartIdx(1):end);
                         if sum(isnan(FECWindow)) == 0
                             % disp(num2str(obj.fecTimes(end) - obj.fecTimes(avgWindowStartIdx(end)));
                             % disp([' t2 - t1 = ' num2str(obj.fecTimes(end) - obj.fecTimes(avgWindowStartIdx(end)))]);
