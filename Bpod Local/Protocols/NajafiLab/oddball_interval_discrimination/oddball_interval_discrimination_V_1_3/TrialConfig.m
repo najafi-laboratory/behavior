@@ -19,14 +19,14 @@ function [ProbeTrials] = GenProbeTrials(obj, S)
     end
 end
 
-function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, TrialTypes)       
+function [TrialTypes] = AdjustMaxConsecutiveSameSideTrials(obj, S, TrialTypes)       
     % modify trial types so that there are no more than 3 consecutive same
     % types
-    MaxSameConsecutiveTrials = 3;
+    MaxSameConsecutiveTrials = S.GUI.MaxSameSide;
     %NewTrialTypes = TrialTypes;
     for i = MaxSameConsecutiveTrials:length(TrialTypes) 
         if (i > MaxSameConsecutiveTrials)
-            PrevMaxTrials = TrialTypes(i-3:i-1);
+            PrevMaxTrials = TrialTypes(i-MaxSameConsecutiveTrials:i-1);
             if (all(PrevMaxTrials == 1) || all(PrevMaxTrials == 2))
                 NewSameAsPrevMax = true;
                 while NewSameAsPrevMax

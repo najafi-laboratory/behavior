@@ -114,13 +114,11 @@ try
     
     % generate trial types
     [TrialTypes] = m_TrialConfig.GenTrials(S);
+    [TrialTypes] = m_TrialConfig.GenTrials(S);
     [TrialTypes] = m_TrialConfig.AdjustWarmupTrials(S, TrialTypes);
     [ProbeTrials] = m_TrialConfig.GenProbeTrials(S);
     [OptoType]    = m_Opto.GenOptoType(S);
 
-    % adjust warmup trials to have no more than 'max' number of consecutive
-    % same-side trials
-    % TrialTypes = m_TrialConfig.AdjustMaxConsecutiveSameSideTrials(TrialTypes);
 
     % Side Outcome Plot
     BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [50 540 1000 220],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
@@ -199,6 +197,12 @@ try
     input('Set parameters and press enter to continue >', 's'); 
     S = BpodParameterGUI('sync', S);
     
+    % adjust trials to have no more than 'max' number of consecutive
+    % same-side trials
+    if S.GUI.ActMaxSameSide
+        TrialTypes = m_TrialConfig.AdjustMaxConsecutiveSameSideTrials(S, TrialTypes);
+    end
+
     % update trial types
     [ProbeTrials] = m_TrialConfig.GenProbeTrials(S);
     [OptoType]    = m_Opto.GenOptoType(S);    
