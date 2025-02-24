@@ -183,10 +183,10 @@ if __name__ == "__main__":
                 'LCHR_TS01': '20241226',
                 'LCHR_TS02': '20241226',
                 'LCHR_TS02_update': '20241226',
-                'LG08_TS03': '20250120',
-                'LG09_TS04': '20250120',
+                'LG08_TS03': '20250116',
+                'LG09_TS04': '20250117',
                 'LG09_TS04_update': '20250106',
-                'LG11_TS05': '20250120'}   
+                'LG11_TS05': '20250118'}   
     
     # add start dates to session data
     for i in range(len(M)):
@@ -295,6 +295,9 @@ if __name__ == "__main__":
         plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='start_date')
         plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='start_date')
                 
+        
+
+        
         plt.suptitle(M[i]['subject'])
         fname = os.path.join(str(i).zfill(4)+'.pdf')
         fig.set_size_inches(30, 15)
@@ -305,23 +308,25 @@ if __name__ == "__main__":
         roi_fig.close()
         os.remove(fname)
         
+        sdt = 0
         
+        if sdt:
         
-        fig = plt.figure(layout='constrained', figsize=(30, 15))
-        gs = GridSpec(4, 6, figure=fig)        
-        
-        plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
-        plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')           
-        
-        plt.suptitle(M[i]['subject'])
-        fname = os.path.join(str(i).zfill(4)+'.pdf')
-        fig.set_size_inches(30, 15)
-        fig.savefig(fname, dpi=300)
-        plt.close()
-        roi_fig = fitz.open(fname)
-        subject_report.insert_pdf(roi_fig)
-        roi_fig.close()
-        os.remove(fname)           
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)        
+            
+            plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
+            plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')           
+            
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)           
         
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     subject_report.save(output_dir_onedrive+'oddball_interval_report'+'_'+formatted_date+'.pdf')

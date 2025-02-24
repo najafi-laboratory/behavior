@@ -14,6 +14,7 @@ import pickle
 import DataIO
 import DataIO_all
 import DataIOPsyTrack
+import pandas as pd
 
 
 from plot import plot_outcome
@@ -49,6 +50,7 @@ from plot import plot_sdt_d_prime
 from plot import plot_sdt_criterion
 from plot import plot_isi_distribution
 from plot import plot_isi_distribution_epoch
+from plot import plot_eye_trials
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -79,14 +81,17 @@ if __name__ == "__main__":
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'LG08_TS03', 'LG09_TS04', 'LG11_TS05']
-    subject_list = ['LCHR_TS01_update']
+    # subject_list = ['LCHR_TS01_update']
     # subject_list = ['LCHR_TS02_update']
     # subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']
     # subject_list = ['LCHR_TS02']
     # subject_list = ['LG09_TS04']
     # subject_list = ['LG09_TS04_update']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07']
+    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
     # subject_list = ['LCHR_TS01']
+    
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -137,14 +142,18 @@ if __name__ == "__main__":
     
     
     # start date of non-naive
-    NonNaive = {'LCHR_TS01_update': '20241222',
+    NonNaive = {'LCHR_TS01_update': '20250216',
                 'LCHR_TS01': '20241203',
                 'LCHR_TS02': '20241203',
                 'LCHR_TS02_update': '20241203',
                 'LG08_TS03': '20241228',
                 'LG09_TS04': '20241227',
                 'LG09_TS04_update': '20241222',
-                'LG11_TS05': '20241230'}
+                'LG11_TS05': '20241230',
+                'SCHR_TS06': '20250210',
+                'SCHR_TS07': '20250210',
+                'SCHR_TS08': '20250216',
+                'SCHR_TS09': '20250216'}
     
     # Start date for averaging
     StartDate = {'LCHR_TS01_update': '20241222',
@@ -157,26 +166,34 @@ if __name__ == "__main__":
                 'LG11_TS05': '20241216'}
 
     # MoveCorrectSpout - First Session 
-    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20241222',
+    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20250216',
                              'LCHR_TS01': '20241214',
                              'LCHR_TS02': '20241214',
                              'LCHR_TS02_update': '20241214',
                              'LG08_TS03': '20241215',
                              'LG09_TS04': '20241221',
                              'LG09_TS04_update': '20241225',
-                             'LG11_TS05': '20241218'}
+                             'LG11_TS05': '20241218',
+                             'SCHR_TS06': '20250201',
+                             'SCHR_TS07': '20250201',
+                             'SCHR_TS08': '20250215',
+                             'SCHR_TS09': '20250215'}
     
     # Start date for averaging
-    StartDate = {'LCHR_TS01_update': '20241226',
-                'LCHR_TS01': '20241226',
-                'LCHR_TS02': '20241226',
+    StartDate = {'LCHR_TS01_update': '20250216',
+                'LCHR_TS01': '20250204',
+                'LCHR_TS02': '20250205',
                 'LCHR_TS02_update': '20241226',
-                'LG08_TS03': '20241226',
+                'LG08_TS03': '2025122',
                 'LG09_TS04': '20241226',
                 'LG09_TS04_update': '20241230',
-                'LG11_TS05': '20241226'}
+                'LG11_TS05': '20241226',
+                'SCHR_TS06': '20250202',
+                'SCHR_TS07': '20250202',
+                'SCHR_TS08': '20250215',
+                'SCHR_TS09': '20250215'}
     
-    Sessions_Eye_Data = {'LCHR_TS01': ['20250106']
+    Sessions_Eye_Data = {'LCHR_TS01': ['20250109']
                          }
     
     
@@ -203,151 +220,194 @@ if __name__ == "__main__":
     wMode = [[]] * size  # List of zeros 
     hess_info = [{}] * size  # List of empty dictionaries
     
-    for i in range(len(M)):
-        # MoveCorrectSpout - First Session           
-        # MCSS_idx = M[i]['dates'].index(MoveCorrectSpoutStart[M[i]['name']])
-        # M[i]['move_correct_spout'] = MoveCorrectSpoutStart[M[i]['name']]
-        
-        M[i]['inputs'] = {}
-
-        weights[i] = {'bias': 1}  # a special key
-                    # 's1': 1,    # use only the first column of s1 from inputs
-                    # 's2': 1}    # use only the first column of s2 from inputs
-                    
-        # weights.append({'bias': 1})  # a special key
-        #             # 's1': 1,    # use only the first column of s1 from inputs
-        #             # 's2': 1}    # use only the first column of s2 from inputs                    
-
-        
-        # It is often useful to have the total number of weights K in your model
-        weights_at_i = weights[i]
-        # K = np.sum([weights[i] for i in weights.keys()])
-        K[i] = np.sum([weights_at_i[j] for j in weights_at_i.keys()])
-        # K.append(np.sum([weights_at_i[j] for j in weights_at_i.keys()]))
-
-        hyper[i] = {'sigInit': 2**4.,      # Set to a single, large value for all weights. Will not be optimized further.
-                'sigma': [2**-4.]*K[i],   # Each weight will have it's own sigma optimized, but all are initialized the same
-                'sigDay': M[i]['dayLength']}        # Indicates that session boundaries will be ignored in the optimization
-        # hyper.append({'sigInit': 2**4.,      # Set to a single, large value for all weights. Will not be optimized further.
-        #         'sigma': [2**-4.]*K[i],   # Each weight will have it's own sigma optimized, but all are initialized the same
-        #         'sigDay': M[i]['dayLength']})        # Indicates that session boundaries will be ignored in the optimization
+    
+    eval_psy_model = 1
+    if eval_psy_model:
+        for i in range(len(M)):
+            # MoveCorrectSpout - First Session           
+            # MCSS_idx = M[i]['dates'].index(MoveCorrectSpoutStart[M[i]['name']])
+            # M[i]['move_correct_spout'] = MoveCorrectSpoutStart[M[i]['name']]
             
-
-        optList[i] = ['sigma']
-        # optList[i] = ['sigma']
-
-        # new_M[i] = psy.trim(M[i], END=100000)  # trim dataset to first 10,000 trials
-
-        # hyp[i], evd[i], wMode[i], hess_info[i] = psy.hyperOpt(new_M[i], hyper[i], weights[i], optList[i])
-        
-        
+            M[i]['inputs'] = {}
+    
+            weights[i] = {'bias': 1}  # a special key
+                        # 's1': 1,    # use only the first column of s1 from inputs
+                        # 's2': 1}    # use only the first column of s2 from inputs
+                        
+            # weights.append({'bias': 1})  # a special key
+            #             # 's1': 1,    # use only the first column of s1 from inputs
+            #             # 's2': 1}    # use only the first column of s2 from inputs                    
+    
+            
+            # It is often useful to have the total number of weights K in your model
+            weights_at_i = weights[i]
+            # K = np.sum([weights[i] for i in weights.keys()])
+            K[i] = np.sum([weights_at_i[j] for j in weights_at_i.keys()])
+            # K.append(np.sum([weights_at_i[j] for j in weights_at_i.keys()]))
+    
+            hyper[i] = {'sigInit': 2**4.,      # Set to a single, large value for all weights. Will not be optimized further.
+                    'sigma': [2**-4.]*K[i],   # Each weight will have it's own sigma optimized, but all are initialized the same
+                    'sigDay': M[i]['dayLength']}        # Indicates that session boundaries will be ignored in the optimization
+            # hyper.append({'sigInit': 2**4.,      # Set to a single, large value for all weights. Will not be optimized further.
+            #         'sigma': [2**-4.]*K[i],   # Each weight will have it's own sigma optimized, but all are initialized the same
+            #         'sigDay': M[i]['dayLength']})        # Indicates that session boundaries will be ignored in the optimization
+                
+    
+            optList[i] = ['sigma']
+            # optList[i] = ['sigma']
+    
+            # new_M[i] = psy.trim(M[i], END=100000)  # trim dataset to first 10,000 trials
+    
+            # hyp[i], evd[i], wMode[i], hess_info[i] = psy.hyperOpt(new_M[i], hyper[i], weights[i], optList[i])
+            
+    eye_data = 0
     
     for i in range(len(M)):
         M[i]['Chemo'] = np.zeros(M[i]['total_sessions'])  
         
-        fig = plt.figure(layout='constrained', figsize=(30, 15))
-        gs = GridSpec(4, 6, figure=fig)
-
-        plot_complete_trials.run(plt.subplot(gs[0, 0:3]), M[i])
-        plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
-        plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])        
-
-        plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
-       
-        plot_psychometric_post.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
-        plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
-        plot_psychometric_post.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')
-       
-        plot_decision_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')                  
-        plot_decision_time.run(plt.subplot(gs[1, 5]), M[i], start_from='start_date')
-        plot_decision_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        
-
-        plot_psytrack_bias.run(plt.subplot(gs[3, 0:3]), M[i])  
-        plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
-              
         
-        plt.suptitle(M[i]['subject'])
-        fname = os.path.join(str(i).zfill(4)+'.pdf')
-        fig.set_size_inches(30, 15)
-        fig.savefig(fname, dpi=300)
-        plt.close()
-        roi_fig = fitz.open(fname)
-        subject_report.insert_pdf(roi_fig)
-        roi_fig.close()
-        os.remove(fname)
-
+        
+        if eye_data:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)
+            
+            subject = M[i]['subject']
+            if subject in Sessions_Eye_Data:
+                for date in Sessions_Eye_Data[subject]:
+                    pupil_area_search_str = "area_per_frame"                
+                    print(date)
+                    videos_dir = 'D:\\PHD\\Projects\\Single Interval Discrimination\\Single_Interval_Discrimination-Tim-2025-01-11\\videos\\'
+                    # eye_labeled_csv_path = 'D:\\PHD\\Projects\\Single Interval Discrimination\\Single_Interval_Discrimination-Tim-2025-01-11\\videos\\LCHR_TS01_2afc_20250109_cam0_run007_20250106_184048DLC_resnet50_Single_Interval_DiscriminationJan11shuffle1_100000_area_per_frame.csv'
+                    # eye_df = pd.read_csv(eye_labeled_csv_path)
+                    # print(eye_df.info())
+                    # print(eye_df.head())
+                    # camlog_path = 'D:\\PHD\\Projects\\Interval Discrimination\\Single Interval Discrimination\\data\\videos\\LCHR_TS01\\20250109\\LCHR_TS01_2afc_20250109_cam0_run007_20250106_184048.camlog'
+                    # camlog_df = pd.read_csv(camlog_path)
                     
-        fig = plt.figure(layout='constrained', figsize=(30, 15))
-        gs = GridSpec(4, 6, figure=fig)
+                    plot_eye_trials.run(plt.subplot(gs[0, 0:3]), M[i])
+                # if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
+                #     subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]         
+            
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)        
         
+        pg1 = 1
+        pg2 = 1
+        pg3 = 1
         
-        plot_decision_time_side.run(plt.subplot(gs[0, 1]), M[i], start_from='std')                  
-        plot_decision_time_isi.run(plt.subplot(gs[0, 2]), M[i], start_from='start_date')
-        plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='std')
-        plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='std')
+        # pg1 = 0
+        # pg2 = 0
+        # pg3 = 0
         
-        # plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='start_date')
-        # plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='start_date')
-                     
+        pg4 = 0
         
-        # subject = M[i]['subject']
-        # if subject in Sessions_Eye_Data:
-        #     for date in Sessions_Eye_Data[subject]:
-        #         pupil_area_search_str = "area_per_frame"
-                
-        #         print(date)
-        
-            # if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
-            #     subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:] 
-        plt.suptitle(M[i]['subject'])
-        fname = os.path.join(str(i).zfill(4)+'.pdf')
-        fig.set_size_inches(30, 15)
-        fig.savefig(fname, dpi=300)
-        plt.close()
-        roi_fig = fitz.open(fname)
-        subject_report.insert_pdf(roi_fig)
-        roi_fig.close()
-        os.remove(fname)
-        
-        
+        ################################# pg 1        
+        if pg1:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)
+    
+            plot_complete_trials.run(plt.subplot(gs[0, 0:3]), M[i])
+            plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
+            plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])        
+    
+            plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
+           
+            plot_psychometric_post.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
+            plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
+            plot_psychometric_post.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')
+           
+            plot_decision_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')                  
+            plot_decision_time.run(plt.subplot(gs[1, 5]), M[i], start_from='start_date')
+            plot_decision_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        
+    
+            plot_psytrack_bias.run(plt.subplot(gs[3, 0:3]), M[i])  
+            plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
+                  
+            
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)
+
         ################################# pg 2
-        fig = plt.figure(layout='constrained', figsize=(30, 15))
-        gs = GridSpec(4, 6, figure=fig)        
+        if pg2:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)
+            
+            
+            plot_decision_time_side.run(plt.subplot(gs[0, 1]), M[i], start_from='std')                  
+            plot_decision_time_isi.run(plt.subplot(gs[0, 2]), M[i], start_from='start_date')
+            plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='std')
+            plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='std')
+            
+            # plot_decision_time_sessions.run(plt.subplot(gs[1:2, 0:6]), M[i], max_rt=700, plot_type='std', start_from='start_date')
+            # plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='start_date')
+                         
+              
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)
         
-        
-        plot_isi_distribution_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
-        
-        plot_isi_distribution.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
-        # plot_isi_distribution.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
-        # plot_isi_distribution.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')        
-        
-        plt.suptitle(M[i]['subject'])
-        fname = os.path.join(str(i).zfill(4)+'.pdf')
-        fig.set_size_inches(30, 15)
-        fig.savefig(fname, dpi=300)
-        plt.close()
-        roi_fig = fitz.open(fname)
-        subject_report.insert_pdf(roi_fig)
-        roi_fig.close()
-        os.remove(fname)           
+  
+        ################################# pg 3
+        if pg3:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)        
+            
+            
+            plot_isi_distribution_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
+            
+            plot_isi_distribution.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
+            # plot_isi_distribution.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
+            # plot_isi_distribution.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')        
+            
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)           
     
          
-        ################################# pg 3         
-        fig = plt.figure(layout='constrained', figsize=(30, 15))
-        gs = GridSpec(4, 6, figure=fig)        
-        
-        plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
-        plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')           
-        
-        plt.suptitle(M[i]['subject'])
-        fname = os.path.join(str(i).zfill(4)+'.pdf')
-        fig.set_size_inches(30, 15)
-        fig.savefig(fname, dpi=300)
-        plt.close()
-        roi_fig = fitz.open(fname)
-        subject_report.insert_pdf(roi_fig)
-        roi_fig.close()
-        os.remove(fname)        
+        ################################# pg 4    
+        if pg4:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)        
+            
+            plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
+            plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')           
+            
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)        
+   
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
     subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
@@ -484,7 +544,7 @@ if 0:
     # Extract premade dataset from npz
     D = np.load(session_data_path + 'sampleRatData.npz', allow_pickle=True)['D'].item()
     
-    print("The keys of the dict for this example animal:\n   ", list(D.keys()))
+    print("The keys of the dict for this example animal:\\n   ", list(D.keys()))
     
     print("The shape of y:   ", D['y'].shape)
     print("The number of trials:   N =", D['y'].shape[0])
@@ -722,11 +782,11 @@ for i in range(num_weights):
     plt.errorbar([i], avg_sigma[i], yerr=2*err_sigma[i], color=colors[i], lw=1, marker='o', markersize=5)
 
 plt.xticks([0,1,2,3]); plt.yticks(np.arange(-8,-2))
-plt.gca().set_xticklabels([r"$\sigma_1$", r"$\sigma_2$", r"$\sigma_3$", r"$\sigma_4$"])
+plt.gca().set_xticklabels([r"$\\sigma_1$", r"$\\sigma_2$", r"$\\sigma_3$", r"$\\sigma_4$"])
 plt.xlim(-0.5,3.5); plt.ylim(-7.5,-3.5)
 plt.gca().spines['right'].set_visible(False)
 plt.gca().spines['top'].set_visible(False)
-plt.ylabel(r"$\log_2(\sigma)$");
+plt.ylabel(r"$\\log_2(\\sigma)$");
 
 
 
