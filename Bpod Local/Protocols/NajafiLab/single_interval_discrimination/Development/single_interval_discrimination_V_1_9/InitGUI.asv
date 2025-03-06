@@ -34,15 +34,15 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoSession = 0;
         S.GUIMeta.OptoSession.Style = 'checkbox';
         S.GUI.OptoSide = 1;
-        S.GUIMeta.OptoSide.Style = 'popupmenu';
-        S.GUIMeta.OptoSide.String = {'Left', 'Right'};     
+        S.GUIMeta.OptoType.Style = 'popupmenu';
+        S.GUIMeta.OptoType.String = {'Left', 'Right'};     
         % S.GUIPanels.Opto = {'OptoSession'};
         S.GUI.LEDOnPulseDur = 0.0078;
         S.GUI.OnFraction = 0.3;
         S.GUI.OptoFreq = 0.1;
         S.GUI.EnDoricOpto = 1;
         S.GUIMeta.EnDoricOpto.Style = 'checkbox';
-        S.GUIPanels.Opto = {'OptoSession', 'OptoSide', 'LEDOnPulseDur', 'OnFraction', 'OptoFreq', 'EnDoricOpto'};
+        S.GUIPanels.Opto = {'OptoSession', 'OptoType', 'LEDOnPulseDur', 'OnFraction', 'OptoFreq', 'EnDoricOpto'};
 
         % training level params
         S.GUI.NoInit = 0;
