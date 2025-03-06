@@ -51,6 +51,7 @@ from plot import plot_sdt_criterion
 from plot import plot_isi_distribution
 from plot import plot_isi_distribution_epoch
 from plot import plot_eye_trials
+from plot import plot_psychometric_post_opto
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -89,8 +90,12 @@ if __name__ == "__main__":
     # subject_list = ['LG09_TS04_update']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07']
-    subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
     # subject_list = ['LCHR_TS01']
+    # subject_list = ['LCHR_TS01_opto']
+    subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']
+    # subject_list = ['LCHR_TS02_opto']
+    
     
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
@@ -143,6 +148,8 @@ if __name__ == "__main__":
     
     # start date of non-naive
     NonNaive = {'LCHR_TS01_update': '20250216',
+                'LCHR_TS01_opto': '20250216',
+                'LCHR_TS02_opto': '20250216',
                 'LCHR_TS01': '20241203',
                 'LCHR_TS02': '20241203',
                 'LCHR_TS02_update': '20241203',
@@ -156,17 +163,19 @@ if __name__ == "__main__":
                 'SCHR_TS09': '20250216'}
     
     # Start date for averaging
-    StartDate = {'LCHR_TS01_update': '20241222',
-                'LCHR_TS01': '20241222',
-                'LCHR_TS02': '20241222',
-                'LCHR_TS02_update': '20241222',
-                'LG08_TS03': '20241228',
-                'LG09_TS04': '20241227',
-                'LG09_TS04_update': '20241225',
-                'LG11_TS05': '20241216'}
+    # StartDate = {'LCHR_TS01_update': '20241222',
+    #             'LCHR_TS01': '20241222',
+    #             'LCHR_TS02': '20241222',
+    #             'LCHR_TS02_update': '20241222',
+    #             'LG08_TS03': '20241228',
+    #             'LG09_TS04': '20241227',
+    #             'LG09_TS04_update': '20241225',
+    #             'LG11_TS05': '20241216'}
 
     # MoveCorrectSpout - First Session 
     MoveCorrectSpoutStart = {'LCHR_TS01_update': '20250216',
+                             'LCHR_TS01_opto': '20250216',
+                             'LCHR_TS02_opto': '20250216',
                              'LCHR_TS01': '20241214',
                              'LCHR_TS02': '20241214',
                              'LCHR_TS02_update': '20241214',
@@ -181,6 +190,8 @@ if __name__ == "__main__":
     
     # Start date for averaging
     StartDate = {'LCHR_TS01_update': '20250216',
+                 'LCHR_TS01_opto': '20250216',
+                 'LCHR_TS02_opto': '20250216',
                 'LCHR_TS01': '20250204',
                 'LCHR_TS02': '20250205',
                 'LCHR_TS02_update': '20241226',
@@ -301,12 +312,15 @@ if __name__ == "__main__":
         pg1 = 1
         pg2 = 1
         pg3 = 1
+        pg4 = 0
+        pg5 = 1
+        
         
         # pg1 = 0
         # pg2 = 0
         # pg3 = 0
         
-        pg4 = 0
+        
         
         ################################# pg 1        
         if pg1:
@@ -407,6 +421,27 @@ if __name__ == "__main__":
             subject_report.insert_pdf(roi_fig)
             roi_fig.close()
             os.remove(fname)        
+            
+        ################################# pg 5 
+        if pg5:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)        
+            
+            # plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
+            # plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')  
+            plot_psychometric_post_opto.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
+            # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')            
+            
+            plt.suptitle(M[i]['subject'])
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)        
+                    
    
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')

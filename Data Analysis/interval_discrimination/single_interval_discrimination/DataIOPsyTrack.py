@@ -101,6 +101,8 @@ def read_trials(subject , session_data_path):
     session_post_isi_mean = []
     session_jitter_flag = []
     session_opto_flag = []
+    session_opto_trial = []
+    session_opto_side = []
     session_pre_isi_emp = []
     session_post_isi_type = []
     
@@ -155,6 +157,15 @@ def read_trials(subject , session_data_path):
             optotag = raw_data['OptoTag']
         else:
             optotag = [0]*raw_data['nTrials']
+            
+            
+        if raw_data['TrialSettings'][0]['GUI']['OptoSession']:
+            optotrial = [int(x) for x in raw_data['OptoType']]
+            optoside = [(raw_data['OptoSide'] + 1) * x for x in optotrial]  # 1 - left, 2 - right
+        else:
+            optotrial = [0]*raw_data['nTrials']
+            optoside = np.nan
+            
         # number of trials.
         nTrials = raw_data['nTrials']
         # trial target
@@ -632,6 +643,8 @@ def read_trials(subject , session_data_path):
         session_post_isi_mean.append(trial_post_isi_mean)
         session_jitter_flag.append(trial_jitter_flag)
         session_opto_flag.append(optotag)
+        session_opto_trial.append(optotrial)
+        session_opto_side.append(optoside)
         session_MoveCorrectSpout.append(trial_MoveCorrectSpout)
         session_TrialTypes.append(trial_types)
         
@@ -691,6 +704,8 @@ def read_trials(subject , session_data_path):
         'jitter_flag' : session_jitter_flag,
         'post_isi_type' : session_post_isi_type,
         'opto_flag' : session_opto_flag,
+        'opto_trial' : session_opto_trial,
+        'opto_side' : session_opto_side,
         'move_correct_spout_flag' : session_MoveCorrectSpout,
         'trial_type' : session_TrialTypes,
         'd_prime' : session_d_prime,
