@@ -6,7 +6,7 @@ from scipy.stats import sem
 # bin the data with timestamps.
 
 def get_bin_stat(decision, isi='post'):
-    bin_size=10
+    bin_size=100
     least_trials=1
     # set bins across isi range
     # short ISI: [50, 400, 750]ms.  associated with left lick

@@ -4,14 +4,12 @@ states = [
     'Reward',
     'RewardNaive',
     'ChangingMindReward',
-    'MoveCorrectSpout',
     'Punish',
     'PunishNaive']
 colors = [
     'limegreen',
     'springgreen',
     'dodgerblue',
-    'indigo',
     'coral',
     'violet']
 
@@ -67,7 +65,7 @@ def run(ax, subject_session_data):
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.hlines(0.5,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5) 
+    ax.hlines(0.5,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5)
     ax.hlines(0.75,0,len(dates)+1, linestyle='--' , color='silver' , lw = 0.5)    
     ax.yaxis.grid(False)
     ax.set_xlabel('training session')

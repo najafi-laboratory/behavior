@@ -119,45 +119,45 @@ def run(ax, subject_session_data, start_from='std'):
         bin_mean_fix + bin_sem_fix,
         color='violet',
         alpha=0.2)
-    ax.plot(
-        bin_time_jitter,
-        bin_mean_jitter,
-        color='limegreen',
-        marker='.',
-        label='jitter',
-        markersize=4)
-    ax.fill_between(
-        bin_time_jitter,
-        bin_mean_jitter - bin_sem_jitter,
-        bin_mean_jitter + bin_sem_jitter,
-        color='limegreen',
-        alpha=0.2)
-    ax.plot(
-        bin_time_chemo,
-        bin_mean_chemo,
-        color='red',
-        marker='.',
-        label='chemo',
-        markersize=4)
-    ax.fill_between(
-        bin_time_chemo,
-        bin_mean_chemo - bin_sem_chemo,
-        bin_mean_chemo + bin_sem_chemo,
-        color='red',
-        alpha=0.2)
-    ax.plot(
-        bin_time_opto,
-        bin_mean_opto,
-        color='dodgerblue',
-        marker='.',
-        label='opto',
-        markersize=4)
-    ax.fill_between(
-        bin_time_opto,
-        bin_mean_opto - bin_sem_opto,
-        bin_mean_opto + bin_sem_opto,
-        color='dodgerblue',
-        alpha=0.2)
+    # ax.plot(
+    #     bin_time_jitter,
+    #     bin_mean_jitter,
+    #     color='limegreen',
+    #     marker='.',
+    #     label='jitter',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_jitter,
+    #     bin_mean_jitter - bin_sem_jitter,
+    #     bin_mean_jitter + bin_sem_jitter,
+    #     color='limegreen',
+    #     alpha=0.2)
+    # ax.plot(
+    #     bin_time_chemo,
+    #     bin_mean_chemo,
+    #     color='red',
+    #     marker='.',
+    #     label='chemo',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_chemo,
+    #     bin_mean_chemo - bin_sem_chemo,
+    #     bin_mean_chemo + bin_sem_chemo,
+    #     color='red',
+    #     alpha=0.2)
+    # ax.plot(
+    #     bin_time_opto,
+    #     bin_mean_opto,
+    #     color='dodgerblue',
+    #     marker='.',
+    #     label='opto',
+    #     markersize=4)
+    # ax.fill_between(
+    #     bin_time_opto,
+    #     bin_mean_opto - bin_sem_opto,
+    #     bin_mean_opto + bin_sem_opto,
+    #     color='dodgerblue',
+    #     alpha=0.2)
     ax.hlines(
         0.5, 0.0, max_time,
         linestyle=':', color='grey')

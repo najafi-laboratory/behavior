@@ -52,6 +52,7 @@ from plot import plot_isi_distribution
 from plot import plot_isi_distribution_epoch
 from plot import plot_eye_trials
 from plot import plot_psychometric_post_opto
+from plot import plot_side_outcome_percentage_nomcs
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -70,6 +71,7 @@ if __name__ == "__main__":
     # Format the date as 'yyyymmdd'
     formatted_date = current_date.strftime('%Y%m%d')
     
+    opto = 0
     
     session_data_path = 'C:\\behavior\\session_data'
     # session_data_path = 'D:\\PHD\\Projects\\Interval Discrimination\\data\\mat_files'    
@@ -92,11 +94,10 @@ if __name__ == "__main__":
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
     # subject_list = ['LCHR_TS01']
-    # subject_list = ['LCHR_TS01_opto']
-    subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']
-    # subject_list = ['LCHR_TS02_opto']
-    
-    
+    # subject_list = ['LCHR_TS01_opto']; opto = 1
+    # subject_list = ['LCHR_TS02_opto']; opto = 1
+    subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']; opto = 1
+    # subject_list = ['SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -147,20 +148,16 @@ if __name__ == "__main__":
     
     
     # start date of non-naive
-    NonNaive = {'LCHR_TS01_update': '20250216',
-                'LCHR_TS01_opto': '20250216',
-                'LCHR_TS02_opto': '20250216',
-                'LCHR_TS01': '20241203',
-                'LCHR_TS02': '20241203',
-                'LCHR_TS02_update': '20241203',
-                'LG08_TS03': '20241228',
-                'LG09_TS04': '20241227',
-                'LG09_TS04_update': '20241222',
-                'LG11_TS05': '20241230',
-                'SCHR_TS06': '20250210',
-                'SCHR_TS07': '20250210',
-                'SCHR_TS08': '20250216',
-                'SCHR_TS09': '20250216'}
+    NonNaive = {'LCHR_TS01_update': '20250302',
+                'LCHR_TS01_opto': '20250302',
+                'LCHR_TS02_opto': '20250302',
+                'LCHR_TS01': '20250302',
+                'LCHR_TS02': '20250302',
+                'LCHR_TS02_update': '20250302',
+                'SCHR_TS06': '20250302',
+                'SCHR_TS07': '20250302',
+                'SCHR_TS08': '20250302',
+                'SCHR_TS09': '20250302'}
     
     # Start date for averaging
     # StartDate = {'LCHR_TS01_update': '20241222',
@@ -173,36 +170,44 @@ if __name__ == "__main__":
     #             'LG11_TS05': '20241216'}
 
     # MoveCorrectSpout - First Session 
-    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20250216',
-                             'LCHR_TS01_opto': '20250216',
-                             'LCHR_TS02_opto': '20250216',
-                             'LCHR_TS01': '20241214',
-                             'LCHR_TS02': '20241214',
-                             'LCHR_TS02_update': '20241214',
-                             'LG08_TS03': '20241215',
-                             'LG09_TS04': '20241221',
-                             'LG09_TS04_update': '20241225',
-                             'LG11_TS05': '20241218',
-                             'SCHR_TS06': '20250201',
-                             'SCHR_TS07': '20250201',
-                             'SCHR_TS08': '20250215',
-                             'SCHR_TS09': '20250215'}
+    MoveCorrectSpoutStart = {'LCHR_TS01_update': '20250213',
+                             'LCHR_TS01_opto': '20250213',
+                             'LCHR_TS02_opto': '20250213',
+                             'LCHR_TS01': '20250213',
+                             'LCHR_TS02': '20250213',
+                             'LCHR_TS02_update': '20250213',
+                             'SCHR_TS06': '20250213',
+                             'SCHR_TS07': '20250213',
+                             'SCHR_TS08': '20250213',
+                             'SCHR_TS09': '20250213'}
+    
+    # # Start date for averaging
+    # StartDate = {'LCHR_TS01_update': '20250216',
+    #              'LCHR_TS01_opto': '20250216',
+    #              'LCHR_TS02_opto': '20250216',
+    #             'LCHR_TS01': '20250204',
+    #             'LCHR_TS02': '20250205',
+    #             'LCHR_TS02_update': '20241226',
+    #             'LG08_TS03': '2025122',
+    #             'LG09_TS04': '20241226',
+    #             'LG09_TS04_update': '20241230',
+    #             'LG11_TS05': '20241226',
+    #             'SCHR_TS06': '20250202',
+    #             'SCHR_TS07': '20250202',
+    #             'SCHR_TS08': '20250215',
+    #             'SCHR_TS09': '20250215'}
     
     # Start date for averaging
-    StartDate = {'LCHR_TS01_update': '20250216',
-                 'LCHR_TS01_opto': '20250216',
-                 'LCHR_TS02_opto': '20250216',
-                'LCHR_TS01': '20250204',
-                'LCHR_TS02': '20250205',
-                'LCHR_TS02_update': '20241226',
-                'LG08_TS03': '2025122',
-                'LG09_TS04': '20241226',
-                'LG09_TS04_update': '20241230',
-                'LG11_TS05': '20241226',
-                'SCHR_TS06': '20250202',
-                'SCHR_TS07': '20250202',
-                'SCHR_TS08': '20250215',
-                'SCHR_TS09': '20250215'}
+    StartDate = {'LCHR_TS01_update': '20250302',
+                 'LCHR_TS01_opto': '20250224',
+                 'LCHR_TS02_opto': '20250224',
+                'LCHR_TS01': '20250302',
+                'LCHR_TS02': '20250302',
+                'LCHR_TS02_update': '20250302',
+                'SCHR_TS06': '20250302',
+                'SCHR_TS07': '20250302',
+                'SCHR_TS08': '20250302',
+                'SCHR_TS09': '20250302'}    
     
     Sessions_Eye_Data = {'LCHR_TS01': ['20250109']
                          }
@@ -310,10 +315,14 @@ if __name__ == "__main__":
             os.remove(fname)        
         
         pg1 = 1
-        pg2 = 1
-        pg3 = 1
+        pg2 = 0
+        pg3 = 0
         pg4 = 0
-        pg5 = 1
+        
+        if opto:
+            pg5 = 1
+        else:
+            pg5 = 0
         
         
         # pg1 = 0
@@ -327,7 +336,8 @@ if __name__ == "__main__":
             fig = plt.figure(layout='constrained', figsize=(30, 15))
             gs = GridSpec(4, 6, figure=fig)
     
-            plot_complete_trials.run(plt.subplot(gs[0, 0:3]), M[i])
+            # plot_complete_trials.run(plt.subplot(gs[0, 0:3]), M[i])
+            plot_side_outcome_percentage_nomcs.run(plt.subplot(gs[0, 0:3]), M[i])
             plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
             plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])        
     
@@ -335,11 +345,11 @@ if __name__ == "__main__":
            
             plot_psychometric_post.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
             plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
-            plot_psychometric_post.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')
+            # plot_psychometric_post.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')
            
             plot_decision_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')                  
             plot_decision_time.run(plt.subplot(gs[1, 5]), M[i], start_from='start_date')
-            plot_decision_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        
+            # plot_decision_time.run(plt.subplot(gs[2, 5]), M[i], start_from='non_naive')        
     
             plot_psytrack_bias.run(plt.subplot(gs[3, 0:3]), M[i])  
             plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
@@ -427,6 +437,8 @@ if __name__ == "__main__":
             fig = plt.figure(layout='constrained', figsize=(30, 15))
             gs = GridSpec(4, 6, figure=fig)        
             
+            # plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
+            
             # plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
             # plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')  
             plot_psychometric_post_opto.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
@@ -444,8 +456,13 @@ if __name__ == "__main__":
                     
    
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
-    subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
-    subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
+    
+    if opto:
+        subject_report.save(output_dir_onedrive+'single_interval_report_opto'+'_'+formatted_date+'.pdf')
+        subject_report.save(output_dir_local+'single_interval_report_opto'+'_'+formatted_date+'.pdf')
+    else:
+        subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
+        subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
     subject_report.close()
     for i in range(len(M)):
         plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)

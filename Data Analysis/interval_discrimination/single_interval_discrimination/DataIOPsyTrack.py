@@ -158,6 +158,17 @@ def read_trials(subject , session_data_path):
         else:
             optotag = [0]*raw_data['nTrials']
             
+        # set optoside according to gui param from update 3-6-25
+        if 'OptoSide' in raw_data['TrialSettings'][0]['GUI'].keys():
+            if raw_data['TrialSettings'][0]['GUI']['OptoSide'] == 1:
+                # left
+                raw_data['OptoSide'] = 0
+            elif raw_data['TrialSettings'][0]['GUI']['OptoSide'] == 2:
+                # right
+                raw_data['OptoSide'] = 1
+        # if not manually labeled and not in gui params, use other value
+        elif 'OptoSide' not in raw_data.keys():
+            raw_data['OptoSide'] = -2
             
         if raw_data['TrialSettings'][0]['GUI']['OptoSession']:
             optotrial = [int(x) for x in raw_data['OptoType']]
