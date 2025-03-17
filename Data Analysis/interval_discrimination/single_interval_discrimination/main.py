@@ -31,7 +31,7 @@ from plot import plot_decision_time_side
 from plot import plot_decision_time_sessions
 from plot import plot_reaction_outcome
 from plot import plot_decision_outcome
-from plot import plot_single_trial_licking
+# from plot import plot_single_trial_licking
 from plot import plot_psychometric_post_early_included
 from plot import plot_strategy
 from plot import plot_decision_time_isi
@@ -53,6 +53,7 @@ from plot import plot_isi_distribution_epoch
 from plot import plot_eye_trials
 from plot import plot_psychometric_post_opto
 from plot import plot_side_outcome_percentage_nomcs
+from plot import plot_side_outcome_percentage_nomcs_opto
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -70,6 +71,9 @@ if __name__ == "__main__":
     current_date = datetime.now()
     # Format the date as 'yyyymmdd'
     formatted_date = current_date.strftime('%Y%m%d')
+    
+    # random num
+    num_str = f"{random.randint(0, 9999):04d}"
     
     opto = 0
     
@@ -98,6 +102,7 @@ if __name__ == "__main__":
     # subject_list = ['LCHR_TS02_opto']; opto = 1
     subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']; opto = 1
     # subject_list = ['SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
+    # subject_list = ['SCHR_TS06_reg', 'SCHR_TS07_reg', 'SCHR_TS08_reg', 'SCHR_TS09_reg']
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -154,10 +159,10 @@ if __name__ == "__main__":
                 'LCHR_TS01': '20250302',
                 'LCHR_TS02': '20250302',
                 'LCHR_TS02_update': '20250302',
-                'SCHR_TS06': '20250302',
-                'SCHR_TS07': '20250302',
-                'SCHR_TS08': '20250302',
-                'SCHR_TS09': '20250302'}
+                'SCHR_TS06_reg': '20250302',
+                'SCHR_TS07_reg': '20250302',
+                'SCHR_TS08_reg': '20250302',
+                'SCHR_TS09_reg': '20250302'}
     
     # Start date for averaging
     # StartDate = {'LCHR_TS01_update': '20241222',
@@ -176,10 +181,10 @@ if __name__ == "__main__":
                              'LCHR_TS01': '20250213',
                              'LCHR_TS02': '20250213',
                              'LCHR_TS02_update': '20250213',
-                             'SCHR_TS06': '20250213',
-                             'SCHR_TS07': '20250213',
-                             'SCHR_TS08': '20250213',
-                             'SCHR_TS09': '20250213'}
+                             'SCHR_TS06_reg': '20250213',
+                             'SCHR_TS07_reg': '20250213',
+                             'SCHR_TS08_reg': '20250213',
+                             'SCHR_TS09_reg': '20250213'}
     
     # # Start date for averaging
     # StartDate = {'LCHR_TS01_update': '20250216',
@@ -192,10 +197,10 @@ if __name__ == "__main__":
     #             'LG09_TS04': '20241226',
     #             'LG09_TS04_update': '20241230',
     #             'LG11_TS05': '20241226',
-    #             'SCHR_TS06': '20250202',
-    #             'SCHR_TS07': '20250202',
-    #             'SCHR_TS08': '20250215',
-    #             'SCHR_TS09': '20250215'}
+    #             'SCHR_TS06_reg': '20250202',
+    #             'SCHR_TS07_reg': '20250202',
+    #             'SCHR_TS08_reg': '20250215',
+    #             'SCHR_TS09_reg': '20250215'}
     
     # Start date for averaging
     StartDate = {'LCHR_TS01_update': '20250302',
@@ -204,10 +209,10 @@ if __name__ == "__main__":
                 'LCHR_TS01': '20250302',
                 'LCHR_TS02': '20250302',
                 'LCHR_TS02_update': '20250302',
-                'SCHR_TS06': '20250302',
-                'SCHR_TS07': '20250302',
-                'SCHR_TS08': '20250302',
-                'SCHR_TS09': '20250302'}    
+                'SCHR_TS06_reg': '20250302',
+                'SCHR_TS07_reg': '20250302',
+                'SCHR_TS08_reg': '20250302',
+                'SCHR_TS09_reg': '20250302'}    
     
     Sessions_Eye_Data = {'LCHR_TS01': ['20250109']
                          }
@@ -237,7 +242,7 @@ if __name__ == "__main__":
     hess_info = [{}] * size  # List of empty dictionaries
     
     
-    eval_psy_model = 1
+    eval_psy_model = 0
     if eval_psy_model:
         for i in range(len(M)):
             # MoveCorrectSpout - First Session           
@@ -441,7 +446,8 @@ if __name__ == "__main__":
             
             # plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
             # plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')  
-            plot_psychometric_post_opto.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
+            plot_side_outcome_percentage_nomcs_opto.run(plt.subplot(gs[0, 0:6]), M[i])
+            plot_psychometric_post_opto.run(plt.subplot(gs[1, 0]), M[i], start_from='std')
             # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')            
             
             plt.suptitle(M[i]['subject'])
@@ -458,11 +464,11 @@ if __name__ == "__main__":
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     
     if opto:
-        subject_report.save(output_dir_onedrive+'single_interval_report_opto'+'_'+formatted_date+'.pdf')
-        subject_report.save(output_dir_local+'single_interval_report_opto'+'_'+formatted_date+'.pdf')
+        subject_report.save(output_dir_onedrive+'single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
+        subject_report.save(output_dir_local+'single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
     else:
-        subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'.pdf')
-        subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'.pdf')
+        subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
+        subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
     subject_report.close()
     for i in range(len(M)):
         plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)

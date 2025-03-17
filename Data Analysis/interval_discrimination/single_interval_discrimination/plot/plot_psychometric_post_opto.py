@@ -147,12 +147,12 @@ def run(ax, subject_session_data, start_from='std'):
     ax.plot(
         bin_isi_opto_right,
         bin_mean_opto_right,
-        color='red', marker='.', label='opto right', markersize=4)
+        color='green', marker='.', label='opto right', markersize=4)
     ax.fill_between(
         bin_isi_opto_right,
         bin_mean_opto_right - bin_sem_opto_right,
         bin_mean_opto_right + bin_sem_opto_right,
-        color='lightcoral', alpha=0.2)   
+        color='lightgreen', alpha=0.2)   
     
     
     ax.vlines(

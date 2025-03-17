@@ -62,6 +62,7 @@ def run(
     raw_data = session_data['raw']
     subject = session_data['subject']
     moveCorrectSpout = session_data['move_correct_spout_flag']
+    opto_trial = session_data['opto_trial']
     # chemo_labels = session_data['Chemo']
     chemo_labels = []
     jitter_flag = session_data['jitter_flag']
@@ -144,6 +145,12 @@ def run(
             moveCorrectSpoutX = x[moveCorrectSpoutIdx]
             moveCorrectSpoutY = 3-trial_types[moveCorrectSpoutIdx]
             
+            opto_trial_sess = opto_trial[sess]
+            opto_trial_idx = [i for i, num in enumerate(opto_trial_sess) if num == 1]
+            opto_trial_X = x[opto_trial_idx]
+            opto_trial_Y = 3-trial_types[opto_trial_idx]            
+            
+            
             color_code = []
             edge = []
             for i in range(len(outcome)):
@@ -162,6 +169,8 @@ def run(
                 else:
                     edge.append(color_code[-1])
             
+            
+            axs[row].scatter(opto_trial_X, opto_trial_Y, marker='^', color='purple', s=40, label='Selected Points', zorder=2)
             # trials_per_row = 130
             # x = x[0:trials_per_row-1]
             # trial_types = trial_types[0:trials_per_row-1]
@@ -169,7 +178,7 @@ def run(
             # edge = edge[0:trials_per_row-1]
             # axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor =edge, s=5)
             axs[row].scatter(moveCorrectSpoutX, moveCorrectSpoutY, marker='+', color='purple', s=100, label='Selected Points', zorder=1)
-            axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor ='black', s=10, linewidth=0.25, zorder=2)
+            axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor ='black', s=10, linewidth=0.25, zorder=3)
             # axs[row].set_title(dates[sess], fontsize=14)
             axs[row].set_title(dates[sess])
             # if chemo_labels[sess] == 1:
