@@ -31,7 +31,7 @@ from plot import plot_decision_time_side
 from plot import plot_decision_time_sessions
 from plot import plot_reaction_outcome
 from plot import plot_decision_outcome
-# from plot import plot_single_trial_licking
+from plot import plot_single_trial_licking
 from plot import plot_psychometric_post_early_included
 from plot import plot_strategy
 from plot import plot_decision_time_isi
@@ -54,6 +54,7 @@ from plot import plot_eye_trials
 from plot import plot_psychometric_post_opto
 from plot import plot_side_outcome_percentage_nomcs
 from plot import plot_side_outcome_percentage_nomcs_opto
+from plot import plot_decision_time_side_opto
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     # session_data_path = 'D:\\PHD\\Projects\\Interval Discrimination\\data\\mat_files'    
     # session_data_path = 'C:\\localscratch\\behavior\\session_data'
     # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Single_Interval_Discrimination\\'
+    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Single_Interval_Discrimination\\FIGS\\'
     # output_dir_local = './figures/'
     output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
     # last_day = '20241215'
@@ -448,6 +449,7 @@ if __name__ == "__main__":
             # plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')  
             plot_side_outcome_percentage_nomcs_opto.run(plt.subplot(gs[0, 0:6]), M[i])
             plot_psychometric_post_opto.run(plt.subplot(gs[1, 0]), M[i], start_from='std')
+            plot_decision_time_side_opto.run(plt.subplot(gs[1:2, 1:2]), M[i], start_from='std')     
             # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')            
             
             plt.suptitle(M[i]['subject'])
@@ -458,8 +460,7 @@ if __name__ == "__main__":
             roi_fig = fitz.open(fname)
             subject_report.insert_pdf(roi_fig)
             roi_fig.close()
-            os.remove(fname)        
-                    
+            os.remove(fname)                            
    
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     
@@ -480,7 +481,9 @@ if __name__ == "__main__":
         # os.makedirs(output_figs_dir, exist_ok = True)
         # os.makedirs(output_imgs_dir, exist_ok = True)
 
-
+    for i in range(len(M)):
+        # plot_single_trial_licking.run(M[i],output_dir_onedrive, output_dir_local)
+        plot_average_licking.run(M[i],output_dir_onedrive, output_dir_local)   
 
 
 
