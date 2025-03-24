@@ -27,7 +27,20 @@ def save_image(filename):
         fig.savefig(p, format='pdf', dpi=300)
            
     p.close() 
-    
+   
+def remove_substrings(s, substrings):
+    for sub in substrings:
+        s = s.replace(sub, "")
+    return s
+
+def flip_underscore_parts(s):
+    parts = s.split("_", 1)  # Split into two parts at the first underscore
+    if len(parts) < 2:
+        return s  # Return original string if no underscore is found
+    return f"{parts[1]}_{parts[0]}"
+
+def lowercase_h(s):
+    return s.replace('H', 'h')
     
 def run(
         session_data,
@@ -69,6 +82,10 @@ def run(
     jitter_session = np.array([np.sum(j) for j in jitter_flag])
     jitter_session[jitter_session!=0] = 1
     numsess = len(outcomes)
+    
+    subject = remove_substrings(subject, ['_opto', '_reg'])
+    subject = flip_underscore_parts(subject)
+    subject = lowercase_h(subject)    
     
     num_rows = 10
     num_columns = 1
@@ -206,6 +223,7 @@ def run(
         output_dir_onedrive, 
         output_dir_local
 
+
         output_pdf_dir =  output_dir_onedrive + subject + '/'
         output_pdf_dir_local = output_dir_local + subject + '/'
         output_pdf_pages_dir = output_dir_local + subject + '/bpod/bpod_' + session_date + '/'
@@ -231,8 +249,10 @@ def run(
     for pdf_file in pdf_files:
         pdf_file.close()
 
+    onedrive_dir = output_pdf_dir + '/bpod/'
+    os.makedirs(onedrive_dir, exist_ok = True)
 
-    outputStream = open(r'' + output_pdf_dir + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
+    outputStream = open(r'' + onedrive_dir + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
     output.write(outputStream)
     outputStream.close()
     

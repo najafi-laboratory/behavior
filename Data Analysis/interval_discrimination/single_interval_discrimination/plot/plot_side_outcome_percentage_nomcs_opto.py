@@ -90,9 +90,9 @@ def run(ax, subject_session_data):
     width = 0.125
     # ax.show()
     # Get the figure from the axes
-    fig_from_ax = ax.figure
+    # fig_from_ax = ax.figure
     # Show the figure
-    fig_from_ax.show()
+    # fig_from_ax.show()
     
     for i in range(len(states)):
         # # Plot the left bars
@@ -128,20 +128,20 @@ def run(ax, subject_session_data):
             color=colors[i])         
 
         # Plot the right bars
-        bars_right_on = ax.bar(
-            session_id + width / 2, right_opto_on_counts[:,i],  # Shift right by width/2
-            bottom=right_opto_on_bottom[:,i],
-            edgecolor='white',
-            width=width,
-            color=colors[i])  # Optionally update label for right bars  
-
         bars_right_off = ax.bar(
-            session_id + (3*width) / 2, right_opto_off_counts[:,i],  # Shift right by width/2
+            session_id + width / 2, right_opto_off_counts[:,i],  # Shift right by width/2
             bottom=right_opto_off_bottom[:,i],
             edgecolor='white',
             width=width,
-            color=colors[i])  # Optionally update label for right bars     
-        fig_from_ax.show()        
+            color=colors[i])  # Optionally update label for right bars    
+        
+        bars_right_on = ax.bar(
+            session_id + (3*width) / 2, right_opto_on_counts[:,i],  # Shift right by width/2
+            bottom=right_opto_on_bottom[:,i],
+            edgecolor='white',
+            width=width,
+            color=colors[i])  # Optionally update label for right bars          
+        # fig_from_ax.show()        
    
     # Add labels to each bar set
     ax.bar_label(bars_left_off, padding=3, labels=['L']*len(bars_left_off))

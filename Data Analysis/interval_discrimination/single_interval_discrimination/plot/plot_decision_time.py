@@ -111,7 +111,7 @@ def run(ax, subject_session_data, start_from='std'):
         bin_mean_fix,
         color='indigo',
         marker='.',
-        label='fix',
+        label='control',
         markersize=4)
     ax.fill_between(
         bin_time_fix,
@@ -194,7 +194,7 @@ def run(ax, subject_session_data, start_from='std'):
         trials_per_bin_fix,
         color='gray',
         marker='.',
-        label='fix',
+        label='control',
         markersize=4)
     
     

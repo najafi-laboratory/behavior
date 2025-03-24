@@ -102,7 +102,7 @@ def run(ax, subject_session_data, start_from='std'):
     ax.plot(
         bin_isi_fix,
         bin_mean_fix,
-        color='indigo', marker='.', label='fix', markersize=4)
+        color='indigo', marker='.', label='control', markersize=4)
     ax.fill_between(
         bin_isi_fix,
         bin_mean_fix - bin_sem_fix,

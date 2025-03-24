@@ -55,6 +55,8 @@ from plot import plot_psychometric_post_opto
 from plot import plot_side_outcome_percentage_nomcs
 from plot import plot_side_outcome_percentage_nomcs_opto
 from plot import plot_decision_time_side_opto
+from plot import plot_average_licking_opto
+from plot import plot_psychometric_post_opto_epoch
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -67,6 +69,25 @@ from plot_strategy import decision_time_dist
 #%%
 import warnings
 warnings.filterwarnings('ignore')
+
+def remove_substrings(s, substrings):
+    for sub in substrings:
+        s = s.replace(sub, "")
+    return s
+
+
+def flip_underscore_parts(s):
+    parts = s.split("_", 1)  # Split into two parts at the first underscore
+    if len(parts) < 2:
+        return s  # Return original string if no underscore is found
+    if "TS" in parts[1]:  # Check if second part contains "TS"
+        return f"{parts[1]}_{parts[0]}"
+    else:
+        return s
+
+def lowercase_h(s):
+    return s.replace('H', 'h')
+
 if __name__ == "__main__":
     # Get the current date
     current_date = datetime.now()
@@ -78,11 +99,17 @@ if __name__ == "__main__":
     
     opto = 0
     
+    upload = 0
+    
+    lick_plots = 0
+    
+    use_random_num = 0
+    
     session_data_path = 'C:\\behavior\\session_data'
     # session_data_path = 'D:\\PHD\\Projects\\Interval Discrimination\\data\\mat_files'    
     # session_data_path = 'C:\\localscratch\\behavior\\session_data'
     # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Single_Interval_Discrimination\\FIGS\\'
+    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Interval_Discrimination_Single\\Tim_single_interval_report_figures\\'
     # output_dir_local = './figures/'
     output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
     # last_day = '20241215'
@@ -99,11 +126,18 @@ if __name__ == "__main__":
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
     # subject_list = ['LCHR_TS01']
-    # subject_list = ['LCHR_TS01_opto']; opto = 1
-    # subject_list = ['LCHR_TS02_opto']; opto = 1
-    subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']; opto = 1
+    # subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']; opto = 1
     # subject_list = ['SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
     # subject_list = ['SCHR_TS06_reg', 'SCHR_TS07_reg', 'SCHR_TS08_reg', 'SCHR_TS09_reg']
+    # subject_list = ['SCHR_TS06_reg', 'SCHR_TS08_reg']
+    # subject_list = ['SCHR_TS07_reg', 'SCHR_TS09_reg']
+    
+    # subject_list = ['LCHR_TS01_opto']; opto = 1
+    # subject_list = ['LCHR_TS02_opto']; opto = 1
+    subject_list = ['SCHR_TS06_reg']
+    # subject_list = ['SCHR_TS07_reg']
+    # subject_list = ['SCHR_TS08_reg']
+    # subject_list = ['SCHR_TS09_reg']
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -335,7 +369,9 @@ if __name__ == "__main__":
         # pg2 = 0
         # pg3 = 0
         
-        
+        subject = remove_substrings(subject_list[0], ['_opto', '_reg'])
+        subject = flip_underscore_parts(subject)
+        subject = lowercase_h(subject)
         
         ################################# pg 1        
         if pg1:
@@ -361,7 +397,7 @@ if __name__ == "__main__":
             plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
                   
             
-            plt.suptitle(M[i]['subject'])
+            plt.suptitle(subject)
             fname = os.path.join(str(i).zfill(4)+'.pdf')
             fig.set_size_inches(30, 15)
             fig.savefig(fname, dpi=300)
@@ -386,7 +422,7 @@ if __name__ == "__main__":
             # plot_decision_time_sessions.run(plt.subplot(gs[2:3, 0:6]), M[i], max_rt=700, plot_type='lick-side', start_from='start_date')
                          
               
-            plt.suptitle(M[i]['subject'])
+            plt.suptitle(subject)
             fname = os.path.join(str(i).zfill(4)+'.pdf')
             fig.set_size_inches(30, 15)
             fig.savefig(fname, dpi=300)
@@ -409,7 +445,7 @@ if __name__ == "__main__":
             # plot_isi_distribution.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
             # plot_isi_distribution.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')        
             
-            plt.suptitle(M[i]['subject'])
+            plt.suptitle(subject)
             fname = os.path.join(str(i).zfill(4)+'.pdf')
             fig.set_size_inches(30, 15)
             fig.savefig(fname, dpi=300)
@@ -428,7 +464,7 @@ if __name__ == "__main__":
             plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
             plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')           
             
-            plt.suptitle(M[i]['subject'])
+            plt.suptitle(subject)
             fname = os.path.join(str(i).zfill(4)+'.pdf')
             fig.set_size_inches(30, 15)
             fig.savefig(fname, dpi=300)
@@ -448,11 +484,24 @@ if __name__ == "__main__":
             # plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
             # plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')  
             plot_side_outcome_percentage_nomcs_opto.run(plt.subplot(gs[0, 0:6]), M[i])
-            plot_psychometric_post_opto.run(plt.subplot(gs[1, 0]), M[i], start_from='std')
-            plot_decision_time_side_opto.run(plt.subplot(gs[1:2, 1:2]), M[i], start_from='std')     
+            
+            row = 1
+            colmax = 5
+            col = 0
+            for session_num in range(M[i]['total_sessions']):      
+                # print(f"row: {row}, col: {col}")
+                # plot_psychometric_post_opto_epoch.run(plt.subplot(gs[1, 0]), M[i], start_from='std')
+                plot_psychometric_post_opto_epoch.run(plt.subplot(gs[row, col]), M[i], session_num)
+                col = col + 1
+                if col > colmax:
+                    row = row + 1
+                    col = 0
+                    
+            plot_psychometric_post_opto.run(plt.subplot(gs[row, col]), M[i], start_from='std')
+            # plot_decision_time_side_opto.run(plt.subplot(gs[1:2, 1:2]), M[i], start_from='std')     
             # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')            
             
-            plt.suptitle(M[i]['subject'])
+            plt.suptitle(subject)
             fname = os.path.join(str(i).zfill(4)+'.pdf')
             fig.set_size_inches(30, 15)
             fig.savefig(fname, dpi=300)
@@ -464,12 +513,19 @@ if __name__ == "__main__":
    
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     
+    
+    
+    if not use_random_num:
+        num_str = ''
+    
     if opto:
-        subject_report.save(output_dir_onedrive+'single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
-        subject_report.save(output_dir_local+'single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
+        if upload:
+            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
+        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
     else:
-        subject_report.save(output_dir_onedrive+'single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
-        subject_report.save(output_dir_local+'single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
+        if upload:
+            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
+        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
     subject_report.close()
     for i in range(len(M)):
         plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)
@@ -481,9 +537,12 @@ if __name__ == "__main__":
         # os.makedirs(output_figs_dir, exist_ok = True)
         # os.makedirs(output_imgs_dir, exist_ok = True)
 
-    for i in range(len(M)):
-        # plot_single_trial_licking.run(M[i],output_dir_onedrive, output_dir_local)
-        plot_average_licking.run(M[i],output_dir_onedrive, output_dir_local)   
+    if lick_plots:
+        for i in range(len(M)):
+            # plot_single_trial_licking.run(M[i],output_dir_onedrive, output_dir_local)
+            # plot_average_licking.run(M[i],output_dir_onedrive, output_dir_local)   
+            
+            plot_average_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)  
 
 
 
@@ -576,7 +635,7 @@ if 0:
         # plot_psytrack_performance.run(plt.subplot(gs[3, 3:6]), M[i])        
               
         
-        plt.suptitle(M[i]['subject'])
+        plt.suptitle(subject)
         fname = os.path.join(str(i).zfill(4)+'.pdf')
         fig.set_size_inches(30, 15)
         fig.savefig(fname, dpi=300)
