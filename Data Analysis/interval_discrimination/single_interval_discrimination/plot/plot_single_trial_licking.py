@@ -13,6 +13,9 @@ from datetime import date
 from statistics import mean 
 import math
 
+def ensure_list(var):
+    return var if isinstance(var, list) else [var]
+
 def save_image(filename): 
     
     p = PdfPages(filename+'.pdf') 
@@ -125,6 +128,7 @@ def run(
             
             
             for trial in range(top_left_trial, bottom_right_trial):
+                print(trial)                
             
                 if row == 10:
                     row = 0
@@ -156,11 +160,21 @@ def run(
                 else:
                     port3 = raw_data[i]['RawEvents']['Trial'][trial]['Events']['Port3In']
 
+                # make sure port vars are list type
+                port1 = ensure_list(port1)
+                port2 = ensure_list(port2)
+                port3 = ensure_list(port3)
+
                 trial_states =  raw_data[i]['RawEvents']['Trial'][trial]['States']
                 trial_events =  raw_data[i]['RawEvents']['Trial'][trial]['Events']
                 step = 10000
                 start = 0
-                maximum = math.ceil(np.nanmax([np.nanmax(port1),np.nanmax(port2),np.nanmax(port3)]))
+                # if trial == 113:
+                #     print(trial)                
+                maximum = np.nanmax([np.nanmax(port1),np.nanmax(port2),np.nanmax(port3)]) 
+                if not np.isnan(maximum):
+                    maximum = math.ceil(maximum)
+
                 if not np.isnan(maximum):
                     stop = int(maximum)
                 else:
@@ -171,6 +185,9 @@ def run(
                 lick1 = np.zeros(step*(stop-start)+1)
                 lick2 = np.zeros(step*(stop-start)+1)
                 lick3 = np.zeros(step*(stop-start)+1)
+                
+                if trial == 214:
+                    print(trial)
                 for t in range(len(port1)):
                     lick1[np.where(time == round(port1[t] , 4))] = 1
                 for t in range(len(port2)):

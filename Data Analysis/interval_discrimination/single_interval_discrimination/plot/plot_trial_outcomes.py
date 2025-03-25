@@ -27,7 +27,20 @@ def save_image(filename):
         fig.savefig(p, format='pdf', dpi=300)
            
     p.close() 
-    
+   
+def remove_substrings(s, substrings):
+    for sub in substrings:
+        s = s.replace(sub, "")
+    return s
+
+def flip_underscore_parts(s):
+    parts = s.split("_", 1)  # Split into two parts at the first underscore
+    if len(parts) < 2:
+        return s  # Return original string if no underscore is found
+    return f"{parts[1]}_{parts[0]}"
+
+def lowercase_h(s):
+    return s.replace('H', 'h')
     
 def run(
         session_data,
@@ -62,12 +75,17 @@ def run(
     raw_data = session_data['raw']
     subject = session_data['subject']
     moveCorrectSpout = session_data['move_correct_spout_flag']
+    opto_trial = session_data['opto_trial']
     # chemo_labels = session_data['Chemo']
     chemo_labels = []
     jitter_flag = session_data['jitter_flag']
     jitter_session = np.array([np.sum(j) for j in jitter_flag])
     jitter_session[jitter_session!=0] = 1
     numsess = len(outcomes)
+    
+    subject = remove_substrings(subject, ['_opto', '_reg'])
+    subject = flip_underscore_parts(subject)
+    subject = lowercase_h(subject)    
     
     num_rows = 10
     num_columns = 1
@@ -144,6 +162,12 @@ def run(
             moveCorrectSpoutX = x[moveCorrectSpoutIdx]
             moveCorrectSpoutY = 3-trial_types[moveCorrectSpoutIdx]
             
+            opto_trial_sess = opto_trial[sess]
+            opto_trial_idx = [i for i, num in enumerate(opto_trial_sess) if num == 1]
+            opto_trial_X = x[opto_trial_idx]
+            opto_trial_Y = 3-trial_types[opto_trial_idx]            
+            
+            
             color_code = []
             edge = []
             for i in range(len(outcome)):
@@ -162,6 +186,8 @@ def run(
                 else:
                     edge.append(color_code[-1])
             
+            
+            axs[row].scatter(opto_trial_X, opto_trial_Y, marker='^', color='purple', s=40, label='Selected Points', zorder=2)
             # trials_per_row = 130
             # x = x[0:trials_per_row-1]
             # trial_types = trial_types[0:trials_per_row-1]
@@ -169,7 +195,7 @@ def run(
             # edge = edge[0:trials_per_row-1]
             # axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor =edge, s=5)
             axs[row].scatter(moveCorrectSpoutX, moveCorrectSpoutY, marker='+', color='purple', s=100, label='Selected Points', zorder=1)
-            axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor ='black', s=10, linewidth=0.25, zorder=2)
+            axs[row].scatter(x , 3-trial_types , color = color_code , edgecolor ='black', s=10, linewidth=0.25, zorder=3)
             # axs[row].set_title(dates[sess], fontsize=14)
             axs[row].set_title(dates[sess])
             # if chemo_labels[sess] == 1:
@@ -197,6 +223,7 @@ def run(
         output_dir_onedrive, 
         output_dir_local
 
+
         output_pdf_dir =  output_dir_onedrive + subject + '/'
         output_pdf_dir_local = output_dir_local + subject + '/'
         output_pdf_pages_dir = output_dir_local + subject + '/bpod/bpod_' + session_date + '/'
@@ -222,8 +249,10 @@ def run(
     for pdf_file in pdf_files:
         pdf_file.close()
 
+    onedrive_dir = output_pdf_dir + '/bpod/'
+    os.makedirs(onedrive_dir, exist_ok = True)
 
-    outputStream = open(r'' + output_pdf_dir + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
+    outputStream = open(r'' + onedrive_dir + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
     output.write(outputStream)
     outputStream.close()
     

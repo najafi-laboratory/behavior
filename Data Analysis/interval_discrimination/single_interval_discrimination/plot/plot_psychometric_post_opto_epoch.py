@@ -46,29 +46,35 @@ def separate_fix_jitter(decision):
     return decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right
 
 
-def get_decision(subject_session_data):
-    decision = subject_session_data['decision']
-    decision = [np.concatenate(d, axis=1) for d in decision]
+def get_decision(subject_session_data, session_num):
+    decision = subject_session_data['decision'][session_num]
+    # decision = [np.concatenate(d, axis=1) for d in decision]
     decision = np.concatenate(decision, axis=1)
-    jitter_flag = subject_session_data['jitter_flag']
-    jitter_flag = np.concatenate(jitter_flag).reshape(1,-1)
+    jitter_flag = subject_session_data['jitter_flag'][session_num]
+    # jitter_flag = np.concatenate(jitter_flag).reshape(1,-1)
+    jitter_flag = np.array(jitter_flag).reshape(1,-1)
     # opto_flag = subject_session_data['opto_flag']
-    opto_flag = subject_session_data['opto_trial']
-    opto_flag = np.concatenate(opto_flag).reshape(1,-1)
+    opto_flag = subject_session_data['opto_trial'][session_num]
+    opto_flag = np.array(opto_flag).reshape(1,-1)
     jitter_flag[0 , :] = jitter_flag[0 , :] + opto_flag[0 , :]*3
-    opto_side = subject_session_data['opto_side']
-    opto_side = np.concatenate(opto_side).reshape(1,-1)
-    outcomes = subject_session_data['outcomes']
+    # jitter_flag = jitter_flag + opto_flag*3
+    # jitter_flag = [j + o * 3 for j, o in zip(jitter_flag, opto_flag)]
+    opto_side = subject_session_data['opto_side'][session_num]
+    opto_side = np.array(opto_side).reshape(1,-1)
+    outcomes = subject_session_data['outcomes'][session_num]
     all_trials = 0
-    chemo_labels = subject_session_data['Chemo']
+    chemo_labels = subject_session_data['Chemo'][session_num]
     # for j in range(len(chemo_labels)):
     #     if chemo_labels[j] == 1:
     #         jitter_flag[0 , all_trials:all_trials+len(outcomes[j])] = 2*np.ones(len(outcomes[j]))
     #     all_trials += len(outcomes[j])
-    isi_pre_emp = subject_session_data['isi_pre_emp']
-    isi_pre_emp = np.concatenate(isi_pre_emp).reshape(1,-1)
-    isi_post_emp = subject_session_data['isi_post_emp']
-    isi_post_emp = np.concatenate(isi_post_emp).reshape(1,-1)
+    isi_pre_emp = subject_session_data['isi_pre_emp'][session_num]
+    # isi_pre_emp = np.concatenate(isi_pre_emp).reshape(1,-1)
+    isi_pre_emp = np.array(isi_pre_emp).reshape(1,-1)
+    
+    isi_post_emp = subject_session_data['isi_post_emp'][session_num]
+    isi_post_emp = np.array(isi_post_emp).reshape(1,-1)
+    # isi_post_emp = np.concatenate(isi_post_emp).reshape(1,-1)
     decision = np.concatenate([decision, jitter_flag, isi_pre_emp, isi_post_emp, opto_side], axis=0)
     non_nan = (1-np.isnan(np.sum(decision, axis=0))).astype('bool')
     decision = decision[:,non_nan]
@@ -83,24 +89,28 @@ def get_decision(subject_session_data):
     return decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right
 
 
-def run(ax, subject_session_data, start_from='std'):
+def run(ax, subject_session_data, session_num):
 
     subject_session_data_copy = subject_session_data.copy()
     
-    if not start_from=='std':
-        start_date = subject_session_data[start_from]
-        dates = subject_session_data['dates']
-        if start_date in dates:
-            start_idx = dates.index(start_date)
-        else:
-            return
+    # if not start_from=='std':
+    #     start_date = subject_session_data[start_from]
+    #     dates = subject_session_data['dates']
+    #     if start_date in dates:
+    #         start_idx = dates.index(start_date)
+    #     else:
+    #         return
             
-        for key in subject_session_data_copy.keys():
-            # print(key)
-            if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
-                subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]  
+    #     for key in subject_session_data_copy.keys():
+    #         # print(key)
+    #         if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
+    #             subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]  
     
-    decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right = get_decision(subject_session_data_copy)
+    # date = subject_session_data_copy['dates'][session_num]
+    # if date == '20250318':
+    #     print(date)
+    
+    decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right = get_decision(subject_session_data_copy, session_num)
     bin_mean_fix, bin_sem_fix, bin_isi_fix = get_bin_stat(decision_fix)
     bin_mean_jitter, bin_sem_jitter, bin_isi_jitter = get_bin_stat(decision_jitter)
     bin_mean_chemo, bin_sem_chemo, bin_isi_chemo = get_bin_stat(decision_chemo)
@@ -132,8 +142,7 @@ def run(ax, subject_session_data, start_from='std'):
     #     bin_mean_opto + bin_sem_opto,
     #     color='violet', alpha=0.2)    
     
-    
-    if len(bin_isi_opto_left) > 0:    
+    if len(bin_isi_opto_left) > 0:
         # left
         ax.plot(
             bin_isi_opto_left,
@@ -206,9 +215,12 @@ def run(ax, subject_session_data, start_from='std'):
     ax.set_xlabel('post perturbation isi')
     ax.set_ylabel('prob. of choosing the right side (mean$\pm$sem)')
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
+    start_from = []
+    start_date = []
+    date = subject_session_data_copy['dates'][session_num]
     if start_from=='start_date':
         ax.set_title('average psychometric function from ' + start_date)
     elif start_from=='non_naive':
         ax.set_title('average psychometric function non-naive')
     else:
-        ax.set_title('average psychometric function')
+        ax.set_title('psychometric function ' + date)

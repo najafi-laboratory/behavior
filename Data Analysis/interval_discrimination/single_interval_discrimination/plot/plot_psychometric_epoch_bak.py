@@ -70,39 +70,6 @@ def plot_curves(ax, subject,jitter_session, dates, decision, post_isi_mean,j,r, 
     ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
     ax.set_title('single session psychometric function for isi')
 
-def plot_avg(ax, i, max_sessions, jitter_session, decision, post_isi_mean, j, r, k , n_jitter, n_control, n_chemo, chemo_labels):            
-    jitter_session = []
-    
-    avg_start_idx = (i//max_sessions * 5) # get first index of sessions to average
-    avg_stop_idx = i
-    decision_avg = decision[avg_start_idx:avg_stop_idx+1]
-    decision_avg = np.concatenate(decision_avg, axis=1)
-    isi_post_emp_avg = post_isi_mean[avg_start_idx:avg_stop_idx+1]
-    isi_post_emp_avg = np.concatenate(isi_post_emp_avg, axis=1)
-    decision_avg = np.concatenate([decision_avg, isi_post_emp_avg], axis=0)
-    non_nan = (1-np.isnan(np.sum(decision_avg, axis=0))).astype('bool')            
-    
-    decision_avg = decision_avg[:,non_nan]
-    bin_mean, bin_sem, bin_isi = get_bin_stat(decision_avg)
-    extra = 1
-    
-    c1 = (n_control+extra-r)/(n_control+extra)
-    c2 = (n_jitter+extra-j)/(n_jitter+extra)
-    c3 = (n_chemo+extra-k)/(n_chemo+extra)
-    if chemo_labels == 1:
-        c = [1 , c3 , c3]
-    elif jitter_session == 1:
-        c = [c2 , 1 , c2]
-    else:
-        c = [c1 , c1 , 1]
-    ax.plot(
-        bin_isi, bin_mean,
-        label='average',
-        marker='.',
-        markersize=4,
-        color = 'red')
-    ax.legend(loc='upper left', bbox_to_anchor=(1,1), ncol=1)
-
 def run(axs, subject_session_data):
     max_sessions = 5
     subject = subject_session_data['subject']
@@ -159,43 +126,6 @@ def run(axs, subject_session_data):
                 k = k + 1
             else:
                 r = r + 1
-        ax = axs[i//max_sessions]
         plot_curves(
-            ax, subject,
+            axs[i//max_sessions], subject,
             jitter_session[i], dates[i], decision[i], isi_post_emp[i], j, r, k ,n_jitter[i//max_sessions],n_control[i//max_sessions] , n_chemo[i//max_sessions] , chemo_labels[i])
-        
-        # if next idx moves to new plot row, then plot avg of current plot row               
-        if ((i+1)//max_sessions > i//max_sessions) or (i == (len(dates)-1)):
-            plot_avg(
-            ax, i, max_sessions, jitter_session, decision, isi_post_emp, j, r, k, n_jitter[i//max_sessions], n_control[i//max_sessions], n_chemo[i//max_sessions], chemo_labels[i])
-            
-            # avg_start_idx = i//max_sessions
-            # avg_stop_idx = i
-            # decision_avg = decision[avg_start_idx:avg_stop_idx+1]
-            # decision_avg = np.concatenate(decision_avg, axis=1)
-            # isi_post_emp_avg = isi_post_emp[avg_start_idx:avg_stop_idx+1]
-            # isi_post_emp_avg = np.concatenate(isi_post_emp_avg, axis=1)
-            # decision_avg = np.concatenate([decision_avg, isi_post_emp_avg], axis=0)
-            # non_nan = (1-np.isnan(np.sum(decision_avg, axis=0))).astype('bool')            
-
-            # decision_avg = decision_avg[:,non_nan]
-            # bin_mean, bin_sem, bin_isi = get_bin_stat(decision_avg)
-            # extra = 1
-
-            # c1 = (n_control+extra-r)/(n_control+extra)
-            # c2 = (n_jitter+extra-j)/(n_jitter+extra)
-            # c3 = (n_chemo+extra-k)/(n_chemo+extra)
-            # if chemo_labels == 1:
-            #     c = [1 , c3 , c3]
-            # elif jitter_session == 1:
-            #     c = [c2 , 1 , c2]
-            # else:
-            #     c = [c1 , c1 , 1]
-            # ax.plot(
-            #     bin_isi, bin_mean,
-            #     label='average',
-            #     marker='.',
-            #     markersize=4,
-            #     color = 'black')
-            
-            

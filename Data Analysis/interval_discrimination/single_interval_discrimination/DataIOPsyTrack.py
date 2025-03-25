@@ -109,6 +109,11 @@ def read_trials(subject , session_data_path):
     session_MoveCorrectSpout = []
     session_TrialTypes = []
     
+    session_outcomes_left_opto_on = []
+    session_outcomes_right_opto_on = []
+    session_outcomes_left_opto_off = []
+    session_outcomes_right_opto_off = []                
+    
     session_left_hit_rate = 0
     session_left_false_alarm_rate = 0
     session_right_hit_rate = 0
@@ -158,6 +163,17 @@ def read_trials(subject , session_data_path):
         else:
             optotag = [0]*raw_data['nTrials']
             
+        # set optoside according to gui param from update 3-6-25
+        if 'OptoSide' in raw_data['TrialSettings'][0]['GUI'].keys():
+            if raw_data['TrialSettings'][0]['GUI']['OptoSide'] == 1:
+                # left
+                raw_data['OptoSide'] = 0
+            elif raw_data['TrialSettings'][0]['GUI']['OptoSide'] == 2:
+                # right
+                raw_data['OptoSide'] = 1
+        # if not manually labeled and not in gui params, use other value
+        elif 'OptoSide' not in raw_data.keys():
+            raw_data['OptoSide'] = -2
             
         if raw_data['TrialSettings'][0]['GUI']['OptoSession']:
             optotrial = [int(x) for x in raw_data['OptoType']]
@@ -198,6 +214,11 @@ def read_trials(subject , session_data_path):
         trial_pre_isi_emp = []
         trial_post_isi_type = []
         trial_MoveCorrectSpout = []
+        
+        trial_outcomes_left_opto_on = []
+        trial_outcomes_right_opto_on = []
+        trial_outcomes_left_opto_off = []
+        trial_outcomes_right_opto_off = []        
         
         trial_left_hits = 0
         trial_left_false_alarms = 0
@@ -387,8 +408,21 @@ def read_trials(subject , session_data_path):
             if trial_types[i] == 1:
                 trial_outcomes_left.append(outcome)
             else:
-                trial_outcomes_right.append(outcome)             
-            
+                trial_outcomes_right.append(outcome)   
+              
+            # opto, left and right outcomes 
+            if optotrial[i] == 1:
+            # left and right outcomes
+                if trial_types[i] == 1:
+                    trial_outcomes_left_opto_on.append(outcome)
+                else:
+                    trial_outcomes_right_opto_on.append(outcome)                
+            else:
+                if trial_types[i] == 1:
+                    trial_outcomes_left_opto_off.append(outcome)
+                else:
+                    trial_outcomes_right_opto_off.append(outcome)                    
+                                                     
             # if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice'):
                 # trial_dayLength += 1
                 
@@ -647,6 +681,12 @@ def read_trials(subject , session_data_path):
         session_opto_side.append(optoside)
         session_MoveCorrectSpout.append(trial_MoveCorrectSpout)
         session_TrialTypes.append(trial_types)
+                
+        
+        session_outcomes_left_opto_on.append(trial_outcomes_left_opto_on)
+        session_outcomes_right_opto_on.append(trial_outcomes_right_opto_on)
+        session_outcomes_left_opto_off.append(trial_outcomes_left_opto_off)
+        session_outcomes_right_opto_off.append(trial_outcomes_right_opto_off)        
         
     #PsyTrack
     y = []
@@ -712,7 +752,11 @@ def read_trials(subject , session_data_path):
         'criterion' : session_criterion,
         'states' : session_states,
         'ProcessedSessionData' : session_ProcessedSessionData,
-        'lick_eye' : session_lick_eye
+        'lick_eye' : session_lick_eye,
+        'outcomes_left_opto_on' : session_outcomes_left_opto_on,
+        'outcomes_right_opto_on' : session_outcomes_right_opto_on,
+        'outcomes_left_opto_off' : session_outcomes_left_opto_off,
+        'outcomes_right_opto_off' : session_outcomes_right_opto_off         
     }
     return data
 
