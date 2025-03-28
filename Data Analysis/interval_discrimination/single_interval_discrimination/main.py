@@ -57,6 +57,8 @@ from plot import plot_side_outcome_percentage_nomcs_opto
 from plot import plot_decision_time_side_opto
 from plot import plot_average_licking_opto
 from plot import plot_psychometric_post_opto_epoch
+from plot import plot_pooled_licking_opto
+from plot import plot_licking_opto
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -101,7 +103,7 @@ if __name__ == "__main__":
     
     upload = 0
     
-    lick_plots = 0
+    lick_plots = 1
     
     use_random_num = 0
     
@@ -133,8 +135,9 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS07_reg', 'SCHR_TS09_reg']
     
     # subject_list = ['LCHR_TS01_opto']; opto = 1
-    # subject_list = ['LCHR_TS02_opto']; opto = 1
-    subject_list = ['SCHR_TS06_reg']
+    subject_list = ['LCHR_TS02_opto']; opto = 1
+    # subject_list = ['SCHR_TS06_reg']
+    # subject_list = ['SCHR_TS07_reg']; opto = 1
     # subject_list = ['SCHR_TS07_reg']
     # subject_list = ['SCHR_TS08_reg']
     # subject_list = ['SCHR_TS09_reg']
@@ -517,15 +520,17 @@ if __name__ == "__main__":
     
     if not use_random_num:
         num_str = ''
+    else:
+        num_str = '_'+num_str
     
     if opto:
         if upload:
-            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
-        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+'_'+num_str+'.pdf')
+            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+num_str+'.pdf')
+        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+num_str+'.pdf')
     else:
         if upload:
-            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
-        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+'_'+num_str+'.pdf')
+            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+num_str+'.pdf')
+        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+num_str+'.pdf')
     subject_report.close()
     for i in range(len(M)):
         plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)
@@ -542,8 +547,9 @@ if __name__ == "__main__":
             # plot_single_trial_licking.run(M[i],output_dir_onedrive, output_dir_local)
             # plot_average_licking.run(M[i],output_dir_onedrive, output_dir_local)   
             
+            plot_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)
             plot_average_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)  
-
+            # plot_pooled_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)
 
 
 

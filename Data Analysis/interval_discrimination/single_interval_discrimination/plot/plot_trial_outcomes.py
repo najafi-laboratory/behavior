@@ -53,16 +53,21 @@ def run(
         'Reward',
         'RewardNaive',
         'Punish',
+        'PunishNaive',
         'WrongInitiation',
         'DidNotChoose' ,
         'EarlyLick' ,
         'EarlyLickLimited' ,
         'Switching'
         ]
+
+    
+    
     colors = [
         'limegreen',
         'springgreen' ,
         'r',
+        'r',        
         'white',
         'gray' ,
         'yellow' ,
@@ -110,22 +115,40 @@ def run(
             bottom_right_trial = top_left_trial + num_plots_bottom_page
 
         fig, axs = plt.subplots(nrows=num_rows, ncols=num_columns, figsize=(20, 30))
+        # legend_elements = [Line2D([0], [0], marker='o',color='white',
+        #                          label='Reward' , markerfacecolor='limegreen'),
+        #                    Line2D([0], [0], marker='o',color='white',
+        #                          label='Switching' , markerfacecolor='pink'),
+        #                    Line2D([0], [0], marker='o',color='white',
+        #                          label='EarlyLick' , markerfacecolor='yellow'),
+        #                    Line2D([0], [0], marker='o',color='white',
+        #                          label='EarlyLickLimited' , markerfacecolor='orange'),
+        #                    Line2D([0], [0], marker='o',color='white',
+        #                          label='RewardNaive', markerfacecolor='springgreen'),
+        #                    Line2D([0], [0], marker='o',color='white',
+        #                          label='Punish', markerfacecolor='r'),
+        #                    Line2D([0], [0], marker='o',color='white',
+        #                          label='WrongInitiation', markerfacecolor='white', markeredgecolor='b'),
+        #                    Line2D([0], [0], marker='o',color='white', 
+        #                          label='DidNotChoose', markerfacecolor='gray')]
         legend_elements = [Line2D([0], [0], marker='o',color='white',
                                  label='Reward' , markerfacecolor='limegreen'),
-                           Line2D([0], [0], marker='o',color='white',
-                                 label='Switching' , markerfacecolor='pink'),
-                           Line2D([0], [0], marker='o',color='white',
-                                 label='EarlyLick' , markerfacecolor='yellow'),
-                           Line2D([0], [0], marker='o',color='white',
-                                 label='EarlyLickLimited' , markerfacecolor='orange'),
                            Line2D([0], [0], marker='o',color='white',
                                  label='RewardNaive', markerfacecolor='springgreen'),
                            Line2D([0], [0], marker='o',color='white',
                                  label='Punish', markerfacecolor='r'),
                            Line2D([0], [0], marker='o',color='white',
-                                 label='WrongInitiation', markerfacecolor='white', markeredgecolor='b'),
+                                 label='PunishNaive', markerfacecolor='r'),                           
                            Line2D([0], [0], marker='o',color='white', 
-                                 label='DidNotChoose', markerfacecolor='gray')]
+                                 label='DidNotChoose', markerfacecolor='gray'),
+                           Line2D([0], [0], marker='+',color='purple', 
+                                 label='SingleSpout', markerfacecolor='purple', linestyle='None'),
+                           Line2D([0], [0], marker='^',color='purple', 
+                                 label='Opto', markerfacecolor='purple', linestyle='None'),                           
+                           ]        
+
+# axs[row].scatter(opto_trial_X, opto_trial_Y, marker='^', color='purple', s=40, label='Selected Points', zorder=2)
+#           axs[row].scatter(moveCorrectSpoutX, moveCorrectSpoutY, marker='+', color='purple', s=100, label='Selected Points', zorder=1)
 
         fig.legend(handles=legend_elements, loc="upper right") 
 
@@ -210,7 +233,7 @@ def run(
             #         axs[row].set_title(session_date + ' (jittered)', color = 'black')
             axs[row].set_ylim(0.5 , 2.5)
             axs[row].set_xticks(np.arange(len(outcome)//20)*20)
-            # axs[row].set_xticks(np.arange(trials_per_row))
+            axs[row].set_yticks([1, 2], ['right', 'left'])
             # spacing = 200
             # axs[row].set_xticks(range(min(x), max(x)+spacing, spacing))
             

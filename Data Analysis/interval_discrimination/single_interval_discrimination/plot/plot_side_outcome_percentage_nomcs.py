@@ -2,16 +2,23 @@ import numpy as np
 
 states = [
     'Reward',
-    'RewardNaive',
-    'ChangingMindReward',
-    'Punish',
-    'PunishNaive']
+    'Punish']
 colors = [
     'limegreen',
-    'springgreen',
-    'dodgerblue',
-    'coral',
-    'violet']
+    'coral']
+
+# states = [
+#     'Reward',
+#     'RewardNaive',
+#     'ChangingMindReward',
+#     'Punish',
+#     'PunishNaive']
+# colors = [
+#     'limegreen',
+#     'springgreen',
+#     'dodgerblue',
+#     'coral',
+#     'violet']
 
 def get_side_outcomes(outcomes, states):
     num_session = len(outcomes)
