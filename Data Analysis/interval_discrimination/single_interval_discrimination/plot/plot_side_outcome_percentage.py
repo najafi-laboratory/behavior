@@ -16,6 +16,10 @@ colors = [
     'violet']
 
 def get_side_outcomes(outcomes, states):
+    """
+    Each session is is states. We return an np array which counts the number of times the specific outcome (ie 
+    Reward, Punish, etc) occurs in states.
+    """
     num_session = len(outcomes)
     counts = np.zeros((num_session, len(states)))
     for i in range(num_session):

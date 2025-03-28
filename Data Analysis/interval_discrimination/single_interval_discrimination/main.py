@@ -57,6 +57,7 @@ from plot import plot_side_outcome_percentage_nomcs_opto
 from plot import plot_decision_time_side_opto
 from plot import plot_average_licking_opto
 from plot import plot_psychometric_post_opto_epoch
+from plot import plot_psychometric_individual
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -66,6 +67,7 @@ from plot_strategy import count_isi_decision_time
 from plot_strategy import count_flash_decision_time
 from plot_strategy import strategy_epoch
 from plot_strategy import decision_time_dist
+
 #%%
 import warnings
 warnings.filterwarnings('ignore')
@@ -105,13 +107,13 @@ if __name__ == "__main__":
     
     use_random_num = 0
     
-    session_data_path = 'C:\\behavior\\session_data'
+    session_data_path = 'C:\\Users\\sarve\\Lab Repos\\behavior\\session_data'
     # session_data_path = 'D:\\PHD\\Projects\\Interval Discrimination\\data\\mat_files'    
     # session_data_path = 'C:\\localscratch\\behavior\\session_data'
     # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Interval_Discrimination_Single\\Tim_single_interval_report_figures\\'
+    output_dir_onedrive = 'C:\\Users\\sarve\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Interval_Discrimination_Single\\Tim_single_interval_report_figures\\'
     # output_dir_local = './figures/'
-    output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
+    output_dir_local = 'C:\\Users\\sarve\\OneDrive - Georgia Institute of Technology\\Desktop\\SingleIntervalDiscrimination\\FIGS\\'
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
@@ -133,8 +135,8 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS07_reg', 'SCHR_TS09_reg']
     
     # subject_list = ['LCHR_TS01_opto']; opto = 1
-    # subject_list = ['LCHR_TS02_opto']; opto = 1
-    subject_list = ['SCHR_TS06_reg']
+    subject_list = ['LCHR_TS02_opto']; opto = 1
+    # subject_list = ['SCHR_TS06_reg']
     # subject_list = ['SCHR_TS07_reg']
     # subject_list = ['SCHR_TS08_reg']
     # subject_list = ['SCHR_TS09_reg']
@@ -361,8 +363,10 @@ if __name__ == "__main__":
         
         if opto:
             pg5 = 1
+            pg6 = 1
         else:
             pg5 = 0
+            pg6 = 0
         
         
         # pg1 = 0
@@ -509,7 +513,39 @@ if __name__ == "__main__":
             roi_fig = fitz.open(fname)
             subject_report.insert_pdf(roi_fig)
             roi_fig.close()
-            os.remove(fname)                            
+            os.remove(fname)
+            
+        ################### pg6
+        
+        if pg6:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig) 
+            
+            
+            row = 1
+            colmax = 5
+            col = 0
+            
+            for session_num in range(M[i]['total_sessions']):      
+                # print(f"row: {row}, col: {col}")
+                # plot_psychometric_post_opto_epoch.run(plt.subplot(gs[1, 0]), M[i], start_from='std')
+                plot_psychometric_individual.run(plt.subplot(gs[row, col]), M[i], session_num)
+                col = col + 1
+                if col > colmax:
+                    row = row + 1
+                    col = 0
+
+            
+            plt.suptitle(subject)
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)
+                                   
    
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
     

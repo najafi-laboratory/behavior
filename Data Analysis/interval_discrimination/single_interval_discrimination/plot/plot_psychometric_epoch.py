@@ -3,6 +3,14 @@ import matplotlib.pyplot as plt
 from scipy.stats import sem
 
 def get_bin_stat(decision, isi='post'):
+    """
+    Computes binned statistics for a set of trial data stored in the decision array. 
+    --------
+    decision : Array
+    --------
+    Computes the central tendency and variability of a behavioral measure within each bin, and returns these statistics.
+    
+    """
     # bin_size=100
     bin_size=50
     least_trials=5

@@ -11,12 +11,18 @@ session_data_path = 'C:\\behavior\\session_data'
 # read .mat to dict
 def load_mat(fname):
     def _check_keys(d):
+        """
+        Checks keys in dictionary, checking if it is a MATLAB struct. If so, converts it to Python dict.
+        """
         for key in d:
             if isinstance(d[key], sio.matlab.mio5_params.mat_struct):
                 d[key] = _todict(d[key])
         return d
 
     def _todict(matobj):
+        """
+        Converts MATLAB object to a dict
+        """
         d = {}
         for strg in matobj._fieldnames:
             elem = matobj.__dict__[strg]
@@ -29,6 +35,9 @@ def load_mat(fname):
         return d
 
     def _tolist(ndarray):
+        """
+        Converts ndarray to a Python list
+        """
         elem_list = []
         for sub_elem in ndarray:
             if isinstance(sub_elem, sio.matlab.mio5_params.mat_struct):
