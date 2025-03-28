@@ -128,6 +128,8 @@ def read_trials(subject , session_data_path):
     session_d_prime = []
     session_criterion = []
     
+    session_settings = []
+    
     #PsyTrack
     session_name = subject
     session_y = []
@@ -135,6 +137,8 @@ def read_trials(subject , session_data_path):
     session_correct = []
     session_dayLength = []
     session_inputs = []
+    
+    
     
     
     for f in tqdm(range(len(file_names))):
@@ -152,6 +156,10 @@ def read_trials(subject , session_data_path):
         
         #PsyTrack         
         # session_name.append(subject)
+        
+        
+        # get settings
+        session_settings.append(raw_data['TrialSettings'][0]['GUI'])
         
         # jitter flag.
         trial_jitter_flag = [raw_data['TrialSettings'][i]['GUI']['ActRandomISI']
@@ -680,8 +688,7 @@ def read_trials(subject , session_data_path):
         session_opto_trial.append(optotrial)
         session_opto_side.append(optoside)
         session_MoveCorrectSpout.append(trial_MoveCorrectSpout)
-        session_TrialTypes.append(trial_types)
-                
+        session_TrialTypes.append(trial_types)                
         
         session_outcomes_left_opto_on.append(trial_outcomes_left_opto_on)
         session_outcomes_right_opto_on.append(trial_outcomes_right_opto_on)
@@ -756,7 +763,8 @@ def read_trials(subject , session_data_path):
         'outcomes_left_opto_on' : session_outcomes_left_opto_on,
         'outcomes_right_opto_on' : session_outcomes_right_opto_on,
         'outcomes_left_opto_off' : session_outcomes_left_opto_off,
-        'outcomes_right_opto_off' : session_outcomes_right_opto_off         
+        'outcomes_right_opto_off' : session_outcomes_right_opto_off,
+        'session_settings' : session_settings
     }
     return data
 

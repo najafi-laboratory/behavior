@@ -5,13 +5,15 @@ from scipy.stats import sem
 
 # bin the data with timestamps.
 
-def get_bin_stat(decision, isi='post'):
+def get_bin_stat(decision, session_settings, isi='post'):
     bin_size=100
     least_trials=1
     # set bins across isi range
     # short ISI: [50, 400, 750]ms.  associated with left lick
     # long ISI: [750, 1100, 1450]ms.  associated with right lick
-    bins = np.arange(0, 1500 + bin_size, bin_size)
+    isi_long_mean = session_settings['ISILongMean_s'] * 1000
+    bin_right = isi_long_mean + 400    
+    bins = np.arange(0, bin_right + bin_size, bin_size)
     bins = bins - bin_size / 2
     if isi=='pre':
         row = 4
@@ -100,14 +102,19 @@ def run(ax, subject_session_data, start_from='std'):
             if isinstance(subject_session_data_copy[key], list) and len(subject_session_data_copy[key]) == len(dates):
                 subject_session_data_copy[key] = subject_session_data_copy[key][start_idx:]  
     
-    decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right = get_decision(subject_session_data_copy)
-    bin_mean_fix, bin_sem_fix, bin_isi_fix = get_bin_stat(decision_fix)
-    bin_mean_jitter, bin_sem_jitter, bin_isi_jitter = get_bin_stat(decision_jitter)
-    bin_mean_chemo, bin_sem_chemo, bin_isi_chemo = get_bin_stat(decision_chemo)
-    bin_mean_opto, bin_sem_opto, bin_isi_opto = get_bin_stat(decision_opto)
+    session_settings = subject_session_data_copy['session_settings'][0]
+    isi_short_mean = session_settings['ISIShortMean_s'] * 1000
+    isi_long_mean = session_settings['ISILongMean_s'] * 1000
+    isi_orig = session_settings['ISIOrig_s'] * 1000    
     
-    bin_mean_opto_left, bin_sem_opto_left, bin_isi_opto_left = get_bin_stat(decision_opto_left)
-    bin_mean_opto_right, bin_sem_opto_right, bin_isi_opto_right = get_bin_stat(decision_opto_right)
+    decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right = get_decision(subject_session_data_copy)
+    bin_mean_fix, bin_sem_fix, bin_isi_fix = get_bin_stat(decision_fix, session_settings)
+    bin_mean_jitter, bin_sem_jitter, bin_isi_jitter = get_bin_stat(decision_jitter, session_settings)
+    bin_mean_chemo, bin_sem_chemo, bin_isi_chemo = get_bin_stat(decision_chemo, session_settings)
+    bin_mean_opto, bin_sem_opto, bin_isi_opto = get_bin_stat(decision_opto, session_settings)
+    
+    bin_mean_opto_left, bin_sem_opto_left, bin_isi_opto_left = get_bin_stat(decision_opto_left, session_settings)
+    bin_mean_opto_right, bin_sem_opto_right, bin_isi_opto_right = get_bin_stat(decision_opto_right, session_settings)
     
     # fix
     ax.plot(
@@ -158,10 +165,7 @@ def run(ax, subject_session_data, start_from='std'):
             color='lightgreen', alpha=0.2)   
     
     
-    ax.vlines(
-        750, 0.0, 1.0,
-        linestyle='--', color='mediumseagreen',
-        label='Category Boundary')     
+  
     
 
     
@@ -192,16 +196,30 @@ def run(ax, subject_session_data, start_from='std'):
     #     bin_mean_opto - bin_sem_opto,
     #     bin_mean_opto + bin_sem_opto,
     #     color='dodgerblue', alpha=0.2)
-    ax.hlines(0.5, 0.0, 1500, linestyle='--', color='grey')
+    
+    x_left = isi_short_mean - 100
+    x_right = isi_long_mean + 100
+    cat = isi_orig
+    x_left = 0
+    x_right = 2*cat  
+    
+    
+    ax.vlines(
+        cat, 0.0, 1.0,
+        linestyle='--', color='mediumseagreen',
+        label='Category Boundary')   
+    ax.hlines(0.5, x_left, x_right, linestyle='--', color='grey')
     # ax.vlines(500, 0.0, 1.0, linestyle=':', color='grey')
     ax.tick_params(tick1On=False)
     ax.tick_params(axis='x', rotation=45)    
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.set_xlim([-50,1600])
+    # ax.set_xlim([-50,1600])
+    ax.set_xlim([x_left,x_right])    
     ax.set_ylim([-0.05,1.05])
     # ax.set_xticks(np.arange(6)*200)
-    ax.set_xticks(np.arange(11)*150)
+    # ax.set_xticks(np.arange(11)*150)
+    ax.set_xticks(np.arange(0,x_right,250))
     ax.set_yticks(np.arange(5)*0.25)
     ax.set_xlabel('post perturbation isi')
     ax.set_ylabel('prob. of choosing the right side (mean$\pm$sem)')

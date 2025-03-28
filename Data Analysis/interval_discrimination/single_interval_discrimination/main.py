@@ -101,9 +101,9 @@ if __name__ == "__main__":
     
     opto = 0
     
-    upload = 0
+    upload = 1
     
-    lick_plots = 1
+    lick_plots = 0
     
     use_random_num = 0
     
@@ -133,14 +133,18 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS06_reg', 'SCHR_TS07_reg', 'SCHR_TS08_reg', 'SCHR_TS09_reg']
     # subject_list = ['SCHR_TS06_reg', 'SCHR_TS08_reg']
     # subject_list = ['SCHR_TS07_reg', 'SCHR_TS09_reg']
-    
-    # subject_list = ['LCHR_TS01_opto']; opto = 1
-    subject_list = ['LCHR_TS02_opto']; opto = 1
+
     # subject_list = ['SCHR_TS06_reg']
-    # subject_list = ['SCHR_TS07_reg']; opto = 1
     # subject_list = ['SCHR_TS07_reg']
     # subject_list = ['SCHR_TS08_reg']
     # subject_list = ['SCHR_TS09_reg']
+    
+    # subject_list = ['LCHR_TS01_opto']; opto = 1
+    subject_list = ['LCHR_TS02_opto']; opto = 1
+    # subject_list = ['SCHR_TS06_opto']; opto = 1
+    # subject_list = ['SCHR_TS07_opto']; opto = 1
+    # subject_list = ['SCHR_TS08_opto']; opto = 1
+    # subject_list = ['SCHR_TS09_opto']; opto = 1
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -200,7 +204,11 @@ if __name__ == "__main__":
                 'SCHR_TS06_reg': '20250302',
                 'SCHR_TS07_reg': '20250302',
                 'SCHR_TS08_reg': '20250302',
-                'SCHR_TS09_reg': '20250302'}
+                'SCHR_TS09_reg': '20250302',
+                'SCHR_TS06_opto': '20250302',
+                'SCHR_TS07_opto': '20250302',
+                'SCHR_TS08_opto': '20250302',
+                'SCHR_TS09_opto': '20250302'}
     
     # Start date for averaging
     # StartDate = {'LCHR_TS01_update': '20241222',
@@ -222,7 +230,11 @@ if __name__ == "__main__":
                              'SCHR_TS06_reg': '20250213',
                              'SCHR_TS07_reg': '20250213',
                              'SCHR_TS08_reg': '20250213',
-                             'SCHR_TS09_reg': '20250213'}
+                             'SCHR_TS09_reg': '20250213',
+                             'SCHR_TS06_opto': '20250302',
+                             'SCHR_TS07_opto': '20250302',
+                             'SCHR_TS08_opto': '20250302',
+                             'SCHR_TS09_opto': '20250302'}
     
     # # Start date for averaging
     # StartDate = {'LCHR_TS01_update': '20250216',
@@ -250,7 +262,11 @@ if __name__ == "__main__":
                 'SCHR_TS06_reg': '20250302',
                 'SCHR_TS07_reg': '20250302',
                 'SCHR_TS08_reg': '20250302',
-                'SCHR_TS09_reg': '20250302'}    
+                'SCHR_TS09_reg': '20250302',
+                'SCHR_TS06_opto': '20250302',
+                'SCHR_TS07_opto': '20250302',
+                'SCHR_TS08_opto': '20250302',
+                'SCHR_TS09_opto': '20250302'}    
     
     Sessions_Eye_Data = {'LCHR_TS01': ['20250109']
                          }
