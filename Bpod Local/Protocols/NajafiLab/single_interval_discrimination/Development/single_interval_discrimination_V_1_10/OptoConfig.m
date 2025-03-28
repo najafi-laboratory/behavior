@@ -29,6 +29,8 @@ function [OptoType] = GenOptoType(obj, S)
     OptoType = zeros(1, S.GUI.MaxTrials);
     if S.GUI.OptoSession
         OptoType = 0 + (rand(1, S.GUI.MaxTrials) < S.GUI.OnFraction);
+        % soonest opto at trial >= 20
+        OptoType = [zeros(1, 20), OptoType(21:end)];
     end
 end
 
