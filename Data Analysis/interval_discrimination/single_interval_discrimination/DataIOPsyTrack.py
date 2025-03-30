@@ -188,7 +188,9 @@ def read_trials(subject , session_data_path):
             optoside = [(raw_data['OptoSide'] + 1) * x for x in optotrial]  # 1 - left, 2 - right
         else:
             optotrial = [0]*raw_data['nTrials']
-            optoside = np.nan
+            # optoside = np.nan
+            # raw_data['OptoSide'] = 0
+            optoside = [(raw_data['OptoSide'] + 1) * x for x in optotrial]  # 1 - left, 2 - right
             
         # number of trials.
         nTrials = raw_data['nTrials']

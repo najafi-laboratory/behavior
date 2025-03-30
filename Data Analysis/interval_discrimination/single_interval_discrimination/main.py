@@ -101,9 +101,9 @@ if __name__ == "__main__":
     
     opto = 0
     
-    upload = 1
+    upload = 0
     
-    lick_plots = 0
+    lick_plots = 1
     
     use_random_num = 0
     
@@ -138,13 +138,22 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS07_reg']
     # subject_list = ['SCHR_TS08_reg']
     # subject_list = ['SCHR_TS09_reg']
+    # subject_list = ['SCHR_TS06_reg','SCHR_TS07_reg','SCHR_TS08_reg','SCHR_TS09_reg']
+    
+    # subject_list = ['LCHR_TS01_reg']
+    # subject_list = ['LCHR_TS02_reg']
+    
     
     # subject_list = ['LCHR_TS01_opto']; opto = 1
-    subject_list = ['LCHR_TS02_opto']; opto = 1
+    # subject_list = ['LCHR_TS02_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto']; opto = 1
     # subject_list = ['SCHR_TS07_opto']; opto = 1
     # subject_list = ['SCHR_TS08_opto']; opto = 1
     # subject_list = ['SCHR_TS09_opto']; opto = 1
+    # subject_list = ['SCHR_TS06_opto','SCHR_TS07_opto','SCHR_TS08_opto','SCHR_TS09_opto']; opto = 1
+
+    subject_list = ['LCHR_TS02_update']; opto = 1
+
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)
 
@@ -198,6 +207,8 @@ if __name__ == "__main__":
     NonNaive = {'LCHR_TS01_update': '20250302',
                 'LCHR_TS01_opto': '20250302',
                 'LCHR_TS02_opto': '20250302',
+                'LCHR_TS01_reg': '20250302',
+                'LCHR_TS02_reg': '20250302',                
                 'LCHR_TS01': '20250302',
                 'LCHR_TS02': '20250302',
                 'LCHR_TS02_update': '20250302',
@@ -224,6 +235,8 @@ if __name__ == "__main__":
     MoveCorrectSpoutStart = {'LCHR_TS01_update': '20250213',
                              'LCHR_TS01_opto': '20250213',
                              'LCHR_TS02_opto': '20250213',
+                             'LCHR_TS01_reg': '20250302',
+                             'LCHR_TS02_reg': '20250302',                             
                              'LCHR_TS01': '20250213',
                              'LCHR_TS02': '20250213',
                              'LCHR_TS02_update': '20250213',
@@ -256,6 +269,8 @@ if __name__ == "__main__":
     StartDate = {'LCHR_TS01_update': '20250302',
                  'LCHR_TS01_opto': '20250224',
                  'LCHR_TS02_opto': '20250224',
+                'LCHR_TS01_reg': '20250302',
+                'LCHR_TS02_reg': '20250302',                 
                 'LCHR_TS01': '20250302',
                 'LCHR_TS02': '20250302',
                 'LCHR_TS02_update': '20250302',

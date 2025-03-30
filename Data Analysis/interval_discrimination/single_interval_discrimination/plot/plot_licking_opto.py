@@ -247,6 +247,12 @@ def process_session_licks_with_valve_times(session_data, session_idx):
             processed_licks[f"{key}_stops"].append(licks[f"licks_{side}_stop"])
             processed_licks[f"{key}_valve_starts"].append(valve_times[0])
             processed_licks[f"{key}_valve_stops"].append(valve_times[1])
+            # label category
+            # if not np.isnan(valve_times[0]):
+            #     label = 'Rewarded ' + side.capitalize()                
+            # else:
+            #     label = 'Punished ' + side.capitalize()
+            # processed_licks[f"{key}_category"].append(label)
     
     # # Sorting each condition by the first lick time
     # processed_licks_sorted = {}
@@ -277,36 +283,125 @@ def process_session_licks_with_valve_times(session_data, session_idx):
     # return processed_licks, processed_licks_sorted
     return processed_licks
 
-def sort_licks_left_right_opto_non(processed_licks):
-    conditions = ["left_trial_left_opto", "left_trial_left_no_opto", "left_trial_right_opto", "left_trial_right_no_opto",
-                  "right_trial_left_opto", "right_trial_left_no_opto", "right_trial_right_opto", "right_trial_right_no_opto"]    
+# def sort_licks_left_right_opto_non(processed_licks):
+#     conditions = ["left_trial_left_opto", "left_trial_left_no_opto", "left_trial_right_opto", "left_trial_right_no_opto",
+#                   "right_trial_left_opto", "right_trial_left_no_opto", "right_trial_right_opto", "right_trial_right_no_opto"]    
     
-    # Sorting each condition by the first lick time
-    processed_licks_sorted = {}
-    for condition in conditions:
-        starts = processed_licks[f"{condition}_starts"]
-        stops = processed_licks[f"{condition}_stops"]
-        valve_starts = processed_licks[f"{condition}_valve_starts"]
-        valve_stops = processed_licks[f"{condition}_valve_stops"]
+#     # Sorting each condition by the first lick time
+#     processed_licks_sorted = {}
+#     for condition in conditions:
+#         starts = processed_licks[f"{condition}_starts"]
+#         stops = processed_licks[f"{condition}_stops"]
+#         valve_starts = processed_licks[f"{condition}_valve_starts"]
+#         valve_stops = processed_licks[f"{condition}_valve_stops"]
         
-        # Convert lists to arrays for sorting
-        starts_array = np.array(starts, dtype=object)
-        stops_array = np.array(stops, dtype=object)
-        valve_starts_array = np.array(valve_starts, dtype=object)
-        valve_stops_array = np.array(valve_stops, dtype=object)        
+#         # Convert lists to arrays for sorting
+#         starts_array = np.array(starts, dtype=object)
+#         stops_array = np.array(stops, dtype=object)
+#         valve_starts_array = np.array(valve_starts, dtype=object)
+#         valve_stops_array = np.array(valve_stops, dtype=object)        
     
-        # Sort by first valid element, placing NaNs at the end
-        valid_indices = [i for i in range(len(starts_array)) if not np.isnan(starts_array[i][0])]
-        nan_indices = [i for i in range(len(starts_array)) if np.isnan(starts_array[i][0])]
+#         # Sort by first valid element, placing NaNs at the end
+#         valid_indices = [i for i in range(len(starts_array)) if not np.isnan(starts_array[i][0])]
+#         nan_indices = [i for i in range(len(starts_array)) if np.isnan(starts_array[i][0])]
     
-        sorted_valid_indices = sorted(valid_indices, key=lambda i: starts_array[i][0])
-        sorted_indices = sorted_valid_indices + nan_indices  # NaNs go at the end
+#         sorted_valid_indices = sorted(valid_indices, key=lambda i: starts_array[i][0])
+#         sorted_indices = sorted_valid_indices + nan_indices  # NaNs go at the end
     
-        processed_licks_sorted[f"{condition}_starts"] = [starts_array[i] for i in sorted_indices]
-        processed_licks_sorted[f"{condition}_stops"] = [stops_array[i] for i in sorted_indices]        
-        processed_licks_sorted[f"{condition}_valve_starts"] = [valve_starts_array[i] for i in sorted_indices]
-        processed_licks_sorted[f"{condition}_valve_stops"] = [valve_stops_array[i] for i in sorted_indices]   
+#         processed_licks_sorted[f"{condition}_starts"] = [starts_array[i] for i in sorted_indices]
+#         processed_licks_sorted[f"{condition}_stops"] = [stops_array[i] for i in sorted_indices]        
+#         processed_licks_sorted[f"{condition}_valve_starts"] = [valve_starts_array[i] for i in sorted_indices]
+#         processed_licks_sorted[f"{condition}_valve_stops"] = [valve_stops_array[i] for i in sorted_indices]   
+#     return processed_licks_sorted
+
+
+# def sort_licks_left_right_opto_non(processed_licks):
+#     processed_licks_sorted = {}
+    
+#     for trial_side in ["left", "right"]:
+#         condition_pairs = [(f"{trial_side}_trial_left_no_opto", f"{trial_side}_trial_right_no_opto"),
+#                            (f"{trial_side}_trial_left_opto", f"{trial_side}_trial_right_opto")]
+        
+#         for left_cond, right_cond in condition_pairs:
+#             left_starts = processed_licks[f"{left_cond}_starts"]
+#             right_starts = processed_licks[f"{right_cond}_starts"]
+#             left_stops = processed_licks[f"{left_cond}_stops"]
+#             right_stops = processed_licks[f"{right_cond}_stops"]
+#             left_valve_starts = processed_licks[f"{left_cond}_valve_starts"]
+#             right_valve_starts = processed_licks[f"{right_cond}_valve_starts"]
+#             left_valve_stops = processed_licks[f"{left_cond}_valve_stops"]
+#             right_valve_stops = processed_licks[f"{right_cond}_valve_stops"]
+            
+#             if trial_side == "left":
+#                 sort_reference = left_starts
+#             else:
+#                 sort_reference = right_starts
+            
+#             starts_array = np.array(left_starts + right_starts, dtype=object)
+#             stops_array = np.array(left_stops + right_stops, dtype=object)
+#             valve_starts_array = np.array(left_valve_starts + right_valve_starts, dtype=object)
+#             valve_stops_array = np.array(left_valve_stops + right_valve_stops, dtype=object)
+            
+#             valid_indices = [i for i in range(len(sort_reference)) if isinstance(sort_reference[i], (list, np.ndarray)) and len(sort_reference[i]) > 0 and not np.isnan(sort_reference[i][0])]
+#             nan_indices = [i for i in range(len(sort_reference)) if i not in valid_indices]
+            
+#             sorted_valid_indices = sorted(valid_indices, key=lambda i: sort_reference[i][0])
+#             sorted_indices = sorted_valid_indices + nan_indices
+            
+#             processed_licks_sorted[f"{left_cond}_starts"] = [left_starts[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{right_cond}_starts"] = [right_starts[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{left_cond}_stops"] = [left_stops[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{right_cond}_stops"] = [right_stops[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{left_cond}_valve_starts"] = [left_valve_starts[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{right_cond}_valve_starts"] = [right_valve_starts[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{left_cond}_valve_stops"] = [left_valve_stops[i] for i in sorted_indices]
+#             processed_licks_sorted[f"{right_cond}_valve_stops"] = [right_valve_stops[i] for i in sorted_indices]
+            
+#     return processed_licks_sorted
+
+def sort_licks_left_right_opto_non(processed_licks):
+    processed_licks_sorted = {}
+    
+    for trial_side in ["left", "right"]:
+        condition_pairs = [(f"{trial_side}_trial_left_no_opto", f"{trial_side}_trial_right_no_opto"),
+                           (f"{trial_side}_trial_left_opto", f"{trial_side}_trial_right_opto")]
+        
+        for left_cond, right_cond in condition_pairs:
+            left_starts = processed_licks[f"{left_cond}_starts"]
+            right_starts = processed_licks[f"{right_cond}_starts"]
+            left_stops = processed_licks[f"{left_cond}_stops"]
+            right_stops = processed_licks[f"{right_cond}_stops"]
+            left_valve_starts = processed_licks[f"{left_cond}_valve_starts"]
+            right_valve_starts = processed_licks[f"{right_cond}_valve_starts"]
+            left_valve_stops = processed_licks[f"{left_cond}_valve_stops"]
+            right_valve_stops = processed_licks[f"{right_cond}_valve_stops"]
+            
+            if trial_side == "left":
+                sort_reference = left_starts
+                backup_reference = right_starts
+            else:
+                sort_reference = right_starts
+                backup_reference = left_starts
+            
+            valid_indices = [i for i in range(len(sort_reference)) if isinstance(sort_reference[i], (list, np.ndarray)) and len(sort_reference[i]) > 0 and not np.isnan(sort_reference[i][0])]
+            nan_indices = [i for i in range(len(sort_reference)) if i not in valid_indices]
+            
+            sorted_valid_indices = sorted(valid_indices, key=lambda i: sort_reference[i][0])
+            nan_sorted_indices = sorted(nan_indices, key=lambda i: backup_reference[i][0] if isinstance(backup_reference[i], (list, np.ndarray)) and len(backup_reference[i]) > 0 and not np.isnan(backup_reference[i][0]) else float('inf'))
+            
+            sorted_indices = sorted_valid_indices + nan_sorted_indices
+            
+            processed_licks_sorted[f"{left_cond}_starts"] = [left_starts[i] for i in sorted_indices]
+            processed_licks_sorted[f"{right_cond}_starts"] = [right_starts[i] for i in sorted_indices]
+            processed_licks_sorted[f"{left_cond}_stops"] = [left_stops[i] for i in sorted_indices]
+            processed_licks_sorted[f"{right_cond}_stops"] = [right_stops[i] for i in sorted_indices]
+            processed_licks_sorted[f"{left_cond}_valve_starts"] = [left_valve_starts[i] for i in sorted_indices]
+            processed_licks_sorted[f"{right_cond}_valve_starts"] = [right_valve_starts[i] for i in sorted_indices]
+            processed_licks_sorted[f"{left_cond}_valve_stops"] = [left_valve_stops[i] for i in sorted_indices]
+            processed_licks_sorted[f"{right_cond}_valve_stops"] = [right_valve_stops[i] for i in sorted_indices]
+            
     return processed_licks_sorted
+
 
 # def process_session_licks_with_valve_times(session_data, session_idx):
 #     """
@@ -448,6 +543,7 @@ def plot_lick_traces(lick_data, trial_side, title="Lick Traces"):
     colors = ['green', 'lightgreen', 'black', 'darkgray']
     labels = [f"{trial_side.capitalize()} Trial - Left No Opto", f"{trial_side.capitalize()} Trial - Left Opto", 
               f"{trial_side.capitalize()} Trial - Right No Opto", f"{trial_side.capitalize()} Trial - Right Opto"]
+    
       
     trial_offset = 0  # Reset trial offset for each side
     for cond, color, label in zip(conditions, colors, labels):
@@ -643,7 +739,7 @@ def plot_lick_traces(lick_data, trial_side, title="Lick Traces"):
 #     ax.legend(handles=legend_elements)
 #     plt.show()
     
-def plot_lick_traces_valves(lick_data, trial_side, title="Lick Traces"):
+def plot_lick_traces_valves_type(lick_data, trial_side, title="Lick Traces"):
     """
     Plot lick traces for the specified trial side ("left" or "right"), ensuring left and right licks
     from the same trial appear on the same row.
@@ -655,10 +751,29 @@ def plot_lick_traces_valves(lick_data, trial_side, title="Lick Traces"):
     """
     fig, ax = plt.subplots(figsize=(12, 8))
     
+    # Set title based on trial_side
+    if trial_side == "left":
+        title = "Left Trials - Short ISI - " + title
+    else:
+        title = "Right Trials - Long ISI - " + title
+    
+    
+    # Define colors for better visual distinction
+    colors = {
+        "left_no_opto": "#1f77b4",   # Blue
+        "right_no_opto": "#ff7f0e",  # Orange
+        "left_opto": "#2ca02c",     # Green
+        "right_opto": "#d62728" ,     # Red
+        "valve": "#9467bd"           #
+    }
+    
     # Organize conditions by opto/non-opto first, then left/right
-    conditions = [(f"{trial_side}_trial_left_no_opto", f"{trial_side}_trial_right_no_opto", 'green', 'black'),
-                  (f"{trial_side}_trial_left_opto", f"{trial_side}_trial_right_opto", 'lightgreen', 'darkgray')]
-    labels = [f"{trial_side.capitalize()} Trial - No Opto", f"{trial_side.capitalize()} Trial - Opto"]
+    conditions = [(f"{trial_side}_trial_left_no_opto", f"{trial_side}_trial_right_no_opto", colors["left_no_opto"], colors["right_no_opto"]),
+                  (f"{trial_side}_trial_left_opto", f"{trial_side}_trial_right_opto", colors["left_opto"], colors["right_opto"])]        
+    
+    # # Organize conditions by opto/non-opto first, then left/right
+    # conditions = [(f"{trial_side}_trial_left_no_opto", f"{trial_side}_trial_right_no_opto", 'green', 'black'),
+    #               (f"{trial_side}_trial_left_opto", f"{trial_side}_trial_right_opto", 'lightgreen', 'darkgray')]    
     
     trial_offset = 0  # Initialize the trial offset
     
@@ -690,31 +805,51 @@ def plot_lick_traces_valves(lick_data, trial_side, title="Lick Traces"):
             if len(right_starts) > 0 and len(right_stops) > 0:
                 for start, stop in zip(right_starts, right_stops):
                     if not np.isnan(start) and not np.isnan(stop):
-                        ax.plot([start, stop], [trial_offset] * 2, color=right_color, alpha=0.7, lw=0.5)
+                        ax.plot([start, stop], [trial_offset] * 2, color=right_color, alpha=0.9, lw=0.5)
                         valid_trials = True
             
             # Plot valve times
             if valid_trials and not np.isnan(valve_starts) and not np.isnan(valve_stops):
                 # for v_start, v_stop in zip(valve_starts, valve_stops):
                 # if not np.isnan(v_start) and not np.isnan(v_stop):
-                ax.plot([valve_starts, valve_stops], [trial_offset, trial_offset], color='blue', lw=2, alpha=0.7)
+                ax.plot([valve_starts, valve_stops], [trial_offset, trial_offset], color=colors["valve"], lw=2, alpha=0.3)
             
             # Increment trial offset only if there were valid trials
             if valid_trials:
                 trial_offset += 1
     
+    # # labels = [f"{trial_side.capitalize()} Trial - No Opto", f"{trial_side.capitalize()} Trial - Opto"]
+    # labels = ["Control", "Opto"]    
+    # 
     # Create custom legend
-    legend_elements = [Line2D([0], [0], color='green', lw=2, label=labels[0] + " (Left)"),
-                       Line2D([0], [0], color='black', lw=2, label=labels[0] + " (Right)"),
-                       Line2D([0], [0], color='lightgreen', lw=2, label=labels[1] + " (Left)"),
-                       Line2D([0], [0], color='darkgray', lw=2, label=labels[1] + " (Right)"),
-                       Line2D([0], [0], color='red', lw=2, label="Valve Open/Close")]
+    # legend_elements = [Line2D([0], [0], color='green', lw=2, label='Left Lick ' + labels[0]),
+    #                    Line2D([0], [0], color='black', lw=2, label='Right Lick ' + labels[0]),
+    #                    Line2D([0], [0], color='lightgreen', lw=2, label='Left Lick ' + labels[1]),
+    #                    Line2D([0], [0], color='darkgray', lw=2, label='Right Lick ' + labels[1]),
+    #                    Line2D([0], [0], color='blue', lw=2, label="Valve Open/Close")]
+    
+    # # Update legend colors
+    # legend_elements = [Line2D([0], [0], color='#1f77b4', lw=2, label='Left Lick Control'),
+    #                    Line2D([0], [0], color='#ff7f0e', lw=2, label='Right Lick Control'),
+    #                    Line2D([0], [0], color='#17becf', lw=2, label='Left Lick Opto'),
+    #                    Line2D([0], [0], color='#d62728', lw=2, label='Right Lick Opto'),
+    #                    Line2D([0], [0], color='#9467bd', lw=2, label="Valve Open/Close")]    
+    
+    # labels = [f"{trial_side.capitalize()} Trial - No Opto", f"{trial_side.capitalize()} Trial - Opto"]
+    labels = ["Control", "Opto"]    
+    
+    # Create custom legend
+    legend_elements = [Line2D([0], [0], color=colors["left_no_opto"], lw=2, label='Left Lick ' + labels[0]),
+                       Line2D([0], [0], color=colors["right_no_opto"], lw=2, label='Right Lick ' + labels[0]),
+                       Line2D([0], [0], color=colors["left_opto"], lw=2, label='Left Lick ' + labels[1]),
+                       Line2D([0], [0], color=colors["right_opto"], lw=2, label='Right Lick ' + labels[1]),
+                       Line2D([0], [0], color=colors["valve"], lw=2, label="Valve Open/Close")]    
     
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Trials")
     ax.set_title(title)
-    ax.legend(handles=legend_elements)
-    plt.show()
+    ax.legend(handles=legend_elements)             
+    plt.show()                
 
 def analyze_licks(dates, sessions):
     """
@@ -792,8 +927,16 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
         # processed_licks = process_session_licks(subject_session_data, i)
         # processed_licks_sorted = sort_licks_left_right_opto_non(processed_licks)        
         
-        plot_lick_traces_valves(processed_licks, 'left')
-        plot_lick_traces_valves(processed_licks_sorted, 'left')
+        # left licks
+        plot_lick_traces_valves_type(processed_licks, trial_side='left', title='Ordered by Trial')
+        plot_lick_traces_valves_type(processed_licks_sorted, trial_side='left', title='Ordered by Earliest Lick')
+        
+        
+        # right licks
+        plot_lick_traces_valves_type(processed_licks, 'right', 'Ordered by Trial')
+        plot_lick_traces_valves_type(processed_licks_sorted, 'right', 'Ordered by Earliest Lick')
+        
+        plot_lick_traces_valves(processed_licks, title='Ordered by Trial')
         
         
         print('')
