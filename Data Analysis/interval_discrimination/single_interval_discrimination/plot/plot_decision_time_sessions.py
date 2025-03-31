@@ -244,16 +244,25 @@ def run(ax, subject_session_data, max_rt=700, plot_type='std', start_from='std')
     # ax.vlines(
     #     1300, 0.0, 1.0,
     #     linestyle=':', color='mediumseagreen')
-    y_axis_lim = max_rt
+
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     # ax.set_xlim([0, max_time])
     # ax.set_xlim([100, 300])
     # ax.set_xlim([0, 1000])
-    ax.hlines(np.arange(0, y_axis_lim, 50), 0, len(trial_num_fix), linestyle=':', color='grey')
-    ax.vlines(sess_trial_start, 0, y_axis_lim, linestyle=':', color='grey')
-    ax.set_ylim([0.0, 600])
+
+    # y_axis_lim = np.max(decision_fix[0])
+    # ylim_u = np.max(decision_fix[0]) + 100
+    ylim_u = 1200
+    # ylim_l = np.max(decision_fix[0]) - 100
+    ylim_l = 0
+    ax.set_ylim([ylim_l,ylim_u]) 
+    
+    ax.hlines(np.arange(0, ylim_u, 50), 0, len(trial_num_fix), linestyle=':', color='grey')
+    ax.vlines(sess_trial_start, 0, ylim_u, linestyle=':', color='grey')    
+    
+    # ax.set_ylim([0.0, 600])
     ax.set_xlabel('trial number')
     ax.set_ylabel('decision time across trials (since choice window onset) / s')
     # ax.set_xticks(np.arange(0, max_time, 1000))
@@ -268,7 +277,7 @@ def run(ax, subject_session_data, max_rt=700, plot_type='std', start_from='std')
     # ax.set_xticklabels(rotation=45)
     # ax.set_yticks([0.25, 0.50, 0.75, 1])
     # ax.set_yticks(np.arange(0, max_time, 1000))
-    ax.set_yticks(np.arange(0, y_axis_lim, 50))
+    ax.set_yticks(np.arange(0, ylim_u, 50))
     
     
     # Create a second axis on the right side with a different scale
