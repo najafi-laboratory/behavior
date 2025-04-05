@@ -36,7 +36,11 @@ def run(ax, subject_session_data, xval_pL=None, sigma=50, figsize=(5, 1.5)):
         raise Exception("Please define a `correct` {0,1} and an `answer` {1,2} "
                         "field in `dat`.")
   
+    dat['y'] = np.atleast_1d(dat['y'])
+    dat['answer'] = np.atleast_1d(dat['answer'])
+    dat['correct'] = np.atleast_1d(dat['correct'])
     N = len(dat['y'])
+
     if 2 in np.unique(dat['answer']):
         answerR = (dat['answer'] == 2).astype(float)
     else:

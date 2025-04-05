@@ -534,14 +534,22 @@ if __name__ == "__main__":
     else:
         num_str = '_'+num_str
     
+    subject_folder_onedrive = os.path.join(output_dir_onedrive, subject)
+    subject_folder_local = os.path.join(output_dir_local, subject)
+    os.makedirs(subject_folder_onedrive, exist_ok=True)
+    os.makedirs(subject_folder_local, exist_ok=True)
+
     if opto:
+        pdf_filename = f"{subject}_single_interval_report_opto_{formatted_date}{num_str}.pdf"
         if upload:
-            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+num_str+'.pdf')
-        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report_opto'+'_'+formatted_date+num_str+'.pdf')
+            subject_report.save(os.path.join(subject_folder_onedrive, pdf_filename))
+        subject_report.save(os.path.join(subject_folder_local, pdf_filename))
     else:
+        pdf_filename = f"{subject}_single_interval_report_{formatted_date}{num_str}.pdf"
         if upload:
-            subject_report.save(output_dir_onedrive+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+num_str+'.pdf')
-        subject_report.save(output_dir_local+subject+'\\'+subject+'_single_interval_report'+'_'+formatted_date+num_str+'.pdf')
+            subject_report.save(os.path.join(subject_folder_onedrive, pdf_filename))
+        subject_report.save(os.path.join(subject_folder_local, pdf_filename))
+
     subject_report.close()
     for i in range(len(M)):
         plot_trial_outcomes.run(M[i],output_dir_onedrive, output_dir_local,formatted_date)

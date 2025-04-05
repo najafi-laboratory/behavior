@@ -38,7 +38,8 @@ def run(ax, subject_session_data, xval_pL=None, sigma=50, figsize=(5, 1.5)):
     
     if "answer" not in dat:
         raise Exception("Please define an `answer` {1,2} field in `dat`.")
-    
+    dat['y'] = np.atleast_1d(dat['y'])
+    dat['answer'] = np.atleast_1d(dat['answer'])
     N = len(dat['y'])
     if 2 in np.unique(dat['y']):
         choiceR = (dat['y'] == 2).astype(float)
