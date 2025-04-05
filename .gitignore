@@ -12,4 +12,5 @@ Data Analysis/sana_single_interval_discrimination/figures/LCHR_TS01/bpod/bpod_20
 *.pdf
 *.pdf
 Data Analysis/sana_single_interval_discrimination/M.pkl
+/session_data
 *.pkl

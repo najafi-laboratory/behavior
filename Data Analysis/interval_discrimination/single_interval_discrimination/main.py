@@ -14,7 +14,9 @@ import pickle
 import DataIO
 import DataIO_all
 import DataIOPsyTrack
+from data_extraction import save_dict_to_json, load_json_to_dict
 import pandas as pd
+import config
 
 
 from plot import plot_outcome
@@ -107,13 +109,10 @@ if __name__ == "__main__":
     
     use_random_num = 0
     
-    session_data_path = 'C:\\behavior\\session_data'
-    # session_data_path = 'D:\\PHD\\Projects\\Interval Discrimination\\data\\mat_files'    
-    # session_data_path = 'C:\\localscratch\\behavior\\session_data'
-    # output_dir_onedrive = './figures/'
-    output_dir_onedrive = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Najafi_Lab\\2__Data_Analysis\\Behavior\\Interval_Discrimination_Single\\Tim_single_interval_report_figures\\'
-    # output_dir_local = './figures/'
-    output_dir_local = 'C:\\Users\\timst\\OneDrive - Georgia Institute of Technology\\Desktop\\PHD\\SingleIntervalDiscrimination\\FIGS\\'
+    session_data_path = config.SESSION_DATA_PATH
+    output_dir_onedrive = config.OUTPUT_DIR_ONEDRIVE
+    output_dir_local = config.OUTPUT_DIR_LOCAL
+
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
     # subject_list = ['LCHR_TS01', 'LCHR_TS02']
@@ -140,7 +139,7 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS09_reg']
     # subject_list = ['SCHR_TS06_reg','SCHR_TS07_reg','SCHR_TS08_reg','SCHR_TS09_reg']
     
-    # subject_list = ['LCHR_TS01_reg']
+    subject_list = ['LCHR_TS01']
     # subject_list = ['LCHR_TS02_reg']
     
     
@@ -152,30 +151,11 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS09_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto','SCHR_TS07_opto','SCHR_TS08_opto','SCHR_TS09_opto']; opto = 1
 
-    subject_list = ['LCHR_TS02_update']; opto = 1
+    # subject_list = ['LCHR_TS02_update']; opto = 1
 
-
-    M = DataIOPsyTrack.run(subject_list , session_data_path)
-
-    save_file = 0
-    load_file = 0
+    M = load_json_to_dict('result.json')
+    print("Data loaded from JSON. Proceeding with analysis...")
     
-    if save_file:
-        M = DataIOPsyTrack.run(subject_list , session_data_path)
-        #######
-        #  save extracted/processed data
-        ######
-        # Save the variable to a file
-        with open('M.pkl', 'wb') as file:
-            for item in M:
-                pickle.dump(item, file)
-    
-    if load_file:
-        with open('M.pkl', 'rb') as file:
-            M = pickle.load(file)
-         
-    
-
     subject_report = fitz.open()
     subject_session_data = M[0]
     # subject_session_data = M

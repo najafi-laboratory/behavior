@@ -43,6 +43,7 @@ def load_mat(fname):
     data = data['SessionData']
     return data
 
+
 def calculate_d_prime_and_criterion(hit_rate, false_alarm_rate):
     """
     Calculate d' (sensitivity) and c (criterion) for SDT based on hit and false alarm rates.
