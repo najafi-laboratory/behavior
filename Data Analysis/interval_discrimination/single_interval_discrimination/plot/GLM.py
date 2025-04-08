@@ -164,12 +164,18 @@ def get_processed_df(session_data, session_idx):
             
         is_opto = opto_flags[trial]   
         
+        flash_duration = session_data['session_settings'][session_idx]['ContinuousCurrent'][trial]
+        
+         
+        # residual opto encoding
         if is_opto and not is_naive:
             opto_encode = 0
             
         isi = session_data['isi_post_emp'][session_idx][trial]
-        flash_duration = session_data[session_idx]['session_settings']['GratingDur_s'][trial] * 1000
+        flash_duration = session_data['session_settings'][session_idx]['GratingDur_s'][trial] * 1000
         stim_duration = 2 * flash_duration + isi    
+        
+        raw_data[session_idx]['TrialSettings'][trial]['GUI']['ContinuousCurrent']
         
         licked_right = 0
         if not no_lick:
@@ -194,7 +200,11 @@ def get_processed_df(session_data, session_idx):
             "trial": trial,
             "trial_side": trial_type,
             "isi": isi,
-            "isi": isi,
+            "flash_duration": flash_duration,
+            "stim_duration": stim_duration,
+            "licked_right": licked_right,
+            "post_stim_delay_vector": post_stim_delay_vector,
+            "post_stim_delay": post_stim_delay,
             "is_opto": is_opto,
             "is_naive": is_naive,
             "rewarded": rewarded,
