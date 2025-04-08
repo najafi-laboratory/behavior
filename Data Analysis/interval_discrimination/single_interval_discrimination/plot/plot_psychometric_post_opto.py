@@ -139,13 +139,23 @@ def run(ax, subject_session_data, start_from='std'):
     #     bin_mean_opto + bin_sem_opto,
     #     color='violet', alpha=0.2)    
     
+    subject = subject_session_data_copy['subject']
+    
+    left_label = 'opto left'
+    right_label = 'opto right'
+    
+    if subject not in ['LCHR_TS01_opto', 'LCHR_TS02_opto']:
+        # left_label = subject
+        # right_label = subject
+        left_label = 'opto'
+        right_label = 'opto'    
     
     if len(bin_isi_opto_left) > 0:    
         # left
         ax.plot(
             bin_isi_opto_left,
             bin_mean_opto_left,
-            color='blue', marker='.', label='opto left', markersize=4)
+            color='blue', marker='.', label=left_label, markersize=4)
         ax.fill_between(
             bin_isi_opto_left,
             bin_mean_opto_left - bin_sem_opto_left,
@@ -157,7 +167,7 @@ def run(ax, subject_session_data, start_from='std'):
         ax.plot(
             bin_isi_opto_right,
             bin_mean_opto_right,
-            color='green', marker='.', label='opto right', markersize=4)
+            color='green', marker='.', label=right_label, markersize=4)
         ax.fill_between(
             bin_isi_opto_right,
             bin_mean_opto_right - bin_sem_opto_right,

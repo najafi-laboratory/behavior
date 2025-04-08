@@ -274,6 +274,8 @@ def run(
 
     onedrive_dir = output_pdf_dir + '/bpod/'
     os.makedirs(onedrive_dir, exist_ok = True)
+    
+    output_pdf_dir_local = output_pdf_dir_local + '/bpod/'
 
     outputStream = open(r'' + onedrive_dir + subject + '_' + last_date + '_Bpod_outcome' + '.pdf', "wb")
     output.write(outputStream)
