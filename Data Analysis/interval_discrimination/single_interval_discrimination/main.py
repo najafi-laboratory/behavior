@@ -151,11 +151,11 @@ if __name__ == "__main__":
     # subject_list = ['LCHR_TS02_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto']; opto = 1
     # subject_list = ['SCHR_TS07_opto']; opto = 1
-    # subject_list = ['SCHR_TS08_opto']; opto = 1
+    subject_list = ['SCHR_TS08_opto']; opto = 1
     # subject_list = ['SCHR_TS09_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto','SCHR_TS07_opto','SCHR_TS08_opto','SCHR_TS09_opto']; opto = 1
 
-    subject_list = ['LCHR_TS02_update']; opto = 1
+    # subject_list = ['LCHR_TS02_update']; opto = 1
 
 
     M = DataIOPsyTrack.run(subject_list , session_data_path)

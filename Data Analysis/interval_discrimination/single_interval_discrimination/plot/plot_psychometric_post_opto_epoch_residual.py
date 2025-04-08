@@ -450,9 +450,11 @@ def run(ax, subject_session_data, session_num):
     isi_long_mean = session_settings['ISILongMean_s'] * 1000
     isi_orig = session_settings['ISIOrig_s'] * 1000
     
+    is_avg = 0
     if session_num != -1:
         decision_df = get_decision_df(subject_session_data_copy, session_num)
     else:
+        is_avg = 1
         combined_df = pd.DataFrame()
         for session_num in range(0, len(dates)):
             decision_df = get_decision_df(subject_session_data_copy, session_num)
@@ -653,5 +655,8 @@ def run(ax, subject_session_data, session_num):
     elif start_from=='non_naive':
         ax.set_title('average psychometric function non-naive')
     else:
-        ax.set_title('residual opto psychometric function ' + date)
+        if not is_avg:
+            ax.set_title('residual opto psychometric function ' + date)
+        else:
+            ax.set_title('average residual opto psychometric function ' + dates[0] + '-' + dates[-1])
         
