@@ -168,12 +168,32 @@ def get_processed_df(session_data, session_idx):
             opto_encode = 0
             
         isi = session_data['isi_post_emp'][session_idx][trial]
+        flash_duration = session_data[session_idx]['session_settings']['GratingDur_s'][trial] * 1000
+        stim_duration = 2 * flash_duration + isi    
         
-        move_correct_spout = session_data['move_correct_spout_flag'][session_idx][trial]
+        licked_right = 0
+        if not no_lick:
+            if rewarded:
+                if trial_type == 'left':
+                    licked_right = 0
+                else:
+                    licked_right = 1
+            else:
+                if trial_type == 'left':
+                    licked_right = 1
+                else:
+                    licked_right = 0
+        
+        post_stim_delay_vector = raw_data[session_idx]['RawEvents']['Trial'][trial]['States']['PostVisStimDelay']
+        post_stim_delay = post_stim_delay_vector[1] - post_stim_delay_vector[0]
             
+        move_correct_spout = session_data['move_correct_spout_flag'][session_idx][trial]
+        
+    
         processed_dec.append({
             "trial": trial,
             "trial_side": trial_type,
+            "isi": isi,
             "isi": isi,
             "is_opto": is_opto,
             "is_naive": is_naive,
@@ -268,7 +288,7 @@ def GLM(processed_dec):
     filtered_df = filtered_df[(filtered_df['no_lick'] == False)]
     filtered_df = filtered_df[(filtered_df['move_correct_spout'] == False)]
 
-        
+     
     
     return
 
