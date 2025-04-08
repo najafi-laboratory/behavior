@@ -112,6 +112,8 @@ def run(ax, subject_session_data, session_num):
     # if date == '20250318':
     #     print(date)
     
+    subject = subject_session_data_copy['subject']
+    
     session_settings = subject_session_data_copy['session_settings'][session_num]
     isi_short_mean = session_settings['ISIShortMean_s'] * 1000
     isi_long_mean = session_settings['ISILongMean_s'] * 1000
@@ -149,12 +151,23 @@ def run(ax, subject_session_data, session_num):
     #     bin_mean_opto + bin_sem_opto,
     #     color='violet', alpha=0.2)    
     
+    
+    left_label = 'opto left'
+    right_label = 'opto right'
+    
+    if subject not in ['LCHR_TS01_opto', 'LCHR_TS02_opto']:
+        # left_label = subject
+        # right_label = subject
+        left_label = 'opto'
+        right_label = 'opto'
+    
+    
     if len(bin_isi_opto_left) > 0:
         # left
         ax.plot(
             bin_isi_opto_left,
             bin_mean_opto_left,
-            color='blue', marker='.', label='opto left', markersize=4)
+            color='blue', marker='.', label=left_label, markersize=4)
         ax.fill_between(
             bin_isi_opto_left,
             bin_mean_opto_left - bin_sem_opto_left,
@@ -166,7 +179,7 @@ def run(ax, subject_session_data, session_num):
         ax.plot(
             bin_isi_opto_right,
             bin_mean_opto_right,
-            color='green', marker='.', label='opto right', markersize=4)
+            color='green', marker='.', label=right_label, markersize=4)
         ax.fill_between(
             bin_isi_opto_right,
             bin_mean_opto_right - bin_sem_opto_right,

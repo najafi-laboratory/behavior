@@ -20,15 +20,10 @@ import math
 from matplotlib.lines import Line2D
 import pandas as pd
 import matplotlib.patches as mpatches #ohoolahan doge, daq, dip switches, diva, and doogie hausarus cavedog?
-from pathlib import Path
-import re
 from scipy.signal import savgol_filter
 from scipy.ndimage import gaussian_filter1d
 
 print_debug = 0
-
-def savgol_smooth(x, window_length=11, polyorder=3):
-    return savgol_filter(x, window_length, polyorder)
 
 def gaussian_smooth(x, sigma=2):
     return gaussian_filter1d(x, sigma=sigma)
@@ -259,9 +254,6 @@ def process_session_licks_with_valve_times_df(session_data, session_idx):
     raw_data = session_data['raw']
     
     numTrials = raw_data[session_idx]['nTrials']
-    
-    outcomes_time = session_data['outcomes_time']
-    outcome_time = outcomes_time[session_idx]
         
     trial_types = session_data['trial_type'][session_idx]
     opto_flags = session_data['opto_trial'][session_idx]
@@ -276,7 +268,7 @@ def process_session_licks_with_valve_times_df(session_data, session_idx):
         
         alignment = 0
         # alignment = outcome_time[trial]
-        alignment = raw_data[session_idx]['RawEvents']['Trial'][trial]['States']['WindowChoice'][0]        
+        alignment = raw_data[session_idx]['RawEvents']['Trial'][trial]['States']['WindowChoice'][0]          
         
         if not 'Port1In' in raw_data[session_idx]['RawEvents']['Trial'][trial]['Events'].keys():
             licks['licks_left_start'] = [np.float64(np.nan)]
@@ -290,40 +282,29 @@ def process_session_licks_with_valve_times_df(session_data, session_idx):
         elif isinstance(raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port1Out'], (float, int)):
             licks['licks_left_stop'] = [raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port1Out']]
         else:
-            licks['licks_left_stop'] = raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port1Out']    
+            licks['licks_left_stop'] = raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port1Out']        
     
         if not 'Port3In' in raw_data[session_idx]['RawEvents']['Trial'][trial]['Events'].keys():
             licks['licks_right_start'] = [np.float64(np.nan)]
         elif isinstance(raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3In'], (float, int)):
             licks['licks_right_start'] = [raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3In']]
         else:
-            licks['licks_right_start'] = raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3In']       
+            licks['licks_right_start'] = raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3In']         
         
         if not 'Port3Out' in raw_data[session_idx]['RawEvents']['Trial'][trial]['Events'].keys():
             licks['licks_right_stop'] = [np.float64(np.nan)]
         elif isinstance(raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3Out'], (float, int)):
             licks['licks_right_stop'] = [raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3Out']]
         else:
-            licks['licks_right_stop'] = raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3Out']
+            licks['licks_right_stop'] = raw_data[session_idx]['RawEvents']['Trial'][trial]['Events']['Port3Out']  
 
-        ###
-  
         # np.array([x - alignment for x in licks['licks_left_start']])
         licks['licks_left_start'] = [x - alignment for x in licks['licks_left_start']]
         licks['licks_left_stop'] = [x - alignment for x in licks['licks_left_stop']]
         licks['licks_right_start'] = [x - alignment for x in licks['licks_right_start']]
         licks['licks_right_stop'] = [x - alignment for x in licks['licks_right_stop']]
-  
-        # check for licks or spout touches before choice window
-        # if licks['licks_left_start'][0] < -0.1:
-        #     licks['licks_left_start'] = [np.float64(np.nan)]
-        # if licks['licks_left_stop'][0] < -0.1:
-        #     licks['licks_left_stop'] = [np.float64(np.nan)]
-        # if licks['licks_right_start'][0] < -0.1:
-        #     licks['licks_right_start'] = [np.float64(np.nan)]
-        # if licks['licks_right_stop'][0] < -0.1:
-        #     licks['licks_right_stop'] = [np.float64(np.nan)]            
-    
+
+
         trial_type = "left" if trial_types[trial] == 1 else "right" 
         
         # Track valve open/close times for the trial (start/stop)
@@ -461,10 +442,6 @@ def plot_lick_traces_df(lick_data, trial_side='all', title="Lick Traces", ax=Non
         "valve": "#2ca02c"           # Green for valve
     }    
     
-    
-    nonrewarded_trials_opto_df = lick_data[(lick_data['is_opto'] == True) & \
-                                                             (lick_data['rewarded'] == False)]
-    
     # Set up the plot
     if ax ==  None:
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -516,9 +493,7 @@ def plot_lick_traces_df(lick_data, trial_side='all', title="Lick Traces", ax=Non
         trial_sides.append(row['trial_side'])
         trial_colors.append(color)  
 
-        # if idx == 176:
-        #     print(idx)
-
+      
         trial_num = row['trial']
         lick_left_start = row['licks_left_start']
         lick_left_stop = row['licks_left_stop']
@@ -596,9 +571,9 @@ def plot_lick_traces_df(lick_data, trial_side='all', title="Lick Traces", ax=Non
         Line2D([0], [0], color=colors["valve"], lw=2, label="Valve Open")
     ]
     
-    ax.legend(handles=legend_elements, loc='upper right')
+    ax.legend(handles=legend_elements)
     
-    ax.set_xlim(x_lim_left, x_lim_right)
+    ax.set_xlim(x_lim_left, x_lim_right)    
     ax.set_ylim(0, len(filtered_licks) + 1)
     
     # # Adding the colorbar
@@ -656,19 +631,20 @@ def plot_avg_lick_traces(avg_lick_times, trial_side='all', title="Lick Traces", 
     for idx, (condition, times) in enumerate(avg_lick_times.items()):
         lick_starts = times["starts"]
         lick_stops = times["stops"]
-               
+                     
+
         if (isinstance(lick_starts, np.ndarray) and lick_starts.dtype == np.float64) and \
             (isinstance(lick_stops, np.ndarray) and lick_stops.dtype == np.float64):
         
             try:
                 if len(lick_starts) > 0 and len(lick_stops) > 0:
+                # if lick_starts and lick_stops:
                     for start, stop in zip(lick_starts, lick_stops):
                         if not np.isnan(start) and not np.isnan(stop):
                             ax.plot([start, stop], [idx, idx], color=condition_colors.get(condition, "black"), alpha=0.9, lw=3)  
+                        
             except Exception as e:
-                print(f"An error occurred: {e}")                     
-                    
-                    
+                print(f"An error occurred: {e}")                    
     
     # Set title and labels
     ax.set_title(title)
@@ -696,76 +672,6 @@ def plot_avg_lick_traces(avg_lick_times, trial_side='all', title="Lick Traces", 
     
     if ax ==  None:
         plt.show()    
-
-def plot_avg_lick_traces_from_matrix(avg_lick_traces, trial_side='all', title="Lick Traces", ax=None):
-    """
-    Plot average lick traces as intensity rows where color reflects lick probability.
-    
-    Args:
-        avg_lick_traces (dict): Keys = condition labels, values = 1D np.arrays of avg lick probability (0–1).
-        time_vector (np.array): 1D array of timepoints.
-        trial_side (str): 'left', 'right', or 'all' for color scheme.
-        title (str): Plot title.
-        ax (matplotlib.axes.Axes): Optional axis to plot into.
-    """
-    import matplotlib.pyplot as plt
-    from matplotlib.lines import Line2D
-    import numpy as np
-
-    if ax is None:
-        fig, ax = plt.subplots(figsize=(12, 6))
-
-    # Define condition colors
-    if trial_side == 'left':
-        condition_colors = {
-            "control_rewarded": "#1f77b4",   # Blue
-            "opto_rewarded": "#17becf",      # Cyan 
-        }
-    elif trial_side == 'right':
-        condition_colors = {
-            "control_rewarded": "#d62728",  # Red
-            "opto_rewarded": "#9467bd",     # Violet
-        }
-    else:
-        condition_colors = {k: f"C{i}" for i, k in enumerate(avg_lick_traces.keys())}
-
-    # Plot as intensity row (fill_between with alpha based on value)
-    for idx, (condition, avg_trace) in enumerate(avg_lick_traces.items()):
-        if isinstance(avg_trace, np.ndarray) and avg_trace.ndim == 1:
-            base_y = np.full_like(time_vector, idx, dtype=float)
-            color = condition_colors.get(condition, "black")
-            # avg_trace = savgol_smooth(avg_trace*100)
-            avg_trace = gaussian_smooth(avg_trace*100)
-            
-            ax.plot(time_vector, avg_trace, color=color, alpha=0.7, lw=1)
-            # ax.plot(time_vector, avg_trace*100, color=color, alpha=0.7, lw=1)
-            # for t, val in zip(time_vector, avg_trace):
-            #     if not np.isnan(val) and val > 0:
-            #         # ax.plot([t, t], [idx - 0.4, idx + 0.4], color=color, alpha=val, lw=1)
-            #         ax.plot(t, val*100, color=color, alpha=val, lw=1)
-
-    # Axis setup
-    ax.set_title(title)
-    ax.set_xlabel("Time (s)")
-    ax.set_xlim(x_lim_left, x_lim_right)
-    ax.set_ylabel("Lick Probability")
-    ax.set_yticks([0, 25, 50, 75, 100])
-    ax.set_yticklabels(['0', '25', '50', '75', '100'])
-    ax.set_ylim(0, 100)
-    # ax.set_yticks(range(len(avg_lick_traces)))
-    # ax.set_yticklabels([cond.replace("_", " ").title() for cond in avg_lick_traces.keys()])
-    # ax.set_ylim(-1, len(avg_lick_traces))
-
-    # Legend
-    if trial_side in ['left', 'right']:
-        legend_elements = [
-            Line2D([0], [0], color=condition_colors["control_rewarded"], lw=2, label=f'{trial_side.title()} Lick Control'),
-            Line2D([0], [0], color=condition_colors["opto_rewarded"], lw=2, label=f'{trial_side.title()} Lick Opto'),
-        ]
-        ax.legend(handles=legend_elements, loc='upper right')
-
-    if ax is None:
-        plt.show()
 
 def plot_lick_traces(lick_data, trial_side, title="Lick Traces"):
     """
@@ -811,7 +717,73 @@ def plot_lick_traces(lick_data, trial_side, title="Lick Traces"):
     ax.legend(handles=legend_elements, loc='upper right')
     plt.show()
 
+def plot_avg_lick_traces_from_matrix(avg_lick_traces, trial_side='all', title="Lick Traces", ax=None):
+    """
+    Plot average lick traces as intensity rows where color reflects lick probability.
+    
+    Args:
+        avg_lick_traces (dict): Keys = condition labels, values = 1D np.arrays of avg lick probability (0–1).
+        time_vector (np.array): 1D array of timepoints.
+        trial_side (str): 'left', 'right', or 'all' for color scheme.
+        title (str): Plot title.
+        ax (matplotlib.axes.Axes): Optional axis to plot into.
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+    import numpy as np
 
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Define condition colors
+    if trial_side == 'left':
+        condition_colors = {
+            "control_rewarded": "#1f77b4",   # Blue
+            "opto_rewarded": "#17becf",      # Cyan 
+        }
+    elif trial_side == 'right':
+        condition_colors = {
+            "control_rewarded": "#d62728",  # Red
+            "opto_rewarded": "#9467bd",     # Violet
+        }
+    else:
+        condition_colors = {k: f"C{i}" for i, k in enumerate(avg_lick_traces.keys())}
+
+    # Plot as intensity row (fill_between with alpha based on value)
+    for idx, (condition, avg_trace) in enumerate(avg_lick_traces.items()):
+        if isinstance(avg_trace, np.ndarray) and avg_trace.ndim == 1:
+            base_y = np.full_like(time_vector, idx, dtype=float)
+            color = condition_colors.get(condition, "black")
+            avg_trace = gaussian_smooth(avg_trace*100)
+            
+            ax.plot(time_vector, avg_trace, color=color, alpha=0.7, lw=1)                        
+            # for t, val in zip(time_vector, avg_trace):
+            #     if not np.isnan(val) and val > 0:
+            #         ax.plot([t, t], [idx - 0.4, idx + 0.4], color=color, alpha=val, lw=1)
+            #         # ax.plot(t, idx, color=color, alpha=val, lw=1)
+
+    # Axis setup
+    ax.set_title(title)
+    ax.set_xlabel("Time (s)")
+    ax.set_xlim(x_lim_left, x_lim_right)    
+    ax.set_ylabel("Lick Probability")
+    # ax.set_yticks(range(len(avg_lick_traces)))
+    # ax.set_yticklabels([cond.replace("_", " ").title() for cond in avg_lick_traces.keys()])
+    # ax.set_ylim(-1, len(avg_lick_traces))
+    ax.set_yticks([0, 25, 50, 75, 100])
+    ax.set_yticklabels(['0', '25', '50', '75', '100'])
+    ax.set_ylim(0, 100)    
+
+    # Legend
+    if trial_side in ['left', 'right']:
+        legend_elements = [
+            Line2D([0], [0], color=condition_colors["control_rewarded"], lw=2, label=f'{trial_side.title()} Lick Control'),
+            Line2D([0], [0], color=condition_colors["opto_rewarded"], lw=2, label=f'{trial_side.title()} Lick Opto'),
+        ]
+        ax.legend(handles=legend_elements, loc='upper right')
+
+    if ax is None:
+        plt.show()
     
 def plot_lick_traces_valves_side_type(lick_data, trial_side, title="Lick Traces"):
     """
@@ -1023,206 +995,7 @@ def plot_lick_traces_valves(lick_data, trial_side, title="Lick Traces"):
     ax.legend(handles=legend_elements)             
     plt.show()     
 
-def sort_type_1(processed_licks):  
-
-    left_side_trials_df = processed_licks[processed_licks['trial_side'] == 'left']
-    
-    # Create a temporary column 'min_lick_start' which holds the minimum lick start time from the arrays
-    left_side_trials_df['min_lick_left_start'] = left_side_trials_df['licks_left_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
-    left_side_trials_df['min_lick_right_start'] = left_side_trials_df['licks_right_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
-    
-    # Now sort based on the 'min_lick_start' column, but keep the original arrays intact
-    rewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == True]
-    nonrewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == False]
-    
-    # rewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == True]
-    # nonrewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == False]
-    
-    rewarded_trials_sorted_df = rewarded_trials_df.sort_values(by=['is_opto', 'min_lick_left_start'], ascending=[True, True])
-    nonrewarded_trials_sorted_df = nonrewarded_trials_df.sort_values(by=['is_opto', 'min_lick_right_start'], ascending=[True, True])
-    
-    # Combine back into one DataFrame
-    sorted_left_side_trials_df = pd.concat([rewarded_trials_sorted_df, nonrewarded_trials_sorted_df])
-
-    return sorted_left_side_trials_df
-
-def sort_type_2(processed_licks):     
-
-    right_side_trials_df = processed_licks[processed_licks['trial_side'] == 'right']
-    
-    # Create a temporary column 'min_lick_start' which holds the minimum lick start time from the arrays
-    right_side_trials_df['min_lick_left_start'] = right_side_trials_df['licks_left_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
-    right_side_trials_df['min_lick_right_start'] = right_side_trials_df['licks_right_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
-    
-    # Now sort based on the 'min_lick_start' column, but keep the original arrays intact
-    rewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == True]
-    nonrewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == False]
-    
-    rewarded_trials_opto_df = rewarded_trials_df[rewarded_trials_df['is_opto'] == True]
-    nonrewarded_trials_opto_df = nonrewarded_trials_df[nonrewarded_trials_df['is_opto'] == True]
-    
-    # rewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == True]
-    # nonrewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == False]
-    
-    rewarded_trials_sorted_df = rewarded_trials_df.sort_values(by=['is_opto', 'min_lick_right_start'], ascending=[True, True])
-    nonrewarded_trials_sorted_df = nonrewarded_trials_df.sort_values(by=['is_opto', 'min_lick_left_start'], ascending=[True, True])
-    
-    # Combine back into one DataFrame
-    sorted_right_side_trials_df = pd.concat([rewarded_trials_sorted_df, nonrewarded_trials_sorted_df])
-    
-    nonrewarded_trials_opto_df = sorted_right_side_trials_df[(sorted_right_side_trials_df['is_opto'] == True) & \
-                                                             (sorted_right_side_trials_df['rewarded'] == False)]
-
-    return sorted_right_side_trials_df
-
-def sort_type_3(processed_licks):     
-    
-    left_side_trials_df = processed_licks[processed_licks['trial_side'] == 'left']
-    sorted_left_side_trials_df = sort_type_1(processed_licks)
-    
-    right_side_trials_df = processed_licks[processed_licks['trial_side'] == 'right']
-    sorted_right_side_trials_df = sort_type_2(processed_licks)   
-    
-    # Combine back into one DataFrame
-    sorted_trials_df = pd.concat([sorted_left_side_trials_df, sorted_right_side_trials_df])
-    
-    return sorted_trials_df
-
-def pad_list(licks_list):        
-    padded_list = []
-    try:            
-        # if licks_list and len(licks_list) > 1:
-        if licks_list:
-            # Ensure all elements are float64 lists
-            valid_lists = [lst for lst in licks_list if isinstance(lst, list) and all(isinstance(x, float) for x in lst)]
-            
-            if not valid_lists:  # Handle case where there are no valid lists
-                # return np.array([])  # Return an empty array to prevent errors                
-                return padded_list  # Return an empty array to prevent errors   
-            
-            # Find the max length
-            max_len = max(len(lst) for lst in valid_lists)
-        
-            # Pad lists to max_len with NaNs
-            padded_list = [lst + [np.nan] * (max_len - len(lst)) for lst in valid_lists]
-        else:
-            padded_list = licks_list
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        
-    return padded_list
-
-def session_avg_licks(processed_licks, side):  
-
-    avg_lick_times ={}    
-
-    side_trials_df = processed_licks[processed_licks['trial_side'] == side]
-    
-    # split trials according to rewarded and punished
-    rewarded_trials_df = side_trials_df[side_trials_df['rewarded'] == True]
-    punished_trials_df = side_trials_df[side_trials_df['rewarded'] == False]
-    
-    # non_opto_rewarded
-    non_opto_rewarded = rewarded_trials_df[rewarded_trials_df['is_opto'] == False]            
-
-    # Extract the column with lists of lick start times
-    lick_starts_list = non_opto_rewarded[f'licks_{side}_start'].tolist()
-    lick_stops_list = non_opto_rewarded[f'licks_{side}_stop'].tolist()
-    
-  
-    # Pad lists to the same length with NaNs
-    padded_starts = pad_list(lick_starts_list)              
-    
-    # Compute element-wise mean, ignoring NaNs
-    non_opto_rewarded_avg_lick_starts = np.nanmean(padded_starts, axis=0)        
-    
-    # Pad lists to the same length with NaNs
-    padded_stops = pad_list(lick_stops_list)            
-    # Compute element-wise mean, ignoring NaNs
-    non_opto_rewarded_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
-    
-    if print_debug:
-        print(f"Avg Lick Start Times: {non_opto_rewarded_avg_lick_starts}")            
-        print(f"Avg Lick Stop Times: {non_opto_rewarded_avg_lick_stops}")     
-    
-    # opto_rewarded
-    opto_rewarded = rewarded_trials_df[rewarded_trials_df['is_opto'] == True]
-    
-    # Extract the column with lists of lick start times
-    lick_starts_list = opto_rewarded[f'licks_{side}_start'].tolist()
-    lick_stops_list = opto_rewarded[f'licks_{side}_stop'].tolist()            
-    
-    # Pad lists to the same length with NaNs
-    padded_starts = pad_list(lick_starts_list)              
-    # Compute element-wise mean, ignoring NaNs
-    opto_rewarded_avg_lick_starts = np.nanmean(padded_starts, axis=0)                    
-    
-    # Pad lists to the same length with NaNs
-    padded_stops = pad_list(lick_stops_list)            
-    # Compute element-wise mean, ignoring NaNs
-    opto_rewarded_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
-    
-    if print_debug:
-        print(f"Avg Lick Start Times: {opto_rewarded_avg_lick_starts}")            
-        print(f"Avg Lick Stop Times: {opto_rewarded_avg_lick_stops}")             
-                         
-    # non_opto_punished
-    non_opto_punished = punished_trials_df[punished_trials_df['is_opto'] == False]    
-    
-    # Extract the column with lists of lick start times
-    lick_starts_list = non_opto_punished[f'licks_{side}_start'].tolist()
-    lick_stops_list = non_opto_punished[f'licks_{side}_stop'].tolist()                    
-    
-    # Pad lists to the same length with NaNs
-    padded_starts = pad_list(lick_starts_list)              
-    # Compute element-wise mean, ignoring NaNs
-    non_opto_punished_avg_lick_starts = np.nanmean(padded_starts, axis=0)
-                
-    # Pad lists to the same length with NaNs
-    padded_stops = pad_list(lick_stops_list)            
-    # Compute element-wise mean, ignoring NaNs
-    non_opto_punished_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
-    
-    if print_debug:
-        print(f"Avg Lick Start Times: {non_opto_punished_avg_lick_starts}")            
-        print(f"Avg Lick Stop Times: {non_opto_punished_avg_lick_stops}")     
-    
-    # opto_punished
-    opto_punished = punished_trials_df[punished_trials_df['is_opto'] == True]
-    
-    # Extract the column with lists of lick start times
-    lick_starts_list = opto_punished[f'licks_{side}_start'].tolist()
-    lick_stops_list = opto_punished[f'licks_{side}_stop'].tolist()            
-    
-    # Pad lists to the same length with NaNs
-    padded_starts = pad_list(lick_starts_list)              
-    # Compute element-wise mean, ignoring NaNs
-    opto_punished_avg_lick_starts = np.nanmean(padded_starts, axis=0)
-               
-    # Pad lists to the same length with NaNs
-    padded_stops = pad_list(lick_stops_list)
-    
-    # Compute element-wise mean, ignoring NaNs
-    opto_punished_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
-    
-    if print_debug:
-        print(f"Avg Lick Start Times: {opto_punished_avg_lick_starts}")            
-        print(f"Avg Lick Stop Times: {opto_punished_avg_lick_stops}")             
-          
-    avg_lick_times = {
-        "control_rewarded": {
-            "starts": non_opto_rewarded_avg_lick_starts,
-            "stops": non_opto_rewarded_avg_lick_stops
-        },
-        "opto_rewarded": {
-            "starts": opto_rewarded_avg_lick_starts,
-            "stops": opto_rewarded_avg_lick_stops
-        },
-    }            
-
-    return avg_lick_times        
-
-def licks_to_binary_times(lick_starts_list, lick_stops_list):
+def licks_to_binary_times(lick_starts_list, lick_stops_list, time_resolution_ms=1):
     """
     Converts lists of lick start/stop times into binary time arrays.
     
@@ -1250,6 +1023,8 @@ def licks_to_binary_times(lick_starts_list, lick_stops_list):
 
     binary_lick_matrix = []
 
+    
+
     for starts, stops in zip(lick_starts_list, lick_stops_list):
         binary_trace = np.zeros(n_timepoints, dtype=int)
         for start, stop in zip(starts, stops):
@@ -1257,7 +1032,7 @@ def licks_to_binary_times(lick_starts_list, lick_stops_list):
             mask = (time_vector >= start) & (time_vector <= stop)
             binary_trace[mask] = 1
         binary_lick_matrix.append(binary_trace)
-        
+
     if not binary_lick_matrix:
         binary_trace = np.zeros(n_timepoints, dtype=int)
         binary_lick_matrix.append(binary_trace)
@@ -1331,9 +1106,336 @@ def session_avg_licks_interpolated(processed_licks, side):
     #     },
     # }            
 
-    return avg_lick_times       
+    return avg_lick_times   
+
+def sort_type_1(processed_licks):  
+
+    left_side_trials_df = processed_licks[processed_licks['trial_side'] == 'left']
+    
+    # Create a temporary column 'min_lick_start' which holds the minimum lick start time from the arrays
+    left_side_trials_df['min_lick_left_start'] = left_side_trials_df['licks_left_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
+    left_side_trials_df['min_lick_right_start'] = left_side_trials_df['licks_right_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
+    
+    # Now sort based on the 'min_lick_start' column, but keep the original arrays intact
+    rewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == True]
+    nonrewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == False]
+    
+    # rewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == True]
+    # nonrewarded_trials_df = left_side_trials_df[left_side_trials_df['rewarded'] == False]
+    
+    rewarded_trials_sorted_df = rewarded_trials_df.sort_values(by=['is_opto', 'min_lick_left_start'], ascending=[True, True])
+    nonrewarded_trials_sorted_df = nonrewarded_trials_df.sort_values(by=['is_opto', 'min_lick_right_start'], ascending=[True, True])
+    
+    # Combine back into one DataFrame
+    sorted_left_side_trials_df = pd.concat([rewarded_trials_sorted_df, nonrewarded_trials_sorted_df])
+
+    return sorted_left_side_trials_df
+
+def sort_type_2(processed_licks):     
+
+    right_side_trials_df = processed_licks[processed_licks['trial_side'] == 'right']
+    
+    # Create a temporary column 'min_lick_start' which holds the minimum lick start time from the arrays
+    right_side_trials_df['min_lick_left_start'] = right_side_trials_df['licks_left_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
+    right_side_trials_df['min_lick_right_start'] = right_side_trials_df['licks_right_start'].apply(lambda x: min(x) if isinstance(x, list) else x)
+    
+    # Now sort based on the 'min_lick_start' column, but keep the original arrays intact
+    rewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == True]
+    nonrewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == False]
+    
+    # rewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == True]
+    # nonrewarded_trials_df = right_side_trials_df[right_side_trials_df['rewarded'] == False]
+    
+    rewarded_trials_sorted_df = rewarded_trials_df.sort_values(by=['is_opto', 'min_lick_right_start'], ascending=[True, True])
+    nonrewarded_trials_sorted_df = nonrewarded_trials_df.sort_values(by=['is_opto', 'min_lick_left_start'], ascending=[True, True])
+    
+    # Combine back into one DataFrame
+    sorted_right_side_trials_df = pd.concat([rewarded_trials_sorted_df, nonrewarded_trials_sorted_df])
+
+    return sorted_right_side_trials_df
+
+def sort_type_3(processed_licks):     
+    
+    left_side_trials_df = processed_licks[processed_licks['trial_side'] == 'left']
+    sorted_left_side_trials_df = sort_type_1(processed_licks)
+    
+    right_side_trials_df = processed_licks[processed_licks['trial_side'] == 'right']
+    sorted_right_side_trials_df = sort_type_2(processed_licks)   
+    
+    # Combine back into one DataFrame
+    sorted_trials_df = pd.concat([sorted_left_side_trials_df, sorted_right_side_trials_df])
+    
+    return sorted_trials_df
+
+def session_avg_licks(processed_licks, side):  
+
+    avg_lick_times ={}    
+
+    side_trials_df = processed_licks[processed_licks['trial_side'] == side]
+    
+    # split trials according to rewarded and punished
+    rewarded_trials_df = side_trials_df[side_trials_df['rewarded'] == True]
+    punished_trials_df = side_trials_df[side_trials_df['rewarded'] == False]
+    
+    # non_opto_rewarded
+    non_opto_rewarded = rewarded_trials_df[rewarded_trials_df['is_opto'] == False]            
+
+    # Extract the column with lists of lick start times
+    lick_starts_list = non_opto_rewarded[f'licks_{side}_start'].tolist()
+    lick_stops_list = non_opto_rewarded[f'licks_{side}_stop'].tolist()
+    
+    # Pad lists to the same length with NaNs
+    padded_starts = pad_list(lick_starts_list)        
+    # Compute element-wise mean, ignoring NaNs
+    non_opto_rewarded_avg_lick_starts = np.nanmean(padded_starts, axis=0)
+    
+    # Pad lists to the same length with NaNs
+    padded_stops = pad_list(lick_stops_list)
+    # Compute element-wise mean, ignoring NaNs
+    non_opto_rewarded_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
+    
+    if print_debug:
+        print(f"Avg Lick Start Times: {non_opto_rewarded_avg_lick_starts}")            
+        print(f"Avg Lick Stop Times: {non_opto_rewarded_avg_lick_stops}")     
+    
+    # opto_rewarded
+    opto_rewarded = rewarded_trials_df[rewarded_trials_df['is_opto'] == True]
+    
+    # Extract the column with lists of lick start times
+    lick_starts_list = opto_rewarded[f'licks_{side}_start'].tolist()
+    lick_stops_list = opto_rewarded[f'licks_{side}_stop'].tolist()
+    
+    # Pad lists to the same length with NaNs
+    padded_starts = pad_list(lick_starts_list)              
+    # Compute element-wise mean, ignoring NaNs
+    opto_rewarded_avg_lick_starts = np.nanmean(padded_starts, axis=0)
+    
+    # Pad lists to the same length with NaNs
+    padded_stops = pad_list(lick_stops_list)            
+    # Compute element-wise mean, ignoring NaNs
+    opto_rewarded_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
+    
+    if print_debug:
+        print(f"Avg Lick Start Times: {opto_rewarded_avg_lick_starts}")            
+        print(f"Avg Lick Stop Times: {opto_rewarded_avg_lick_stops}")             
+    
+    # Compute element-wise mean
+    # avg_lick_starts = np.nanmean(lick_starts_array, axis=0)  # Use nanmean to handle unequal lengths
+    # avg_lick_stops = np.nanmean(lick_stops_array, axis=0)
+    
+    # print(f"Avg Lick Starts: {avg_lick_starts}")
+    # print(f"Avg Lick Stops: {avg_lick_stops}")            
+    
+
+    # # non_opto_punished
+    # non_opto_punished = punished_trials_df[punished_trials_df['is_opto'] == False]    
+    
+    # # Extract the column with lists of lick start times
+    # lick_starts_list = non_opto_punished[f'licks_{side}_start'].tolist()
+    # lick_stops_list = non_opto_punished[f'licks_{side}_stop'].tolist()
+    
+    # # Pad lists to the same length with NaNs
+    # padded_starts = pad_list(lick_starts_list)             
+    # # Compute element-wise mean, ignoring NaNs
+    # non_opto_punished_avg_lick_starts = np.nanmean(padded_starts, axis=0)
+    
+    # # Pad lists to the same length with NaNs
+    # padded_stops = pad_list(lick_stops_list)          
+    # # Compute element-wise mean, ignoring NaNs
+    # non_opto_punished_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
+    
+    # print(f"Avg Lick Start Times: {non_opto_punished_avg_lick_starts}")            
+    # print(f"Avg Lick Stop Times: {non_opto_punished_avg_lick_stops}")     
+    
+    # # opto_punished
+    # opto_punished = punished_trials_df[punished_trials_df['is_opto'] == True]
+    
+    # # Extract the column with lists of lick start times
+    # lick_starts_list = opto_punished[f'licks_{side}_start'].tolist()
+    # lick_stops_list = opto_punished[f'licks_{side}_stop'].tolist()
+    
+    # # Pad lists to the same length with NaNs
+    # padded_starts = pad_list(lick_starts_list)         
+    # # Compute element-wise mean, ignoring NaNs
+    # opto_punished_avg_lick_starts = np.nanmean(padded_starts, axis=0)
+    
+    # # Pad lists to the same length with NaNs
+    # padded_stops = pad_list(lick_stops_list)         
+    # # Compute element-wise mean, ignoring NaNs
+    # opto_punished_avg_lick_stops = np.nanmean(padded_stops, axis=0)            
+    
+    # print(f"Avg Lick Start Times: {opto_punished_avg_lick_starts}")            
+    # print(f"Avg Lick Stop Times: {opto_punished_avg_lick_stops}")             
+          
+    avg_lick_times = {
+        "control_rewarded": {
+            "starts": non_opto_rewarded_avg_lick_starts,
+            "stops": non_opto_rewarded_avg_lick_stops
+        },
+        "opto_rewarded": {
+            "starts": opto_rewarded_avg_lick_starts,
+            "stops": opto_rewarded_avg_lick_stops
+        },
+        # "non_opto_punished": {
+        #     "starts": non_opto_punished_avg_lick_starts,
+        #     "stops": non_opto_punished_avg_lick_stops
+        # },
+        # "opto_punished": {
+        #     "starts": opto_punished_avg_lick_starts,
+        #     "stops": opto_punished_avg_lick_stops
+        # }
+    }            
+
+    return avg_lick_times 
+
+def grand_avg_licks(lick_list):
+    """
+    Compute the grand average lick start and stop times for control and opto conditions.
+    
+    :param lick_list: List of dictionaries containing lick start and stop times.
+    :return: Dictionary with grand averaged lick times for control and opto.
+    """
+    grand_avg_lick_times = {
+        "control_rewarded": {
+            "starts": [],
+            "stops": []
+        },
+        "opto_rewarded": {
+            "starts": [],
+            "stops": []
+        }
+    }
+    
+    # Collect all start and stop times for each condition
+    control_starts = []
+    control_stops = []
+    opto_starts = []
+    opto_stops = []
+    
+    for lick in lick_list:
+        control_starts.append(lick["control_rewarded"]["starts"].tolist())
+        control_stops.append(lick["control_rewarded"]["stops"].tolist())
+        opto_starts.append(lick["opto_rewarded"]["starts"].tolist())
+        opto_stops.append(lick["opto_rewarded"]["stops"].tolist())
+    
+    
+    
+    control_starts = pad_list(control_starts)
+    control_stops = pad_list(control_stops)
+    opto_starts = pad_list(opto_starts)
+    opto_stops = pad_list(opto_stops)
+    
+    # Compute grand average using numpy
+    grand_avg_lick_times["control_rewarded"]["starts"] = np.nanmean(control_starts, axis=0)
+    grand_avg_lick_times["control_rewarded"]["stops"] = np.nanmean(control_stops, axis=0)
+    grand_avg_lick_times["opto_rewarded"]["starts"] = np.nanmean(opto_starts, axis=0)
+    grand_avg_lick_times["opto_rewarded"]["stops"] = np.nanmean(opto_stops, axis=0)      
+      
+    return grand_avg_lick_times 
+
+def pad_to_length(arr, length):
+    padded = np.pad(arr, (0, length - len(arr)), constant_values=np.nan)
+    return np.asarray(padded, dtype=np.float64)
 
 
+def grand_avg_licks_matrix(lick_list):
+    """
+    Compute the grand average lick start and stop times for control and opto conditions.
+    
+    :param lick_list: List of dictionaries containing lick start and stop times.
+    :return: Dictionary with grand averaged lick times for control and opto.
+    """
+    if not lick_list:
+        return np.array([])  # Handle empty input safely    
+    
+    grand_avg_lick_times = {
+        "control_rewarded": {
+        },
+        "opto_rewarded": {
+        }
+    }
+    
+    # Collect all start and stop times for each condition
+    # control_starts = []
+    # control_stops = []
+    # opto_starts = []
+    # opto_stops = []
+    
+    control = []
+    opto = []
+    
+    for lick in lick_list:
+        control.append(lick["control_rewarded"].tolist())
+        opto.append(lick["opto_rewarded"].tolist())       
+                 
+    grand_avg_lick_times["control_rewarded"] = np.nanmean(control, axis=0)
+    grand_avg_lick_times["opto_rewarded"] = np.nanmean(opto, axis=0)   
+      
+    return grand_avg_lick_times 
+
+def check_if_lists(lst):
+    return all(isinstance(item, list) for item in lst)
+
+def pad_list(licks_list):        
+    padded_list = []
+    try:            
+        # if licks_list and len(licks_list) > 1:
+        if licks_list:
+            # Ensure all elements are float64 lists
+            valid_lists = [lst for lst in licks_list if isinstance(lst, list) and all(isinstance(x, float) for x in lst)]
+            
+            if not valid_lists:  # Handle case where there are no valid lists
+                # return np.array([])  # Return an empty array to prevent errors                
+                return padded_list  # Return an empty array to prevent errors   
+            
+            # Find the max length
+            max_len = max(len(lst) for lst in valid_lists)
+        
+            # Pad lists to max_len with NaNs
+            padded_list = [lst + [np.nan] * (max_len - len(lst)) for lst in valid_lists]
+            
+            # valid_arrays = [arr for arr in licks_list if isinstance(arr, np.ndarray) and arr.dtype == np.float64]
+            
+            # if valid_arrays:  # Ensure there's at least one valid array
+            #     max_len = max(arr.shape[0] for arr in valid_arrays)  # Get max length along axis 0
+            # else:
+            #     max_len = 0  # Handle case where no valid arrays exist                
+            # # Pad each array with NaNs to max_len
+            # padded_arrays = [np.pad(arr, (0, max_len - arr.shape[0]), constant_values=np.nan) for arr in valid_arrays]
+            
+            # # Convert to a NumPy array
+            # padded_array = np.array(padded_arrays, dtype=np.float64)                
+            
+            
+            # max_len = max(len(lst) for lst in licks_list)
+            # max_len = max((len(lst) for lst in licks_list if isinstance(lst, list)), default=0)
+            # valid_lists = [lst for lst in licks_list if isinstance(lst, list)]
+            
+            
+            # if valid_arrays:  # Ensure there's at least one valid list
+            #     max_len = max(len(lst) for lst in valid_lists)
+            # else:
+            #     max_len = 0  # Handle the case where no valid lists exist                
+            # string combo, cheddar, up up down down left left right right a b a b start
+            
+            
+            # padded_list = np.array([lst + [np.nan] * (max_len - len(lst)) if isinstance(lst, list) else lst.tolist() + [np.nan] * (max_len - len(lst)) for lst in licks_list])
+
+        else:
+            padded_list = licks_list
+            # padded_list = np.array(np.nan, dtype=np.float64)
+            # # make sure lick vars are lists               
+            # padded_list = padded_list if padded_list else [[np.nan]]  # Ensures it's at least a 1x1 list
+            # padded_list = np.array(padded_list, dtype=np.float64)
+            # if padded_list.ndim == 0:
+            #     padded_list = np.array([padded_list], dtype=np.float64)                 
+            # padded_list = [np.nan]
+        # if not isinstance(padded_list, list):
+        #     padded_list.tolist() 
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        
+    return padded_list
 
 max_time = 5.0 # 10 seconds to match across sides/sessions
 time_resolution_ms = 1
@@ -1353,213 +1455,172 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local, upload):
     outcomes = subject_session_data['outcomes']
     outcomes_time = subject_session_data['outcomes_time']
     #categories = subject_session_data['isi_post_emp']
-    
-    print_debug = 0
+        
+
     
     subject = remove_substrings(subject, ['_opto', '_reg'])
     subject = flip_underscore_parts(subject)
     subject = lowercase_h(subject)
-    
-    
+        
     trial_type = subject_session_data['trial_type']
     opto_flag = subject_session_data['opto_trial']
     
     row = 4 
     col = 5
 
-
     # alignments = ['1st flash' , '3th flash' , '4th flash' , 'choice window' , 'outcome']
     alignments = ['Choice Window' , 'Outcome']
     row_names = ['rewarded short' , 'rewarded long' , 'punished short' , 'punished long']
-    n_bins = 500
+    n_bins = 500        
+
+    # Define the relative height ratios
+    # height_ratios = [1, 0.125, 0.125, 0.125]  # The 4th row will have twice the height of the others
+    height_ratios = [1, 0.75, 0.75]  # The 4th row will have twice the height of the others
     
-    processed_licks = []
+    # fig, axs = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30), 
+    #                 gridspec_kw={'height_ratios': height_ratios})
+    fig, axs = plt.subplots(nrows=3, ncols=len(alignments), figsize=(40, 30), 
+                    gridspec_kw={'height_ratios': height_ratios})    
     
-    sessions_left_side_avg_licks = []
-    sessions_right_side_avg_licks = []    
+    #fig2, axs1 = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30))
+    pdf_streams = []
+    pdf_paths = []
+    # numTrials = raw_data[i]['nTrials']
+    # outcome = outcomes[i]
+    # outcome_time = outcomes_time[i]
+    # session_date = dates[i]
     
+
+
+    # pooled avg
+    all_processed_licks = pd.DataFrame()
     for i in range(len(dates)):
-        print(i)
-        # Define the relative height ratios
-        # height_ratios = [1, 1, 1, 0.25]  # The 4th row will have twice the height of the others
-        height_ratios = [1, 1, 1, 1]  # The 4th row will have twice the height of the others
-        
-        fig, axs = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30), 
-                        gridspec_kw={'height_ratios': height_ratios})
-        
-        #fig2, axs1 = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30))
-        pdf_streams = []
-        pdf_paths = []
+        print(i)        
         numTrials = raw_data[i]['nTrials']
-        outcome = outcomes[i]
-        outcome_time = outcomes_time[i]
-        session_date = dates[i]
-          
+        print(numTrials)
+        processed_licks = pd.DataFrame()
+        
+        # get session processed licks
         processed_licks = process_session_licks_with_valve_times_df(subject_session_data, i)
+        
+        # Combine back into one DataFrame
+        all_processed_licks = pd.concat([all_processed_licks, processed_licks])
+           
 
-        debug = 0
+    debug = 0
 
+
+    # remove trials without licks
+    all_processed_licks = all_processed_licks[all_processed_licks['no_lick'] == 0]
+    # remove naive trials
+    all_processed_licks = all_processed_licks[all_processed_licks['is_naive'] == 0]
+
+    row = 0
+        
+    if debug:
+        plot_lick_traces_df(all_processed_licks, 'all', 'All Trials - Ordered by Trial')
+    else:
+        plot_lick_traces_df(all_processed_licks, 'all', 'All Trials - Ordered by Trial', axs[row, 0])
+    
+    sorted_trials_df = sort_type_3(all_processed_licks)
+    plot_lick_traces_df(sorted_trials_df, 'all', 'All Trials - Ordered by Earliest Lick', axs[row, 1])    
+                                                                                    
+    row = row+1
+    
+    # # left side trial ordered
+    # left_side_trials_df = processed_licks[processed_licks['trial_side'] == 'left']
+    # plot_lick_traces_df(left_side_trials_df, 'left', 'Left Trials - Short ISI - Ordered by Trial', axs[row, 0])
+    
+    # # right side trial ordered
+    # right_side_trials_df = processed_licks[processed_licks['trial_side'] == 'right']
+    # plot_lick_traces_df(right_side_trials_df, 'left', 'Right Trials - Long ISI - Ordered by Trial', axs[row, 1])        
+    
+    
+    left_side_avg_licks = session_avg_licks_interpolated(processed_licks, 'left')
+    # sessions_left_side_avg_licks.append(left_side_avg_licks)
+    plot_avg_lick_traces_from_matrix(left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Pooled Average', axs[row, 0])       
+    
+    # left_side_avg_licks = session_avg_licks(all_processed_licks, 'left')
+    # plot_avg_lick_traces(left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Pooled Average', axs[row, 0])        
+    
+    right_side_avg_licks = session_avg_licks_interpolated(processed_licks, 'right')
+    # sessions_right_side_avg_licks.append(right_side_avg_licks)
+    plot_avg_lick_traces_from_matrix(right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Pooled Average', axs[row, 1])            
+        
+    # right_side_avg_licks = session_avg_licks(all_processed_licks, 'right')
+    # plot_avg_lick_traces(right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Pooled Average', axs[row, 1])     
+    
+    row = row+1
+    
+    # grand avg
+    sessions_left_side_avg_licks = []
+    sessions_right_side_avg_licks = []
+    for i in range(len(dates)):
+        print(i)        
+        numTrials = raw_data[i]['nTrials']
+        print(numTrials)
+        processed_licks = pd.DataFrame()
+        
+        # get session processed licks
+        processed_licks = process_session_licks_with_valve_times_df(subject_session_data, i)                
         # remove trials without licks
         processed_licks = processed_licks[processed_licks['no_lick'] == 0]
         # remove naive trials
-        processed_licks = processed_licks[processed_licks['is_naive'] == 0]
-
+        processed_licks = processed_licks[processed_licks['is_naive'] == 0]        
         
-        row = 0
-            
-        if debug:
-            plot_lick_traces_df(processed_licks, 'all', 'All Trials - Ordered by Trial')
-        else:
-            plot_lick_traces_df(processed_licks, 'all', 'All Trials - Ordered by Trial', axs[row, 0])
         
-        sorted_trials_df = sort_type_3(processed_licks)
-        plot_lick_traces_df(sorted_trials_df, 'all', 'All Trials - Ordered by Earliest Lick', axs[row, 1])
         
-                                                                                         
-        row = row+1
-        
-        # left side trial ordered
-        left_side_trials_df = processed_licks[processed_licks['trial_side'] == 'left']
-        plot_lick_traces_df(left_side_trials_df, 'left', 'Left Trials - Short ISI - Ordered by Trial', axs[row, 0])
-        
-        # right side trial ordered
-        right_side_trials_df = processed_licks[processed_licks['trial_side'] == 'right']
-        plot_lick_traces_df(right_side_trials_df, 'right', 'Right Trials - Long ISI - Ordered by Trial', axs[row, 1])              
-        
-        row = row+1
-        
-        # left side first lick ordered
-        sorted_left_side_trials_df = sort_type_1(processed_licks)
-        plot_lick_traces_df(sorted_left_side_trials_df, 'left', 'Left Trials - Short ISI - Ordered by Earliest Lick', axs[row, 0])
-        
-             
-        # right side first lick ordered
-        sorted_right_side_trials_df = sort_type_2(processed_licks)
-        plot_lick_traces_df(sorted_right_side_trials_df, 'right', 'Right Trials - Long ISI - Ordered by Earliest Lick', axs[row, 1])
-        
-        row = row+1
-        
+        # left_side_avg_licks = session_avg_licks(processed_licks, 'left')
         
         left_side_avg_licks = session_avg_licks_interpolated(processed_licks, 'left')
         sessions_left_side_avg_licks.append(left_side_avg_licks)
-        plot_avg_lick_traces_from_matrix(left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Average', axs[row, 0])   
-        
-        # left_side_avg_licks = session_avg_licks(processed_licks, 'left')
-        # sessions_left_side_avg_licks.append(left_side_avg_licks)
-        # plot_avg_lick_traces(left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Average', axs[row, 0])          
+        # plot_avg_lick_traces(left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Average', axs[row, 0])        
+                
+        if i == 2:
+            print('')
+        # right_side_avg_licks = session_avg_licks(processed_licks, 'right')
         
         right_side_avg_licks = session_avg_licks_interpolated(processed_licks, 'right')
         sessions_right_side_avg_licks.append(right_side_avg_licks)
-        plot_avg_lick_traces_from_matrix(right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Average', axs[row, 1])        
-
-        # right_side_avg_licks = session_avg_licks(processed_licks, 'right')
-        # sessions_right_side_avg_licks.append(right_side_avg_licks)
-        # plot_avg_lick_traces(right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Average', axs[row, 1])        
+        # plot_avg_lick_traces(right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Average', axs[row, 1])  
+     
         
-
-
-
-        output_dir_onedrive, 
-        output_dir_local
-
-        output_pdf_dir =  output_dir_onedrive + subject + '/'
-        output_pdf_pages_dir = output_dir_local + subject + '/lick_traces/lick_traces_' + session_date + '/'
-        os.makedirs(output_pdf_dir, exist_ok = True)
-        os.makedirs(output_pdf_pages_dir, exist_ok = True)
-        output_pdf_filename = output_pdf_pages_dir + subject + '_lick_traces_session_' + session_date
-        pdf_paths.append(output_pdf_filename + '.pdf')
-        save_image(output_pdf_filename)        
-        plt.close(fig)
-            
-        
-        output = PdfWriter()
-        pdf_files = []
-        for pdf_path in pdf_paths:            
-            f = open(pdf_path, "rb")
-            pdf_streams.append(PdfReader(f))
-            pdf_files.append(f)
-
-        for pdf_file_stream in pdf_streams:
-            output.add_page(pdf_file_stream.pages[0])
-
-        for pdf_file in pdf_files:
-            pdf_file.close()
-
-        if upload:
-            dir_traces = output_pdf_dir + '/lick/lick_traces_' + session_date + '/'
-            os.makedirs(dir_traces, exist_ok = True)
-            outputStream = open(r'' + dir_traces + subject + '_lick_traces_session_' + session_date + '.pdf', "wb")
-            output.write(outputStream)
-            outputStream.close()
-        
-        
-    # Define the relative height ratios
-    # height_ratios = [1, 1, 1, 0.125]  # The 4th row will have twice the height of the others
+    # grand_left_side_avg_licks = grand_avg_licks(sessions_left_side_avg_licks)
+    grand_left_side_avg_licks = grand_avg_licks_matrix(sessions_left_side_avg_licks)
+    # plot_avg_lick_traces(grand_left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Grand Average', axs[row, 0])        
+    # plot_avg_lick_traces(grand_left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Grand Average', axs[row, 0])            
+    plot_avg_lick_traces_from_matrix(grand_left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Grand Average', axs[row, 0])
     
-    # fig, axs = plt.subplots(nrows=len(dates), ncols=2, figsize=(40, 30), 
-    #                 gridspec_kw={'height_ratios': height_ratios})   
-    fig, axs = plt.subplots(nrows=len(dates), ncols=2, figsize=(40, 30), gridspec_kw={'hspace': 0.4} )     
-        
-    for i in range(len(dates)):
-        print(i)
-        
-        #fig2, axs1 = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30))
-        pdf_streams = []
-        pdf_paths = []
-        numTrials = raw_data[i]['nTrials']
-        outcome = outcomes[i]
-        outcome_time = outcomes_time[i]
-        session_date = dates[i]
-
-        plot_avg_lick_traces_from_matrix(sessions_left_side_avg_licks[i], 'left', session_date +' Left Trials - Short ISI - Session Lick Average', axs[i, 0])        
-
-        plot_avg_lick_traces_from_matrix(sessions_right_side_avg_licks[i], 'right', session_date + ' Right Trials - Long ISI - Session Lick Average', axs[i, 1])             
-
-    # output_dir_onedrive, 
-    # output_dir_local
-
-    # output_pdf_dir =  output_dir_onedrive + subject + '/'
-    # output_pdf_pages_dir = output_dir_local + subject + '/lick_traces/lick_traces_' + session_date + '/'
-    # os.makedirs(output_pdf_dir, exist_ok = True)
-    # os.makedirs(output_pdf_pages_dir, exist_ok = True)
-    # output_pdf_filename = output_pdf_pages_dir + subject + '_lick_traces_session_' + session_date
-    # pdf_paths.append(output_pdf_filename + '.pdf')
-    # save_image(output_pdf_filename)        
-    # plt.close(fig)
-        
+    # grand_right_side_avg_licks = grand_avg_licks(sessions_right_side_avg_licks)
+    grand_right_side_avg_licks = grand_avg_licks_matrix(sessions_right_side_avg_licks)
+    # plot_avg_lick_traces(grand_right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Grand Average', axs[row, 1])
+    plot_avg_lick_traces_from_matrix(grand_right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Grand Average', axs[row, 1])
     
-    # output = PdfWriter()
-    # pdf_files = []
-    # for pdf_path in pdf_paths:            
-    #     f = open(pdf_path, "rb")
-    #     pdf_streams.append(PdfReader(f))
-    #     pdf_files.append(f)
-
-    # for pdf_file_stream in pdf_streams:
-    #     output.add_page(pdf_file_stream.pages[0])
-
-    # for pdf_file in pdf_files:
-    #     pdf_file.close()
-
-    # if upload:
-    #     dir_traces = output_pdf_dir + '/lick/'
-    #     os.makedirs(dir_traces, exist_ok = True)
-    #     outputStream = open(r'' + dir_traces + subject + '_lick_traces_session_' + session_date + '.pdf', "wb")
-    #     output.write(outputStream)
-    #     outputStream.close()
-
+    # # left side first lick ordered
+    # sorted_left_side_trials_df = sort_type_1(processed_licks)
+    # plot_lick_traces_df(sorted_left_side_trials_df, 'right', 'Left Trials - Short ISI - Ordered by Earliest Lick', axs[row, 0])
+    
+    # # right side first lick ordered
+    # sorted_right_side_trials_df = sort_type_2(processed_licks)
+    # plot_lick_traces_df(sorted_right_side_trials_df, 'right', 'Right Trials - Long ISI - Ordered by Earliest Lick', axs[row, 1])
+    
+    row = row+1
+    
+    # left_side_avg_licks = session_avg_licks(processed_licks, 'left')
+    # plot_avg_lick_traces(left_side_avg_licks, 'left', 'Left Trials - Short ISI - Session Lick Average', axs[row, 0])        
+    
+    # right_side_avg_licks = session_avg_licks(processed_licks, 'right')
+    # plot_avg_lick_traces(right_side_avg_licks, 'right', 'Right Trials - Long ISI - Session Lick Average', axs[row, 1])        
+    
 
     output_dir_onedrive, 
     output_dir_local
-    
-    file_concat = '_avg_lick_traces_single_sessions_report_' + dates[0] + '_' + dates[-1]
 
     output_pdf_dir =  output_dir_onedrive + subject + '/'
     output_pdf_pages_dir = output_dir_local + subject + '/lick_traces/'
     os.makedirs(output_pdf_dir, exist_ok = True)
     os.makedirs(output_pdf_pages_dir, exist_ok = True)
-    # output_pdf_filename = output_pdf_pages_dir + subject + '_avg_lick_traces' + str(i)
-    output_pdf_filename = output_pdf_pages_dir + subject + file_concat
+    output_pdf_filename = output_pdf_pages_dir + subject + '_lick_traces_all_sessions_pooled_report_' + dates[0] + '_' + dates[-1]
     pdf_paths.append(output_pdf_filename + '.pdf')
     save_image(output_pdf_filename)        
     plt.close(fig)
@@ -1578,14 +1639,13 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local, upload):
     for pdf_file in pdf_files:
         pdf_file.close()
 
+
     if upload:
-        dir_traces = output_pdf_dir + '/lick/'
-        os.makedirs(dir_traces, exist_ok = True)
-        # outputStream = open(r'' + dir_traces + subject + '_lick_traces_session_' + session_date + '.pdf', "wb")
-        # outputStream = open(r'' + dir_traces + subject + file_concat + '.pdf', "wb")
-        # outputStream = open(r'' + dir_traces + subject + '_avg_lick_traces_single_sessions_report_' + dates[0] + '_' + dates[-1] + '.pdf', "wb")
-        
-        outputStream = open(r'' + dir_traces + subject + '_avg_lick_traces_single_sessions_' + dates[0] + '_' + dates[-1] + '.pdf', "wb")
-        
+        outputStream = open(r'' + output_pdf_dir + '/lick/' + subject + '_lick_traces_all_sessions' + '.pdf', "wb")
         output.write(outputStream)
-        outputStream.close()                
+        outputStream.close()
+        
+
+
+
+

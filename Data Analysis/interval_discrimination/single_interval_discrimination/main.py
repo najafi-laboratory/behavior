@@ -59,6 +59,8 @@ from plot import plot_average_licking_opto
 from plot import plot_psychometric_post_opto_epoch
 from plot import plot_pooled_licking_opto
 from plot import plot_licking_opto
+from plot import plot_licking_opto_avg
+from plot import plot_psychometric_post_opto_epoch_residual
 
 from plot_strategy import count_isi_flash
 from plot_strategy import count_psychometric_curve
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     
     upload = 0
     
-    lick_plots = 1
+    lick_plots = 0
     
     use_random_num = 0
     
@@ -143,6 +145,7 @@ if __name__ == "__main__":
     # subject_list = ['LCHR_TS01_reg']
     # subject_list = ['LCHR_TS02_reg']
     
+    # subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']; opto = 1
     
     # subject_list = ['LCHR_TS01_opto']; opto = 1
     # subject_list = ['LCHR_TS02_opto']; opto = 1
@@ -395,9 +398,10 @@ if __name__ == "__main__":
         
         if opto:
             pg5 = 1
+            pg6 = 1
         else:
             pg5 = 0
-        
+            pg6 = 0
         
         # pg1 = 0
         # pg2 = 0
@@ -531,7 +535,8 @@ if __name__ == "__main__":
                     row = row + 1
                     col = 0
                     
-            plot_psychometric_post_opto.run(plt.subplot(gs[row, col]), M[i], start_from='std')
+            plot_psychometric_post_opto_epoch.run(plt.subplot(gs[row, col]), M[i], -1)
+            # plot_psychometric_post_opto.run(plt.subplot(gs[row, col]), M[i], start_from='std')
             # plot_decision_time_side_opto.run(plt.subplot(gs[1:2, 1:2]), M[i], start_from='std')     
             # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')            
             
@@ -545,7 +550,47 @@ if __name__ == "__main__":
             roi_fig.close()
             os.remove(fname)                            
    
+        ################################# pg 6
+        if pg6:
+            fig = plt.figure(layout='constrained', figsize=(30, 15))
+            gs = GridSpec(4, 6, figure=fig)        
+            
+            # plot_side_outcome_percentage.run(plt.subplot(gs[1, 0:3]), M[i])
+            
+            # plot_sdt_d_prime.run(plt.subplot(gs[0, 0:3]), M[i], start_from='std')
+            # plot_sdt_criterion.run(plt.subplot(gs[1, 0:3]), M[i], start_from='std')  
+            plot_side_outcome_percentage_nomcs_opto.run(plt.subplot(gs[0, 0:6]), M[i])
+            
+            row = 1
+            colmax = 5
+            col = 0
+            for session_num in range(M[i]['total_sessions']):      
+                # print(f"row: {row}, col: {col}")
+                # plot_psychometric_post_opto_epoch.run(plt.subplot(gs[1, 0]), M[i], start_from='std')
+                plot_psychometric_post_opto_epoch_residual.run(plt.subplot(gs[row, col]), M[i], session_num)
+                col = col + 1
+                if col > colmax:
+                    row = row + 1
+                    col = 0
+                    
+            plot_psychometric_post_opto_epoch_residual.run(plt.subplot(gs[row, col]), M[i], session_num=-1)
+            # plot_psychometric_post_opto.run(plt.subplot(gs[row, col]), M[i], start_from='std')
+            # plot_decision_time_side_opto.run(plt.subplot(gs[1:2, 1:2]), M[i], start_from='std')     
+            # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')            
+            
+            plt.suptitle(subject)
+            fname = os.path.join(str(i).zfill(4)+'.pdf')
+            fig.set_size_inches(30, 15)
+            fig.savefig(fname, dpi=300)
+            plt.close()
+            roi_fig = fitz.open(fname)
+            subject_report.insert_pdf(roi_fig)
+            roi_fig.close()
+            os.remove(fname)      
+   
+    
     # subject_report.save(output_dir_onedrive+subject_list[0]+'\\'+subject_list[0]+'_'+last_day+'_result_clean.pdf')
+    
     
     
     
@@ -578,8 +623,11 @@ if __name__ == "__main__":
             # plot_single_trial_licking.run(M[i],output_dir_onedrive, output_dir_local)
             # plot_average_licking.run(M[i],output_dir_onedrive, output_dir_local)   
             
-            plot_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)
-            plot_average_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)  
+            plot_licking_opto.run(M[i],output_dir_onedrive, output_dir_local, upload)
+            plot_licking_opto_avg.run(M[i],output_dir_onedrive, output_dir_local, upload)
+            
+            
+            # plot_average_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)  
             # plot_pooled_licking_opto.run(M[i],output_dir_onedrive, output_dir_local)
 
 
