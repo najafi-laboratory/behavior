@@ -112,6 +112,15 @@ if __name__ == "__main__":
     session_data_path = config.SESSION_DATA_PATH
     output_dir_onedrive = config.OUTPUT_DIR_ONEDRIVE
     output_dir_local = config.OUTPUT_DIR_LOCAL
+    
+    subject_list = {
+        'list_session_name' : {
+            
+        },
+        'session_folder' : '',
+        # 'sig_tag' : '',
+        # 'force_label' : None,
+    }
 
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
