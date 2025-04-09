@@ -14,7 +14,7 @@ import pickle
 import DataIO
 import DataIO_all
 import DataIOPsyTrack
-from data_extraction import save_dict_to_json, load_json_to_dict
+from data_extraction import *
 import pandas as pd
 import config
 
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS09_reg']
     # subject_list = ['SCHR_TS06_reg','SCHR_TS07_reg','SCHR_TS08_reg','SCHR_TS09_reg']
     
-    subject_list = ['LCHR_TS01']
+    # subject_list = ['LCHR_TS01']
     # subject_list = ['LCHR_TS02_reg']
     
     # subject_list = ['LCHR_TS01_opto', 'LCHR_TS02_opto']; opto = 1
@@ -164,7 +164,9 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS09_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto','SCHR_TS07_opto','SCHR_TS08_opto','SCHR_TS09_opto']; opto = 1
 
-    # subject_list = ['LCHR_TS02_update']; opto = 1
+    subject_list = ['LCHR_TS02_update']; opto = 1
+
+    # extract_data(subject_list, session_data_path)
 
     M = load_json_to_dict('result.json')
     print("Data loaded from JSON. Proceeding with analysis...")
@@ -396,6 +398,7 @@ if __name__ == "__main__":
             pg7 = 0
         
         pg6 = 0
+        pg7 = 1
         
         # pg1 = 0
         # pg2 = 0

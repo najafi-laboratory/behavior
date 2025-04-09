@@ -5,51 +5,15 @@ import pandas as pd
 from types import SimpleNamespace
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from scipy.stats import zscore
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D  # enables 3D projection
+import matplotlib.animation
 
 print_debug = 1
 # bin the data with timestamps.
 
-def get_bin_stat(decision, session_settings, isi='post'):
-    bin_size=100
-    least_trials=1
-    # set bins across isi range
-    # short ISI: [50, 400, 750]ms.  associated with left lick
-    # long ISI: [750, 1100, 1450]ms.  associated with right lick
-    isi_long_mean = session_settings['ISILongMean_s'] * 1000
-    bin_right = isi_long_mean + 400
-    bins = np.arange(0, bin_right + bin_size, bin_size)
-    bins = bins - bin_size / 2
-    if isi=='pre':
-        row = 4
-    if isi=='post':
-        row = 5
-    bin_indices = np.digitize(decision[row,:], bins) - 1
-    bin_mean = []
-    bin_sem = []
-    for i in range(len(bins)-1):
-        direction = decision[1, bin_indices == i].copy()
-        m = np.mean(direction) if len(direction) > least_trials else np.nan
-        s = sem(direction) if len(direction) > least_trials else np.nan
-        bin_mean.append(m)
-        bin_sem.append(s)
-    bin_mean = np.array(bin_mean)
-    bin_sem  = np.array(bin_sem)
-    bin_isi  = bins[:-1] + (bins[1]-bins[0]) / 2
-    non_nan  = (1-np.isnan(bin_mean)).astype('bool')
-    bin_mean = bin_mean[non_nan]
-    bin_sem  = bin_sem[non_nan]
-    bin_isi  = bin_isi[non_nan]
-    return bin_mean, bin_sem, bin_isi
-
-
-def separate_fix_jitter(decision):
-    decision_fix = decision[:,decision[3,:]==0]
-    decision_jitter = decision[:,decision[3,:]==1]
-    decision_chemo = decision[:,decision[3,:]==2]
-    decision_opto = decision[:,decision[3,:]==3]
-    decision_opto_left = decision[:,decision[6,:]==1]
-    decision_opto_right = decision[:,decision[6,:]==2]
-    return decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right
 
 def get_processed_df(session_data, session_idx):
     """
@@ -168,8 +132,11 @@ def get_processed_df(session_data, session_idx):
             opto_encode = 0
             
         isi = session_data['isi_post_emp'][session_idx][trial]
-        flash_duration = session_data[session_idx]['session_settings']['GratingDur_s'][trial] * 1000
+        flash_duration = raw_data[session_idx]['TrialSettings'][trial]['GUI']['GratingDur_s'] * 1000
+        # flash_duration = session_data['session_settings'][session_idx]['GratingDur_s'][trial] * 1000
         stim_duration = 2 * flash_duration + isi    
+        
+        ContinuousCurrent = raw_data[session_idx]['TrialSettings'][trial]['GUI']['ContinuousCurrent']        
         
         licked_right = 0
         if not no_lick:
@@ -188,17 +155,21 @@ def get_processed_df(session_data, session_idx):
         post_stim_delay = post_stim_delay_vector[1] - post_stim_delay_vector[0]
             
         move_correct_spout = session_data['move_correct_spout_flag'][session_idx][trial]
-        
-    
+                
         processed_dec.append({
-            "trial": trial,
+            "trial_idx": trial,
             "trial_side": trial_type,
             "isi": isi,
-            "isi": isi,
+            "flash_duration": flash_duration,
+            "stim_duration": stim_duration,
+            "post_stim_delay_vector": post_stim_delay_vector,
+            "post_stim_delay": post_stim_delay,
+            "ContinuousCurrent": ContinuousCurrent,
             "is_opto": is_opto,
             "is_naive": is_naive,
             "rewarded": rewarded,
             "no_lick": no_lick,
+            "licked_right": licked_right,
             "opto_encode": opto_encode,
             "move_correct_spout": move_correct_spout,
             "licks_left_start": licks['licks_left_start'],
@@ -213,52 +184,6 @@ def get_processed_df(session_data, session_idx):
         
     return pd.DataFrame(processed_dec)
 
-def bin_stats(filtered_df):
-    # Define bin edges
-    max_isi = filtered_df['isi'].max() + 200
-    incr_isi = 20  # change as needed
-      
-    
-    bins = np.arange(0, max_isi + incr_isi, incr_isi)
-    bin_labels = bins[:-1]  # label bins by left edge
-    bin_centers = bins[:-1] + incr_isi / 2
-    bin_indices = np.arange(0, len(bins))
-    
-    means = [np.nan] * len(bins)
-    sems = [np.nan] * len(bins)
-
-    reward_stats = (
-        filtered_df
-        .groupby(['bin_idx', 'trial_side'])
-        .agg(
-            percent_reward=('rewarded', lambda g: (g == True).mean()),
-            sem_reward=('rewarded', lambda g: g.std(ddof=1) / np.sqrt(len(g)))
-        )
-        .reset_index()
-    )        
-            
-    # convert rewarded percent on left to probability of licking right spout
-    reward_stats.loc[reward_stats['trial_side'] == 'left', 'percent_reward'] = \
-        1 - reward_stats.loc[reward_stats['trial_side'] == 'left', 'percent_reward']
-        
-    for _, row in reward_stats.iterrows():
-        means[int(row['bin_idx'])] = row['percent_reward']            
-        sems[int(row['bin_idx'])] = row['sem_reward']
-        
-    means = np.asarray(means)
-    sems = np.asarray(sems)
-    isi = np.asarray(bins)
-    
-    nan_indices = np.where(np.isnan(means))[0]
-    means = np.delete(means, nan_indices)
-    sems = np.delete(sems, nan_indices)
-    isis = np.delete(isi, nan_indices)
-    
-    # opto_residual_means.append(means)            
-    # opto_residual_sems.append(sems)
-    # opto_residual_isis.append(isi)
-       
-    return means, sems, isis
 
 # # DataFrame Accessor class
 # @pd.api.extensions.register_dataframe_accessor("opto")
@@ -282,15 +207,157 @@ def bin_stats(filtered_df):
 #         }))
 #         return result.reset_index()
 
+
+def get_PCA(df):
+    # "trial_idx": trial,
+    # "trial_side": trial_type,
+    # "isi": isi,
+    # "flash_duration": flash_duration,
+    # "stim_duration": stim_duration,
+    # "post_stim_delay_vector": post_stim_delay_vector,
+    # "post_stim_delay": post_stim_delay,
+    # "ContinuousCurrent": ContinuousCurrent,
+    # "": is_opto,
+    # "is_naive": is_naive,
+    # "rewarded": rewarded,
+    # "no_lick": no_lick,
+    # "licked_right": licked_right,
+    # "opto_encode": opto_encode,
+    # "move_correct_spout": move_correct_spout,
+    # "licks_left_start": licks['licks_left_start'],
+    # "licks_left_stop": licks['licks_left_stop'],
+    # "licks_right_start": licks['licks_right_start'],
+    # "licks_right_stop": licks['licks_right_stop'],
+    # "valve_start": valve_times[0],
+    # "valve_stop": valve_times[1]
+    df = df[(df['is_naive'] == False)]
+    df = df[(df['no_lick'] == False)]
+    df = df[(df['move_correct_spout'] == False)]   
+    df = df.dropna()
+    
+    
+    features = ['isi', 
+                'is_opto', 
+                'licked_right', 
+                'rewarded',
+                'stim_duration',
+                'post_stim_delay',
+                'opto_encode',
+                ]  # Add more as needed
+    X = df[features].copy()
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    pca = PCA(n_components=3)  # or more
+    X_pca = pca.fit_transform(X_scaled)
+    # df['PC1'] = X_pca[:, 0]
+    # df['PC2'] = X_pca[:, 1]
+    # df['PC3'] = X_pca[:, 2]
+    for i in range(X_pca.shape[1]):
+        df[f'PC{i+1}'] = X_pca[:, i]    
+    
+    
+    plt.figure(figsize=(6, 5))
+    for opto_val in [0, 1]:
+        subset = df[df['is_opto'] == opto_val]
+        label = 'Opto' if opto_val else 'Control'
+        plt.scatter(subset['PC1'], subset['PC2'], alpha=0.6, label=label)
+        # plt.scatter(df['PC1'], df['PC2'], c=df['trial_idx'], cmap='viridis')
+    
+        plt.xlabel('PC1')
+        plt.ylabel('PC2')
+        plt.legend()
+        plt.title('PCA of Trials')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+          
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Color by opto
+    colors = df['is_opto'].map({0: 'gray', 1: 'green'})
+    colors=df['trial_idx'], cmap='viridis'
+    
+    ax.scatter(df['PC1'], df['PC2'], df['PC3'], c=colors, alpha=0.6)
+    
+    ax.set_xlabel('PC1')
+    ax.set_ylabel('PC2')
+    ax.set_zlabel('PC3')
+    ax.set_title('3D PCA of Trials')
+    plt.tight_layout()
+    plt.show()        
+        
+    print(pca.explained_variance_ratio_)       
+    
+    # `pca` is your fitted PCA object
+    # `features` is the list of original column names you input into PCA
+    loadings = pd.DataFrame(pca.components_.T, columns=[f'PC{i+1}' for i in range(pca.n_components_)], index=features)
+    
+    print(loadings)    
+            
+    return
+
 def GLM(processed_dec):
     # filter tags
-    filtered_df = processed_dec[(processed_dec['is_naive'] == False)]
-    filtered_df = filtered_df[(filtered_df['no_lick'] == False)]
-    filtered_df = filtered_df[(filtered_df['move_correct_spout'] == False)]
+    df = processed_dec[(processed_dec['is_naive'] == False)]
+    df = df[(df['no_lick'] == False)]
+    df = df[(df['move_correct_spout'] == False)]
 
-     
+    # Optional: z-score continuous variables
+    df['z_stim'] = (df['stim_duration'] - df['stim_duration'].mean()) / df['stim_duration'].std()
+    df['z_trial'] = (df['trial_idx'] - df['trial_idx'].mean()) / df['trial_idx'].std()     # trial idx to examine drift
+    df['z_post_stim_delay'] = (df['post_stim_delay'] - df['post_stim_delay'].mean()) / df['post_stim_delay'].std()
     
-    return
+    # df['z_stim_2'] = zscore(df['stim_duration'], nan_policy='omit')
+    
+    # post_stim_delay
+    
+    # Ensure opto is binary
+    df['is_opto'] = df['is_opto'].astype(int)
+    
+    # Logistic regression model formula
+    formula = 'licked_right ~ z_stim + z_trial + is_opto + z_stim:is_opto'
+    
+    # Fit GLM (logistic regression)
+    model = smf.glm(formula=formula, data=df, family=sm.families.Binomial()).fit()    
+    
+    
+    print(model.summary())
+    
+    return df, model
+
+def plot_GLM(df, model):
+    # Create range of ISIs for plotting
+    isi_vals = np.linspace(df['z_stim'].min(), df['z_stim'].max(), 100)
+    opto_vals = [0, 1]
+    
+    plot_df = pd.DataFrame({
+        'z_stim': np.tile(isi_vals, 2),
+        'z_trial': 0,  # average trial index (remove drift)
+        'is_opto': np.repeat(opto_vals, len(isi_vals))
+    })
+    
+    # Create interaction term
+    plot_df['z_stim:is_opto'] = plot_df['z_stim'] * plot_df['is_opto']
+    
+    # Predict choice probability
+    plot_df['pred_prob'] = model.predict(plot_df)
+    
+    # Plot
+    import matplotlib.pyplot as plt
+    
+    for opto_state in [0, 1]:
+        subset = plot_df[plot_df['is_opto'] == opto_state]
+        label = 'is_opto' if opto_state else 'Control'
+        plt.plot(subset['z_stim'], subset['pred_prob'], label=label)
+    
+    plt.xlabel('Stimulus Duration (z-scored)')
+    plt.ylabel('P(right lick)')
+    plt.legend()
+    plt.title('Psychometric Curve: Opto vs Control')
+    plt.show()    
+
+
 
 def filter_df(processed_dec):
     # filter tags
@@ -299,157 +366,6 @@ def filter_df(processed_dec):
     filtered_df = filtered_df[(filtered_df['move_correct_spout'] == False)]        
     
     return filtered_df
-
-def bin_control(processed_dec):
-    filtered_df = filter_df(processed_dec)
-    
-    # get control trials
-    control_df = filtered_df[(filtered_df['is_opto'] == False)]
-    # # get opto trials
-    # opto_trials = filtered_df[(filtered_df['is_opto'] == True)]
-    
-    # Define bin edges
-    max_isi = filtered_df['isi'].max() + 200
-    incr_isi = 20  # change as needed
-      
-    bins = np.arange(0, max_isi + incr_isi, incr_isi)
-    bin_labels = bins[:-1]  # label bins by left edge
-    bin_centers = bins[:-1] + incr_isi / 2
-    bin_indices = np.arange(0, len(bins))
-    
-    # Assign each row to a bin
-    control_df['bin_idx'] = np.digitize(control_df['isi'], bins) - 1    
-    
-    control_means = []
-    control_sems = []
-    control_isis = []
-    
-    means, sems, isis = bin_stats(control_df)
-    
-    control_means.append(means)            
-    control_sems.append(sems)
-    control_isis.append(isis)    
-    
-    return control_means, control_sems, control_isis
-
-def bin_opto_residuals(processed_dec, num_residuals):
-    filtered_df = filter_df(processed_dec)
-    
-    # get max number of post opto trials
-    max_post_opto_encode = int(filtered_df['opto_encode'].max())
-
-
-    # Define bin edges
-    max_isi = filtered_df['isi'].max() + 200
-    incr_isi = 20  # change as needed
-      
-    bins = np.arange(0, max_isi + incr_isi, incr_isi)
-    bin_labels = bins[:-1]  # label bins by left edge
-    bin_centers = bins[:-1] + incr_isi / 2
-    bin_indices = np.arange(0, len(bins))
-    
-    # Assign each row to a bin
-    filtered_df['bin_idx'] = np.digitize(filtered_df['isi'], bins) - 1
-
-    opto_residuals = []
-    for post_op_idx in range(0, max_post_opto_encode + 1):
-        if print_debug == 1:
-            print(f"Extracting post opto trials {post_op_idx}")
-        trials_at_idx = filtered_df[(filtered_df['opto_encode'] == post_op_idx)]
-        opto_residuals.append(trials_at_idx)
-    
-    opto_residual_means = []
-    opto_residual_sems = []
-    opto_residual_isis = []
-    
-    # for opto_residual in opto_residuals:
-    for idx in range(0, num_residuals):        
-        # means = [np.nan] * len(bins)
-        # sems = [np.nan] * len(bins)
- 
-        # reward_stats = (
-        #     opto_residual
-        #     .groupby(['bin_idx', 'trial_side'])
-        #     .agg(
-        #         percent_reward=('rewarded', lambda g: (g == True).mean()),
-        #         sem_reward=('rewarded', lambda g: g.std(ddof=1) / np.sqrt(len(g)))
-        #     )
-        #     .reset_index()
-        # )        
-                
-        # # convert rewarded percent on left to probability of licking right spout
-        # reward_stats.loc[reward_stats['trial_side'] == 'left', 'percent_reward'] = \
-        #     1 - reward_stats.loc[reward_stats['trial_side'] == 'left', 'percent_reward']
-            
-        # for _, row in reward_stats.iterrows():
-        #     means[int(row['bin_idx'])] = row['percent_reward']            
-        #     sems[int(row['bin_idx'])] = row['sem_reward']
-            
-        # means = np.asarray(means)
-        # sems = np.asarray(sems)
-        # isi = np.asarray(bins)
-        
-        # nan_indices = np.where(np.isnan(means))[0]
-        # means = np.delete(means, nan_indices)
-        # sems = np.delete(sems, nan_indices)
-        # isi = np.delete(isi, nan_indices)
-        opto_residual_list = opto_residuals[0:idx+1]
-        opto_residual_list = opto_residual_list if isinstance(opto_residual_list, list) else [opto_residual_list]
-        opto_residual = pd.concat([x for x in opto_residual_list], ignore_index=True)
-        means, sems, isis = bin_stats(opto_residual)
-        
-        opto_residual_means.append(means)            
-        opto_residual_sems.append(sems)
-        opto_residual_isis.append(isis)
-        
-        
-    return opto_residual_means, opto_residual_sems, opto_residual_isis
-
-# def clear_nan(array):    
-#     return array[~np.isnan(array)]
-
-def get_decision(subject_session_data, session_num):
-    decision = subject_session_data['decision'][session_num]
-    # decision = [np.concatenate(d, axis=1) for d in decision]
-    decision = np.concatenate(decision, axis=1)
-    jitter_flag = subject_session_data['jitter_flag'][session_num]
-    # jitter_flag = np.concatenate(jitter_flag).reshape(1,-1)
-    jitter_flag = np.array(jitter_flag).reshape(1,-1)
-    # opto_flag = subject_session_data['opto_flag']
-    opto_flag = subject_session_data['opto_trial'][session_num]
-    opto_flag = np.array(opto_flag).reshape(1,-1)
-    jitter_flag[0 , :] = jitter_flag[0 , :] + opto_flag[0 , :]*3
-    # jitter_flag = jitter_flag + opto_flag*3
-    # jitter_flag = [j + o * 3 for j, o in zip(jitter_flag, opto_flag)]
-    opto_side = subject_session_data['opto_side'][session_num]
-    opto_side = np.array(opto_side).reshape(1,-1)
-    outcomes = subject_session_data['outcomes'][session_num]
-    all_trials = 0
-    chemo_labels = subject_session_data['Chemo'][session_num]
-    # for j in range(len(chemo_labels)):
-    #     if chemo_labels[j] == 1:
-    #         jitter_flag[0 , all_trials:all_trials+len(outcomes[j])] = 2*np.ones(len(outcomes[j]))
-    #     all_trials += len(outcomes[j])
-    isi_pre_emp = subject_session_data['isi_pre_emp'][session_num]
-    # isi_pre_emp = np.concatenate(isi_pre_emp).reshape(1,-1)
-    isi_pre_emp = np.array(isi_pre_emp).reshape(1,-1)
-    
-    isi_post_emp = subject_session_data['isi_post_emp'][session_num]
-    isi_post_emp = np.array(isi_post_emp).reshape(1,-1)
-    # isi_post_emp = np.concatenate(isi_post_emp).reshape(1,-1)
-    decision = np.concatenate([decision, jitter_flag, isi_pre_emp, isi_post_emp, opto_side], axis=0)
-    non_nan = (1-np.isnan(np.sum(decision, axis=0))).astype('bool')
-    decision = decision[:,non_nan]
-    # row 0: time.
-    # row 1: direction.
-    # row 2: correctness.
-    # row 3: jitter flag.
-    # row 4: pre pert isi.
-    # row 5: post pert isi.
-    # row 6: opto side
-    
-    decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right = separate_fix_jitter(decision)
-    return decision_fix, decision_jitter, decision_chemo, decision_opto, decision_opto_left, decision_opto_right
 
 
 def run(ax, subject_session_data, session_num=-1):
@@ -508,8 +424,11 @@ def run(ax, subject_session_data, session_num=-1):
     # bin_mean_opto_right, bin_sem_opto_right, bin_isi_opto_right = get_bin_stat(decision_opto_right, session_settings)
     
     processed_df = get_processed_df(subject_session_data_copy, session_num)
-    GLM(processed_df)
-
+    # df = filter_df(processed_df)
+    df, model = GLM(processed_df)
+    plot_GLM(df, model)
+    
+    get_PCA(processed_df)
     
     # Function to generate 'n' green colors, from light to dark
     def generate_green_colors(n, min_green=120, max_green=230, shift=0):
@@ -536,6 +455,7 @@ def run(ax, subject_session_data, session_num=-1):
             blues.append(np.array([blue_value, 0, 0]) / 255)  # Normalize to [0, 1]
         return blues    
     
+    num_residuals = 5
     mean_greens = generate_green_colors(num_residuals)
     sem_greens = generate_green_colors(num_residuals, shift=100)
     
@@ -550,111 +470,7 @@ def run(ax, subject_session_data, session_num=-1):
     labels = generate_opto_labels(num_residuals)
     
 
-    # opto_side
-    
-    # plot opto residuals
-    # for idx in range(0, num_residuals):
-    #     # fix
-        
-    #     ax.plot(
-    #         opto_residual_isis[idx],
-    #         opto_residual_means[idx],
-    #         color=mean_greens[idx], marker='.', label=labels[idx], markersize=4)
-    #     ax.fill_between(
-    #         opto_residual_isis[idx],
-    #         opto_residual_means[idx] - opto_residual_sems[idx],
-    #         opto_residual_means[idx] + opto_residual_sems[idx],
-    #         color='honeydew', alpha=0.2) 
-    #         # color=sem_greens[idx], alpha=0.2)    
-    
-    
-    # # fix
-    # ax.plot(
-    #     control_isis[0],
-    #     control_means[0],
-    #     color='black', marker='.', label='control', markersize=4)
-    # ax.fill_between(
-    #     control_isis[0],
-    #     control_means[0] - control_sems[0],
-    #     control_means[0] + control_sems[0],
-    #     color='grey', alpha=0.2)
-    
-    # opto
-    # all
-    # ax.plot(
-    #     bin_isi_opto,
-    #     bin_mean_opto,
-    #     color='indigo', marker='.', label='opto', markersize=4)
-    # ax.fill_between(
-    #     bin_isi_opto,
-    #     bin_mean_opto - bin_sem_opto,
-    #     bin_mean_opto + bin_sem_opto,
-    #     color='violet', alpha=0.2)    
-    
-    
-    # left_label = 'opto left'
-    # right_label = 'opto right'
-    
-    # if subject not in ['LCHR_TS01_opto', 'LCHR_TS02_opto']:
-    #     # left_label = subject
-    #     # right_label = subject
-    #     left_label = 'opto'
-    #     right_label = 'opto'
-    
-    
-    # if len(bin_isi_opto_left) > 0:
-    #     # left
-    #     ax.plot(
-    #         bin_isi_opto_left,
-    #         bin_mean_opto_left,
-    #         color='blue', marker='.', label=left_label, markersize=4)
-    #     ax.fill_between(
-    #         bin_isi_opto_left,
-    #         bin_mean_opto_left - bin_sem_opto_left,
-    #         bin_mean_opto_left + bin_sem_opto_left,
-    #         color='violet', alpha=0.2)   
 
-    # if len(bin_isi_opto_right) > 0:
-    #     # right
-    #     ax.plot(
-    #         bin_isi_opto_right,
-    #         bin_mean_opto_right,
-    #         color='green', marker='.', label=right_label, markersize=4)
-    #     ax.fill_between(
-    #         bin_isi_opto_right,
-    #         bin_mean_opto_right - bin_sem_opto_right,
-    #         bin_mean_opto_right + bin_sem_opto_right,
-    #         color='lightgreen', alpha=0.2)   
-    
-    
-     
-    # ax.plot(
-    #     bin_isi_jitter,
-    #     bin_mean_jitter,
-    #     color='limegreen', marker='.', label='jitter', markersize=4)
-    # ax.fill_between(
-    #     bin_isi_jitter,
-    #     bin_mean_jitter - bin_sem_jitter,
-    #     bin_mean_jitter + bin_sem_jitter,
-    #     color='limegreen', alpha=0.2)
-    # ax.plot(
-    #     bin_isi_chemo,
-    #     bin_mean_chemo,
-    #     color='red', marker='.', label='chemo', markersize=4)
-    # ax.fill_between(
-    #     bin_isi_chemo,
-    #     bin_mean_chemo - bin_sem_chemo,
-    #     bin_mean_chemo + bin_sem_chemo,
-    #     color='red', alpha=0.2)
-    # ax.plot(
-    #     bin_isi_opto,
-    #     bin_mean_opto,
-    #     color='dodgerblue', marker='.', label='opto', markersize=4)
-    # ax.fill_between(
-    #     bin_isi_opto,
-    #     bin_mean_opto - bin_sem_opto,
-    #     bin_mean_opto + bin_sem_opto,
-    #     color='dodgerblue', alpha=0.2)
     
     x_left = isi_short_mean - 100
     x_right = isi_long_mean + 100
