@@ -139,7 +139,7 @@ def read_trials(subject , session_data_path):
     session_dayLength = []
     session_inputs = []
     
-    
+    session_filenames = []
     
     
     for f in tqdm(range(len(file_names))):
@@ -152,6 +152,7 @@ def read_trials(subject , session_data_path):
         
         
         fname = file_names[f]
+        session_filenames.append(fname.replace('.mat', ''))
         # one session data.
         raw_data = load_mat(os.path.join(session_data_path, subject, fname))
         
@@ -767,7 +768,8 @@ def read_trials(subject , session_data_path):
         'outcomes_right_opto_on' : session_outcomes_right_opto_on,
         'outcomes_left_opto_off' : session_outcomes_left_opto_off,
         'outcomes_right_opto_off' : session_outcomes_right_opto_off,
-        'session_settings' : session_settings
+        'session_settings' : session_settings,
+        'session_filenames' : session_filenames,
     }
     return data
 

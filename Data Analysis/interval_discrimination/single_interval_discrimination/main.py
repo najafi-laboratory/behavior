@@ -16,7 +16,9 @@ import DataIO_all
 import DataIOPsyTrack
 from data_extraction import *
 import pandas as pd
-import config
+
+from utils import config
+from figure_modules import outcomes
 
 
 from plot import plot_outcome
@@ -95,6 +97,41 @@ def flip_underscore_parts(s):
 def lowercase_h(s):
     return s.replace('H', 'h')
 
+def filter_sessions(M, session_config_list):
+    for config in session_config_list['list_config']:
+        target_subject = config['subject_name']
+        session_names = list(config['list_session_name'])
+    
+        # Find the subject index in M
+        subject_idx = None
+        for idx, subject_data in enumerate(M):
+            # You can customize this match logic depending on your JSON structure
+            if target_subject in subject_data['subject']:
+                subject_idx = idx
+                break
+    
+        if subject_idx is None:
+            print(f"Subject {target_subject} not found in loaded data.")
+            continue
+
+        filenames = M[subject_idx]['session_filenames']
+    
+        # Get indices of matches
+        matched_indices = [i for i, fname in enumerate(filenames) if fname in session_names]
+
+        print(f"Matched indices for subject {target_subject}: {matched_indices}")      
+        
+        for key in M[subject_idx].keys():
+            if key not in ['answer', 'correct', 'name', 'subject', 'total_sessions', 'y']:
+                M[subject_idx][key] = [M[subject_idx][key][i] for i in matched_indices]
+                
+        print(f"Filtered sessions for subject {target_subject}")
+        for date in M[subject_idx]['dates']:
+            print(date)
+        print('')
+   
+    return M
+
 if __name__ == "__main__":
     # Get the current date
     current_date = datetime.now()
@@ -112,18 +149,13 @@ if __name__ == "__main__":
     
     use_random_num = 0
     
-    session_data_path = config.SESSION_DATA_PATH
-    output_dir_onedrive = config.OUTPUT_DIR_ONEDRIVE
-    output_dir_local = config.OUTPUT_DIR_LOCAL
+    # session_data_path = config.SESSION_DATA_PATH
+    # figure_dir_local = config.FIGURE_DIR_LOCAL
+    # output_dir_onedrive = config.OUTPUT_DIR_ONEDRIVE
+    # output_dir_local = config.OUTPUT_DIR_LOCAL
     
-    subject_list = {
-        'list_session_name' : {
-            
-        },
-        'session_folder' : '',
-        # 'sig_tag' : '',
-        # 'force_label' : None,
-    }
+    
+
 
     # last_day = '20241215'
     #subject_list = ['YH7', 'YH10', 'LG03', 'VT01', 'FN14' , 'LG04' , 'VT02' , 'VT03']
@@ -164,37 +196,134 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS09_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto','SCHR_TS07_opto','SCHR_TS08_opto','SCHR_TS09_opto']; opto = 1
 
-    subject_list = ['LCHR_TS02_update']; opto = 1
-
+    subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']; opto = 1
+# 
     # extract_data(subject_list, session_data_path)
+
+    # session_configs = session_config_list_2AFC
 
     M = load_json_to_dict('result.json')
     print("Data loaded from JSON. Proceeding with analysis...")
+    M = filter_sessions(M, config.session_config_list_2AFC)
+    
+    for subjectIdx in range(len(M)):
+        plot_outcomes(M[subjectIdx], config.session_config_list_2AFC)
+    
+    
+    
     
     subject_report = fitz.open()
-    subject_session_data = M[0]
+    # subject_session_data = M[0]
     # subject_session_data = M
+    
+    
+ #%%   
+
+
+
+# 🔸 1. Modular Figure Code
+# Each figure script should:
+
+# Take in data + config (subject name, task variant, etc.)
+
+# Output a saved figure
+
+# Optionally register itself to a figure registry
+
+# python
+# Copy
+# Edit
+# def plot_stim_accuracy(data, save_path):
+#     fig, ax = plt.subplots()
+#     # ... plotting code ...
+#     fig.savefig(save_path)
+#     plt.close(fig)
+# 🔸 2. Figure Metadata Tracking
+# Maintain a JSON or SQLite file to keep track of what was generated:
+
+# python
+# Copy
+# Edit
+# figure_registry = {
+#     'stim_accuracy_TS02': {
+#         'path': 'figures/TS02_stim_accuracy.png',
+#         'subject': 'TS02',
+#         'type': 'stimulus_curve',
+#         'caption': 'Accuracy across stimulus duration',
+#     },
+#     ...
+# }
+# 🔸 3. Report Assembly Layer
+# Load figures and plug them into templates or layouts:
+
+# For PDFs: use matplotlib.backends.backend_pdf.PdfPages, or reportlab for layout control
+
+# For HTML: use jinja2 templates and generate shareable reports
+
+# For interactive reports: try Panel, Dash, or Streamlit if useful
+
+# 🔹 Other Options You Could Consider
+# Using matplotlib.figure.Figure objects in memory if you don’t want to write to disk immediately
+
+# Saving as SVG for vector-based layouts, useful for post-processing in Illustrator or embedding in LaTeX
+
+# Interactive plots (Plotly, Bokeh) for web or review tools, though not always PDF-friendly
+
+# Notebook automation with nbconvert or papermill to generate notebooks into reports with embedded figures
+#%%
+# figure_registry = {
+#     'stim_accuracy_TS02': {
+#         'path': 'figures/TS02_stim_accuracy.png',
+#         'subject': 'TS02',
+#         'type': 'stimulus_curve',
+#         'caption': 'Accuracy across stimulus duration',
+#     },
+#     ...
+# }
+
+    # {
+    # 'fig_id': 'stim_curve_TS02',
+    # 'path': 'figures/TS02_stim_curve.png',
+    # 'subject': 'TS02',
+    # 'tags': ['performance', 'stimulus', 'accuracy'],
+    # 'caption': 'Stimulus accuracy curve for TS02',
+    # }
+    
+    
+    
+    # Report Modules
+
+    # Use a figure registry + templating to build:
+    
+    # PDFs (e.g. with ReportLab, LaTeX, matplotlib.backends.backend_pdf, Pillow)
+    
+    # HTML (e.g. with Jinja2)
+    
+    # PowerPoint (e.g. with python-pptx)
+    
+    
+#%%
     
     # Chemo
     #########
-    Chemo = np.zeros(subject_session_data['total_sessions'])
-    if subject_list[0] == 'YH7':
-        chemo_sessions = ['0627' , '0701' , '0625' , '0623' , '0613' , '0611' , '0704' , '0712' , '0716' , '0725' , '0806' , '0809' , '0814' , '0828' , '0821' ,] #YH7
-    elif subject_list[0] == 'VT01':
-        chemo_sessions = ['0618' , '0701' , '0704' , '0710' , '0712' , '0715' , '0718'] #VT01
-    elif subject_list[0] == 'LG03':
-        chemo_sessions = ['0701' , '0704' , '0709' , '0712' , '0726', '0731', '0806' , '0809' , '0814' , '0828' , '0821'] #LG03
-    elif subject_list[0] == 'LG04':
-        chemo_sessions = ['0712' , '0717' , '0725', '0731', '0806' , '0814' , '0828' , '0821'] #LG04
-    else:
-        chemo_sessions = []
-    dates = subject_session_data['dates']
-    for ch in chemo_sessions:
-        if '2024' + ch in dates:
-            Chemo[dates.index('2024' + ch)] = 1
-        else:
-            Chemo[dates.index('2024' + ch)] = 0
     
+    # if subject_list[0] == 'YH7':
+    #     chemo_sessions = ['0627' , '0701' , '0625' , '0623' , '0613' , '0611' , '0704' , '0712' , '0716' , '0725' , '0806' , '0809' , '0814' , '0828' , '0821' ,] #YH7
+    # elif subject_list[0] == 'VT01':
+    #     chemo_sessions = ['0618' , '0701' , '0704' , '0710' , '0712' , '0715' , '0718'] #VT01
+    # elif subject_list[0] == 'LG03':
+    #     chemo_sessions = ['0701' , '0704' , '0709' , '0712' , '0726', '0731', '0806' , '0809' , '0814' , '0828' , '0821'] #LG03
+    # elif subject_list[0] == 'LG04':
+    #     chemo_sessions = ['0712' , '0717' , '0725', '0731', '0806' , '0814' , '0828' , '0821'] #LG04
+    # else:
+    #     chemo_sessions = []
+    # dates = subject_session_data['dates']
+    # for ch in chemo_sessions:
+    #     if '2024' + ch in dates:
+    #         Chemo[dates.index('2024' + ch)] = 1
+    #     else:
+    #         Chemo[dates.index('2024' + ch)] = 0
+    Chemo = np.zeros(subject_session_data['total_sessions'])
     M[0]['Chemo'] = Chemo
     
     

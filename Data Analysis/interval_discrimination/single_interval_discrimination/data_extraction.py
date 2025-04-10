@@ -3,7 +3,7 @@ import os
 import json
 import numpy as np
 from DataIOPsyTrack import run  # Your extraction function
-import config
+from utils import config
 
 # JSON helper: custom encoder to handle NumPy arrays and scalars
 class NumpyEncoder(json.JSONEncoder):
