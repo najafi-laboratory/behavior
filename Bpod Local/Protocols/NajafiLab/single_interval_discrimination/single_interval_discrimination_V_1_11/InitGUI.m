@@ -55,11 +55,14 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.TrainingLevel = 2;
         S.GUIMeta.TrainingLevel.Style = 'popupmenu';
         S.GUIMeta.TrainingLevel.String = {'Naive', 'Early', 'Mid 1', 'Mid 2', 'Well'};
+        S.GUI.Contingency = 1;
+        S.GUIMeta.Contingency.Style = 'popupmenu';
+        S.GUIMeta.Contingency.String = {'Normal - Short/Left', 'Reverse - Long/Left'};
         S.GUI.NumNaiveWarmup = 15;
         S.GUI.ActMaxSameSide = 0;
         S.GUIMeta.ActMaxSameSide.Style = 'checkbox';         
         S.GUI.MaxSameSide = 3;
-        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'NumNaiveWarmup', 'ActMaxSameSide', 'MaxSameSide'};
+        S.GUIPanels.Training = {'NoInit', 'MaxTrials', 'TrainingLevel', 'Contingency', 'NumNaiveWarmup', 'ActMaxSameSide', 'MaxSameSide'};
         
         % Servos - spouts
         S.GUI.EnableMovingSpouts = 1;

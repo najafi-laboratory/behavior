@@ -553,15 +553,28 @@ function [PrePertISI, PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
 end
 
 function [PostPertISI] = GetISIMean(obj, S, TrialTypes, currentTrial)
-    switch TrialTypes(currentTrial)
-        case 1 % trial is left with short ISI
-            PostPertISI = S.GUI.ISIShortMean_s;
-        case 2 % trial is right with long ISI
-            PostPertISI = S.GUI.ISILongMean_s;
+    switch S.GUI.Contingency
+        case 1 % normal contingency, short left
+            switch TrialTypes(currentTrial)
+                case 1 % trial is left with short ISI
+                    PostPertISI = S.GUI.ISIShortMean_s;
+                case 2 % trial is right with long ISI
+                    PostPertISI = S.GUI.ISILongMean_s;
+        case 2 % reverse contingency, long left
+            switch TrialTypes(currentTrial)
+                case 1 % trial is left with short ISI
+                    PostPertISI = S.GUI.ISIShortMean_s;
+                case 2 % trial is right with long ISI
+                    PostPertISI = S.GUI.ISILongMean_s;
     end     
 end
 
 function [PrePertISI] = GetISIOutter(obj, S, TrialTypes, currentTrial)
+    switch S.GUI.Contingency
+        case 1 % normal contingency, short left
+
+        case 2 % reverse contingency, long left
+
     switch TrialTypes(currentTrial)
         case 1 % trial is left with short post pert ISI, long pre pert ISI
             PrePertISI = S.GUI.ISILongMax_s;
@@ -576,12 +589,12 @@ function [PrePertISI, PostPertISI] = GetISIFromDist(obj, S, TrialTypes, currentT
             PostPertISI = DrawFromUniform(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s);
             PrePertISI = DrawFromUniform(obj, S.GUI.ISILongMin_s, S.GUI.ISILongMax_s);
             
-            PostPertISI = DrawFromDiscrete(S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s, 5);
+            PostPertISI = DrawFromDiscrete(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s, 7);
         case 2 % trial is right with long ISI
             PostPertISI = DrawFromUniform(obj, S.GUI.ISILongMin_s, S.GUI.ISILongMax_s);
             PrePertISI = DrawFromUniform(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s);
 
-            PostPertISI = DrawFromDiscrete(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s, 5);
+            PostPertISI = DrawFromDiscrete(obj, S.GUI.ISILongMin_s, S.GUI.ISILongMax_s, 7);
     end 
 end
 
@@ -635,12 +648,12 @@ function [r] = DrawFromUniform(obj, lb, ub)
     r = a + (b-a)*rand();  % Single random value between a and b    
 end
 
-function [isi] = DrawFromDiscrete(min, max, n)
+function [isi] = DrawFromDiscrete(obj, min, max, n)
         % Generate 5 evenly spaced values including min and max
         values = linspace(min, max, n);
         
         % Randomly select one of the values
-        selected_value = values(randi(5));
+        isi = values(randi(5));
 end
 
 function [TimeOutPunish] = GetTimeOutPunish( ...

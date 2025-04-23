@@ -539,10 +539,14 @@ function [PrePertISI, PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
     switch S.GUI.TrainingLevel
         case 1 % Naive
             PostPertISI = GetISIMean(obj, S, TrialTypes, currentTrial);
+
             PrePertISI = GetISIOutter(obj, S, TrialTypes, currentTrial);
+            PostPertISI = GetISIOutter(obj, S, TrialTypes, currentTrial);
         case 2 % Early       
             PostPertISI = GetISIMean(obj, S, TrialTypes, currentTrial);
+
             PrePertISI = GetISIOutter(obj, S, TrialTypes, currentTrial);
+            PostPertISI = GetISIOutter(obj, S, TrialTypes, currentTrial);
         case 3 % Mid1       
             [PrePertISI, PostPertISI] = GetISIFromDist(obj, S, TrialTypes, currentTrial);
         case 4 % Mid2
@@ -552,25 +556,56 @@ function [PrePertISI, PostPertISI, EasyMaxInfo] = GetPostPertISI( ...
     end   
 end
 
-function [PostPertISI] = GetISIMean(obj, S, TrialTypes, currentTrial)
-    switch TrialTypes(currentTrial)
-        case 1 % trial is left with short ISI
-            PostPertISI = S.GUI.ISIShortMean_s;
-        case 2 % trial is right with long ISI
-            PostPertISI = S.GUI.ISILongMean_s;
+function [ISI] = GetISIMean(obj, S, TrialTypes, currentTrial)
+    switch S.GUI.Contingency
+        case 1 % normal contingency, short left
+            switch TrialTypes(currentTrial)
+                case 1 % trial is left with short ISI
+                    ISI = S.GUI.ISIShortMean_s;
+                case 2 % trial is right with long ISI
+                    ISI = S.GUI.ISILongMean_s;
+            end
+        case 2 % reverse contingency, long left
+            switch TrialTypes(currentTrial)
+                case 1 % trial is left with long ISI
+                    ISI = S.GUI.ISILongMean_s;
+                case 2 % trial is right with short ISI
+                    ISI = S.GUI.ISIShortMean_s;
+            end
     end     
 end
 
-function [PrePertISI] = GetISIOutter(obj, S, TrialTypes, currentTrial)
-    switch TrialTypes(currentTrial)
-        case 1 % trial is left with short post pert ISI, long pre pert ISI
-            PrePertISI = S.GUI.ISILongMax_s;
-        case 2 % trial is right with long post pert ISI, short pre pert ISI
-            PrePertISI = S.GUI.ISIShortMin_s;
-    end     
+function [ISI] = GetISIOutter(obj, S, TrialTypes, currentTrial)
+    switch S.GUI.Contingency
+        case 1 % normal contingency, short left
+            switch TrialTypes(currentTrial)
+                case 1 % trial is left with short ISI
+                    ISI = S.GUI.ISIShortMin_s;
+                case 2 % trial is right with long ISI
+                    ISI = S.GUI.ISILongMax_s;
+            end
+        case 2 % reverse contingency, long left
+            switch TrialTypes(currentTrial)
+                case 1 % trial is left with long ISI
+                    ISI = S.GUI.ISILongMax_s;
+                case 2 % trial is right with short ISI
+                    ISI = S.GUI.ISIShortMin_s;
+            end
+    end         
+    % switch TrialTypes(currentTrial)
+    %     case 1 % trial is left with short post pert ISI, long pre pert ISI
+    %         PrePertISI = S.GUI.ISILongMax_s;
+    %     case 2 % trial is right with long post pert ISI, short pre pert ISI
+    %         PrePertISI = S.GUI.ISIShortMin_s;
+    % end     
 end
 
 function [PrePertISI, PostPertISI] = GetISIFromDist(obj, S, TrialTypes, currentTrial)
+    % switch S.GUI.Contingency
+    %     case 1 % normal contingency, short left
+    % 
+    %     case 2 % reverse contingency, long left    
+    
     switch TrialTypes(currentTrial)
         case 1 % trial is left with short ISI
             PostPertISI = DrawFromUniform(obj, S.GUI.ISIShortMin_s, S.GUI.ISIShortMax_s);
