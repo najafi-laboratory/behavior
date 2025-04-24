@@ -752,7 +752,8 @@ function [PostVisStimDelay] = GetPostVisStimDelay( ...
         case 1 % naive
             PostVisStimDelay = S.GUI.PostVisStimDelayMin_s;
         case 2 % early
-            PostVisStimDelay = DrawFromUniform(obj, S.GUI.PostVisStimDelayMin_s, S.GUI.PostVisStimDelayMax_s);
+            % PostVisStimDelay = DrawFromUniform(obj, S.GUI.PostVisStimDelayMin_s, S.GUI.PostVisStimDelayMax_s);
+            PostVisStimDelay = S.GUI.PostVisStimDelayMean_s;
         case 3 % mid 1
             PostVisStimDelay = S.GUI.PostVisStimDelayMean_s;
         case 4 % mid 2
