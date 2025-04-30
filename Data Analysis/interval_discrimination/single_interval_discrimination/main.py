@@ -16,66 +16,53 @@ import DataIO_all
 import DataIOPsyTrack
 from data_extraction import *
 import pandas as pd
+import json
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.gridspec as gridspec
+import matplotlib.image as mpimg
+from pdf2image import convert_from_path
 
 from utils import config
-from figure_modules import outcomes
+from utils import directories
+from utils.util import get_figsize_from_pdf_spec
+from registry.update import update_figure_registry
+from report_builder.build_pdf import build_pdf_from_registry
 
 
-from plot import plot_outcome
-from plot import plot_complete_trials
-from plot import plot_psychometric_post
-# from plot import plot_psychometric_post_no_naive
-from plot import plot_psychometric_pre
-from plot import plot_psychometric_epoch
-from plot import plot_psychometric_percep
-from plot import plot_reaction_time
-# from plot import plot_reaction_time_no_naive
-from plot import plot_decision_time
-from plot import plot_decision_time_side
-from plot import plot_decision_time_sessions
-from plot import plot_reaction_outcome
-from plot import plot_decision_outcome
-from plot import plot_single_trial_licking
-from plot import plot_psychometric_post_early_included
-from plot import plot_strategy
-from plot import plot_decision_time_isi
-from plot import plot_reaction_time_isi
-from plot import plot_trial_outcomes
-from plot import plot_short_long_percentage
-from plot import plot_right_left_percentage
-from plot import plot_category_each_session
-from plot import plot_average_licking
-from plot import plot_early_lick_outcome
-from plot import plot_side_outcome_percentage
-from plot import plot_psytrack_bias
-from plot import plot_psytrack_performance
-from plot import plot_pupil_area
-from plot import plot_sdt_d_prime
-from plot import plot_sdt_criterion
-from plot import plot_isi_distribution
-from plot import plot_isi_distribution_epoch
-from plot import plot_eye_trials
-from plot import plot_psychometric_post_opto
-from plot import plot_side_outcome_percentage_nomcs
-from plot import plot_side_outcome_percentage_nomcs_opto
-from plot import plot_decision_time_side_opto
-from plot import plot_average_licking_opto
-from plot import plot_psychometric_post_opto_epoch
-from plot import plot_pooled_licking_opto
-from plot import plot_licking_opto
-from plot import plot_licking_opto_avg
-from plot import plot_psychometric_post_opto_epoch_residual
-from plot import GLM
+from figure_modules.outcomes import plot_outcomes
+from figure_modules.left_right_percentage import plot_left_right_percentage
+from figure_modules.decision_time import plot_decision_time
+from figure_modules.decision_time_opto import plot_decision_time_opto
+from figure_modules.decision_time_kernel_opto import plot_decision_time_kernel_opto
+from figure_modules.decision_time_kernel_opto_diff import plot_decision_time_kernel_opto_diff
+from figure_modules.decision_time_box_outcome import plot_decision_time_box_outcome
+from figure_modules.decision_time_violin_outcome import plot_decision_time_violin_outcome
+from figure_modules.decision_time_violin_side import plot_decision_time_violin_side
+# from figure_modules.performance_opto import plot_performance_opto
 
-from plot_strategy import count_isi_flash
-from plot_strategy import count_psychometric_curve
-from plot_strategy import count_short_long
-from plot_strategy import strategy
-from plot_strategy import count_isi_decision_time
-from plot_strategy import count_flash_decision_time
-from plot_strategy import strategy_epoch
-from plot_strategy import decision_time_dist
-#%%
+
+
+from figure_modules.psychometric_opto_avg import plot_psychometric_opto_avg
+from figure_modules.psychometric_opto_residual_avg import plot_psychometric_opto_residual_avg
+
+from figure_modules.psychometric_opto_epoch import plot_psychometric_opto_epoch
+from figure_modules.psychometric_opto_epoch_residual import plot_psychometric_opto_epoch_residual
+from figure_modules.licking_opto import plot_licking_opto
+from figure_modules.licking_opto_avg import plot_licking_opto_avg
+
+from glm.glm_hmm import get_glm_hmm
+from glm.glm_hmm_summary import summarize_glm_hmm_model
+# from glm.glm_hmm_analysis import 
+
+from glm.glm_plot_state_weights import plot_state_weights
+from glm.glm_plot_state_radar import plot_combined_behavioral_radar
+from glm.glm_plot_state_occupancy_accuracy import plot_state_occupancy_and_accuracy
+from glm.glm_plot_metadata import plot_model_metadata_box
+from glm.glm_plot_state_transition_matrix import plot_state_transition_matrix
+from glm.glm_plot_state_transition_network import plot_state_transition_network
+
+from neural.neural_report import neural_report
+
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -132,6 +119,49 @@ def filter_sessions(M, session_config_list):
    
     return M
 
+def assign_grid_position(index, grid_size, block_size):
+    grid_rows, grid_cols = grid_size
+    block_rows, block_cols = block_size
+
+    figs_per_row = grid_cols // block_cols
+    figs_per_col = grid_rows // block_rows
+    figs_per_page = figs_per_row * figs_per_col
+
+    page_idx = index // figs_per_page
+    index_in_page = index % figs_per_page
+
+    row = (index_in_page // figs_per_row) * block_rows
+    col = (index_in_page % figs_per_row) * block_cols
+
+    # page_key = f"{base_page_key}_p{page_idx}"
+    return page_idx, row, col
+
+def generate_paged_pdf_spec(
+    config_dict,
+    total_items,
+    grid_size=(4, 8),
+    fig_size=(30, 15),
+    block_size=(2, 2),
+    dpi=300,
+    margins=None,
+    start_index=0    
+):
+    if margins is None:
+        margins = {
+            "left": 0,
+            "right": 0,
+            "top": 0,
+            "bottom": 0,
+            "wspace": 0,
+            "hspace": 0,
+        }
+    figs_per_row = grid_size[1] // block_size[1]
+    figs_per_col = grid_size[0] // block_size[0]
+    figs_per_page = figs_per_row * figs_per_col
+    num_pages = (total_items + figs_per_page - 1) // figs_per_page
+
+    return num_pages, grid_size, block_size  # if you want to track how many were created
+
 if __name__ == "__main__":
     # Get the current date
     current_date = datetime.now()
@@ -141,15 +171,9 @@ if __name__ == "__main__":
     # random num
     num_str = f"{random.randint(0, 9999):04d}"
     
-    opto = 0
+
     
-    upload = 0
-    
-    lick_plots = 0
-    
-    use_random_num = 0
-    
-    # session_data_path = config.SESSION_DATA_PATH
+    session_data_path = directories.SESSION_DATA_PATH
     # figure_dir_local = config.FIGURE_DIR_LOCAL
     # output_dir_onedrive = config.OUTPUT_DIR_ONEDRIVE
     # output_dir_local = config.OUTPUT_DIR_LOCAL
@@ -196,23 +220,564 @@ if __name__ == "__main__":
     # subject_list = ['SCHR_TS09_opto']; opto = 1
     # subject_list = ['SCHR_TS06_opto','SCHR_TS07_opto','SCHR_TS08_opto','SCHR_TS09_opto']; opto = 1
 
-    subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']; opto = 1
+    # subject_list = ['LCHR_TS01_update', 'LCHR_TS02_update']; opto = 1
 # 
-    # extract_data(subject_list, session_data_path)
+
+
+
+    # subject_list = ['LCHR_TS01_update', 'LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
+    # subject_list = ['LCHR_TS01', 'LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
+    # subject_list = ['LCHR_TS02', 'SCHR_TS06', 'SCHR_TS07', 'SCHR_TS08', 'SCHR_TS09']
+    # subject_list = ['LCHR_TS01']
+    # subject_list = ['LCHR_TS02']
+    # subject_list = ['SCHR_TS06']
+    # subject_list = ['SCHR_TS07']
+    # subject_list = ['SCHR_TS08']
+    # subject_list = ['SCHR_TS09']
+    # subject_list = ['TS03', 'YH24']
+    subject_list = ['TS03']
+    # subject_list = ['YH24']
+    
+    # for subject in subject_list:
+    #     update_cache_from_mat_files(subject, config.paths['session_data'], 'result.json')
+    # extract_data(subject_list, config.paths['session_data'])
 
     # session_configs = session_config_list_2AFC
 
     M = load_json_to_dict('result.json')
+    
+    
     print("Data loaded from JSON. Proceeding with analysis...")
     M = filter_sessions(M, config.session_config_list_2AFC)
     
+    
+    # Filter 
+    new_M = []
+    for subjectIdx in range(len(subject_list)):
+        for subjectDataIdx in range(len(M)):
+            if M[subjectDataIdx]['name'] == subject_list[subjectIdx]:
+                # SubjectIndxList.append(subjectDataIdx)
+                new_M.append(M[subjectDataIdx])
+    
+    M = new_M
+    
     for subjectIdx in range(len(M)):
-        plot_outcomes(M[subjectIdx], config.session_config_list_2AFC)
+        subject_report = fitz.open()
+        
+        print(M[subjectIdx]['name'])
+        
+        subject = M[subjectIdx]['name']        
+        
+        output_path = config.paths['output_dir_local']
+        os.makedirs(output_path, exist_ok=True)
+        pdf_filename = os.path.join(output_path, f"{subject}_report.pdf") 
+        
+        with PdfPages(pdf_filename) as pdf:
+            
+            page_offset = 0
+            # # Generate and register figure
+            # meta = plot_outcomes(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)
+            # update_figure_registry(meta, config.session_config_list_2AFC)
+            
+            
+            def create_grid_spec(
+                grid_size=(4, 8),
+                figsize=(30, 15),
+                constrained_layout=True,
+            ):
+                layout_mode = 'constrained' if constrained_layout else None
+                fig = plt.figure(layout=layout_mode, figsize=figsize)
+                gs = gridspec.GridSpec(*grid_size, figure=fig)       
+                return fig, gs
+        
+            def create_gs_subplot(
+                fig,
+                gs,
+                position=(0, 0),
+                span=(2, 4),
+                adjust_margins=True,
+            ):
+                """
+                Create a figure and an Axes using GridSpec at a specified grid position.
+            
+                Parameters:
+                    grid_size (tuple): (nrows, ncols) for GridSpec
+                    figsize (tuple): size of the figure
+                    position (tuple): (row, col) where the Axes starts
+                    span (tuple): (rowspan, colspan) for the Axes
+                    constrained_layout (bool): whether to use constrained layout
+                    adjust_margins (bool): if True, set margins and spacing to zero
+            
+                Returns:
+                    fig (Figure): The created figure
+                    ax (Axes): The subplot inserted at the specified location
+                    gs (GridSpec): The GridSpec object used
+                """   
+                row, col = position
+                rowspan, colspan = span
+                ax = fig.add_subplot(gs[row:row+rowspan, col:col+colspan])
+            
+                if adjust_margins:
+                    fig.subplots_adjust(left=0, right=0, top=0, bottom=0, wspace=0, hspace=0)  
+            
+                return fig, ax, gs
+       
+            def rasterize_pdf_to_axes(pdf_path, ax, dpi=300):
+                """
+                Rasterize the first page of a PDF file and display it on the given matplotlib Axes.
+            
+                Parameters:
+                    pdf_path (str): Path to the PDF file (assumes one-page).
+                    ax (matplotlib.axes.Axes): Axes to display the image on.
+                    dpi (int): Resolution for rasterization.
+            
+                Returns:
+                    PIL.Image.Image: The rasterized image (for further use if needed).
+                """
+                # Normalize the file path
+                pdf_path = pdf_path.replace('\\', '/').replace('//', '/')
+            
+                if not os.path.exists(pdf_path):
+                    raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+            
+                # Convert first page of PDF to image
+                images = convert_from_path(pdf_path, dpi=dpi)
+                img = images[0]  # Take the first page
+            
+                ax.imshow(img)
+                ax.axis('off')
+            
+                return img    
+            
+            def add_pdf_page(fig, pdf, fname, plt):
+                pdf.savefig(fig)
+                plt.close(fig)               
+                roi_fig = fitz.open(fname)
+                subject_report.insert_pdf(roi_fig)
+                roi_fig.close()
+                os.remove(fname)                 
+                print(f"PDF saved to: {pdf_filename}")             
+       
+            # opto = 0
+            
+            debug_print = 0
+            
+            upload = 0
+            
+            cover = 0
+            # performance = 1
+            glm = 0
+            lick_plots = 0
+            RT = 0
+            RT_session = 0
+            psychometric = 0
+            
+            neural = 1
+            use_random_num = 0
+       
+            if neural:
+                neural_report(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)
+        
+            if cover:
+                fig, gs = create_grid_spec()
+                   
+                # SESSION OUTCOMES
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(2, 4), adjust_margins=True)            
+                fname = plot_outcomes(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)                             
+                rasterize_pdf_to_axes(fname, ax)
+                
+                # LEFT RIGHT PERCENTAGE
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 0), span=(2, 4), adjust_margins=True)            
+                fname = plot_left_right_percentage(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+                rasterize_pdf_to_axes(fname, ax)
+        
+                # fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 4), span=(2, 2), adjust_margins=True)            
+                # fname = plot_decision_time_box_outcome(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+                # rasterize_pdf_to_axes(fname, ax)    
+        
+                # REACTION TIMES
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 4), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_violin_side(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+                rasterize_pdf_to_axes(fname, ax)      
+        
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 6), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_violin_outcome(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+                rasterize_pdf_to_axes(fname, ax)    
+    
+           
+                # PSYCHOMETRIC
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 4), span=(2, 2), adjust_margins=True)     
+                fname = plot_psychometric_opto_avg(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, -1)
+                rasterize_pdf_to_axes(fname, ax)
+                
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 6), span=(2, 2), adjust_margins=True)     
+                fname = plot_psychometric_opto_residual_avg(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, -1)
+                rasterize_pdf_to_axes(fname, ax)            
+    
+                add_pdf_page(fig, pdf, fname, plt)  
+    
+            # # DECISION TIMES
+            # fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 6), span=(2, 2), adjust_margins=True)            
+            # fname = plot_decision_time(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+            # rasterize_pdf_to_axes(fname, ax)
+            
+            # # DECISION TIMES OPTO
+            # fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 6), span=(2, 2), adjust_margins=True)            
+            # fname = plot_decision_time_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+            # rasterize_pdf_to_axes(fname, ax)            
+               
+
+            if glm:
+                # fig, gs = create_grid_spec()   
+                # fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(2, 8), adjust_margins=True)            
+                # fname = plot_performance_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)                             
+                # rasterize_pdf_to_axes(fname, ax)
+    
+                # add_pdf_page(fig, pdf, fname, plt)
+                
+                # glm_hmm, model_results, session_data_by_date, all_sessions_df = get_glm_hmm(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, train=True)
+                model_output = get_glm_hmm(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, train=False)
+                summary = summarize_glm_hmm_model(model_output)
+                plot_state_weights(model_output)
+                plot_combined_behavioral_radar(summary)
+                plot_state_occupancy_and_accuracy(summary)
+                plot_model_metadata_box(model_output, summary)
+                plot_state_transition_matrix(model_output, summary)
+                plot_state_transition_network(model_output, summary)
+                
+                
+                # glm_interpret(M, config, subjectIdx, sessionIdx=-1, glm_hmm=glm_hmm, model_results=model_results, session_data_by_date=session_data_by_date, all_sessions_df=all_sessions_df)
+            
+            # fig, gs = create_grid_spec()                        
+            
+            # # # DECISION TIMES OPTO
+            # # fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(4, 4), adjust_margins=True)            
+            # # fname = plot_decision_time_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+            # # rasterize_pdf_to_axes(fname, ax)                 
+                        
+            # # add_pdf_page(fig, pdf, fname, plt)
+            
+            # # fig, gs = create_grid_spec()  
+                        
+            # # fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(4, 4), adjust_margins=True)            
+            # # fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+            # # rasterize_pdf_to_axes(fname, ax)               
+   
+   
+    
+            if RT:
+                fig, gs = create_grid_spec() 
+  
+                # DECISION TIMES - CONTROL
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=False, side=None)    
+                rasterize_pdf_to_axes(fname, ax)      
+                
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 2), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=False, side='both')    
+                rasterize_pdf_to_axes(fname, ax)              
+    
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 4), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='left')    
+                rasterize_pdf_to_axes(fname, ax)              
+    
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 6), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='right')    
+                rasterize_pdf_to_axes(fname, ax)              
+    
+                # DECISION TIMES - OPTO
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 0), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side=None)    
+                rasterize_pdf_to_axes(fname, ax)      
+                                
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 2), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto_diff(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='both')    
+                rasterize_pdf_to_axes(fname, ax)        
+                
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 4), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto_diff(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='left')    
+                rasterize_pdf_to_axes(fname, ax)   
+
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 6), span=(2, 2), adjust_margins=True)            
+                fname = plot_decision_time_kernel_opto_diff(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='right')    
+                rasterize_pdf_to_axes(fname, ax)                   
+                
+                # fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 2), span=(2, 2), adjust_margins=True)            
+                # fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='both')    
+                # rasterize_pdf_to_axes(fname, ax)              
+    
+                # fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 4), span=(2, 2), adjust_margins=True)            
+                # fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='left')    
+                # rasterize_pdf_to_axes(fname, ax)              
+    
+                # fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 6), span=(2, 2), adjust_margins=True)            
+                # fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, opto=True, side='right')    
+                # rasterize_pdf_to_axes(fname, ax)            
+                            
+                add_pdf_page(fig, pdf, fname, plt)
+                
+            if RT_session:
+                fig, gs = create_grid_spec() 
+                
+                for sessionIdx in range(len(M[subjectIdx]['dates'])):
+                    # DECISION TIMES - CONTROL
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx,opto=False, side=None)    
+                    rasterize_pdf_to_axes(fname, ax)      
+                    
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 2), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=False, side='both')    
+                    rasterize_pdf_to_axes(fname, ax)              
+        
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 4), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=True, side='left')    
+                    rasterize_pdf_to_axes(fname, ax)              
+        
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 6), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=True, side='right')    
+                    rasterize_pdf_to_axes(fname, ax)              
+        
+                    # DECISION TIMES - OPTO
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 0), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=True, side=None)    
+                    rasterize_pdf_to_axes(fname, ax)      
+                                    
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 2), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto_diff(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=True, side='both')    
+                    rasterize_pdf_to_axes(fname, ax)        
+                    
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 4), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto_diff(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=True, side='left')    
+                    rasterize_pdf_to_axes(fname, ax)   
+    
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(2, 6), span=(2, 2), adjust_margins=True)            
+                    fname = plot_decision_time_kernel_opto_diff(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx=sessionIdx, opto=True, side='right')    
+                    rasterize_pdf_to_axes(fname, ax)                      
+                
+                add_pdf_page(fig, pdf, fname, plt)
+
+            if lick_plots:
+                # LICKS OPTO              
+                
+                fnames = plot_licking_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)
+                dates = M[subjectIdx]['dates']
+                if not isinstance(dates, list):
+                    dates = [dates]
+                for idx, fname in enumerate(fnames):
+                    if idx < len(dates):
+                        date_str = f"{dates[idx]}" 
+                    else:
+                        date_str = f"{dates[0]} - {dates[-1]}" 
+                    fig, gs = create_grid_spec()    
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(4, 8), adjust_margins=True)           
+                    rasterize_pdf_to_axes(fname, ax)              
+                    # Add figure-level title
+                    fig.suptitle(date_str, fontsize=8)
+                    # fig.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space for suptitle
+                    add_pdf_page(fig, pdf, fname, plt)
+  
+    
+                fig, gs = create_grid_spec()
+                fig, ax, gs = create_gs_subplot(fig, gs, position=(0, 0), span=(4, 8), adjust_margins=True)            
+                fname = plot_licking_opto_avg(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)    
+                rasterize_pdf_to_axes(fname, ax)  
+                if len(dates) > 1:
+                    date_str = f"{dates[0]} - {dates[-1]}"
+                else:
+                    date_str = f"{dates[0]}"  
+                fig.suptitle(date_str, fontsize=8)
+                add_pdf_page(fig, pdf, fname, plt)
+   
+    
+            if psychometric:       
+                # OPTO PSYCHOMETRIC SESSIONS
+                # Determine number of required pages
+                total_sessions = len(M[subjectIdx]["dates"])             
+                n_pages_1, grid_size, block_size = generate_paged_pdf_spec(
+                    config.session_config_list_2AFC,
+                    total_items=total_sessions,
+                    grid_size=(4, 8),
+                    fig_size=(30, 15),
+                    block_size=(2, 2),
+                )            
+                
+                
+                fig, gs = create_grid_spec()
+                page_idx_prev = 0
+                for sessionIdx in range(len(M[subjectIdx]['dates'])):
+                   
+                    page_idx, row, col = assign_grid_position(sessionIdx, grid_size, block_size) 
+                    if page_idx != page_idx_prev:
+                        add_pdf_page(fig, pdf, fname, plt)
+                        fig, gs = create_grid_spec()
+                        page_idx_prev = page_idx
+                    
+                    if debug_print:
+                        print(f"[page {page_idx}] row: {row}, col: {col}")
+                   
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(row, col), span=block_size, adjust_margins=True)            
+                    fname = plot_psychometric_opto_epoch(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx)
+                    img = rasterize_pdf_to_axes(fname, ax)     
     
     
+                add_pdf_page(fig, pdf, fname, plt)  
+          
+            
+                # OPTO PSYCHOMETRIC RESIDUALS SESSIONS
+                # Determine number of required pages
+                total_sessions = len(M[subjectIdx]["dates"])             
+                n_pages_1, grid_size, block_size = generate_paged_pdf_spec(
+                    config.session_config_list_2AFC,
+                    total_items=total_sessions,
+                    grid_size=(4, 8),
+                    fig_size=(30, 15),
+                    block_size=(2, 2),
+                )    
+                
+                fig, gs = create_grid_spec()
+                page_idx_prev = 0
+                for sessionIdx in range(len(M[subjectIdx]['dates'])):
+                   
+                    page_idx, row, col = assign_grid_position(sessionIdx, grid_size, block_size) 
+                    if page_idx != page_idx_prev:
+                        add_pdf_page(fig, pdf, fname, plt)
+                        fig, gs = create_grid_spec()
+                        page_idx_prev = page_idx
+                    
+                    print(f"[page {page_idx}] row: {row}, col: {col}")
+                   
+                    fig, ax, gs = create_gs_subplot(fig, gs, position=(row, col), span=block_size, adjust_margins=True)            
+                    fname = plot_psychometric_opto_epoch_residual(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx)
+                    img = rasterize_pdf_to_axes(fname, ax)     
     
     
-    subject_report = fitz.open()
+                add_pdf_page(fig, pdf, fname, plt)        
+                # save to STROPER files
+      
+        
+      
+        
+#%%      
+        
+      
+        meta = plot_left_right_percentage(M[subjectIdx], config.session_config_list_2AFC, subjectIdx)
+
+
+        # Determine number of required pages
+        total_sessions = len(M[subjectIdx]["dates"])        
+        
+        n_pages_1, grid_size, block_size, base_page_key = generate_paged_pdf_spec(
+            config.session_config_list_2AFC,
+            base_page_key="pdf_pg_opto_psychometric",
+            total_items=total_sessions,
+            grid_size=(4, 8),
+            fig_size=(30, 15),
+            block_size=(2, 2),
+        )
+        
+        page_offset += 1
+
+        for sessionIdx in range(len(M[subjectIdx]['dates'])):
+            meta = plot_psychometric_opto_epoch(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx)
+            update_figure_registry(meta, config.session_config_list_2AFC)
+
+            page_key, row, col = assign_grid_position(sessionIdx, grid_size, block_size, base_page_key)            
+        
+            meta['layout'].update({              
+                'page_key': page_key,
+                'row': row,
+                'col': col,
+                'rowspan': block_size[0],
+                'colspan': block_size[1],
+            })
+        
+            update_figure_registry(meta, config.session_config_list_2AFC)
+
+        
+        n_pages_2, grid_size, block_size, base_page_key = generate_paged_pdf_spec(
+            config.session_config_list_2AFC,
+            base_page_key="pdf_pg_opto_psychometric_residual",
+            total_items=total_sessions,
+            grid_size=(4, 8),
+            fig_size=(30, 15),
+            block_size=(2, 2),
+        )
+
+        page_offset += n_pages_1
+
+        for sessionIdx in range(len(M[subjectIdx]['dates'])):
+            meta = plot_psychometric_opto_epoch_residual(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx)
+            update_figure_registry(meta, config.session_config_list_2AFC)
+
+            page_key, row, col = assign_grid_position(sessionIdx, grid_size, block_size, base_page_key)
+        
+            meta['layout'].update({
+                'page': page_offset,                
+                'page_key': page_key,
+                'row': row,
+                'col': col,
+                'rowspan': block_size[0],
+                'colspan': block_size[1],
+            })
+        
+            update_figure_registry(meta, config.session_config_list_2AFC)
+
+
+        # plot_right_left_percentage.run(plt.subplot(gs[2, 0:3]), M[i])        
+
+        # plot_psychometric_epoch.run([plt.subplot(gs[j, 3]) for j in range(3)], M[i])
+       
+        # plot_psychometric_post.run(plt.subplot(gs[0, 4]), M[i], start_from='std')
+        # plot_psychometric_post.run(plt.subplot(gs[1, 4]), M[i], start_from='start_date')
+        # # plot_psychometric_post.run(plt.subplot(gs[2, 4]), M[i], start_from='non_naive')
+       
+        # plot_decision_time.run(plt.subplot(gs[0, 5]), M[i], start_from='std')    
+        
+    # n_pages_3, grid_size, block_size, base_page_key = generate_paged_pdf_spec(
+    #     config.session_config_list_2AFC,
+    #     base_page_key="pdf_pg_licking",
+    #     total_items=total_sessions,
+    #     grid_size=(4, 8),
+    #     fig_size=(30, 15),
+    #     block_size=(4, 8),
+    # )        
+        
+    page_offset += n_pages_2        
+        
+    if lick_plots:
+    
+        # for sessionIdx in range(len(M[subjectIdx]['dates'])):        
+            # page_offset += 1
+                
+        meta, page_offset = plot_licking_opto(M[subjectIdx], config.session_config_list_2AFC, subjectIdx, sessionIdx, page_offset)
+        for entry in meta:
+            n_pages_3, grid_size, block_size, base_page_key = generate_paged_pdf_spec(
+                config.session_config_list_2AFC,
+                base_page_key="pdf_pg_licking",
+                total_items=1,
+                grid_size=(4, 8),
+                fig_size=(30, 15),
+                block_size=(4, 8),
+            )               
+            # update_figure_registry(entry, config.session_config_list_2AFC)
+            
+            entry['layout'].update({
+                # 'page': page_offset,                
+                'page_key': base_page_key,
+                'row': row,
+                'col': col,
+                'rowspan': block_size[0],
+                'colspan': block_size[1],
+            })
+            
+            update_figure_registry(entry, config.session_config_list_2AFC)
+    
+    # for subjectIdx in range(len(M)):
+        # Build report
+        # build_pdf_from_registry(config.session_config_list_2AFC, subjectIdx)
+
+    
+    # subject_report = fitz.open()
     # subject_session_data = M[0]
     # subject_session_data = M
     

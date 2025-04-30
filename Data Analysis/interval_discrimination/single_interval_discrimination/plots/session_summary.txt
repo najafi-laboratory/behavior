@@ -1,0 +1,19 @@
+
+    Session Summary Report
+    =======================
+    
+    Total Trials: 314
+    
+    Available Columns:
+    ['trial_index', 'trial_start', 'trial_stop', 'choice_start', 'stim_start_bpod', 'stim_stop_bpod', 'reward_start', 'punish_start', 'trial_side', 'stim_duration', 'is_opto', 'is_naive', 'rewarded', 'no_lick', 'opto_encode', 'move_correct_spout', 'licks_left_start', 'licks_left_stop', 'licks_right_start', 'licks_right_stop', 'valve_start', 'valve_stop', 'session_id', 'mouse_id', 'date', 'is_right', 'mouse_choice', 'norm_trial_index', 'choice_1back', 'reward_1back', 'opto_1back', 'choice_2back', 'reward_2back', 'opto_2back', 'choice_3back', 'reward_3back', 'opto_3back', 'stay_from_1back', 'lick_time', 'response_time', 'isi_opto_interaction', 'rolling_accuracy', 'rolling_choice_bias', 'exp_choice_bias', 'scope_dff', 'scope_time', 'flash_times']
+    
+    Trials by Choice:
+    mouse_choice
+1    203
+0    111
+    
+    Trials by Reward:
+    rewarded
+1    205
+0    109
+    

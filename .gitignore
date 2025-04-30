@@ -14,3 +14,36 @@ Data Analysis/sana_single_interval_discrimination/figures/LCHR_TS01/bpod/bpod_20
 Data Analysis/sana_single_interval_discrimination/M.pkl
 /session_data
 *.pkl
+Data Analysis/Code_2AFC_Ali/plotter/session_structure.py
+Data Analysis/Code_2AFC_Ali/plotter/psychometrics.py
+Data Analysis/Code_2AFC_Ali/plotter/Outcome.py
+Data Analysis/Code_2AFC_Ali/plotter/licking.py
+Data Analysis/Code_2AFC_Ali/plotter/__pycache__/session_structure.cpython-310.pyc
+Data Analysis/Code_2AFC_Ali/plotter/__pycache__/Outcome.cpython-310.pyc
+Data Analysis/Code_2AFC_Ali/Module/Trial_properties.py
+Data Analysis/Code_2AFC_Ali/Module/session_name_parse.py
+Data Analysis/Code_2AFC_Ali/Module/Reader.py
+Data Analysis/Code_2AFC_Ali/Module/Licking_properties.py
+Data Analysis/Code_2AFC_Ali/Module/__pycache__/Trial_properties.cpython-310.pyc
+Data Analysis/Code_2AFC_Ali/Module/__pycache__/session_name_parse.cpython-310.pyc
+Data Analysis/Code_2AFC_Ali/Module/__pycache__/Reader.cpython-310.pyc
+Data Analysis/Code_2AFC_Ali/Main.py
+Data Analysis/SID/tests.py
+Data Analysis/SID/modules/utils.py
+Data Analysis/SID/modules/directories.py
+Data Analysis/SID/modules/DataIOPsyTrack.py
+Data Analysis/SID/modules/data_preprocess.py
+Data Analysis/SID/modules/data_load.py
+Data Analysis/SID/modules/data_extract.py
+Data Analysis/SID/modules/config.py
+Data Analysis/SID/modules/__pycache__/utils.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/directories.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/data_preprocess.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/data_load.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/data_io.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/data_extract.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/config.cpython-310.pyc
+Data Analysis/SID/modules/__pycache__/__init__.cpython-310.pyc
+Data Analysis/SID/modules/__init__.py
+Data Analysis/SID/main.py
+Data Analysis/interval_discrimination/single_interval_discrimination/result_bak.json

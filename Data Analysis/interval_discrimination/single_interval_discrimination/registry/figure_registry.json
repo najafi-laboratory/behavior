@@ -1,0 +1,176 @@
+{
+  "TS01_left_right_percentage": {
+    "figure_id": "TS01_left_right_percentage",
+    "path": "D://FIGS//TS01\\TS01_left_right_percentage.pdf",
+    "caption": "Left/Right percentage plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 0,
+      "page_key": "pdf_pg_cover",
+      "row": 2,
+      "col": 0,
+      "rowspan": 2,
+      "colspan": 4
+    }
+  },
+  "TS01_decision_time": {
+    "figure_id": "TS01_decision_time",
+    "path": "D://FIGS//TS01\\TS01_decision_time.pdf",
+    "caption": "Decision time plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 0,
+      "page_key": "pdf_pg_cover",
+      "row": 0,
+      "col": 6,
+      "rowspan": 2,
+      "colspan": 2
+    }
+  },
+  "TS01_psychometric_opto_epoch_s0": {
+    "figure_id": "TS01_psychometric_opto_epoch_s0",
+    "path": "D://FIGS//TS01\\TS01_psychometric_opto_epoch_s0.pdf",
+    "caption": "Psychometric plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 1,
+      "page_key": "pdf_pg_opto_psychometric_p0",
+      "row": 0,
+      "col": 0,
+      "rowspan": 2,
+      "colspan": 2
+    }
+  },
+  "TS01_psychometric_opto_epoch_s1": {
+    "figure_id": "TS01_psychometric_opto_epoch_s1",
+    "path": "D://FIGS//TS01\\TS01_psychometric_opto_epoch_s1.pdf",
+    "caption": "Psychometric plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 1,
+      "page_key": "pdf_pg_opto_psychometric_p0",
+      "row": 0,
+      "col": 2,
+      "rowspan": 2,
+      "colspan": 2
+    }
+  },
+  "TS01_psychometric_opto_epoch_residual_s0": {
+    "figure_id": "TS01_psychometric_opto_epoch_residual_s0",
+    "path": "D://FIGS//TS01\\TS01_psychometric_opto_epoch_residual_s0.pdf",
+    "caption": "Psychometric residual plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 2,
+      "page_key": "pdf_pg_opto_psychometric_residual_p0",
+      "row": 0,
+      "col": 0,
+      "rowspan": 2,
+      "colspan": 2
+    }
+  },
+  "TS01_psychometric_opto_epoch_residual_s1": {
+    "figure_id": "TS01_psychometric_opto_epoch_residual_s1",
+    "path": "D://FIGS//TS01\\TS01_psychometric_opto_epoch_residual_s1.pdf",
+    "caption": "Psychometric residual plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 2,
+      "page_key": "pdf_pg_opto_psychometric_residual_p0",
+      "row": 0,
+      "col": 2,
+      "rowspan": 2,
+      "colspan": 2
+    }
+  },
+  "TS01_licking_opto_20250405": {
+    "figure_id": "TS01_licking_opto_20250405",
+    "path": "D://FIGS//TS01\\TS01_licking_opto_20250405.pdf",
+    "caption": "Licking opto plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 3,
+      "page_key": "pdf_pg_licking",
+      "grid_size": [
+        4,
+        8
+      ],
+      "row": 0,
+      "col": 2,
+      "rowspan": 4,
+      "colspan": 8
+    }
+  },
+  "TS01_licking_opto_20250406": {
+    "figure_id": "TS01_licking_opto_20250406",
+    "path": "D://FIGS//TS01\\TS01_licking_opto_20250406.pdf",
+    "caption": "Licking opto plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 4,
+      "page_key": "pdf_pg_licking",
+      "grid_size": [
+        4,
+        8
+      ],
+      "row": 0,
+      "col": 2,
+      "rowspan": 4,
+      "colspan": 8
+    }
+  },
+  "TS01_avg_licking_opto": {
+    "figure_id": "TS01_avg_licking_opto",
+    "path": "D://FIGS//TS01\\TS01_avg_licking_opto.pdf",
+    "caption": "Licking opto plot for TS01",
+    "subject": "TS01",
+    "tags": [
+      "performance",
+      "bias"
+    ],
+    "layout": {
+      "page": 5,
+      "page_key": "pdf_pg_licking",
+      "grid_size": [
+        4,
+        8
+      ],
+      "row": 0,
+      "col": 2,
+      "rowspan": 4,
+      "colspan": 8
+    }
+  }
+}

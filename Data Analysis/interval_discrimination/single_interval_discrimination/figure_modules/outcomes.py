@@ -7,8 +7,7 @@ Created on Thu Apr 10 15:08:54 2025
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
-
+from utils.util import get_figsize_from_pdf_spec
 
 states = [
     'Reward',
@@ -39,8 +38,15 @@ def get_side_outcomes(outcomes, states):
         counts[i,:] = counts[i,:] / (np.sum(counts[i,:])+1e-5)
     return counts
 
-def plot_outcomes(M, config, show_plot=1):
-    fig, ax = plt.subplots(figsize=(6, 4))
+def plot_outcomes(M, config, subjectIdx, show_plot=1):
+    
+    # figure meta
+    rowspan, colspan = 2, 4
+    fig_size = get_figsize_from_pdf_spec(rowspan, colspan, config['pdf_spec']['pdf_pg_cover'])    
+    fig, ax = plt.subplots(figsize=fig_size)    
+    # fig, ax = plt.subplots(figsize=(4, 3))
+    # fig, ax = plt.subplots(figsize=(11, 6))
+    
     max_sessions=25                
     outcomes_left = M['outcomes_left']
     outcomes_right = M['outcomes_right']
@@ -109,7 +115,31 @@ def plot_outcomes(M, config, show_plot=1):
     if show_plot:
         plt.show()
     
-    # os.makedirs(output_dir, exist_ok=True)
-    # out_path = os.path.join(output_dir, f"{subject}_accuracy_curve.png")
-    # fig.savefig(out_path)
+    
+    subject = config['list_config'][subjectIdx]['subject_name']
+    output_dir = os.path.join(config['paths']['figure_dir_local'] + subject)
+    figure_id = f"{subject}_outcomes"
+    file_ext = '.pdf'
+    filename = figure_id + file_ext
+    os.makedirs(output_dir, exist_ok=True)
+    out_path = os.path.join(output_dir, filename)
+    fig.savefig(out_path, bbox_inches='tight', pad_inches=0, dpi=300)
+    # fig.savefig(out_path, dpi=300)
     plt.close(fig)    
+
+    # return {
+    #     'figure_id': figure_id,
+    #     'path': out_path,
+    #     'caption': f"Outcome plot for {subject}",
+    #     'subject': subject,
+    #     'tags': ['performance', 'bias'],
+    #     "layout": {
+    #       "page": 0,
+    #       "page_key": "pdf_pg_cover", 
+    #       "row": 0,
+    #       "col": 0,
+    #       "rowspan": rowspan,
+    #       "colspan": colspan,
+    #     }        
+    # }
+    return out_path
