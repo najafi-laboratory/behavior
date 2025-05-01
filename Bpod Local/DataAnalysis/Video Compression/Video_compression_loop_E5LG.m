@@ -1,0 +1,51 @@
+    % Define the directory containing the videos
+inputDir = 'C:\behavior\video_data\E5LG\250418\E5LG Input'; % Replace with your directory
+outputDir = 'C:\behavior\video_data\E5LG\250418\E5LG Output'; % Replace with your output directory
+
+% Get a list of all video files in the directory
+videoFiles = dir(fullfile(inputDir, '*.avi')); % Adjust the file extension if needed
+
+% Loop over each video file
+for i = 1:length(videoFiles)
+    % Load your original video
+    videoFile = fullfile(inputDir, videoFiles(i).name);
+    
+    try
+        video = VideoReader(videoFile);
+
+        % Get the original frame rate
+        originalFrameRate = video.FrameRate;
+
+        % Create a new name for the output file
+        [~, name, ext] = fileparts(videoFiles(i).name);
+        outputFile = fullfile(outputDir, [name '_compressed' ext]);
+        writerObj = VideoWriter(outputFile, 'Motion JPEG AVI'); % Use 'Motion JPEG AVI' for MJPEG
+
+        % Set the frame rate to match the original video
+        writerObj.FrameRate = originalFrameRate;
+
+        % Set quality (for MJPEG)
+        writerObj.Quality = 90; % Adjust quality as needed (0 to 100)
+
+        % Open the VideoWriter object
+        open(writerObj);
+
+        % Write each frame to the new file
+        while hasFrame(video)
+            frame = readFrame(video);
+            writeVideo(writerObj, frame);
+        end
+
+        % Close the VideoWriter object
+        close(writerObj);
+
+        % Display progress
+        fprintf('Processed video %d of %d: %s\n', i, length(videoFiles), videoFiles(i).name);
+        
+    catch ME
+        % Display an error message if the video cannot be loaded
+        fprintf('Error processing video %s: %s\n', videoFiles(i).name, ME.message);
+    end
+end
+
+fprintf('All videos processed and saved in %s\n', outputDir);
