@@ -39,6 +39,8 @@ try
     selectedSD = S.GUI.SleepDeprived; 
     % S.GUI.UseProbeTrials = 1;  % Enable random CS-only probe trials in each block
     
+    probeTrialsThisBlock = []; 
+    probeIndices = {};
     %% state timing plot
     useStateTiming = true;  % Initialize state timing plot
     if ~verLessThan('matlab','9.5') % StateTiming plot requires MATLAB r2018b or newer
@@ -94,7 +96,10 @@ try
     %% **Divide Trials into Blocks (Only for DoubleBlock Mode)**
     
     blocks = [];  % Array to store the length of each block
-    
+    probeTrialsThisBlock = []; 
+    probeIndices = {};
+
+
     if S.GUI.TrialTypeSequence == 1  % **SingleBlock Mode**
         % **Do NOT divide into blocks → Use one fixed sequence**
         blocks = MaxTrials - numWarmupTrials;  % **One single block for all trials**
@@ -168,7 +173,7 @@ try
 
     for currentTrial = 1:MaxTrials        
         %% sync trial-specific parameters from GUI
-      
+        isProbeTrial = false;
         % input('Set parameters and press enter to continue >', 's');
         S.GUI.currentTrial = currentTrial; % This is pushed out to the GUI in the next line
         S = BpodParameterGUI('sync', S); % Sync parameters with BpodParameterGUI plugin           
@@ -177,7 +182,7 @@ try
 
         switch S.GUI.SleepDeprived
             case 1
-                disp(['Trial',num2str(currentTrial),': Control (No_SD) enabled']);
+                disp(['Trial',num2str(currentTrial),': Control enabled']);
             case 2
                 disp(['Trial',num2str(currentTrial),': Pre_EBC SD enabled, SD was done right before EBD']);
             case 3
@@ -205,8 +210,6 @@ try
 
             if currentTrial == numWarmupTrials+1
                 
-
-
                 isWarmupPhase = false; % End warm-up phase and switch to normal trials
                 currentBlockIndex = 1; % Reset block trial counter
                 % currentTrialInBlock = 1; 
@@ -235,19 +238,11 @@ try
                 end
 
 
-               %  % ========== Initialize probe trial indices ==========
-               %  if S.GUI.UseProbeTrials
-               %      numBlocks = length(blocks);
-               %      probeIndices = randi([10, max(blocks)-10], 1, numBlocks);  % one random probe trial per block
-               %      disp('Probe trials initialized per block:');
-               %      disp(probeIndices);
-               % end
-
                % ========== Initialize probe trial indices ==========
                 if S.GUI.UseProbeTrials
                     probeIndices = {};  % Use a cell array
 
-                        minTrial = S.GUI.num_warmup_trials;
+                        minTrial = S.GUI.num_warmup_trials + 1;
                         maxTrial = S.GUI.BlockLength - 10;
                         
                         % Available trials in block
@@ -338,9 +333,8 @@ try
                         currentTrialInBlock = 1;
                     end
            end
-
             % Check if we are at a probe trial
-            isProbeTrial = false;
+            
             if S.GUI.UseProbeTrials && ~isempty(probeTrialsThisBlock)
                 if any(currentTrialInBlock == probeTrialsThisBlock)
                     isProbeTrial = true;
@@ -349,6 +343,7 @@ try
                     disp(['###################################################################################']);
                 end
             end
+
         end
 
 
@@ -395,15 +390,7 @@ try
 
         else % trace conditioning: puff onset happens after led offset
 
-        isProbeTrial = false;
-        if S.GUI.UseProbeTrials && ~isWarmupPhase && ~isempty(probeIndices)
-            currentBlockLength = blocks(currentBlockIndex);
-            probeTrialInBlock = probeIndices(currentBlockIndex);
-            if currentTrialInBlock == probeTrialInBlock
-                isProbeTrial = true;
-                disp(['Probe Trial inserted at Trial #' num2str(currentTrial) ' in block #' num2str(currentBlockIndex)]);
-            end
-        end
+
 	        LED_puff = S.GUI.LED_Dur + ISI + S.GUI.AirPuff_Dur;
             
         end
@@ -448,36 +435,31 @@ try
 
 
 
-
         % Cam Trigger
         % Camera Trigger generated using BNC1 output.  400Hz signal.
+
+        % First: Check if this trial is a probe trial
+        
+        if isProbeTrial
+                 
+                disp(['###################################################################################']);
+                disp(['This is a Probe Trial: No Airpuff after LED']);
+                disp(['###################################################################################']);
+        else  
+                disp(['###################################################################################']);
+                disp(['This is a Normal Trial: Airpuff after LED']);
+                disp(['###################################################################################']);
+            
+        end
+
+
+
+
         sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', CamTrigOnDur, 'OnsetDelay', 0, 'Channel', 'BNC1',...
             'OnLevel', 1, 'OffLevel', 0,...
             'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', CamTrigOffDur);         
 
-        % try
-        %     MEV.frame = getsnapshot(MEV.vid);
-        %     rgbFrame = double(cat(3, MEV.frame, MEV.frame, MEV.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
-        %     set(MEV.imgOrigHandle, 'CData', rgbFrame);
-        % catch MatlabException
-        %     disp(MatlabException.identifier);
-        %     disp(getReport(MatlabException));
-        % end
-        
-        % sma = AddState(sma, 'Name', 'CheckEyeOpen', ...
-        %     'Timer', 0,...
-        %     'StateChangeConditions', {'SoftCode1', 'Start'},...
-        %     'OutputActions', {'GlobalTimerTrig', '100', 'SoftCode', 1});
-        % 
-        % sma = AddState(sma, 'Name', 'Start', ...
-        %     'Timer', 0,...
-        %     'StateChangeConditions', {'SoftCode1', 'ITI_Pre'},...
-        %     'OutputActions', {'GlobalTimerCancel', '100', 'SoftCode', 2});
-        % 
-        % sma = AddState(sma, 'Name', 'ITI_Pre', ...
-        %     'Timer', S.GUI.ITI_Pre,...
-        %     'StateChangeConditions', {'Tup', 'LED_Onset'},...
-        %     'OutputActions', {'GlobalTimerTrig', '100'});
+
 
         sma = AddState(sma, 'Name', 'Start', ...
             'Timer', 0,...
@@ -494,8 +476,9 @@ try
             'StateChangeConditions', {'SoftCode1', 'LED_Onset', 'SoftCode2', 'CheckEyeOpenTimeout'},...
             'OutputActions', {'SoftCode', 2});
 
-
+        
         if isProbeTrial
+
             sma = AddState(sma, 'Name', 'LED_Onset', ...
                 'Timer', 0, ...
                 'StateChangeConditions', {'GlobalTimer1_Start', 'ITI_Post'}, ...
@@ -505,6 +488,7 @@ try
                 'Timer', S.GUI.ITI_Post, ...
                 'StateChangeConditions', {'Tup', 'ITI'}, ...
                 'OutputActions', {'GlobalTimerCancel', '001'}); 
+
         else
 
             sma = AddState(sma, 'Name', 'LED_Onset', ...
@@ -597,7 +581,7 @@ try
             BpodSystem.Data.SleepDeprived = S.GUI.SleepDeprived;
 
              %%Show the following information to the Experimenter
-            protocol_version = 'EBC_V_3_17';
+            protocol_version = 'EBC_V_3_18';
             % Example protocol version
             % Print the information to the console
             fprintf('Experimenter Initials: %s\n', S.GUI.ExperimenterInitials);
@@ -609,6 +593,8 @@ try
             fprintf('AirPuff Duration: %.3f sec\n', S.GUI.AirPuff_Dur);
 
             fprintf('warm_up trial numbers: %d\n', S.GUI.num_warmup_trials);
+            fprintf('probe trial numbers perBlock: %d\n', S.GUI.num_probetrials_perBlock);
+            
             
             fprintf('doubleBlock_shortFirst LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_Short);
             fprintf('doubleBlock_longFirst LED/Puff Onset Delay: %.3f sec\n', S.GUI.AirPuff_OnsetDelay_Long);
@@ -702,19 +688,7 @@ catch MatlabException
     % close file
     fclose(fid);
 
-    % save workspace variables associated with session to file
-    %  %%Show the following information to the Experimenter
-    %  protocol_version = 'EBC_V_3_11';
-    % % Example protocol version
-    % % Print the information to the console
-    % fprintf('Protocol Version: %s\n', protocol_version);
-    % fprintf('Short Block LED Duration: %d ms\n', S.GUI.LED_Dur_Short);
-    % fprintf('Short Block Puff Duration: %d ms\n', S.GUI.AirPuff_Dur);
-    % fprintf('Short Block LED/Puff Onset Delay: %d ms\n', S.GUI.AirPuff_OnsetDelay_Short);
-    % fprintf('Long Block LED Duration: %d ms\n', S.GUI.LED_Dur_Long);
-    % fprintf('Long Block Puff Duration: %d ms\n', S.GUI.AirPuff_Dur);
-    % fprintf('Long Block LED/Puff Onset Delay: %d ms\n', S.GUI.AirPuff_OnsetDelay_Long);
-
+  
     % disp('Resetting encoder and maestro objects...');
     BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
     % try

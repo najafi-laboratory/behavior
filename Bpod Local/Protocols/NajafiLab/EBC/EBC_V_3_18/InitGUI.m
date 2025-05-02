@@ -49,11 +49,11 @@ function [S] = SetParams(obj, BpodSystem)
         % S.GUIMeta.SleepDeprived.Style = 'checkbox';
         S.GUI.SleepDeprived = 1;
         S.GUIMeta.SleepDeprived.Style = 'popupmenu'; 
-        S.GUIMeta.SleepDeprived.String = {'Control_(NO_SD)','Pre_EBC_SD','Post_EBC_SD'};    
+        S.GUIMeta.SleepDeprived.String = {'Control','Pre_EBC_SD','Post_EBC_SD'};    
 
         
          % UseProbeTrials  1 = enabled, 0 = disabled
-        S.GUI.num_probetrials_perBlock = 20;
+        S.GUI.num_probetrials_perBlock = 10;
         S.GUI.UseProbeTrials = 1;  % Enable/disable probe trials
         S.GUIMeta.UseProbeTrials.Style = 'checkbox';
         S.GUIMeta.UseProbeTrials.String = 'Use Random Probe Trial per Block';
