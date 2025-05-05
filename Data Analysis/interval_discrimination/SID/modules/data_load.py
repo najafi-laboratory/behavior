@@ -42,6 +42,8 @@ def load_subject_sessions(extracted_subject_dir, session_list):
 
     sessions = []
 
+    session_list.sort(key=lambda x: x[-19:])
+
     for session_id in session_list:
         session_file = os.path.join(extracted_subject_dir, f"{session_id}_extracted.pkl")
         if not os.path.isfile(session_file):

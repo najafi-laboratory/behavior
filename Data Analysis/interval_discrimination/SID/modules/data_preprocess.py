@@ -10,23 +10,24 @@ import scipy.io as sio
 import pandas as pd
 import pickle
 from tqdm import tqdm
+from datetime import datetime
 
 from modules.utils import sanitize_path, sanitize_and_create_dir  # assume your utilities live here
 
 REGION_MAP = {
-    0: {'abbrev': 'Control', 'full_name': 'No Stimulation',              'location': 'center'},
-    1: {'abbrev': 'RLat',    'full_name': 'Right Lateral Cerebellar Nucleus', 'location': 'right'},
-    2: {'abbrev': 'LLat',    'full_name': 'Left Lateral Cerebellar Nucleus',  'location': 'left'},
-    3: {'abbrev': 'RIntA',   'full_name': 'Right Interposed Nucleus',   'location': 'right'},
-    4: {'abbrev': 'LIntA',   'full_name': 'Left Interposed Nucleus',    'location': 'left'},
-    5: {'abbrev': 'LPPC',    'full_name': 'Left Posterior Parietal Cortex',   'location': 'left'},
-    6: {'abbrev': 'RPPC',    'full_name': 'Right Posterior Parietal Cortex',  'location': 'right'},
-    7: {'abbrev': 'mPFC',    'full_name': 'Medial Prefrontal Cortex',   'location': 'center'},
-    8: {'abbrev': 'LPost',   'full_name': 'Left Posterior Cortex',      'location': 'left'},
-    9: {'abbrev': 'RPost',   'full_name': 'Right Posterior Cortex',     'location': 'right'},
+    0: {'abbrev': 'Control', 'full_name': 'No Stimulation',              'location': 'Center'},
+    1: {'abbrev': 'RLat',    'full_name': 'Right Lateral Cerebellar Nucleus', 'location': 'Right'},
+    2: {'abbrev': 'LLat',    'full_name': 'Left Lateral Cerebellar Nucleus',  'location': 'Left'},
+    3: {'abbrev': 'RIntA',   'full_name': 'Right Interposed Nucleus',   'location': 'Right'},
+    4: {'abbrev': 'LIntA',   'full_name': 'Left Interposed Nucleus',    'location': 'Left'},
+    5: {'abbrev': 'LPPC',    'full_name': 'Left Posterior Parietal Cortex',   'location': 'Left'},
+    6: {'abbrev': 'RPPC',    'full_name': 'Right Posterior Parietal Cortex',  'location': 'Right'},
+    7: {'abbrev': 'mPFC',    'full_name': 'Medial Prefrontal Cortex',   'location': 'Center'},
+    8: {'abbrev': 'LPost',   'full_name': 'Left Posterior Cortex',      'location': 'Left'},
+    9: {'abbrev': 'RPost',   'full_name': 'Right Posterior Cortex',     'location': 'Right'},
 }
 
-SIDE_TO_NUM = {"center": 0, "left": 1, "right": 2}
+SIDE_TO_NUM = {"Center": 0, "Left": 1, "Right": 2}
 
 def decode_opto_region_fields(region_id):
     region = REGION_MAP.get(region_id)
@@ -104,6 +105,104 @@ def add_flash_timings(df):
     flash_df = df.apply(extract_flash_times, axis=1)
     return pd.concat([df, flash_df], axis=1)
 
+def get_earliest_lick(row, left_col, right_col):
+    left = row[left_col]
+    right = row[right_col]
+
+    all_licks = []
+
+    if isinstance(left, list):
+        all_licks.extend([v for v in left if not np.isnan(v)])
+    if isinstance(right, list):
+        all_licks.extend([v for v in right if not np.isnan(v)])
+
+    return min(all_licks) if all_licks else np.nan   
+
+def sanitize_lick_times(start_times, stop_times, trial_start_time=None, trial_end_time=None, fudge_ms=1.0):
+    """
+    Ensures start_times and stop_times are well-formed:
+    - First stop must come after first start (else drop stop).
+    - Last start must come before last stop (else drop or fudge stop).
+    - Lengths must match.
+    - Optionally enforce trial start/end limits.
+    
+    Parameters:
+        start_times (list of float): Lick start times.
+        stop_times (list of float): Lick stop times.
+        trial_start_time (float or None): Optional trial start bound.
+        trial_end_time (float or None): Optional trial end bound.
+        fudge_ms (float): Small offset to apply if generating synthetic stop time.
+    
+    Returns:
+        (list, list): Matched start/stop times or ([np.nan], [np.nan]) if none valid.
+    """
+    # start_times = np.array(start_times, dtype=np.float64)
+    # stop_times = np.array(stop_times, dtype=np.float64)
+
+    # # Drop NaNs
+    # start_times = start_times[~np.isnan(start_times)]
+    # stop_times = stop_times[~np.isnan(stop_times)]
+
+    # # Handle too-short arrays
+    # if len(start_times) == 0 and len(stop_times) == 0:
+    #     return [np.nan], [np.nan]
+
+    # If first stop precedes first start → drop the first stop
+    if len(stop_times) > 0 and len(start_times) > 0 and stop_times[0] < start_times[0]:
+        stop_times = stop_times[1:]
+
+    # If last start is after last stop → drop the last start OR add fake stop
+    if len(start_times) > len(stop_times):
+        if trial_end_time is not None:
+            stop_times = np.append(stop_times, min(trial_end_time, start_times[-1] + fudge_ms))
+        else:
+            stop_times = np.append(stop_times, start_times[-1] + fudge_ms)
+
+    elif len(stop_times) > len(start_times):
+        # If there's an extra stop time at the beginning
+        stop_times = stop_times[:len(start_times)]
+
+    # Final truncate to match
+    min_len = min(len(start_times), len(stop_times))
+    start_times = start_times[:min_len]
+    stop_times = stop_times[:min_len]
+
+    # Apply trial bounds if provided
+    if trial_start_time is not None:
+        valid = start_times >= trial_start_time
+        start_times = start_times[valid]
+        stop_times = stop_times[valid]
+
+    if trial_end_time is not None:
+        valid = stop_times <= trial_end_time
+        start_times = start_times[valid]
+        stop_times = stop_times[valid]
+
+    if len(start_times) == 0 or len(stop_times) == 0:
+        return [np.nan], [np.nan]
+
+    return start_times, stop_times
+
+def filter_early_licks(start_times, stop_times, min_time_ms):
+    """
+    Remove licks that start before min_time_ms.
+    Keeps start/stop pairing by index.
+    Returns [np.nan] if no valid licks remain.
+    """
+    start_times = np.array(start_times, dtype=np.float64)
+    stop_times = np.array(stop_times, dtype=np.float64)
+
+    # Keep indices where start >= min_time
+    keep_mask = start_times >= min_time_ms
+
+    if np.any(keep_mask):
+        return (
+            start_times[keep_mask].tolist(),
+            stop_times[keep_mask].tolist()            
+        )
+    else:
+        return [np.nan], [np.nan]
+
 def build_trial_dataframe(data):
     rows = []
     
@@ -172,12 +271,41 @@ def build_trial_dataframe(data):
         else:
             licks['licks_right_stop'] = events['Port3Out']        
     
-        alignment = 0
-        licks['licks_left_start'] = [(x - alignment)*1000 for x in licks['licks_left_start']]
-        licks['licks_left_stop'] = [(x - alignment)*1000 for x in licks['licks_left_stop']]
-        licks['licks_right_start'] = [(x - alignment)*1000 for x in licks['licks_right_start']]
-        licks['licks_right_stop'] = [(x - alignment)*1000 for x in licks['licks_right_stop']]        
+        # convert lick times to ms
+        alignment = 0        
+        row['licks_left_start'] = [(x - alignment)*1000 for x in licks['licks_left_start']]
+        row['licks_left_stop'] = [(x - alignment)*1000 for x in licks['licks_left_stop']]
+        row['licks_right_start'] = [(x - alignment)*1000 for x in licks['licks_right_start']]
+        row['licks_right_stop'] = [(x - alignment)*1000 for x in licks['licks_right_stop']]        
+        
+        # check start/stop times to match
+        row['licks_left_start'], row['licks_left_stop'] = sanitize_lick_times(row['licks_left_start'], row['licks_left_stop'], trial_start_time=None, trial_end_time=None, fudge_ms=1.0)
+        row['licks_right_start'], row['licks_right_stop'] = sanitize_lick_times(row['licks_right_start'], row['licks_right_stop'], trial_start_time=None, trial_end_time=None, fudge_ms=1.0)
+        
+        # filter early licks
+        check_early_lick = states_events_data[idx]['States']['WindowChoice'][0] * 1000        
+        row['licks_left_start'], row['licks_left_stop'] = filter_early_licks(row['licks_left_start'], row['licks_left_stop'], check_early_lick)
+        row['licks_right_start'], row['licks_right_stop'] = filter_early_licks(row['licks_right_start'], row['licks_right_stop'], check_early_lick)        
           
+        # test filter
+        # check_early_lick = 500  # in ms
+        # row['licks_left_start'] = [480, 510, 495, 525]  # ms
+        # row['licks_left_stop']  = [490, 520, 505, 540]  # paired stop times
+        # row['licks_left_start'], row['licks_left_stop'] = filter_early_licks(
+        #     row['licks_left_start'],
+        #     row['licks_left_stop'],
+        #     check_early_lick
+        # )
+        
+        # get window choice aligned lick times
+        alignment = states_events_data[idx]['States']['WindowChoice'][0] * 1000  
+        row['licks_left_start_choice'] = [(x - alignment) for x in row['licks_left_start']]
+        row['licks_left_stop_choice'] = [(x - alignment) for x in row['licks_left_stop']]
+        row['licks_right_start_choice'] = [(x - alignment) for x in row['licks_right_start']]
+        row['licks_right_stop_choice'] = [(x - alignment) for x in row['licks_right_stop']]          
+        
+        # check for < 0 RTs
+        
         # get outcome
         row['outcome'] = states_labeling(states)
         
@@ -189,23 +317,23 @@ def build_trial_dataframe(data):
         
         # --- Add rewarded column ---
         if row['outcome'] in ['Reward', 'RewardNaive']:
-            row['Rewarded'] = 1
+            row['rewarded'] = 1
         else:
-            row['Rewarded'] = 0        
+            row['rewarded'] = 0        
             
         # --- Add punished column ---
         if row['outcome'] in ['Punish', 'PunishNaive']:
-            row['Punished'] = 1
+            row['punished'] = 1
         else:
-            row['Punished'] = 0
+            row['punished'] = 0
             
         # add lick column               
-        if not row['Rewarded'] and not row['Punished']:
+        if not row['rewarded'] and not row['punished']:
             row['lick'] =  0
         else:
             row['lick'] =  1
         
-        if row['Rewarded']:
+        if row['rewarded']:
             row['punish_start'] = np.nan
             row['punish_stop'] = np.nan            
             if row['naive']:
@@ -225,7 +353,7 @@ def build_trial_dataframe(data):
             row['punish_stop'] = punish_times[1] if len(punish_times) > 0 else np.nan            
                  
          # Track valve open/close times for the trial (start/stop), maybe we can decipher the world rig, eh?
-        if row['Rewarded']:
+        if row['rewarded']:
             if row['naive']:
                 valve_times.append(states['NaiveRewardDeliver'][0] - alignment)
                 valve_times.append(states['NaiveRewardDeliver'][1] - alignment)                                 
@@ -254,6 +382,23 @@ def build_trial_dataframe(data):
 
     return pd.DataFrame(rows)
 
+# 1 = mouse chose right
+# 0 = mouse chose left
+# We'll infer based on whether rewarded and which side was correct
+def infer_choice(row):
+    if row['rewarded'] == 1:
+        return row['is_right']  # Mouse must have chosen correctly
+    else:
+        return 1 - row['is_right']  # Mouse chose the wrong side
+
+
+def convert_date_to_yyyymmdd(date_str):
+    """
+    Convert date string like '17-Apr-2025' to '20250417'.
+    """
+    dt = datetime.strptime(date_str, "%d-%b-%Y")
+    return dt.strftime("%Y%m%d")
+
 def preprocess_session_data(session_data):
     """
     Apply preprocessing to the extracted session data.
@@ -277,11 +422,13 @@ def preprocess_session_data(session_data):
         'RigName' : data['RigName'],
         'nTrials' : data['nTrials'],        
         'SessionDate' : data['Info']['SessionDate'],
+        'date' : convert_date_to_yyyymmdd(data['Info']['SessionDate']),
         'SessionStartTime_MATLAB' : data['Info']['SessionStartTime_MATLAB'],
         'SessionStartTime_UTC' : data['Info']['SessionStartTime_UTC'],  
         'TrialTypes' : data['TrialTypes'],
         'OptoType' : data.get('OptoType', 0),
         'GUISettings': GUISettings,
+        'subject_name': data['subject_name']
     }
     session_info['TrialTypes']
     
@@ -304,8 +451,20 @@ def preprocess_session_data(session_data):
     # )
     
     # add left/right side type
-    df['trial_side'] = pd.Series(session_info['TrialTypes']).map({0: 'left', 1: 'right'})
+    df['trial_side'] = pd.Series(session_info['TrialTypes']).map({1: 'left', 2: 'right'})
+    
+    # side type encoding
+    df['is_right'] = (df['trial_side'] == 'right').astype(int)
 
+    # add mouse choice side
+    df['is_right_choice'] = df.apply(infer_choice, axis=1)
+    df['mouse_choice'] = pd.Series(df['is_right_choice']).map({0: 'left', 1: 'right'})
+    
+    # add mouse choice correct, could check rewarded
+    df['mouse_correct'] = (df['is_right'] == df['is_right_choice']).astype(int)
+    
+    # ---- Response Times ----
+    df['RT'] = df.apply(get_earliest_lick, axis=1, left_col='licks_left_start_choice', right_col='licks_right_start_choice')   
     
     # --- Add 'opto' column and region info ---
     # get opto trial list
@@ -313,11 +472,11 @@ def preprocess_session_data(session_data):
     # Make sure it's the right length
     assert len(opto_type_list) == len(df), f"OptoType list length {len(opto_type_list)} doesn't match trial dataframe length {len(df)}"    
     # Add directly to DataFrame of trials
-    df['opto'] = pd.Series(session_info['OptoType']).astype(int)
+    df['is_opto'] = pd.Series(session_info['OptoType']).astype(int)
     # encode opto residual trials
-    df['opto_encode'] = compute_opto_encode(df['opto'].values.astype(int))
+    df['opto_encode'] = compute_opto_encode(df['is_opto'].values.astype(int))
     # opto session flag
-    session_info['OptoSession'] = int(df['opto'].any())
+    session_info['OptoSession'] = int(df['is_opto'].any())
     # if opto session, get opto region, otherwise set to control
     session_info['OptoRegion'] = session_info.get('GUISettings', {}).get('OptoRegion', 0) if session_info.get('OptoSession', 0) else 0
     # --- Region decoding ---
@@ -350,6 +509,7 @@ def preprocess_session_data(session_data):
     
 
     # Add metadata
+    # change session_data var name later after we know we have the neede sessions data to reduce file size
     session_data['df'] = df
     session_data['session_info'] = session_info
     session_data['preprocessing_version'] = 1.0

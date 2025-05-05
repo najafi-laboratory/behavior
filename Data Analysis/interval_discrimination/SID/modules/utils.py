@@ -64,3 +64,38 @@ def get_figsize_from_pdf_spec(rowspan, colspan, pdf_spec):
     height_in = rowspan * cell_height_in
     
     return (width_in, height_in)
+
+
+def save_plot(fig, subject_id, session_date, plot_name, output_root='plots', save_png=True, save_pdf=True):
+    """
+    Save a matplotlib figure to both PDF and PNG formats with standardized filenames.
+
+    Args:
+        fig          : Matplotlib figure object
+        subject_id   : e.g., 'TS01'
+        session_date : e.g., '20250405'
+        plot_name    : e.g., 'isi_distribution', 'outcome_donut'
+        output_root  : root directory for saving (default = 'plots/')
+        save_png     : whether to save a .png version
+        save_pdf     : whether to save a .pdf version
+
+    Returns:
+        dict with 'pdf' and 'png' paths (if saved)
+    """
+    output_dir = os.path.join(output_root, subject_id, session_date)
+    os.makedirs(output_dir, exist_ok=True)
+
+    base_path = os.path.join(output_dir, plot_name)
+    saved_paths = {}
+
+    if save_pdf:
+        pdf_path = base_path + '.pdf'
+        fig.savefig(pdf_path, bbox_inches='tight')
+        saved_paths['pdf'] = pdf_path
+
+    if save_png:
+        png_path = base_path + '.png'
+        fig.savefig(png_path, dpi=300, bbox_inches='tight')
+        saved_paths['png'] = png_path
+
+    return saved_paths

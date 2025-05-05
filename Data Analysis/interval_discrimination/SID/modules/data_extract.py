@@ -157,7 +157,7 @@ def session_already_extracted(extracted_dir, session_id):
     session_file = os.path.join(extracted_dir, f"{session_id}_extracted.pkl")
     return os.path.isfile(session_file)
 
-def extract_and_store_subject(subject_dir, extracted_dir, config, force=False):
+def extract_and_store_subject(subject_dir, extracted_dir, config, subject_id, force=False):
     subject_dir = sanitize_path(subject_dir)
     extracted_dir = sanitize_and_create_dir(extracted_dir)
     error_log_path = sanitize_path(config.paths['error_log_path'])
@@ -184,11 +184,14 @@ def extract_and_store_subject(subject_dir, extracted_dir, config, force=False):
             #     log_file.write(error_msg + '\n')
             # continue        
         else:
+            # add subject name to session data
+            subject_config = config.session_config_list_2AFC["list_config"].get(subject_id, None)
+            extracted_data['subject_name'] = subject_config["subject_name"]
             save_path = os.path.join(extracted_dir, f"{session_id}_extracted.pkl")
             save_extracted_session(extracted_data, save_path)
 
 # def batch_extract(subjects_root_dir, extracted_root_dir, subject_list):
-def batch_extract(config, subject_list, force=False):    
+def batch_extract(subject_list, config, force=False):    
     subjects_root_dir = sanitize_path(config.paths['session_data'])
     extracted_root_dir = sanitize_and_create_dir(config.paths['extracted_data'])
 
@@ -199,4 +202,4 @@ def batch_extract(config, subject_list, force=False):
     for subject_id in subject_list:
         subject_dir = os.path.join(subjects_root_dir, subject_id)
         subject_extracted_dir = os.path.join(extracted_root_dir, subject_id)
-        extract_and_store_subject(subject_dir, subject_extracted_dir, config, force)
+        extract_and_store_subject(subject_dir, subject_extracted_dir, config, subject_id, force)
