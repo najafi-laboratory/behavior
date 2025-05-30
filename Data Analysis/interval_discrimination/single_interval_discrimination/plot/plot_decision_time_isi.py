@@ -99,6 +99,7 @@ def run(ax, subject_session_data, start_from='std'):
     bin_mean_jitter, bin_sem_jitter, bin_time_jitter = get_bin_stat(decision_jitter)
     bin_mean_chemo, bin_sem_chemo, bin_time_chemo = get_bin_stat(decision_chemo)
     bin_mean_opto, bin_sem_opto, bin_time_opto = get_bin_stat(decision_opto)
+
     ax.plot(
         bin_time_fix,
         bin_mean_fix,
@@ -151,6 +152,9 @@ def run(ax, subject_session_data, start_from='std'):
         bin_mean_opto + bin_sem_opto,
         color='dodgerblue',
         alpha=0.2)
+    
+    
+  
     ax.tick_params(tick1On=False)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -161,7 +165,11 @@ def run(ax, subject_session_data, start_from='std'):
     ax.spines['top'].set_visible(False)
     # ax.set_xlim([-50,1050])
     ax.set_xlim([-50,1600])
-    ax.set_ylim([0,600])
+    
+    ylim_u = np.max(bin_mean_fix + bin_sem_fix) + 100
+    ylim_l = np.min(bin_mean_fix - bin_sem_fix) - 100
+    ax.set_ylim([ylim_l,ylim_u])
+    # ax.set_ylim([0,600])
     # ax.set_xticks(np.arange(6)*200)
     ax.set_xticks(np.arange(11)*150)
     ax.tick_params(axis='x', rotation=45)

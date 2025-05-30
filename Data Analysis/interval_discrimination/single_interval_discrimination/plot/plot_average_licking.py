@@ -15,6 +15,10 @@ from scipy.interpolate import interp1d
 from datetime import date
 from statistics import mean 
 import math
+
+def ensure_list(var):
+    return var if isinstance(var, list) else [var]
+
 def save_image(filename): 
     
     p = PdfPages(filename+'.pdf') 
@@ -37,16 +41,21 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
     outcomes = subject_session_data['outcomes']
     outcomes_time = subject_session_data['outcomes_time']
     #categories = subject_session_data['isi_post_emp']
+    
+    trial_type = subject_session_data['trial_type']
+    
     row = 4 
     col = 5
     pre_delay = 300
     post_delay = 3000
-    alignments = ['1st flash' , '3th flash' , '4th flash' , 'choice window' , 'outcome']
+    # alignments = ['1st flash' , '3th flash' , '4th flash' , 'choice window' , 'outcome']
+    alignments = ['choice window' , 'outcome']
     row_names = ['rewarded short' , 'rewarded long' , 'punished short' , 'punished long']
     n_bins = 500
     
     
     for i in range(len(dates)):
+        print(i)
         fig, axs = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30))
         #fig2, axs1 = plt.subplots(nrows=4, ncols=len(alignments), figsize=(40, 30))
         pdf_streams = []
@@ -71,10 +80,13 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
             colors = []
 
             for trial in range(numTrials):
+                print(trial)
                 stim_seq = np.divide(subject_session_data['stim_seq'][i][trial],1000)
                 step = 10000
                 start = 0
-                category = 1000*np.mean(raw_data[i]['ProcessedSessionData'][trial]['trial_isi']['PostISI'])
+                # category = 1000*np.mean(raw_data[i]['ProcessedSessionData'][trial]['trial_isi']['PostISI'])
+                # category = 1000*np.mean(raw_data[i]['TrialSettings'][0]['GUI']['ISIOrig_s'])
+                
 
                 if not 'Port1In' in raw_data[i]['RawEvents']['Trial'][trial]['Events'].keys():
                         port1 = []
@@ -97,62 +109,94 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
                 else:
                     port3 = raw_data[i]['RawEvents']['Trial'][trial]['Events']['Port3In']
                     
+                # make sure port vars are list type
+                port1 = ensure_list(port1)
+                port2 = ensure_list(port2)
+                port3 = ensure_list(port3)                
                 
-                if j == 4:
-                    alignment = outcome_time[trial]
-                elif j == 3:
-                    alignment = raw_data[i]['RawEvents']['Trial'][trial]['States']['WindowChoice'][0]
-                elif j == 2:
-                    if len(stim_seq[1 , :]) > 2:
-                        alignment = stim_seq[1 , 2]
-                    else:
-                        alignment = 'nan'
-                elif j == 1:
-                    if len(stim_seq[1 , :]) > 3:
-                        alignment = stim_seq[1 , 3]
-                    else:
-                        alignment = 'nan'
+                # if j == 4:
+                #     alignment = outcome_time[trial]
+                # elif j == 3:
+                #     alignment = raw_data[i]['RawEvents']['Trial'][trial]['States']['WindowChoice'][0]
+                # elif j == 2:
+                #     if len(stim_seq[1 , :]) > 2:
+                #         alignment = stim_seq[1 , 2]
+                #     else:
+                #         alignment = 'nan'
+                # elif j == 1:
+                #     if len(stim_seq[1 , :]) > 3:
+                #         alignment = stim_seq[1 , 3]
+                #     else:
+                #         alignment = 'nan'
+                # elif j == 0:
+                #     if len(stim_seq[1 , :]) > 0:
+                #         alignment = stim_seq[1 , 0]
+                #     else:
+                #         alignment = 'nan'
+                
+                if j == 1:
+                    alignment = outcome_time[trial]                    
                 elif j == 0:
-                    if len(stim_seq[1 , :]) > 0:
-                        alignment = stim_seq[1 , 0]
-                    else:
-                        alignment = 'nan'
+                    alignment = raw_data[i]['RawEvents']['Trial'][trial]['States']['WindowChoice'][0]                    
+                        
                 if not alignment == 'nan':
                     if outcome[trial] == 'Reward':
-                        if category < 500:
-                            if len(stim_seq[1 , :]) > 3:
-                                series_right_rs.append([x - alignment for x in port3])
-                                series_center_rs.append([x - alignment for x in port2])
-                                series_left_rs.append([x - alignment for x in port1])
-
-
-                        if category > 500:
-                            if len(stim_seq[1 , :]) > 3:
-                                colors.append('red')
-                                series_right_rl.append([x - alignment for x in port3])
-                                series_center_rl.append([x - alignment for x in port2])
-                                series_left_rl.append([x - alignment for x in port1])
+                        if trial_type[i][trial] == 1:
+                            series_right_rs.append([x - alignment for x in port3])
+                            series_center_rs.append([x - alignment for x in port2])
+                            series_left_rs.append([x - alignment for x in port1])
+                        else:
+                            colors.append('red')
+                            series_right_rl.append([x - alignment for x in port3])
+                            series_center_rl.append([x - alignment for x in port2])
+                            series_left_rl.append([x - alignment for x in port1])
+                                
+                        # if category < 500:
+                        #     if len(stim_seq[1 , :]) > 3:
+                        #         series_right_rs.append([x - alignment for x in port3])
+                        #         series_center_rs.append([x - alignment for x in port2])
+                        #         series_left_rs.append([x - alignment for x in port1])
+                        # if category > 500:
+                        #     if len(stim_seq[1 , :]) > 3:
+                        #         colors.append('red')
+                        #         series_right_rl.append([x - alignment for x in port3])
+                        #         series_center_rl.append([x - alignment for x in port2])
+                        #         series_left_rl.append([x - alignment for x in port1])
 
                     if outcome[trial] == 'Punish':
-                        if category < 500:
-                            if len(stim_seq[1 , :]) > 3:
-                                colors.append('yellow')
-                                series_right_ps.append([x - alignment for x in port3])
-                                series_center_ps.append([x - alignment for x in port2])
-                                series_left_ps.append([x - alignment for x in port1])
+                        if trial_type[i][trial] == 1:
+                            colors.append('yellow')
+                            series_right_ps.append([x - alignment for x in port3])
+                            series_center_ps.append([x - alignment for x in port2])
+                            series_left_ps.append([x - alignment for x in port1])
+                        else:
+                            colors.append('green')
+                            series_right_pl.append([x - alignment for x in port3])
+                            series_center_pl.append([x - alignment for x in port2])
+                            series_left_pl.append([x - alignment for x in port1])                       
+                                        
+                        
+                        # if category < 500:
+                        #     if len(stim_seq[1 , :]) > 3:
+                        #         colors.append('yellow')
+                        #         series_right_ps.append([x - alignment for x in port3])
+                        #         series_center_ps.append([x - alignment for x in port2])
+                        #         series_left_ps.append([x - alignment for x in port1])
 
-                        if category > 500:
-                            if len(stim_seq[1 , :]) > 3:
-                                colors.append('green')
-                                series_right_pl.append([x - alignment for x in port3])
-                                series_center_pl.append([x - alignment for x in port2])
-                                series_left_pl.append([x - alignment for x in port1])
-                                
+                        # if category > 500:
+                        #     if len(stim_seq[1 , :]) > 3:
+                        #         colors.append('green')
+                        #         series_right_pl.append([x - alignment for x in port3])
+                        #         series_center_pl.append([x - alignment for x in port2])
+                        #         series_left_pl.append([x - alignment for x in port1])
+            xlim_left = 0.1
+            xlim_right = 4
+                        
             axs[0 , j].vlines(0 ,len(series_left_rs), 0, linestyle='--', color='grey')
             axs[0 , j].eventplot(series_center_rs, color='black', linelengths = 0.3)
             axs[0 , j].eventplot(series_right_rs, color='red', linelengths = 0.3)
             axs[0 , j].eventplot(series_left_rs, color='limegreen', linelengths = 0.3)
-            axs[0 , j].set_xlim([-2,6])
+            axs[0 , j].set_xlim([xlim_left,xlim_right])
             axs[0 , j].set_title('reward, short, ' + alignments[j])
             if len(series_center_rs) > 0:
                 axs[0 , j].hist(np.concatenate(series_center_rs), bins=n_bins, histtype='step', stacked=True, fill=False , color = 'black', alpha = 0.2)
@@ -163,7 +207,7 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
             axs[1 , j].eventplot(series_center_rl, color='black', linelengths = 0.3)
             axs[1 , j].eventplot(series_right_rl, color='red', linelengths = 0.3)
             axs[1 , j].eventplot(series_left_rl, color='limegreen', linelengths = 0.3)
-            axs[1 , j].set_xlim([-2,6])
+            axs[1 , j].set_xlim([xlim_left,xlim_right])
             axs[1 , j].set_title('reward, long, ' + alignments[j])
             if len(series_center_rl) > 0:
                 axs[1 , j].hist(np.concatenate(series_center_rl), bins=n_bins, histtype='step', stacked=True, fill=False , color = 'black', alpha = 0.2)
@@ -174,7 +218,7 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
             axs[2 , j].eventplot(series_center_ps, color='black', linelengths = 0.3)
             axs[2 , j].eventplot(series_right_ps, color='red', linelengths = 0.3)
             axs[2 , j].eventplot(series_left_ps, color='limegreen', linelengths = 0.3)
-            axs[2 , j].set_xlim([-2,6])
+            axs[2 , j].set_xlim([xlim_left,xlim_right])
             axs[2 , j].set_title('punish, short, ' + alignments[j])
             if len(series_center_ps) > 0:
                 axs[2 , j].hist(np.concatenate(series_center_ps), bins=n_bins, histtype='step', stacked=True, fill=False , color = 'black', alpha = 0.4)
@@ -186,7 +230,7 @@ def run(subject_session_data,output_dir_onedrive, output_dir_local):
             axs[3 , j].eventplot(series_center_pl, color='black', linelengths = 0.3)
             axs[3 , j].eventplot(series_right_pl, color='red', linelengths = 0.3)
             axs[3 , j].eventplot(series_left_pl, color='limegreen', linelengths = 0.3)
-            axs[3 , j].set_xlim([-2,6])
+            axs[3 , j].set_xlim([xlim_left,xlim_right])
             axs[3 , j].set_title('punish, long, ' + alignments[j])
             if len(series_center_pl) > 0:
                 axs[3 , j].hist(np.concatenate(series_center_pl), bins=n_bins, histtype='step', stacked=True, fill=False , color = 'black' , alpha = 0.2)

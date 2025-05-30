@@ -1,0 +1,146 @@
+classdef OptoConfig
+
+properties
+    laser_module = [];
+end
+
+methods
+
+function obj = ConnectInitLaser(obj, S)
+    if S.GUI.EnDoricAPI
+        pythonDoricPath = 'C:\DoricLaserAPI\DoricSystemDLL\Examples\Python\LightSource';
+        insert(py.sys.path, int32(0), pythonDoricPath);  % Add Python script location
+        % clear classes;
+        obj.laser_module = py.importlib.import_module('light_source_main'); % Import the Python script
+        py.importlib.reload(obj.laser_module);
+        result = obj.laser_module.InitLaser();   % Call the Python function
+        disp(result);
+    end
+end
+
+function obj = DisconnectLaser(obj, S)
+    if S.GUI.EnDoricAPI
+        result = obj.laser_module.DisconnectLaser();   % Call the Python function
+        disp(result);
+    end
+end     
+
+function [OptoType] = GenOptoType(obj, S)
+    OptoType = zeros(1, S.GUI.MaxTrials);
+    if S.GUI.OptoSession
+        OptoType = 0 + (rand(1, S.GUI.MaxTrials) < S.GUI.OnFraction);
+        % soonest opto at trial >= 20
+        OptoType = [zeros(1, 20), OptoType(21:end)];
+    end
+end
+
+
+function [AudStim] = OptoUpdateAudStimTrig(obj, OptoType, currentTrial)
+    switch OptoType(currentTrial)
+        case 0
+            AudStim = {'HiFi1', ['P', 4]};
+        case 1
+            AudStim = {'HiFi1', ['P', 4], 'GlobalTimerTrig', '11'};
+    end
+end
+
+
+function [sma] = SetOpto(obj, BpodSystem, S, sma, OptoDuration, OptoType, currentTrial)
+    if (OptoType(currentTrial) == 1)
+        if ~S.GUI.EnDoricAPI
+            if ~S.GUI.EnDoricOpto
+                PMTStartCloseDelay = 0.010;
+                PMTCloseTransferDelay = 0.0121;
+                PMTCloseDelay = PMTStartCloseDelay + PMTCloseTransferDelay;          
+                PMTMin5VSignalDur = PMTCloseDelay + 0.003;
+                PMTStartOpenDelay = 0.0078; 
+                PMTOpenTransferDelay = 0.0125;
+                LEDOnsetDelay = 0; 
+                PMTOnsetDelay = LEDOnsetDelay - PMTCloseDelay;
+                LEDOffDur = S.GUI.OptoFreq - S.GUI.LEDOnPulseDur;        
+                PMT5VDur = PMTCloseDelay;
+                if S.GUI.LEDOnPulseDur > PMTStartOpenDelay
+                    PMT5VDur = PMT5VDur + (S.GUI.LEDOnPulseDur - PMTStartOpenDelay);
+                end
+                PMT5VDur = max(PMT5VDur, PMTMin5VSignalDur);
+                PMT0VDur =  S.GUI.OptoFreq - PMT5VDur;
+                numPMTLEDCycles = floor(OptoDuration / S.GUI.OptoFreq);
+                sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', S.GUI.LEDOnPulseDur, 'OnsetDelay', LEDOnsetDelay,...
+                    'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    'Loop', numPMTLEDCycles, 'SendGlobalTimerEvents', 0, 'LoopInterval', LEDOffDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);
+                sma = SetGlobalTimer(sma, 'TimerID', 2, 'Duration', PMT5VDur, 'OnsetDelay', PMTOnsetDelay,...
+                    'Channel', 'BNC2', 'OnLevel', 1, 'OffLevel', 0,...
+                    'Loop', numPMTLEDCycles, 'SendGlobalTimerEvents', 0, 'LoopInterval', PMT0VDur,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);
+            else
+                sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', 0.01, 'OnsetDelay', 0,...
+                    'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                    'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                    'GlobalTimerEvents', 0, 'OffsetValue', 0);            
+            end
+        else
+        %%%%%%%%%%%%%%% Doric Laser %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                    
+            % set sequence type
+            % 1 - continuous, rampdown
+            % 2 - pulsed, rampdown
+            sequence = S.GUI.DoricSequence;
+            % sequence = 2;
+                        
+            % set laser continuous parameters
+            continuous_params.current = S.GUI.ContinuousCurrent;
+            % continuous_params.timeOnMs = S.GUI.ContinuousTimeOnMs;
+            continuous_params.timeOnMs = (OptoDuration * 1000) - S.GUI.RampDownTimeOnMs;
+
+            % convert to python dictionary
+            py_continuous_params = py.dict(continuous_params);
+
+            % set laser pulse parameters
+            pulse_params.current = S.GUI.PulseCurrent;
+            pulse_params.nbOfSeq = S.GUI.PulseNbOfSeq;
+            pulse_params.nbOfPulsesPerSeq = S.GUI.PulseNbOfPulsesPerSeq;
+            pulse_params.periodMs = S.GUI.PulsePeriodMs;
+            pulse_params.timeOnMs = S.GUI.PulseTimeOnMs;
+            
+            % convert to python dictionary
+            py_pulse_params = py.dict(pulse_params);
+            
+            % set laser rampdown parameters
+            rampdown_params.current = S.GUI.RampDownCurrent;
+            rampdown_params.nbOfSeq = S.GUI.RampDownNbOfSeq;
+            rampdown_params.nbOfPulsesPerSeq = S.GUI.RampDownNbOfPulsesPerSeq;
+            rampdown_params.periodMs = S.GUI.RampDownPeriodMs;
+            rampdown_params.timeOnMs = S.GUI.RampDownTimeOnMs;            
+            
+            % rampdown_params.periodMs = 5000;
+            % rampdown_params.timeOnMs = 5000;                       
+
+            % convert to python dictionary
+            py_rampdown_params = py.dict(rampdown_params);
+            
+            % set laser rampup parameters
+            rampup_params.current = S.GUI.RampUpCurrent;
+            rampup_params.nbOfSeq = S.GUI.RampUpNbOfSeq;
+            rampup_params.nbOfPulsesPerSeq = S.GUI.RampUpNbOfPulsesPerSeq;
+            rampup_params.periodMs = S.GUI.RampUpPeriodMs;
+            rampup_params.timeOnMs = S.GUI.RampUpTimeOnMs;
+
+            % convert to python dictionary
+            py_rampup_params = py.dict(rampup_params);                    
+            
+            result = obj.laser_module.SetLaserSequence(sequence, py_continuous_params, py_pulse_params, py_rampdown_params, py_rampup_params);   % Call the Python function
+            disp(result);
+
+            % timer 10-13 used elsewhere in proto
+            sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', 0.010, 'OnsetDelay', 0,...
+                'Channel', 'PWM1', 'OnLevel', 255, 'OffLevel', 0,...
+                'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0,...
+                'GlobalTimerEvents', 0, 'OffsetValue', 0);            
+        end
+    end
+end
+
+
+
+    end
+end

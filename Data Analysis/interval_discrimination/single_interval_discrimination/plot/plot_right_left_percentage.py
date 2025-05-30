@@ -44,7 +44,7 @@ def run(ax, subject_session_data):
         session_id, choice_right,
         edgecolor='white',
         width=width,
-        color='mediumpurple',
+        color='lightcoral',
         label='Right choice')
         # bottom = choice,    
     ax.bar(
@@ -52,7 +52,7 @@ def run(ax, subject_session_data):
         edgecolor='white',
         width=width,
         bottom = choice_right,        
-        color='lightcoral',
+        color='lightblue',
         label='Left choice')
 
     ax.tick_params(tick1On=False)

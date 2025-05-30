@@ -43,7 +43,7 @@ function [S] = SetParams(obj, BpodSystem)
                 % S.GUI.ServoInPos = 1810.00; % lever start pos
                 S.GUI.ServoOutPos = 34; % can press lever
             case 'JoystickRig1'
-                S.GUI.ServoInPos = 1602.00; % lever start pos
+                S.GUI.ServoInPos = 1576.00; % lever start pos
                 S.GUI.ServoOutPos = 38; % can press lever
             case 'JoystickRig2'
                 S.GUI.ServoInPos = 1308.00; % lever start pos
@@ -130,6 +130,9 @@ function [S] = SetParams(obj, BpodSystem)
         S.GUI.OptoITI = 1;
         S.GUIMeta.OptoITI.Style = 'checkbox';
 
+        S.GUI.OptoPunish_ITI = 1;
+        S.GUIMeta.OptoPunish_ITI.Style = 'checkbox';
+
         S.GUI.OptoITICycleType = 2;
         S.GUIMeta.OptoITICycleType.Style = 'popupmenu';
         S.GUIMeta.OptoITICycleType.String = {'NumPulses', 'Duration'};
@@ -143,12 +146,12 @@ function [S] = SetParams(obj, BpodSystem)
 
         S.GUI.OptoTrialTypeSeq = 1; % S.GUI.OptoTrialTypeSeq = 5;
         S.GUIMeta.OptoTrialTypeSeq.Style = 'popupmenu';
-        S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block', 'On Epoch'};               
+        S.GUIMeta.OptoTrialTypeSeq.String = {'Random', 'Random First Block', 'Off First Block', 'On First Block', 'On Epoch', 'Random First Epoch'};               
         S.GUI.OnFraction = 0.35;    % S.GUI.OnFraction = 0.35;         
         S.GUI.EpochTrialStart = 1;
         S.GUI.EpochTrialStop = 15;
         S.GUI.NumOptoTrialsPerBlock = 50;
-        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoVis2', 'OptoPrePressDelay', 'OptoWaitForPress1', 'OptoWaitForPress2', 'OptoPress1', 'OptoPress2', 'OptoITI', 'OptoITICycleType', 'OptoITINumPulses', 'OptoITIDur_s', 'OptoITIAlignment', 'OptoTrialTypeSeq', 'OnFraction', 'EpochTrialStart', 'EpochTrialStop', 'NumOptoTrialsPerBlock'};
+        S.GUIPanels.Opto = {'SessionType', 'PulseType', 'MaxOptoDur_s', 'LEDOnPulseDur_ms', 'LEDOffPulseDur_ms','OptoVis1', 'OptoVis2', 'OptoPrePressDelay', 'OptoWaitForPress1', 'OptoWaitForPress2', 'OptoPress1', 'OptoPress2', 'OptoITI','OptoPunish_ITI', 'OptoITICycleType', 'OptoITINumPulses', 'OptoITIDur_s', 'OptoITIAlignment', 'OptoTrialTypeSeq', 'OnFraction', 'EpochTrialStart', 'EpochTrialStop', 'NumOptoTrialsPerBlock'};
         S.GUIPanels.BlockSetting = {'EnableBlockChange','TrialTypeSequence', 'NumTrialsPerBlock','MaxNumTrialsPerBlock', 'BlockLengthMargin', 'ProbeTrialFraction'};
 
 

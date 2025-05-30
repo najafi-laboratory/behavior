@@ -119,7 +119,7 @@ try
     TrialTypeOutcomePlot(BpodSystem.GUIHandles.OutcomePlot, 'init', TrialTypes, OptoTrialTypes, ProbeTrials);
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
 
-    debug = true;
+    debug = false;
     if debug
         S.GUI.NumEasyWarmupTrials = 1;
 
@@ -600,6 +600,9 @@ try
             case 5
                 ExpNotes.OptoType = 'On Epoch';
                 ExpNotes.EpochRange = ['1 - ' num2str(S.GUI.EpochTrialStop)];
+            case 6
+                ExpNotes.OptoType = 'Random First Epoch';
+                ExpNotes.EpochRange = ['1 - ' num2str(S.GUI.EpochTrialStop)];
         end
 
         if S.GUI.OptoVis1
@@ -677,7 +680,7 @@ try
 
     ExpNotes.TotalRewardAmount_uL = 0;    
 
-    ExpNotes.ProtoVersion = 'Joystick_V_4_4_Opto'; % update to use current file name
+    ExpNotes.ProtoVersion = 'Joystick_V_4_5_Opto'; % update to use current file name
 
     %% Main trial loop
 
@@ -685,7 +688,8 @@ try
     PreviousBlockStart = 1;
     LenBlock = S.GUI.NumTrialsPerBlock-S.GUI.BlockLengthMargin;
     TempOutcome = [];
-    
+    OptoBlockTag = 2 ;
+    OptoTrailEpoch = [] ;
 
 
 
@@ -698,13 +702,11 @@ try
         % check the varient block size
     
         if EnableBlockChange
-            
             if currentTrial > S.GUI.NumEasyWarmupTrials
                 TempOutcome = [TempOutcome , ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial-1}.States.Reward(1))];
             end
             if length(TempOutcome)>10
-                TempOutcome = TempOutcome(2:11);
-                
+                TempOutcome = TempOutcome(2:11); 
             end
             if (StartOfBlock(currentTrial)&&(currentTrial>1))
                 if (sum(TempOutcome) < 5)&&(LenBlock<MaxNumTrialsPerBlock)
@@ -715,14 +717,41 @@ try
                     TempOutcome = [];
                     LenBlock = S.GUI.NumTrialsPerBlock-S.GUI.BlockLengthMargin;
                     PreviousBlockStart = currentTrial;
+                    if (S.GUI.OptoTrialTypeSeq == 6)&&(m_Opto.EnableOpto)
+                        if (OptoBlockTag > 1)
+                            OptoTrailEpoch = randperm(int8(S.GUI.EpochTrialStop*S.GUI.OnFraction) , S.GUI.EpochTrialStop)+currentTrial-1 ;
+                            OptoTrialTypes(OptoTrailEpoch) = 2 ;
+                        end
+                        OptoBlockTag = mod(OptoBlockTag+1 , 4) ;
+                    end
+
                 elseif (LenBlock>=MaxNumTrialsPerBlock)
                     TempOutcome = [];
                     LenBlock = S.GUI.NumTrialsPerBlock-S.GUI.BlockLengthMargin;
                     PreviousBlockStart = currentTrial;
+                    if (S.GUI.OptoTrialTypeSeq == 6)&&(m_Opto.EnableOpto)
+                        if (OptoBlockTag > 1)
+                            OptoTrailEpoch = randperm(int8(S.GUI.EpochTrialStop*S.GUI.OnFraction) , S.GUI.EpochTrialStop)+currentTrial-1 ;
+                            OptoTrialTypes(OptoTrailEpoch) = 2 ;
+                        end
+                        OptoBlockTag = mod(OptoBlockTag+1 , 4) ;
+                    end
                 end
             end
+        else
+           if (S.GUI.OptoTrialTypeSeq == 6)&&(m_Opto.EnableOpto)
+               if (StartOfBlock(currentTrial)&&(currentTrial>1)) && (OptoBlockTag > 1)
+                   OptoTrailEpoch = randperm(S.GUI.EpochTrialStop, int8(S.GUI.EpochTrialStop*S.GUI.OnFraction))+currentTrial ;
+                   OptoTrialTypes(OptoTrailEpoch) = 2 ;
+               end
+               OptoBlockTag = mod(OptoBlockTag+1 , 4) ;
+               OptoTrailEpoch = [] ;
+           end
         end
         disp(['last 10 outcomes: ' num2str(TempOutcome)]);
+        if ~isempty(OptoTrailEpoch) 
+            disp(['epoch opto: ' num2str(OptoTrailEpoch)]);
+        end
         if ~EnableRewardPulses     
             %% sync trial-specific parameters from GUI
 
@@ -777,7 +806,7 @@ try
             BpodSystem.Data.ProbeTrial(currentTrial) = ProbeTrialTypes(currentTrial);
     
             %% update opto epoch warmup
-            if (S.GUI.OptoTrialTypeSeq == 5 && ...
+            if (S.GUI.OptoTrialTypeSeq >= 5 && ...
                 WarmupTrialsCounter > 0)
                 OptoTrialTypes(currentTrial) = 1;
             end        
@@ -1199,7 +1228,8 @@ try
     
             PostRewardDelay_StateChangeConditions = {};
     
-            ITI_OutputActions = {'SoftCode', 8, 'GlobalCounterReset', '00000111111111'};            
+            ITI_OutputActions = {'SoftCode', 8, 'GlobalCounterReset', '00000111111111'}; 
+            Punish_ITI_OutputActions = {} ;
 
             %% Opto timers
     
@@ -1379,6 +1409,9 @@ try
                 %%%%%%%%%%%%%%% ITI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 if S.GUI.OptoITI
                     ITI_OutputActions = [ITI_OutputActions, {'GlobalTimerTrig', '10000000000000'}];
+                end
+                if S.GUI.OptoPunish_ITI
+                    Punish_ITI_OutputActions = [Punish_ITI_OutputActions, {'GlobalTimerTrig', '10000000000000'}];
                 end
                 % need the punish shutter retract?
                 % Punish_OutputActions = [Punish_OutputActions, TimerShutterReset];
@@ -1769,14 +1802,19 @@ try
             % S.GUI.PunishITI = 1;        
             sma = AddState(sma, 'Name', 'Punish_ITI', ...
                 'Timer', S.GUI.PunishITI,...
-                'StateChangeConditions', {'Tup', 'ITI'},...
-                'OutputActions', {});         
+                'StateChangeConditions', {'Tup', 'Post_Punish_ITI'},...
+                'OutputActions', Punish_ITI_OutputActions);         
             
             % if ~S.GUI.EnableRewardPulses
             %     ITI_StateChangeConditions = {'Tup', '>exit'};
             % else
             %     ITI_StateChangeConditions = {'Tup', 'RewardPulse1'};
             % end
+
+            sma = AddState(sma, 'Name', 'Post_Punish_ITI', ...
+                'Timer', BpodSystem.Data.EndOfTrialITI,...
+                'StateChangeConditions', {'Tup', '>exit'},...
+                'OutputActions', {'SoftCode', 8, 'GlobalCounterReset', '00000111111111'});
     
             sma = AddState(sma, 'Name', 'ITI', ...
                 'Timer', BpodSystem.Data.EndOfTrialITI,...

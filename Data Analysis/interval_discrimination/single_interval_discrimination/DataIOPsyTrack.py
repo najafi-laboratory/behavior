@@ -78,6 +78,11 @@ def read_trials(subject , session_data_path):
     file_names.sort(key=lambda x: x[-19:])
     session_raw_data = []
     session_dates = []
+    
+    session_states = []
+    session_ProcessedSessionData = []
+    session_lick_eye = []    
+    
     session_outcomes = []
     session_outcomes_left = []
     session_outcomes_right = []    
@@ -96,11 +101,18 @@ def read_trials(subject , session_data_path):
     session_post_isi_mean = []
     session_jitter_flag = []
     session_opto_flag = []
+    session_opto_trial = []
+    session_opto_side = []
     session_pre_isi_emp = []
     session_post_isi_type = []
     
     session_MoveCorrectSpout = []
     session_TrialTypes = []
+    
+    session_outcomes_left_opto_on = []
+    session_outcomes_right_opto_on = []
+    session_outcomes_left_opto_off = []
+    session_outcomes_right_opto_off = []                
     
     session_left_hit_rate = 0
     session_left_false_alarm_rate = 0
@@ -116,6 +128,8 @@ def read_trials(subject , session_data_path):
     session_d_prime = []
     session_criterion = []
     
+    session_settings = []
+    
     #PsyTrack
     session_name = subject
     session_y = []
@@ -123,6 +137,8 @@ def read_trials(subject , session_data_path):
     session_correct = []
     session_dayLength = []
     session_inputs = []
+    
+    
     
     
     for f in tqdm(range(len(file_names))):
@@ -141,6 +157,10 @@ def read_trials(subject , session_data_path):
         #PsyTrack         
         # session_name.append(subject)
         
+        
+        # get settings
+        session_settings.append(raw_data['TrialSettings'][0]['GUI'])
+        
         # jitter flag.
         trial_jitter_flag = [raw_data['TrialSettings'][i]['GUI']['ActRandomISI']
                       for i in range(raw_data['nTrials'])]
@@ -150,6 +170,28 @@ def read_trials(subject , session_data_path):
             optotag = raw_data['OptoTag']
         else:
             optotag = [0]*raw_data['nTrials']
+            
+        # set optoside according to gui param from update 3-6-25
+        if 'OptoSide' in raw_data['TrialSettings'][0]['GUI'].keys():
+            if raw_data['TrialSettings'][0]['GUI']['OptoSide'] == 1:
+                # left
+                raw_data['OptoSide'] = 0
+            elif raw_data['TrialSettings'][0]['GUI']['OptoSide'] == 2:
+                # right
+                raw_data['OptoSide'] = 1
+        # if not manually labeled and not in gui params, use other value
+        elif 'OptoSide' not in raw_data.keys():
+            raw_data['OptoSide'] = -2
+            
+        if raw_data['TrialSettings'][0]['GUI']['OptoSession']:
+            optotrial = [int(x) for x in raw_data['OptoType']]
+            optoside = [(raw_data['OptoSide'] + 1) * x for x in optotrial]  # 1 - left, 2 - right
+        else:
+            optotrial = [0]*raw_data['nTrials']
+            # optoside = np.nan
+            # raw_data['OptoSide'] = 0
+            optoside = [(raw_data['OptoSide'] + 1) * x for x in optotrial]  # 1 - left, 2 - right
+            
         # number of trials.
         nTrials = raw_data['nTrials']
         # trial target
@@ -158,6 +200,11 @@ def read_trials(subject , session_data_path):
         session_dates.append(fname[-19:-11])
         # loop over one session for extracting data
         
+        trial_states_list = []
+        trial_ProcessedSessionData = []
+        trial_lick_eye = []
+        
+            
         trial_outcomes = []
         trial_outcomes_left = []
         trial_outcomes_right = []        
@@ -178,6 +225,11 @@ def read_trials(subject , session_data_path):
         trial_post_isi_type = []
         trial_MoveCorrectSpout = []
         
+        trial_outcomes_left_opto_on = []
+        trial_outcomes_right_opto_on = []
+        trial_outcomes_left_opto_off = []
+        trial_outcomes_right_opto_off = []        
+        
         trial_left_hits = 0
         trial_left_false_alarms = 0
         trial_left_misses = 0
@@ -195,6 +247,52 @@ def read_trials(subject , session_data_path):
             outcome_clean = outcome
             
             
+
+            # eye tracking data
+            ################################################################
+            trial_states_list.append(trial_states)
+            trial_ProcessedSessionData.append(raw_data['ProcessedSessionData'][i])
+            
+            licking_events = []
+            direction = []
+            correctness = []
+            trial_type = []
+            if 'Port1In' in trial_events.keys():
+                # get lick time
+                lick_left = np.array(trial_events['Port1In']).reshape(-1)
+                licking_events.append(lick_left)
+                direction.append(np.zeros_like(lick_left))
+                if trial_types[i] == 1:
+                    correctness.append(np.ones_like(lick_left))
+                else:
+                    correctness.append(np.zeros_like(lick_left))
+            if 'Port3In' in trial_events.keys():               
+                # get lick time
+                lick_right = np.array(trial_events['Port3In']).reshape(-1)                    
+                licking_events.append(lick_right)
+                direction.append(np.ones_like(lick_right))
+                if trial_types[i] == 2:
+                    correctness.append(np.ones_like(lick_right))
+                else:
+                    correctness.append(np.zeros_like(lick_right))
+            if len(licking_events) > 0:                    
+                licking_events = np.concatenate(licking_events).reshape(1,-1)   
+                correctness = np.concatenate(correctness).reshape(1,-1)
+                direction = np.concatenate(direction).reshape(1,-1)
+                # lick array
+                # row 1 time of lick event
+                # row 2 lick direction - 0 left, 1 right
+                # row 3 correctness - 0 incorrect, 1 correct                    
+                lick = np.concatenate([1000*licking_events, direction, correctness])
+                lick = lick[: , lick[0, :].argsort()]
+                trial_lick_eye.append(lick)
+            else:
+                trial_lick_eye.append(np.array([[np.nan], [np.nan], [np.nan]]))            
+            
+            ####################################################################################################
+            
+            
+
             
             # trial_outcomes.append(outcome)
            
@@ -320,8 +418,21 @@ def read_trials(subject , session_data_path):
             if trial_types[i] == 1:
                 trial_outcomes_left.append(outcome)
             else:
-                trial_outcomes_right.append(outcome)             
-            
+                trial_outcomes_right.append(outcome)   
+              
+            # opto, left and right outcomes 
+            if optotrial[i] == 1:
+            # left and right outcomes
+                if trial_types[i] == 1:
+                    trial_outcomes_left_opto_on.append(outcome)
+                else:
+                    trial_outcomes_right_opto_on.append(outcome)                
+            else:
+                if trial_types[i] == 1:
+                    trial_outcomes_left_opto_off.append(outcome)
+                else:
+                    trial_outcomes_right_opto_off.append(outcome)                    
+                                                     
             # if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice'):
                 # trial_dayLength += 1
                 
@@ -331,6 +442,11 @@ def read_trials(subject , session_data_path):
             pre_isi_emp = np.float64(0)  # no pre isi for single interval              
             trial_pre_isi.append(stim_pre_isi)
             trial_pre_isi_emp.append(pre_isi_emp)
+            
+            # if i == 20:
+            #     print(i)
+
+                        
             # post perturbation isi.
             if (not outcome_clean == 'EarlyLick' and not outcome_clean == 'earlyLickLimited' and not outcome_clean == 'Switching' and not outcome_clean == 'LateChoice' and not outcome_clean == 'MoveCorrectSpout'):
                 # stim_post_isi_mean = 1000*np.mean(raw_data['ProcessedSessionData'][i]['trial_isi']['PostISI'])
@@ -547,6 +663,10 @@ def read_trials(subject , session_data_path):
         session_dayLength.append(trial_dayLength)
         
     
+        session_states.append(trial_states_list)
+        session_ProcessedSessionData.append(trial_ProcessedSessionData)
+        session_lick_eye.append(trial_lick_eye)
+    
         session_outcomes.append(trial_outcomes)
         session_outcomes_left.append(trial_outcomes_left)
         session_outcomes_right.append(trial_outcomes_right)        
@@ -567,8 +687,15 @@ def read_trials(subject , session_data_path):
         session_post_isi_mean.append(trial_post_isi_mean)
         session_jitter_flag.append(trial_jitter_flag)
         session_opto_flag.append(optotag)
+        session_opto_trial.append(optotrial)
+        session_opto_side.append(optoside)
         session_MoveCorrectSpout.append(trial_MoveCorrectSpout)
-        session_TrialTypes.append(trial_types)
+        session_TrialTypes.append(trial_types)                
+        
+        session_outcomes_left_opto_on.append(trial_outcomes_left_opto_on)
+        session_outcomes_right_opto_on.append(trial_outcomes_right_opto_on)
+        session_outcomes_left_opto_off.append(trial_outcomes_left_opto_off)
+        session_outcomes_right_opto_off.append(trial_outcomes_right_opto_off)        
         
     #PsyTrack
     y = []
@@ -626,10 +753,20 @@ def read_trials(subject , session_data_path):
         'jitter_flag' : session_jitter_flag,
         'post_isi_type' : session_post_isi_type,
         'opto_flag' : session_opto_flag,
+        'opto_trial' : session_opto_trial,
+        'opto_side' : session_opto_side,
         'move_correct_spout_flag' : session_MoveCorrectSpout,
         'trial_type' : session_TrialTypes,
         'd_prime' : session_d_prime,
-        'criterion' : session_criterion
+        'criterion' : session_criterion,
+        'states' : session_states,
+        'ProcessedSessionData' : session_ProcessedSessionData,
+        'lick_eye' : session_lick_eye,
+        'outcomes_left_opto_on' : session_outcomes_left_opto_on,
+        'outcomes_right_opto_on' : session_outcomes_right_opto_on,
+        'outcomes_left_opto_off' : session_outcomes_left_opto_off,
+        'outcomes_right_opto_off' : session_outcomes_right_opto_off,
+        'session_settings' : session_settings
     }
     return data
 
