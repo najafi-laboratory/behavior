@@ -6,6 +6,8 @@ import os
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
+import re
+from datetime import datetime
 
 from Module.Reader import load_mat
 from Module.session_name_parse import parse_behavior_file_path
@@ -14,11 +16,22 @@ from Module.Licking_properties import extract_lick_properties
 
 from plotter.session_structure import plot_trial_outcome_vs_type_with_isi
 from plotter.Outcome import plot_all_sessions_with_gridspec
+from plotter.opto_sequence_performence import plot_opto_seq_with_gridspec
 from plotter.licking import (
     plot_psychometric_curve, plot_pooled_psychometric_curve, plot_grand_average_psychometric_curve,
     plot_isi_reaction_time, plot_pooled_isi_reaction_time, plot_grand_average_isi_reaction_time,
     plot_reaction_time_curve, plot_pooled_reaction_time_curve, plot_grand_average_reaction_time_curve
 )
+from plotter.licking_less_detailed import (
+    plot_psychometric_curve_less, plot_pooled_psychometric_curve_less, plot_grand_average_psychometric_curve_less,
+    plot_isi_reaction_time_less, plot_pooled_isi_reaction_time_less, plot_grand_average_isi_reaction_time_less,
+    plot_reaction_time_curve_less, plot_pooled_reaction_time_curve_less, plot_grand_average_reaction_time_curve_less
+)
+from plotter.rare_trial_analysis import plot_all_rare_trial_analyses
+from plotter.trial_by_trial_adaptation import plot_block_transitions
+from plotter.psychometric_epoch import plot_psychometric_epochs
+from plotter.Majority_trials_analysis import plot_all_majority_trial_analysis
+from plotter.Rare_vs_majority import plot_all_rare_vs_majority_analysis 
 
 # Configuration
 # YH24LG ##############################################################################################################################
@@ -35,13 +48,23 @@ DATA_PATHS = [
     # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250530_215515.mat',
     # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250601_173229.mat',
     # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250604_191000.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250624_150012.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250625_164242.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250626_182737.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250628_192014.mat',
-    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250630_174909.mat',
-    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250701_154950.mat',
-
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250624_150012.mat',
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250625_164242.mat',
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250626_182737.mat',
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250628_192014.mat',
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250630_174909.mat',
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250701_154950.mat',
+#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250702_140050.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250703_164706.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250708_192901.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250709_174856.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250710_130625.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250711_093117.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250714_175052.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250715_180125.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250717_144725.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250718_172810.mat',
+    'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250722_175504.mat',
 ]
 
 SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\YH24LG'
@@ -63,7 +86,8 @@ SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\YH24LG'
     # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250321_195823.mat',
     # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_11_20250521_133332.mat',
     # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_11_20250522_145311.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_11_20250523_135131.mat',
+#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\MC01_LChR_block_single_interval_discrimination_V_1_20250721_171746.mat',
+#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\MC01_LChR_block_single_interval_discrimination_V_1_20250722_193326.mat',
 # ]
 
 # Opto-Mid
@@ -376,6 +400,59 @@ SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\YH24LG'
 # ]
 
 # SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS09_SChR'
+################################################################################################################################################
+def sort_data_paths(data_paths):
+    """
+    Sorts a list of file paths by their embedded timestamps from oldest to newest.
+
+    The function assumes that each file path contains a timestamp in the format
+    'YYYYMMDD_HHMMSS' (e.g., '20250721_171746'). It extracts these timestamps,
+    converts them to datetime objects, and sorts the paths accordingly.
+
+    Args:
+        data_paths (list): A list of strings, where each string is a file path
+                           containing a timestamp in the format 'YYYYMMDD_HHMMSS'.
+
+    Returns:
+        list: A list of file paths sorted by their timestamps from oldest to newest.
+              Paths without valid timestamps are excluded.
+
+    Example:
+        >>> paths = [
+        ...     'F:\\\\Data\\file_20250721_171746.mat',
+        ...     'F:\\\\Data\\file_20250722_193326.mat'
+        ... ]
+        >>> sorted_paths = sort_data_paths(paths)
+        >>> print(sorted_paths)
+        ['F:\\\\Data\\file_20250721_171746.mat', 'F:\\\\Data\\file_20250722_193326.mat']
+    """
+    def extract_timestamp(path):
+        """
+        Extracts and converts the timestamp from a file path to a datetime object.
+
+        Args:
+            path (str): A file path containing a timestamp in 'YYYYMMDD_HHMMSS' format.
+
+        Returns:
+            datetime: A datetime object representing the extracted timestamp,
+                      or None if no valid timestamp is found.
+        """
+        # Use regex to find timestamp in the format YYYYMMDD_HHMMSS
+        match = re.search(r'\d{8}_\d{6}', path)
+        if match:
+            timestamp_str = match.group(0)
+            # Convert the timestamp string to a datetime object
+            return datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
+        return None
+
+    # Create a list of tuples with paths and their timestamps, filtering out invalid ones
+    valid_paths = [(path, extract_timestamp(path)) for path in data_paths]
+    valid_paths = [pair for pair in valid_paths if pair[1] is not None]
+    
+    # Sort the paths based on their timestamps and extract just the paths
+    sorted_paths = [path for path, _ in sorted(valid_paths, key=lambda x: x[1])]
+    
+    return sorted_paths
 
 # Ensure save directory exists
 os.makedirs(SAVE_PATH, exist_ok=True)
@@ -441,13 +518,29 @@ def plot_all_sessions_outcome(sessions_data, data_paths, save_path=SAVE_PATH):
     
     return name
 
+def plot_all_sessions_opto_seq(sessions_data, data_paths, save_path=SAVE_PATH):
+    """Plot all sessions' outcomes."""
+    subject = parse_behavior_file_path(data_paths[0])[0]
+    fig = plot_opto_seq_with_gridspec(
+        sessions_data['outcomes'], sessions_data['dates'],
+        sessions_data['trial_types'], sessions_data['opto_tags'],
+        figsize=(40, 15)
+    )
+    
+    name = f'Opto_seq_performance_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf'
+    output_path = os.path.join(save_path, name)
+    fig.savefig(output_path)
+    plt.close(fig)
+    
+    return name
+
 def plot_psychometric_analysis(sessions_data, data_paths, save_path=SAVE_PATH):
     """Generate comprehensive psychometric analysis plots."""
     n_sessions = len(data_paths)
     subject = parse_behavior_file_path(data_paths[0])[0]
     
     # Dynamic figure size
-    fig = plt.figure(figsize=(70, (2 + n_sessions) * 5))
+    fig = plt.figure(figsize=(90, (2 + n_sessions) * 5))
     gs = fig.add_gridspec(2 + n_sessions, 12)
     
     # Plot configurations
@@ -486,7 +579,7 @@ def plot_psychometric_analysis(sessions_data, data_paths, save_path=SAVE_PATH):
                     kwargs['fit_logistic'] = True
                 grand_fn(sessions_data['lick_properties'], ax=ax, filter_outcomes=outcome, opto_split=opto_split, **kwargs)
     
-    plt.subplots_adjust(hspace=2, wspace=2)
+    plt.subplots_adjust(hspace=3, wspace=3)
     plt.tight_layout()
     
     output_path = os.path.join(save_path, f'psychometric_analysis_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
@@ -495,18 +588,119 @@ def plot_psychometric_analysis(sessions_data, data_paths, save_path=SAVE_PATH):
     
     return output_path
 
+def plot_psychometric_analysis_less_detailed(sessions_data, data_paths, save_path=SAVE_PATH):
+    """Generate comprehensive psychometric analysis plots."""
+    n_sessions = len(data_paths)
+    subject = parse_behavior_file_path(data_paths[0])[0]
+    
+    # Dynamic figure size
+    fig = plt.figure(figsize=(90, (2 + n_sessions) * 5))
+    gs = fig.add_gridspec(2 + n_sessions, 12)
+    
+    # Plot configurations
+    plot_configs = [
+        ('psychometric', plot_psychometric_curve_less, plot_pooled_psychometric_curve_less, plot_grand_average_psychometric_curve_less),
+        ('isi_reaction', plot_isi_reaction_time_less, plot_pooled_isi_reaction_time_less, plot_grand_average_isi_reaction_time_less),
+        ('reaction_time', plot_reaction_time_curve_less, plot_pooled_reaction_time_curve_less, plot_grand_average_reaction_time_curve_less)
+    ]
+    
+    # Outcome filters and settings
+    outcomes = [('all', False), ('all', True), ('rewarded', True), ('punished', True)]
+    
+    for i, (plot_type, single_fn, pooled_fn, grand_fn) in enumerate(plot_configs):
+        # Single session plots
+        for j, session_data in enumerate(sessions_data['lick_properties']):
+            for k, (outcome, opto_split) in enumerate(outcomes):
+                if plot_type == 'psychometric' or (plot_type != 'psychometric' and opto_split):
+                    ax = fig.add_subplot(gs[2 + j, k + (i * 4)])
+                    single_fn(session_data, ax=ax, filter_outcomes=outcome, opto_split=opto_split)
+        
+        # Pooled plots
+        for k, (outcome, opto_split) in enumerate(outcomes):
+            if plot_type == 'psychometric' or (plot_type != 'psychometric' and opto_split):
+                ax = fig.add_subplot(gs[0, k + (i * 4)])
+                kwargs = {'bin_width': 0.05, 'fit_quadratic': True} if plot_type == 'reaction_time' else {}
+                if plot_type == 'psychometric' and outcome == 'all' and not opto_split:
+                    kwargs['fit_logistic'] = True
+                pooled_fn(sessions_data['lick_properties'], ax=ax, filter_outcomes=outcome, opto_split=opto_split, **kwargs)
+        
+        # Grand average plots
+        for k, (outcome, opto_split) in enumerate(outcomes):
+            if plot_type == 'psychometric' or (plot_type != 'psychometric' and opto_split):
+                ax = fig.add_subplot(gs[1, k + (i * 4)])
+                kwargs = {'bin_width': 0.05, 'fit_quadratic': True} if plot_type == 'reaction_time' else {}
+                if plot_type == 'psychometric':
+                    kwargs['fit_logistic'] = True
+                grand_fn(sessions_data['lick_properties'], ax=ax, filter_outcomes=outcome, opto_split=opto_split, **kwargs)
+    
+    plt.subplots_adjust(hspace=3, wspace=3)
+    plt.tight_layout()
+    
+    output_path = os.path.join(save_path, f'psychometric_analysis_less_detailed_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
+    fig.savefig(output_path)
+    plt.close(fig)
+    
+    return output_path
+
+def analyze_all_conditions(sessions_data, data_paths, save_path=SAVE_PATH):
+    """
+    Run all three analysis conditions and create combined plot.
+    
+    Parameters:
+    sessions_data: dict from prepare_session_data function
+    
+    Returns:
+    tuple: (pooled_results, short_results, long_results)
+    """
+    subject = parse_behavior_file_path(data_paths[0])[0]
+
+    return plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=save_path)
+
 if __name__ == "__main__":
+    # sort from the latest sessions data
+    data_paths = sort_data_paths(DATA_PATHS)
+    subject = parse_behavior_file_path(data_paths[0])[0]
+
+    # Prepare and plot session data
+    sessions_data = prepare_session_data(data_paths)
+
     # Generate session plots
-    pdf_filename = generate_session_plots_pdf(DATA_PATHS)
+    pdf_filename = generate_session_plots_pdf(data_paths)
     print(f"Session plots saved to: {pdf_filename}")
     
-    # Prepare and plot session data
-    sessions_data = prepare_session_data(DATA_PATHS)
-    
     # Plot outcomes
-    outcome_filename = plot_all_sessions_outcome(sessions_data, DATA_PATHS)
+    outcome_filename = plot_all_sessions_outcome(sessions_data, data_paths)
     print(f"Outcome plots saved to: {outcome_filename}")
+
+    # Plot opto sequence performance
+    outcome_filename = plot_all_sessions_opto_seq(sessions_data, data_paths)
+    print(f"Opto performance plots saved to: {outcome_filename}")
     
     # Plot psychometric analysis
-    psychometric_filename = plot_psychometric_analysis(sessions_data, DATA_PATHS)
+    psychometric_filename = plot_psychometric_analysis(sessions_data, data_paths)
     print(f"Psychometric analysis saved to: {psychometric_filename}")
+
+    # Plot psychometric with less detail
+    psychometric_filename = plot_psychometric_analysis_less_detailed(sessions_data, data_paths, save_path=SAVE_PATH)
+    print(f"Psychometric analysis saved to: {psychometric_filename}")
+
+    # Rare trial analysis
+    pooled, short, long = analyze_all_conditions(sessions_data, data_paths)
+    print('rare trials analysis saved')
+
+    # Plot majarity of trials
+    plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    print('majority trials analysis saved')
+
+    # Plot majority vs rare trials
+    plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    print('majority vs rare trials analysis saved')
+
+    # trial_by_trial_adaptation
+    plot_block_transitions(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    print('adaptation analysis saved')
+
+    # Plot psychometric analysis for epochs
+    plot_psychometric_epochs(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    print('psychometric epochs analysis saved')
+    

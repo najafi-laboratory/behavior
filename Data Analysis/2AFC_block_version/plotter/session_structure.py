@@ -165,7 +165,7 @@ def plot_trial_outcome_vs_type_with_isi(session_props):
     
     # Set y-axis labels and ticks
     ax0.set_yticks([1, 2])
-    ax0.set_yticklabels(['Left', 'Right'])
+    ax0.set_yticklabels(['Short', 'Long'])
     ax0.set_xlabel('Trial Index')
     ax0.set_ylabel('Trial Type')
     ax0.set_title('Trial Type and Outcome Across Trials', fontsize=14)
@@ -704,6 +704,7 @@ def plot_trial_outcome_vs_type_with_isi(session_props):
                "- Experimenter: {}\n".format(session_props['experimentor']) + \
                "- Version: {}\n".format(session_props['version']) + \
                "- Training Level: {}\n".format(session_props['difficulty']) + \
+               "- Contingency: {}\n".format(session_props['Contingency']) + \
                "- Anti Bias: {}\n".format(session_props['Anti_bias']) + \
                "- Number of Trials: {}\n".format(len(session_props['trial_type'])) + \
                "- Number of Warmup Trials: {}\n".format(session_props['n_warm_up_trials']) + \

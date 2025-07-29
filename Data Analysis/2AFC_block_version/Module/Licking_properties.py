@@ -72,7 +72,7 @@ def extract_lick_properties(data_single_session, subject, version, session_date)
     block_type = trials_properties['block_type']
     ISI_divider = trials_properties['isi_devider']
     ISI_setting = trials_properties['isi_settings']
-    contingency_idx = 1
+    contingency_idx = trials_properties['Contingency_idx']
     
     # Get number of trials
     number_of_trials = data_single_session.get('nTrials', 0)

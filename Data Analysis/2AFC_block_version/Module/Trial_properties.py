@@ -72,6 +72,14 @@ def extract_session_properties(data_single_session, subject, version, session_da
         training_level_idx = settings.get('TrainingLevel', 0)
         training_level = gui_meta.get('TrainingLevel', {}).get('String', [])[training_level_idx-1] if 'TrainingLevel' in gui_meta else 'Unknown'
         
+        # Contingency (1 = normal, 2 = reversed) 
+        # If normal, means that left choose for short ISI is rewareded, if reversed, then right choose for short ISI is rewarded
+        if 'Contingency' in settings:
+            contingency_idx = settings.get('Contingency', 0)
+            contingency_type = gui_meta.get('Contingency', {}).get('String', [])[contingency_idx - 1] if 'Contingency' in gui_meta else 'Unknown'
+        else:
+            contingency_type = 'Normal - Short/Left'
+
         # Extract ISI settings
         isi_settings = {
             'short': {
@@ -115,11 +123,19 @@ def extract_session_properties(data_single_session, subject, version, session_da
             'Anti_bias': settings.get('AntiBiasServoAdjustAct', 0),
             'num_warmup_blocks': Num_block_warmup,
             'block_length': block_length,
+            'Contingency': contingency_type,
+            'Contingency_idx': contingency_idx,
             
             # ISI settings (nested for better organization)
             'isi_settings': isi_settings,
             'isi_devider': isi_divider
         }
+
+        # Record trial type (2 = right, 1 = left)
+        trial_types = data_single_session.get('TrialTypes', [])
+
+        # Record block types (0 = warmup, 1 = short, 2 = long)
+        block_types = data_single_session.get('BlockTypes', [])
         
         # Process each trial
         for i in range(number_of_trials):
@@ -147,13 +163,44 @@ def extract_session_properties(data_single_session, subject, version, session_da
                 opto_type = data_single_session.get('OptoType', [])
                 trials_properties['opto_tag'].append(opto_type[i] if i < len(opto_type) else None)
                 
-                # Record trial type (2 = right, 1 = left)
-                trial_types = data_single_session.get('TrialTypes', [])
-                trials_properties['trial_type'].append(trial_types[i] if i < len(trial_types) else None)
+                trial_type = None
+                if i < len(trial_types):
+                    if contingency_idx == 1:
+                        # Normal: use trial_types as is
+                        trial_type = trial_types[i]
+                    elif contingency_idx == 2:
+                        # Reversed: swap 1 <-> 2
+                        if trial_types[i] == 1:
+                            trial_type = 2
+                        elif trial_types[i] == 2:
+                            trial_type = 1
+                        else:
+                            trial_type = trial_types[i]
+                    else:
+                        # Unknown contingency, use as is
+                        trial_type = trial_types[i]
+                trials_properties['trial_type'].append(trial_type)
 
+                block_type = None
+                if i < len(block_types):
+                    if contingency_idx == 1:
+                        # Normal: use block_types as is
+                        block_type = block_types[i]
+                    elif contingency_idx == 2:
+                        # Reversed: swap 1 <-> 2, keep 0 unchanged
+                        if block_types[i] == 1:
+                            block_type = 2
+                        elif block_types[i] == 2:
+                            block_type = 1
+                        else:
+                            block_type = block_types[i]  # Keep 0 or other values unchanged
+                    else:
+                        # Unknown contingency, use as is
+                        block_type = block_types[i]
+                trials_properties['block_type'].append(block_type)
                 # block type (0 = warmup, 1 = short, 2 = long)
-                block_type = data_single_session.get('BlockTypes', [])
-                trials_properties['block_type'].append(block_type[i] if i < len(block_type) else None)
+                # block_type = data_single_session.get('BlockTypes', [])
+                # trials_properties['block_type'].append(block_type[i] if i < len(block_type) else None)
                 
                 # Record trial ISI (inter-stimulus interval)
                 processed_data = data_single_session.get('ProcessedSessionData', [])
@@ -166,7 +213,7 @@ def extract_session_properties(data_single_session, subject, version, session_da
                 print(f"Error processing trial {i}: {e}")
                 # Add placeholder values on error
                 for key in ['outcome', 'outcome_initiate', 'warm_up', 'trial_initiation_time', 
-                           'jitter_flag', 'opto_tag', 'trial_type', 'trial_isi']:
+                           'jitter_flag', 'opto_tag', 'trial_type', 'trial_isi', 'block_type']:
                     if len(trials_properties[key]) == i:  # Only append if this trial hasn't been processed yet
                         trials_properties[key].append(None)
         

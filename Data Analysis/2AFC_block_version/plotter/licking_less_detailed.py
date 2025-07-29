@@ -5,7 +5,7 @@ from scipy.optimize import curve_fit
 # Single sessions plotter ------------------------------------------------------------
 
 # Plotting function for psychometric curve
-def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin_width=0.01, fit_logistic=True, opto_split=False):
+def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None, bin_width=0.01, fit_logistic=True, opto_split=False):
     """
     Plot psychometric curves showing probability of right port choice as a function of ISI with SEM.
     Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
@@ -43,11 +43,11 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
     
     # Define colors based on filter_outcomes and block_type
     colors = {
-        'all': {'block0': '#999999', 'block1': '#EC882B', 'block2': '#ff00ff'},
-        'rewarded': {'block0': '#a1e0a1', 'block1': '#63f250', 'block2': '#00cc00'},
-        'punished': {'block0': '#f7b0a9', 'block1': '#e74c3c', 'block2': '#cc0000'},
-        'opto': {'block0': '#005eff', 'block1': '#9999ff', 'block2': '#0033cc'},
-        'control': {'block0': '#999999', 'block1': "#EC882B", 'block2': '#ff00ff'}
+        'all': {'block1': '#787573', 'block2': '#000000'},
+        'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
+        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
+        'control': {'block1': "#787573", 'block2': "#000000"}
     }
     
     # Extract data efficiently
@@ -110,9 +110,9 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
             return None
         
         # Map block_type to label
-        if block_type == 0:
-            block_label = 'Neutral'
-        elif block_type == 1:
+        # if block_type == 0:
+        #     block_label = 'Neutral'
+        if block_type == 1:
             block_label = 'Short'
         elif block_type == 2:
             block_label = 'Long'
@@ -159,7 +159,7 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
                 b = y1 - m * x1
                 inflection_point = (0.5 - b) / m
                 if min(x1, x2) <= inflection_point <= max(x1, x2):
-                    ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
+                    # ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
                     ax.text(inflection_point, 0.1, f'{label} IP ({block_label}): {inflection_point:.2f}s',
                            color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                     fit_params = {'x0': inflection_point, 'slope': m, 'intercept': b}
@@ -212,7 +212,7 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
                     ip_index = np.argmin(np.abs(y_fit - 0.5))
                     ip_value = x_fit[ip_index]
                     inflection_point = ip_value
-                    ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
+                    # ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
                     # ax.text(inflection_point, 0.1, f'{label} IP ({block_label}): {inflection_point:.2f}s',
                     #        color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                     
@@ -229,7 +229,7 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
     if opto_split:
         # Plot control trials for both block types
         fit_params['control'] = {}
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, 'Control',
@@ -239,7 +239,7 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
         # Plot opto trials for both block types if they exist
         if np.any(opto_tags == 1):
             fit_params['opto'] = {}
-            for block_type in [0, 1, 2]:
+            for block_type in [1, 2]:
                 if np.any(block_types == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         isi_values, choices, block_types, 'Opto',
@@ -247,7 +247,7 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
                     )
     else:
         # Plot for both block types
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, filter_outcomes.capitalize(),
@@ -255,9 +255,9 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
                 )
     
     # Add ISI divider if available
-    if 'ISI_devider' in lick_properties:
-        isi_divider = lick_properties['ISI_devider']
-        ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
+    # if 'ISI_devider' in lick_properties:
+    #     isi_divider = lick_properties['ISI_devider']
+    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
     
     # Customize plot
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
@@ -281,7 +281,7 @@ def plot_psychometric_curve(lick_properties, filter_outcomes='all', ax=None, bin
 
 
 # Plotting function for lick reaction time curve
-def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bin_width=0.05, fit_quadratic=True, opto_split=False):
+def plot_reaction_time_curve_less(lick_properties, filter_outcomes='all', ax=None, bin_width=0.05, fit_quadratic=True, opto_split=False):
     """
     Plot lick reaction time as a function of ISI with SEM error bars and quadratic fit.
     Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
@@ -320,11 +320,11 @@ def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bi
     
     # Define colors based on filter_outcomes and block_type
     colors = {
-        'all': {'block0': '#999999', 'block1': '#EC882B', 'block2': '#ff00ff'},
-        'rewarded': {'block0': '#a1e0a1', 'block1': '#63f250', 'block2': '#00cc00'},
-        'punished': {'block0': '#f7b0a9', 'block1': '#e74c3c', 'block2': '#cc0000'},
-        'opto': {'block0': '#005eff', 'block1': '#9999ff', 'block2': '#0033cc'},
-        'control': {'block0': '#999999', 'block1': "#EC882B", 'block2': '#ff00ff'}
+        'all': {'block1': '#787573', 'block2': '#000000'},
+        'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
+        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
+        'control': {'block1': "#787573", 'block2': "#000000"}
     }
     
     # Extract data efficiently with validation
@@ -424,9 +424,9 @@ def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bi
             return None
         
         # Map block_type to label
-        if block_type == 0:
-            block_label = 'Neutral'
-        elif block_type == 1:
+        # if block_type == 0:
+        #     block_label = 'Neutral'
+        if block_type == 1:
             block_label = 'Short'
         elif block_type == 2:
             block_label = 'Long'
@@ -479,7 +479,7 @@ def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bi
     if opto_split:
         # Plot control trials for both block types
         fit_params['control'] = {}
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     isi_values, reaction_times, block_types, 'Control',
@@ -489,7 +489,7 @@ def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bi
         # Plot opto trials for both block types if they exist
         if np.any(opto_tags == 1):
             fit_params['opto'] = {}
-            for block_type in [0, 1, 2]:
+            for block_type in [1, 2]:
                 if np.any(block_types == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         isi_values, reaction_times, block_types, 'Opto',
@@ -497,7 +497,7 @@ def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bi
                     )
     else:
         # Plot for both block types
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     isi_values, reaction_times, block_types, filter_outcomes.capitalize(),
@@ -530,7 +530,7 @@ def plot_reaction_time_curve(lick_properties, filter_outcomes='all', ax=None, bi
     return fig, ax, fit_params
 
 # error bars for lick reaction time
-def plot_isi_reaction_time(lick_properties, filter_outcomes='all', ax=None, opto_split=False):
+def plot_isi_reaction_time_less(lick_properties, filter_outcomes='all', ax=None, opto_split=False):
     """
     Plot mean lick reaction time ± SEM for short and long ISI trials.
     
@@ -740,7 +740,7 @@ def plot_isi_reaction_time(lick_properties, filter_outcomes='all', ax=None, opto
 
 # Plotting functions for pooling sessions ------------------------------------------------------
 # Plotting function for pooled psychometric curve
-def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False):
+def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False):
     """
     Plot psychometric curve for pooled data from multiple sessions, showing probability of right port choice as a function of ISI with SEM.
     Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
@@ -779,11 +779,11 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
     
     # Define colors based on filter_outcomes and block_type
     colors = {
-        'all': {'block0': '#999999', 'block1': '#EC882B', 'block2': '#ff00ff'},
-        'rewarded': {'block0': '#a1e0a1', 'block1': '#63f250', 'block2': '#00cc00'},
-        'punished': {'block0': '#f7b0a9', 'block1': '#e74c3c', 'block2': '#cc0000'},
-        'opto': {'block0': '#005eff', 'block1': '#9999ff', 'block2': '#0033cc'},
-        'control': {'block0': '#999999', 'block1': "#EC882B", 'block2': '#ff00ff'}
+        'all': {'block1': '#787573', 'block2': '#000000'},
+        'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
+        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
+        'control': {'block1': "#787573", 'block2': "#000000"}
     }
     
     # Extract data efficiently from all sessions
@@ -874,9 +874,9 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
             return None
         
         # Map block_type to label
-        if block_type == 0:
-            block_label = 'Neutral'
-        elif block_type == 1:
+        # if block_type == 0:
+        #     block_label = 'Neutral'
+        if block_type == 1:
             block_label = 'Short'
         elif block_type == 2:
             block_label = 'Long'
@@ -959,7 +959,7 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
                     ip_index = np.argmin(np.abs(y_fit - 0.5))
                     ip_value = x_fit[ip_index]
                     inflection_point = ip_value
-                    ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
+                    # ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
                     # ax.text(inflection_point, 0.1, f'{label} IP ({block_label}): {inflection_point:.2f}s',
                     #        color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                     
@@ -975,7 +975,7 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
     if opto_split:
         # Plot control trials for both block types
         fit_params['control'] = {}
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, 'Control',
@@ -985,7 +985,7 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
         # Plot opto trials for both block types if they exist
         if np.any(opto_tags == 1):
             fit_params['opto'] = {}
-            for block_type in [0, 1, 2]:
+            for block_type in [1, 2]:
                 if np.any(block_types == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         isi_values, choices, block_types, 'Opto',
@@ -993,7 +993,7 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
                     )
     else:
         # Plot for both block types
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, filter_outcomes.capitalize(),
@@ -1009,8 +1009,8 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
             elif isi_divider != lick_properties['ISI_devider']:
                 print(f"Warning: Inconsistent ISI_devider values across sessions. Using {isi_divider}.")
     
-    if isi_divider is not None:
-        ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
+    # if isi_divider is not None:
+    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
     
     # Customize plot
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
@@ -1043,7 +1043,7 @@ def plot_pooled_psychometric_curve(lick_properties_list, filter_outcomes='all', 
 
 # reaction time error bars for pooled sessions
 
-def plot_pooled_isi_reaction_time(lick_properties_list, filter_outcomes='all', ax=None, opto_split=False):
+def plot_pooled_isi_reaction_time_less(lick_properties_list, filter_outcomes='all', ax=None, opto_split=False):
     """
     Plot mean lick reaction time ± SEM for short and long ISI trials, pooled from multiple sessions.
     
@@ -1264,7 +1264,7 @@ def plot_pooled_isi_reaction_time(lick_properties_list, filter_outcomes='all', a
     return fig, ax, stats
 
 # Fuction for reaction time curve for pooled sessions
-def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_quadratic=True, opto_split=False):
+def plot_pooled_reaction_time_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_quadratic=True, opto_split=False):
     """
     Plot lick reaction time as a function of ISI with SEM error bars and quadratic fit, pooled from multiple sessions.
     Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
@@ -1303,11 +1303,11 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
     
     # Define colors based on filter_outcomes and block_type
     colors = {
-        'all': {'block0': '#999999', 'block1': '#EC882B', 'block2': '#ff00ff'},
-        'rewarded': {'block0': '#a1e0a1', 'block1': '#63f250', 'block2': '#00cc00'},
-        'punished': {'block0': '#f7b0a9', 'block1': '#e74c3c', 'block2': '#cc0000'},
-        'opto': {'block0': '#005eff', 'block1': '#9999ff', 'block2': '#0033cc'},
-        'control': {'block0': '#999999', 'block1': "#EC882B", 'block2': '#ff00ff'}
+        'all': {'block1': '#787573', 'block2': '#000000'},
+        'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
+        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
+        'control': {'block1': "#787573", 'block2': "#000000"}
     }
     
     # Extract data efficiently from all sessions
@@ -1408,7 +1408,10 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
             return None
         
         # Map block_type to label
-        block_label = ['Neutral', 'Short', 'Long'][block_type] if block_type in [0, 1, 2] else f"Block {block_type}"
+        if block_type not in [1, 2]:
+            print(f"Error: Invalid block_type {block_type}. Expected 1 or 2.")
+            return None
+        block_label = ['Short', 'Long'][block_type - 1]
         
         # Calculate statistics
         mean_rt = np.zeros(len(bins) - 1)
@@ -1456,7 +1459,7 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
     if opto_split:
         # Plot control trials for both block types
         fit_params['control'] = {}
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     isi_values, reaction_times, block_types, 'Control',
@@ -1466,7 +1469,7 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
         # Plot opto trials for both block types if they exist
         if np.any(opto_tags == 1):
             fit_params['opto'] = {}
-            for block_type in [0, 1, 2]:
+            for block_type in [1, 2]:
                 if np.any(block_types == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         isi_values, reaction_times, block_types, 'Opto',
@@ -1474,7 +1477,7 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
                     )
     else:
         # Plot for both block types
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(block_types == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     isi_values, reaction_times, block_types, filter_outcomes.capitalize(),
@@ -1490,8 +1493,8 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
             elif isi_divider != lick_properties['ISI_devider']:
                 print(f"Warning: Inconsistent ISI_devider values across sessions. Using {isi_divider}.")
     
-    if isi_divider is not None:
-        ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
+    # if isi_divider is not None:
+    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
     
     # Customize plot
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
@@ -1514,7 +1517,7 @@ def plot_pooled_reaction_time_curve(lick_properties_list, filter_outcomes='all',
     return fig, ax, fit_params
 
 # Fucntions for Grand Average plots ------------------------------------------------------
-def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False):
+def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False):
 
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -1522,11 +1525,11 @@ def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes=
         fig = ax.figure
 
     colors = {
-        'all': {'block0': '#999999', 'block1': '#EC882B', 'block2': '#ff00ff'},
-        'rewarded': {'block0': '#a1e0a1', 'block1': '#63f250', 'block2': '#00cc00'},
-        'punished': {'block0': '#f7b0a9', 'block1': '#e74c3c', 'block2': '#cc0000'},
-        'opto': {'block0': '#005eff', 'block1': '#9999ff', 'block2': '#0033cc'},
-        'control': {'block0': '#999999', 'block1': "#EC882B", 'block2': '#ff00ff'}
+        'all': {'block1': '#787573', 'block2': '#000000'},
+        'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
+        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
+        'control': {'block1': "#787573", 'block2': "#000000"}
     }
 
     def extract_session_data(keys, lick_properties):
@@ -1651,7 +1654,10 @@ def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes=
         valid_mean = grand_mean[valid_mask]
         valid_sem = grand_sem[valid_mask]
 
-        block_label = ['Neutral', 'Short', 'Long'][block_type] if block_type in [0, 1, 2] else f"Block {block_type}"
+        if block_type not in [1, 2]:
+            print(f"Error: Invalid block_type {block_type}. Expected 1 or 2.")
+            return None
+        block_label = ['Short', 'Long'][block_type - 1]
 
         ax.errorbar(valid_centers, valid_mean, yerr=valid_sem, fmt='o', color=color,
                     label=f"{label} data ({block_label})", capsize=3, alpha=0.7)
@@ -1671,7 +1677,7 @@ def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes=
                 ax.plot(x_fit, y_fit, '-', color=color, linewidth=2,
                         label=f"{label} fit ({block_label})")
                 ip_value = x_fit[np.argmin(np.abs(y_fit - 0.5))]
-                ax.axvline(x=ip_value, color=color, linestyle='--', alpha=0.5)
+                # ax.axvline(x=ip_value, color=color, linestyle='--', alpha=0.5)
                 # ax.text(ip_value, 0.1, f'{label} IP ({block_label}): {ip_value:.2f}s',
                 #         color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                 fit_params = {'L': popt[0], 'k': popt[1], 'x0': popt[2]}
@@ -1684,7 +1690,7 @@ def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes=
     title_suffix = filter_outcomes.capitalize() + ' Trials'
     for mode in ['control', 'opto'] if opto_split else ['main']:
         fit_params[mode] = {}
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(all_block == block_type):
                 args = (isi_centers, None) if is_discrete else (bin_centers, bins)
                 fit_params[mode][f'block{block_type}'] = plot_group(*args,
@@ -1694,8 +1700,8 @@ def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes=
                     block_type=block_type)
 
     isi_divider = next((lp['ISI_devider'] for lp in lick_properties_list if 'ISI_devider' in lp), None)
-    if isi_divider is not None:
-        ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
+    # if isi_divider is not None:
+    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
 
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
     ax.set_ylabel('Probability of Right Choice', fontsize=12)
@@ -1711,7 +1717,7 @@ def plot_grand_average_psychometric_curve(lick_properties_list, filter_outcomes=
 
 # Fucn
 
-def plot_grand_average_isi_reaction_time(lick_properties_list, filter_outcomes='all', ax=None, opto_split=False):
+def plot_grand_average_isi_reaction_time_less(lick_properties_list, filter_outcomes='all', ax=None, opto_split=False):
     """
     Plot grand average mean lick reaction time ± SEM for short and long ISI trials across sessions.
     
@@ -1980,7 +1986,7 @@ def plot_grand_average_isi_reaction_time(lick_properties_list, filter_outcomes='
     return fig, ax, stats
 
 
-def plot_grand_average_reaction_time_curve(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_quadratic=True, opto_split=False):
+def plot_grand_average_reaction_time_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_quadratic=True, opto_split=False):
     """
     Plot grand average lick reaction time ± SEM as a function of ISI with quadratic fit across sessions.
     Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
@@ -2019,11 +2025,11 @@ def plot_grand_average_reaction_time_curve(lick_properties_list, filter_outcomes
     
     # Define colors based on filter_outcomes and block_type
     colors = {
-        'all': {'block0': '#999999', 'block1': '#EC882B', 'block2': '#ff00ff'},
-        'rewarded': {'block0': '#a1e0a1', 'block1': '#63f250', 'block2': '#00cc00'},
-        'punished': {'block0': '#f7b0a9', 'block1': '#e74c3c', 'block2': '#cc0000'},
-        'opto': {'block0': '#005eff', 'block1': '#9999ff', 'block2': '#0033cc'},
-        'control': {'block0': '#999999', 'block1': "#EC882B", 'block2': '#ff00ff'}
+        'all': {'block1': '#787573', 'block2': '#000000'},
+        'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
+        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
+        'control': {'block1': "#787573", 'block2': "#000000"}
     }
     
     # Extract data for a single session
@@ -2175,8 +2181,11 @@ def plot_grand_average_reaction_time_curve(lick_properties_list, filter_outcomes
         valid_sem = grand_sem[valid_mask]
         
         # Map block_type to label
-        block_label = ['Neutral', 'Short', 'Long'][block_type] if block_type in [0, 1, 2] else f"Block {block_type}"
-        
+        if block_type not in [1, 2]:
+            print(f"Error: Invalid block_type {block_type}. Expected 1 or 2.")
+            return None
+        block_label = ['Short', 'Long'][block_type - 1]
+            
         # Plot with error bars
         ax.errorbar(valid_centers, valid_mean, yerr=valid_sem, fmt='o', color=color,
                    label=f"{label} data ({block_label})", capsize=3, alpha=0.7)
@@ -2205,7 +2214,7 @@ def plot_grand_average_reaction_time_curve(lick_properties_list, filter_outcomes
     if opto_split:
         # Plot control trials for both block types
         fit_params['control'] = {}
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(all_block == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     bin_centers, bins, all_block, 'Control',
@@ -2218,7 +2227,7 @@ def plot_grand_average_reaction_time_curve(lick_properties_list, filter_outcomes
                       for key in left_keys + right_keys)
         if has_opto:
             fit_params['opto'] = {}
-            for block_type in [0, 1, 2]:
+            for block_type in [1, 2]:
                 if np.any(all_block == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         bin_centers, bins, all_block, 'Opto',
@@ -2226,7 +2235,7 @@ def plot_grand_average_reaction_time_curve(lick_properties_list, filter_outcomes
                     )
     else:
         # Plot for both block types
-        for block_type in [0, 1, 2]:
+        for block_type in [1, 2]:
             if np.any(all_block == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     bin_centers, bins, all_block, filter_outcomes.capitalize(),
