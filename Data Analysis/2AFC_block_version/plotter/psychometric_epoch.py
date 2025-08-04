@@ -10,7 +10,7 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
     """
     Plot psychometric curves for early and late epochs of short and long blocks, including pooled data
     across sessions and individual session plots, excluding opto trials and neutral blocks. Uses GridSpec
-    with 6 subplots per row (early/late for short, long, and all blocks) and saves to a PDF.
+    with 3 subplots per row (short, long, and all blocks with early/late superimposed) and saves to a PDF.
 
     Args:
         sessions_data (dict): Dictionary from prepare_session_data containing outcomes, lick_properties, opto_tags, block_types, and dates.
@@ -65,7 +65,6 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
                 continue
             block_length = end - start
             midpoint = start + block_length // 2
-            epoch = 'early' if block_length > 1 else 'late'  # Single-trial blocks go to late
             
             for i in range(start, end):
                 if opto_tags[i] == 1:  # Exclude opto trials
@@ -130,20 +129,20 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
         """Logistic function for fitting psychometric curves."""
         return L / (1 + np.exp(-k * (x - x0)))
 
-    def plot_psychometric(ax, isi, choices, title, color, isi_divider, single_isi_case, fit_logistic):
+    def plot_psychometric(ax, isi, choices, label, color, isi_divider, single_isi_case, fit_logistic):
         """Plot psychometric curve with SEM on given axis."""
         x_data, y_data, y_sem = calculate_psychometric(isi, choices, bin_width, single_isi_case)
         if x_data is None:
-            ax.text(0.5, 0.5, 'No Data', ha='center', va='center')
-            ax.set_title(title)
-            ax.grid(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-            return None
+            return False
         
-        ax.errorbar(x_data, y_data, yerr=y_sem, fmt='o', color=color, capsize=3, alpha=0.7, label='Data')
+        # Add trial count to label
+        n_trials = len(choices)
+        label_with_count = f'{label} (n={n_trials})'
+        
+        ax.errorbar(x_data, y_data, yerr=y_sem, fmt='o', color=color, capsize=3, alpha=0.7, label=label_with_count)
+        
         if single_isi_case and len(x_data) == 2:
-            ax.plot(x_data, y_data, '-', color=color, linewidth=2, label='Fit')
+            ax.plot(x_data, y_data, '-', color=color, linewidth=2, alpha=0.7)
             x1, x2 = x_data
             y1, y2 = y_data
             if y2 != y1:
@@ -158,23 +157,14 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
                                     bounds=([0.5, -10, np.min(x_data)], [1, 10, np.max(x_data)]))
                 x_fit = np.linspace(np.min(x_data), np.max(x_data), 100)
                 y_fit = logistic_function(x_fit, *popt)
-                ax.plot(x_fit, y_fit, '-', color=color, linewidth=2, label='Fit')
+                ax.plot(x_fit, y_fit, '-', color=color, linewidth=2, alpha=0.7)
                 ip_index = np.argmin(np.abs(y_fit - 0.5))
                 inflection_point = x_fit[ip_index]
                 ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
             except Exception as e:
-                print(f"Could not fit logistic function for {title}: {e}")
+                print(f"Could not fit logistic function for {label}: {e}")
         
-        ax.axvline(x=isi_divider, color='red', linestyle='--', alpha=0.3)
-        ax.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-        ax.set_xlabel('Inter-Stimulus Interval (s)')
-        ax.set_ylabel('Probability of Right Choice')
-        ax.set_title(title)
-        ax.set_ylim(-0.05, 1.05)
-        ax.grid(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.legend()
+        return True
 
     # Colors for different conditions
     colors = {
@@ -182,8 +172,8 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
         'late_short': '#ff7f0e',   # Orange
         'early_long': '#2ca02c',   # Green
         'late_long': '#d62728',    # Red
-        'pooled_early_all': '#9467bd', # Purple
-        'pooled_late_all': '#8c564b'   # Brown
+        'early_all': '#9467bd',    # Purple
+        'late_all': '#8c564b'      # Brown
     }
 
     # Process pooled data
@@ -206,75 +196,160 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
 
     # Initialize PDF
     with PdfPages(output_pdf) as pdf:
-        fig = plt.figure(figsize=(18, 4 * (n_sessions + 1)))
-        gs = gridspec.GridSpec(n_sessions + 1, 6, figure=fig)
+        fig = plt.figure(figsize=(15, 4 * (n_sessions + 1)))
+        gs = gridspec.GridSpec(n_sessions + 1, 3, figure=fig)
 
-        # Plot pooled data (6 subplots)
+        # Plot pooled data (3 subplots with superimposed early/late)
+        # Short blocks
         ax1 = fig.add_subplot(gs[0, 0])
-        plot_psychometric(ax1, np.array(pooled_early['short']['isi']), np.array(pooled_early['short']['choices']),
-                          'Pooled Early Short Blocks', colors['early_short'], lick_properties_list[0]['ISI_devider'],
-                          single_isi_case, fit_logistic)
+        has_early = plot_psychometric(ax1, np.array(pooled_early['short']['isi']), np.array(pooled_early['short']['choices']),
+                                     'Early', colors['early_short'], lick_properties_list[0]['ISI_devider'],
+                                     single_isi_case, fit_logistic)
+        has_late = plot_psychometric(ax1, np.array(pooled_late['short']['isi']), np.array(pooled_late['short']['choices']),
+                                    'Late', colors['late_short'], lick_properties_list[0]['ISI_devider'],
+                                    single_isi_case, fit_logistic)
         
+        if has_early or has_late:
+            ax1.axvline(x=lick_properties_list[0]['ISI_devider'], color='red', linestyle='--', alpha=0.3)
+            ax1.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+            ax1.set_xlabel('Inter-Stimulus Interval (s)')
+            ax1.set_ylabel('Probability of Right Choice')
+            ax1.set_title('Pooled Short Blocks')
+            ax1.set_ylim(-0.05, 1.05)
+            ax1.grid(False)
+            ax1.spines['right'].set_visible(False)
+            ax1.spines['top'].set_visible(False)
+            ax1.legend()
+        else:
+            ax1.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax1.transAxes)
+            ax1.set_title('Pooled Short Blocks')
+        
+        # Long blocks
         ax2 = fig.add_subplot(gs[0, 1])
-        plot_psychometric(ax2, np.array(pooled_late['short']['isi']), np.array(pooled_late['short']['choices']),
-                          'Pooled Late Short Blocks', colors['late_short'], lick_properties_list[0]['ISI_devider'],
-                          single_isi_case, fit_logistic)
+        has_early = plot_psychometric(ax2, np.array(pooled_early['long']['isi']), np.array(pooled_early['long']['choices']),
+                                     'Early', colors['early_long'], lick_properties_list[0]['ISI_devider'],
+                                     single_isi_case, fit_logistic)
+        has_late = plot_psychometric(ax2, np.array(pooled_late['long']['isi']), np.array(pooled_late['long']['choices']),
+                                    'Late', colors['late_long'], lick_properties_list[0]['ISI_devider'],
+                                    single_isi_case, fit_logistic)
         
+        if has_early or has_late:
+            ax2.axvline(x=lick_properties_list[0]['ISI_devider'], color='red', linestyle='--', alpha=0.3)
+            ax2.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+            ax2.set_xlabel('Inter-Stimulus Interval (s)')
+            ax2.set_ylabel('Probability of Right Choice')
+            ax2.set_title('Pooled Long Blocks')
+            ax2.set_ylim(-0.05, 1.05)
+            ax2.grid(False)
+            ax2.spines['right'].set_visible(False)
+            ax2.spines['top'].set_visible(False)
+            ax2.legend()
+        else:
+            ax2.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax2.transAxes)
+            ax2.set_title('Pooled Long Blocks')
+        
+        # All blocks
         ax3 = fig.add_subplot(gs[0, 2])
-        plot_psychometric(ax3, np.array(pooled_early['long']['isi']), np.array(pooled_early['long']['choices']),
-                          'Pooled Early Long Blocks', colors['early_long'], lick_properties_list[0]['ISI_devider'],
-                          single_isi_case, fit_logistic)
+        has_early = plot_psychometric(ax3, np.array(pooled_early['all']['isi']), np.array(pooled_early['all']['choices']),
+                                     'Early', colors['early_all'], lick_properties_list[0]['ISI_devider'],
+                                     single_isi_case, fit_logistic)
+        has_late = plot_psychometric(ax3, np.array(pooled_late['all']['isi']), np.array(pooled_late['all']['choices']),
+                                    'Late', colors['late_all'], lick_properties_list[0]['ISI_devider'],
+                                    single_isi_case, fit_logistic)
         
-        ax4 = fig.add_subplot(gs[0, 3])
-        plot_psychometric(ax4, np.array(pooled_late['long']['isi']), np.array(pooled_late['long']['choices']),
-                          'Pooled Late Long Blocks', colors['late_long'], lick_properties_list[0]['ISI_devider'],
-                          single_isi_case, fit_logistic)
-        
-        ax5 = fig.add_subplot(gs[0, 4])
-        plot_psychometric(ax5, np.array(pooled_early['all']['isi']), np.array(pooled_early['all']['choices']),
-                          'Pooled Early All Blocks', colors['pooled_early_all'], lick_properties_list[0]['ISI_devider'],
-                          single_isi_case, fit_logistic)
-        
-        ax6 = fig.add_subplot(gs[0, 5])
-        plot_psychometric(ax6, np.array(pooled_late['all']['isi']), np.array(pooled_late['all']['choices']),
-                          'Pooled Late All Blocks', colors['pooled_late_all'], lick_properties_list[0]['ISI_devider'],
-                          single_isi_case, fit_logistic)
+        if has_early or has_late:
+            ax3.axvline(x=lick_properties_list[0]['ISI_devider'], color='red', linestyle='--', alpha=0.3)
+            ax3.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+            ax3.set_xlabel('Inter-Stimulus Interval (s)')
+            ax3.set_ylabel('Probability of Right Choice')
+            ax3.set_title('Pooled All Blocks')
+            ax3.set_ylim(-0.05, 1.05)
+            ax3.grid(False)
+            ax3.spines['right'].set_visible(False)
+            ax3.spines['top'].set_visible(False)
+            ax3.legend()
+        else:
+            ax3.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax3.transAxes)
+            ax3.set_title('Pooled All Blocks')
 
-        # Plot individual sessions (6 subplots per session)
+        # Plot individual sessions (3 subplots per session with superimposed early/late)
         for i, (date, outcomes, lick_props, opto_tags, block_types) in enumerate(zip(dates, outcomes_list, lick_properties_list, opto_tags_list, block_types_list)):
             early_data, late_data = split_block_epochs(block_types, outcomes, opto_tags, lick_props)
             
+            # Short blocks
             ax1 = fig.add_subplot(gs[i + 1, 0])
-            plot_psychometric(ax1, np.array(early_data['short']['isi']), np.array(early_data['short']['choices']),
-                              f'Early Short Blocks - {date}', colors['early_short'], lick_props['ISI_devider'],
-                              single_isi_case, fit_logistic)
+            has_early = plot_psychometric(ax1, np.array(early_data['short']['isi']), np.array(early_data['short']['choices']),
+                                         'Early', colors['early_short'], lick_props['ISI_devider'],
+                                         single_isi_case, fit_logistic)
+            has_late = plot_psychometric(ax1, np.array(late_data['short']['isi']), np.array(late_data['short']['choices']),
+                                        'Late', colors['late_short'], lick_props['ISI_devider'],
+                                        single_isi_case, fit_logistic)
             
+            if has_early or has_late:
+                ax1.axvline(x=lick_props['ISI_devider'], color='red', linestyle='--', alpha=0.3)
+                ax1.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+                ax1.set_xlabel('Inter-Stimulus Interval (s)')
+                ax1.set_ylabel('Probability of Right Choice')
+                ax1.set_title(f'Short Blocks - {date}')
+                ax1.set_ylim(-0.05, 1.05)
+                ax1.grid(False)
+                ax1.spines['right'].set_visible(False)
+                ax1.spines['top'].set_visible(False)
+                ax1.legend()
+            else:
+                ax1.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax1.transAxes)
+                ax1.set_title(f'Short Blocks - {date}')
+            
+            # Long blocks
             ax2 = fig.add_subplot(gs[i + 1, 1])
-            plot_psychometric(ax2, np.array(late_data['short']['isi']), np.array(late_data['short']['choices']),
-                              f'Late Short Blocks - {date}', colors['late_short'], lick_props['ISI_devider'],
-                              single_isi_case, fit_logistic)
+            has_early = plot_psychometric(ax2, np.array(early_data['long']['isi']), np.array(early_data['long']['choices']),
+                                         'Early', colors['early_long'], lick_props['ISI_devider'],
+                                         single_isi_case, fit_logistic)
+            has_late = plot_psychometric(ax2, np.array(late_data['long']['isi']), np.array(late_data['long']['choices']),
+                                        'Late', colors['late_long'], lick_props['ISI_devider'],
+                                        single_isi_case, fit_logistic)
             
+            if has_early or has_late:
+                ax2.axvline(x=lick_props['ISI_devider'], color='red', linestyle='--', alpha=0.3)
+                ax2.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+                ax2.set_xlabel('Inter-Stimulus Interval (s)')
+                ax2.set_ylabel('Probability of Right Choice')
+                ax2.set_title(f'Long Blocks - {date}')
+                ax2.set_ylim(-0.05, 1.05)
+                ax2.grid(False)
+                ax2.spines['right'].set_visible(False)
+                ax2.spines['top'].set_visible(False)
+                ax2.legend()
+            else:
+                ax2.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax2.transAxes)
+                ax2.set_title(f'Long Blocks - {date}')
+            
+            # All blocks
             ax3 = fig.add_subplot(gs[i + 1, 2])
-            plot_psychometric(ax3, np.array(early_data['long']['isi']), np.array(early_data['long']['choices']),
-                              f'Early Long Blocks - {date}', colors['early_long'], lick_props['ISI_devider'],
-                              single_isi_case, fit_logistic)
+            has_early = plot_psychometric(ax3, np.array(early_data['all']['isi']), np.array(early_data['all']['choices']),
+                                         'Early', colors['early_all'], lick_props['ISI_devider'],
+                                         single_isi_case, fit_logistic)
+            has_late = plot_psychometric(ax3, np.array(late_data['all']['isi']), np.array(late_data['all']['choices']),
+                                        'Late', colors['late_all'], lick_props['ISI_devider'],
+                                        single_isi_case, fit_logistic)
             
-            ax4 = fig.add_subplot(gs[i + 1, 3])
-            plot_psychometric(ax4, np.array(late_data['long']['isi']), np.array(late_data['long']['choices']),
-                              f'Late Long Blocks - {date}', colors['late_long'], lick_props['ISI_devider'],
-                              single_isi_case, fit_logistic)
-            
-            ax5 = fig.add_subplot(gs[i + 1, 4])
-            plot_psychometric(ax5, np.array(early_data['all']['isi']), np.array(early_data['all']['choices']),
-                              f'Early All Blocks - {date}', colors['pooled_early_all'], lick_props['ISI_devider'],
-                              single_isi_case, fit_logistic)
-            
-            ax6 = fig.add_subplot(gs[i + 1, 5])
-            plot_psychometric(ax6, np.array(late_data['all']['isi']), np.array(late_data['all']['choices']),
-                              f'Late All Blocks - {date}', colors['pooled_late_all'], lick_props['ISI_devider'],
-                              single_isi_case, fit_logistic)
+            if has_early or has_late:
+                ax3.axvline(x=lick_props['ISI_devider'], color='red', linestyle='--', alpha=0.3)
+                ax3.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+                ax3.set_xlabel('Inter-Stimulus Interval (s)')
+                ax3.set_ylabel('Probability of Right Choice')
+                ax3.set_title(f'All Blocks - {date}')
+                ax3.set_ylim(-0.05, 1.05)
+                ax3.grid(False)
+                ax3.spines['right'].set_visible(False)
+                ax3.spines['top'].set_visible(False)
+                ax3.legend()
+            else:
+                ax3.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax3.transAxes)
+                ax3.set_title(f'All Blocks - {date}')
         
         plt.tight_layout()
+        pdf.savefig(fig, dpi=300, bbox_inches='tight')
         if save_path:
             output_path = os.path.join(save_path, f'Psychometric_epochs_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
             fig.savefig(output_path, dpi=300, bbox_inches='tight')

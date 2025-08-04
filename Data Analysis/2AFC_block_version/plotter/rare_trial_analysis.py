@@ -193,10 +193,13 @@ def compute_rare_trial_fractions_by_block_type(sessions_data, block_analysis='sh
 
 def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=None):
     """
-     Plot all three analyses (pooled, short blocks, long blocks) in a 3x2 grid with summary stats.
+    Plot all three analyses (pooled, short blocks, long blocks) in a 3x2 grid with summary stats.
+    Shows rare-1, rare, and rare+1 trial comparison using KDE line plots for distributions.
     
     Parameters:
     sessions_data: dict from prepare_session_data function
+    subject: subject identifier
+    data_paths: list of data file paths
     save_path: optional path to save the figure
     """
     
@@ -238,7 +241,7 @@ def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=N
     
     for col, (fraction_data, title) in enumerate(analyses):
         
-        # Top row: Probability density
+        # Top row: KDE line plot for distribution
         ax_density = fig.add_subplot(gs[0, col])
         
         for condition, color, label in zip(conditions, colors, condition_labels):
@@ -250,19 +253,12 @@ def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=N
             
             if len(condition_data) > 1:  # Need at least 2 points for KDE
                 try:
-                    # Check if data has sufficient variance for KDE
+                    # Check if data has sufficient variance
                     if condition_data.std() > 1e-10:  # Has meaningful variance
-                        # # Kernel density estimation
-                        # density = stats.gaussian_kde(condition_data)
-                        # x_range = np.linspace(0, 1, 100)
-                        # density_values = density(x_range)
-                        # normalized_density = density_values / density_values.max()  # Normalize to [0,1]
-                        # ax_density.plot(x_range, normalized_density, color=color, label=label, linewidth=2)
-                        # Create normalized histogram (frequencies sum to 1)
-                        ax_density.hist(condition_data, bins=15, alpha=0.6, color=color, 
+                        # Plot KDE without filling
+                        sns.kdeplot(data=condition_data, ax=ax_density, color=color, 
                                     label=f"{label} (n={len(condition_data)})", 
-                                    density=True, histtype='stepfilled', edgecolor='black', linewidth=0.5)
-                                                
+                                    linewidth=2, fill=False)
                         # Add mean line
                         mean_val = condition_data.mean()
                         ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
@@ -271,28 +267,20 @@ def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=N
                         mean_val = condition_data.mean()
                         ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(condition_data)})", 
                                          linewidth=3, alpha=0.7)
-                        
-                except np.linalg.LinAlgError:
-                    # Fallback for singular covariance matrix - use histogram instead
-                    hist_values, bin_edges = np.histogram(condition_data, bins=min(10, len(condition_data)), density=True)
-                    normalized_hist = hist_values / hist_values.max() if hist_values.max() > 0 else hist_values
-                    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-                    ax_density.plot(bin_centers, normalized_hist, color=color, label=f"{label} (histogram)", 
-                                linewidth=2, drawstyle='steps-mid')
-                    
-                    # Add mean line
+                except Exception:
+                    # Fallback for any issues - show as vertical line
                     mean_val = condition_data.mean()
-                    ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
-                    
+                    ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(condition_data)})", 
+                                      linewidth=3, alpha=0.7)
             elif len(condition_data) == 1:
                 # Single point - show as vertical line
-                ax_density.axvline(condition_data.iloc[0], color=color, label=label, linewidth=3, alpha=0.7)
+                ax_density.axvline(condition_data.iloc[0], color=color, label=label, 
+                                  linewidth=3, alpha=0.7)
         
         ax_density.set_xlabel('Fraction Correct')
-        ax_density.set_ylabel('Probability')
+        ax_density.set_ylabel('Density')
         ax_density.set_title(f'{title}\nDistribution Across Sessions')
         ax_density.legend(fontsize=8)
-        # ax_density.grid(True, alpha=0.3)
         ax_density.set_xlim(0, 1)
         ax_density.spines['top'].set_visible(False)
         ax_density.spines['right'].set_visible(False)
@@ -320,7 +308,6 @@ def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=N
         ax_cumulative.set_ylabel('Cumulative Probability')
         ax_cumulative.set_title('Cumulative Distribution')
         ax_cumulative.legend(fontsize=8)
-        # ax_cumulative.grid(True, alpha=0.3)
         ax_cumulative.set_xlim(0, 1)
         ax_cumulative.set_ylim(-0.1, 1.1)
         ax_cumulative.spines['top'].set_visible(False)

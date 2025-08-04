@@ -177,10 +177,12 @@ def compute_rare_vs_majority_fractions_by_block_type(sessions_data, block_analys
 def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_path=None):
     """
     Plot all three analyses (pooled, short blocks, long blocks) in a 3x2 grid with summary stats.
-    Shows rare vs majority trial comparison.
+    Shows rare vs majority trial comparison using KDE line plots for distributions.
     
     Parameters:
     sessions_data: dict from prepare_session_data function
+    subject: subject identifier
+    data_paths: list of data file paths
     save_path: optional path to save the figure
     """
     
@@ -211,18 +213,18 @@ def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_
     # Define trial categories and colors
     categories = ['rare', 'majority']
     colors = ['red', 'blue']
-    category_labels = ['Rare Trials', 'Majority Trials']
+    category_labels = ['Rare Trials', 'Standard Trials']
     
     # Analysis results and titles
     analyses = [
         (pooled_results, "Pooled: Short & Long Blocks"),
-        (short_results, "Short Blocks Only\n(Rare=Long, Majority=Short)"),
-        (long_results, "Long Blocks Only\n(Rare=Short, Majority=Long)")
+        (short_results, "Short Blocks Only\n(Rare=Long, Standard=Short)"),
+        (long_results, "Long Blocks Only\n(Rare=Short, Standard=Long)")
     ]
     
     for col, (fraction_data, title) in enumerate(analyses):
         
-        # Top row: Probability density
+        # Top row: KDE line plot for distribution
         ax_density = fig.add_subplot(gs[0, col])
         
         for category, color, label in zip(categories, colors, category_labels):
@@ -232,15 +234,14 @@ def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_
             else:
                 category_data = pd.Series(dtype=float)  # Empty series
             
-            if len(category_data) > 1:  # Need at least 2 points for histogram
+            if len(category_data) > 1:  # Need at least 2 points for KDE
                 try:
                     # Check if data has sufficient variance
                     if category_data.std() > 1e-10:  # Has meaningful variance
-                        # Create normalized histogram (frequencies sum to 1)
-                        ax_density.hist(category_data, bins=15, alpha=0.6, color=color, 
+                        # Plot KDE
+                        sns.kdeplot(data=category_data, ax=ax_density, color=color, 
                                     label=f"{label} (n={len(category_data)})", 
-                                    density=True, histtype='stepfilled', edgecolor='black', linewidth=0.5)
-                                                
+                                    linewidth=2, fill=False, alpha = 1)
                         # Add mean line
                         mean_val = category_data.mean()
                         ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
@@ -249,25 +250,18 @@ def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_
                         mean_val = category_data.mean()
                         ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(category_data)})", 
                                          linewidth=3, alpha=0.7)
-                        
                 except Exception:
-                    # Fallback for any issues - use histogram
-                    hist_values, bin_edges = np.histogram(category_data, bins=min(10, len(category_data)), density=True)
-                    normalized_hist = hist_values / hist_values.max() if hist_values.max() > 0 else hist_values
-                    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-                    ax_density.plot(bin_centers, normalized_hist, color=color, label=f"{label} (histogram)", 
-                                linewidth=2, drawstyle='steps-mid')
-                    
-                    # Add mean line
+                    # Fallback for any issues - show as vertical line
                     mean_val = category_data.mean()
-                    ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
-                    
+                    ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(category_data)})", 
+                                      linewidth=3, alpha=0.7)
             elif len(category_data) == 1:
                 # Single point - show as vertical line
-                ax_density.axvline(category_data.iloc[0], color=color, label=label, linewidth=3, alpha=0.7)
+                ax_density.axvline(category_data.iloc[0], color=color, label=label, 
+                                  linewidth=3, alpha=0.7)
         
         ax_density.set_xlabel('Fraction Correct')
-        ax_density.set_ylabel('Probability')
+        ax_density.set_ylabel('Density')
         ax_density.set_title(f'{title}\nDistribution Across Sessions')
         ax_density.legend(fontsize=8)
         ax_density.set_xlim(0, 1)
@@ -278,7 +272,6 @@ def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_
         ax_cumulative = fig.add_subplot(gs[1, col])
         
         for category, color, label in zip(categories, colors, category_labels):
-            # Check if DataFrame has the trial_category column and data
             if 'trial_category' in fraction_data.columns and len(fraction_data) > 0:
                 category_data = fraction_data[fraction_data['trial_category'] == category]['fraction_correct']
             else:
@@ -308,7 +301,7 @@ def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_
         
         # Create summary statistics text
         summary_text = []
-        summary_text.append(f"Summary Statistics - {title.split(chr(10))[0]}")  # First line of title only
+        summary_text.append(f"Summary Statistics - {title.split(chr(10))[0]}")
         summary_text.append("=" * 40)
         
         for category in categories:
@@ -354,13 +347,13 @@ def plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_
                     fontsize=9, verticalalignment='top', fontfamily='monospace',
                     bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
     
-    plt.suptitle('Rare vs Majority Trial Analysis: Fraction Correct Comparison', 
+    plt.suptitle('Rare vs Standard Trial Analysis: Fraction Correct Comparison', 
                  fontsize=16, fontweight='bold', y=0.98)
     
     plt.tight_layout()
     
     if save_path:
-        output_path = os.path.join(save_path, f'Rare_vs_Majority_Analysis_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
+        output_path = os.path.join(save_path, f'Rare_vs_Standard_Analysis_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
         fig.savefig(output_path, dpi=300, bbox_inches='tight')
     
     plt.close()

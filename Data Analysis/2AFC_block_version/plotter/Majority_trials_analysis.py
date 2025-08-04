@@ -221,10 +221,12 @@ def compute_majority_trial_fractions_by_block_type(sessions_data, block_analysis
 def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_path=None):
     """
     Plot all three analyses (pooled, short blocks, long blocks) in a 3x2 grid with summary stats.
-    Shows early vs late epoch comparison for majority trials.
+    Shows early vs late epoch comparison for majority trials using KDE line plots for distributions.
     
     Parameters:
     sessions_data: dict from prepare_session_data function
+    subject: subject identifier
+    data_paths: list of data file paths
     save_path: optional path to save the figure
     """
     
@@ -266,7 +268,7 @@ def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_pa
     
     for col, (fraction_data, title) in enumerate(analyses):
         
-        # Top row: Probability density
+        # Top row: KDE line plot for distribution
         ax_density = fig.add_subplot(gs[0, col])
         
         for epoch, color, label in zip(epochs, colors, epoch_labels):
@@ -276,15 +278,14 @@ def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_pa
             else:
                 epoch_data = pd.Series(dtype=float)  # Empty series
             
-            if len(epoch_data) > 1:  # Need at least 2 points for histogram
+            if len(epoch_data) > 1:  # Need at least 2 points for KDE
                 try:
                     # Check if data has sufficient variance
                     if epoch_data.std() > 1e-10:  # Has meaningful variance
-                        # Create normalized histogram (frequencies sum to 1)
-                        ax_density.hist(epoch_data, bins=15, alpha=0.6, color=color, 
+                        # Plot KDE without filling
+                        sns.kdeplot(data=epoch_data, ax=ax_density, color=color, 
                                     label=f"{label} (n={len(epoch_data)})", 
-                                    density=True, histtype='stepfilled', edgecolor='black', linewidth=0.5)
-                                                
+                                    linewidth=2, fill=False)
                         # Add mean line
                         mean_val = epoch_data.mean()
                         ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
@@ -293,25 +294,18 @@ def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_pa
                         mean_val = epoch_data.mean()
                         ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(epoch_data)})", 
                                          linewidth=3, alpha=0.7)
-                        
                 except Exception:
-                    # Fallback for any issues - use histogram
-                    hist_values, bin_edges = np.histogram(epoch_data, bins=min(10, len(epoch_data)), density=True)
-                    normalized_hist = hist_values / hist_values.max() if hist_values.max() > 0 else hist_values
-                    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-                    ax_density.plot(bin_centers, normalized_hist, color=color, label=f"{label} (histogram)", 
-                                linewidth=2, drawstyle='steps-mid')
-                    
-                    # Add mean line
+                    # Fallback for any issues - show as vertical line
                     mean_val = epoch_data.mean()
-                    ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
-                    
+                    ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(epoch_data)})", 
+                                      linewidth=3, alpha=0.7)
             elif len(epoch_data) == 1:
                 # Single point - show as vertical line
-                ax_density.axvline(epoch_data.iloc[0], color=color, label=label, linewidth=3, alpha=0.7)
+                ax_density.axvline(epoch_data.iloc[0], color=color, label=label, 
+                                  linewidth=3, alpha=0.7)
         
         ax_density.set_xlabel('Fraction Correct')
-        ax_density.set_ylabel('Probability')
+        ax_density.set_ylabel('Density')
         ax_density.set_title(f'{title}\nDistribution Across Sessions')
         ax_density.legend(fontsize=8)
         ax_density.set_xlim(0, 1)
@@ -322,7 +316,6 @@ def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_pa
         ax_cumulative = fig.add_subplot(gs[1, col])
         
         for epoch, color, label in zip(epochs, colors, epoch_labels):
-            # Check if DataFrame has the epoch column and data
             if 'epoch' in fraction_data.columns and len(fraction_data) > 0:
                 epoch_data = fraction_data[fraction_data['epoch'] == epoch]['fraction_correct']
             else:
@@ -380,10 +373,13 @@ def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_pa
                 try:
                     # Perform t-test
                     t_stat, p_value = stats.ttest_ind(early_data, late_data)
+                    # Calculate effect size (Cohen's d)
+                    pooled_std = np.sqrt(((len(early_data)-1)*early_data.var() + (len(late_data)-1)*late_data.var()) / (len(early_data) + len(late_data) - 2))
+                    cohens_d = (early_data.mean() - late_data.mean()) / pooled_std
                     summary_text.append(f"\nSTATISTICAL COMPARISON:")
                     summary_text.append(f"  t-statistic: {t_stat:.4f}")
                     summary_text.append(f"  p-value: {p_value:.4f}")
-                    summary_text.append(f"  Effect size (Cohen's d): {(early_data.mean() - late_data.mean()) / np.sqrt(((len(early_data)-1)*early_data.var() + (len(late_data)-1)*late_data.var()) / (len(early_data) + len(late_data) - 2)):.4f}")
+                    summary_text.append(f"  Effect size (Cohen's d): {cohens_d:.4f}")
                 except Exception:
                     summary_text.append(f"\nSTATISTICAL COMPARISON: Could not compute")
         
@@ -393,13 +389,13 @@ def plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_pa
                     fontsize=9, verticalalignment='top', fontfamily='monospace',
                     bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
     
-    plt.suptitle('Majority Trial Analysis: Early vs Late Epoch Fraction Correct', 
+    plt.suptitle('Standard Trial Analysis: Early vs Late Epoch Fraction Correct', 
                  fontsize=16, fontweight='bold', y=0.98)
     
     plt.tight_layout()
     
     if save_path:
-        output_path = os.path.join(save_path, f'Majority_Trial_Analysis_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
+        output_path = os.path.join(save_path, f'Standard_Trial_Analysis_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
         fig.savefig(output_path, dpi=300, bbox_inches='tight')
     
     plt.close()
