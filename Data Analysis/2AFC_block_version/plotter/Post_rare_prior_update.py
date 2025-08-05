@@ -7,7 +7,7 @@ import logging
 from matplotlib import gridspec
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+# logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def identify_rare_vs_majority_trials(trial_types, block_types):
     """
@@ -334,3 +334,4 @@ def plot_post_rare_trial_analysis(sessions_data, subject, data_paths, save_path=
     plt.close()
     
     return pooled_results, short_results, long_results
+
