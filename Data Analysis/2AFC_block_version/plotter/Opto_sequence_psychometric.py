@@ -70,6 +70,7 @@ def plot_opto_comparison_curve(lick_properties, block_mode='all', ax=None, bin_w
     
     # Identify opto trial indices and their neighbors
     opto_indices = np.where(opto_tags == 1)[0]
+    opto_indices = opto_indices[:-1]
     opto_minus_one = opto_indices - 1
     opto_plus_one = opto_indices + 1
     
@@ -339,6 +340,7 @@ def plot_pooled_opto_comparison_curve(lick_properties_list, block_mode='all', ax
     
     # Identify opto trial indices and their neighbors
     opto_indices = np.where(opto_tags == 1)[0]
+    opto_indices = opto_indices[:-1]
     opto_minus_one = opto_indices - 1
     opto_plus_one = opto_indices + 1
     
@@ -642,6 +644,7 @@ def plot_grand_average_opto_comparison_curve(lick_properties_list, block_mode='a
             
             # Identify opto trial indices and neighbors
             opto_indices = np.where(opto_tags == 1)[0]
+            opto_indices = opto_indices[:-1]
             opto_minus_one = opto_indices - 1
             opto_plus_one = opto_indices + 1
             
@@ -868,6 +871,7 @@ def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', 
     
     # Identify opto trial indices and their neighbors
     opto_indices = np.where(opto_tags == 1)[0]
+    opto_indices = opto_indices[:-1]
     opto_minus_one = opto_indices - 1
     opto_plus_one = opto_indices + 1
     
@@ -1095,6 +1099,7 @@ def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_
     
     # Identify opto trial indices and their neighbors
     opto_indices = np.where(opto_tags == 1)[0]
+    opto_indices = opto_indices[:-1]
     opto_minus_one = opto_indices - 1
     opto_plus_one = opto_indices + 1
     
@@ -1346,6 +1351,7 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
             
             # Identify opto trial indices and neighbors
             opto_indices = np.where(opto_tags == 1)[0]
+            opto_indices = opto_indices[:-1]
             opto_minus_one = opto_indices - 1
             opto_plus_one = opto_indices + 1
             
@@ -1468,4 +1474,5 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     
+
     return fig, ax, fit_params
