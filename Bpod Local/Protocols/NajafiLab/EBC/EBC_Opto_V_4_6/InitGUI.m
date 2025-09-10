@@ -26,7 +26,6 @@ classdef InitGUI
                 S.GUI.num_warmup_trials = 15;
                 S.GUI.CheckEyeOpenAveragingBaseline = 0.2;
                 S.GUI.CheckEyeOpenTimeout = 15;
-
                 % ------------------------
                 % Training stage (still available but probes won't depend on it)
                 % ------------------------
@@ -36,46 +35,49 @@ classdef InitGUI
                 S.GUI.TrainingStage = 1;
                 S.GUIMeta.TrainingStage.Style = 'popupmenu';
                 S.GUIMeta.TrainingStage.String = {'naive','well-trained'};
-
                 % ------------------------
                 % Probe Trials Parameters
                 % ------------------------
                 S.GUI.UseProbeTrials = 1;                                % independent from training stage
                 S.GUIMeta.UseProbeTrials.Style = 'checkbox';
                 S.GUIMeta.UseProbeTrials.String = '(check to activate)';
-
-                S.GUI.probetrials_percentage_perBlock = 15;              % % of eligible trials
+                S.GUI.probetrials_percentage_perBlock = 10;              % % of eligible trials
                 S.GUIMeta.probetrials_percentage_perBlock.Style = 'edit';
                 S.GUIMeta.probetrials_percentage_perBlock.String = '% of block (excl. lead-in/last)';
-
-                S.GUI.num_initial_nonprobe_trials_perBlock = 5;          % lead-in per block
+                S.GUI.num_initial_nonprobe_trials_perBlock = 7;          % lead-in per block
                 S.GUIMeta.num_initial_nonprobe_trials_perBlock.Style = 'edit';
                 S.GUIMeta.num_initial_nonprobe_trials_perBlock.String = 'lead-in trials';
-
                 % spacing rule (>=3 non-probes between probes)
-                S.GUI.ProbeMinSeparation = 4;                             % distance in trials
+                S.GUI.ProbeMinSeparation = 3;                             % distance in trials
                 S.GUIMeta.ProbeMinSeparation.Style = 'edit';
                 S.GUIMeta.ProbeMinSeparation.String = 'min spacing (≥4 ⇒ 3 gaps)';
-
                 % ------------------------
-                % Optogenetic Parameters
+                % Optogenetic parameters (Organized)
                 % ------------------------
+                % === Common to all session types ===
                 S.GUI.OptoEnabled = 1;
                 S.GUIMeta.OptoEnabled.Style = 'checkbox';
                 S.GUI.OptoSessionType = 1;
                 S.GUIMeta.OptoSessionType.Style = 'popupmenu';
-                S.GUIMeta.OptoSessionType.String = {'RandomTrial','BlockTransition','ProbeTrialOpto'};
-                S.GUI.OptoOnset = 0.4;   % default = AirPuff_OnsetDelay
+                S.GUIMeta.OptoSessionType.String = {'RandomTrial', 'ProbeTrialOpto', 'BlockTransition'};
+                S.GUI.OptoOnset = 1;  % popup index
+                S.GUIMeta.OptoOnset.Style = 'popupmenu';
+                S.GUIMeta.OptoOnset.String = {'Same as Airpuff', '0 ms', '200 ms', '400 ms'};
                 S.GUI.OptoDuration = 0.1;
                 S.GUI.OptoPattern = 1;
                 S.GUIMeta.OptoPattern.Style = 'popupmenu';
-                S.GUIMeta.OptoPattern.String = {'HoldAndRampDown','SquarePulse'};
+                S.GUIMeta.OptoPattern.String = {'HoldAndRampDown', 'Ramp', 'Hold'};
+                % === Random Trials specific ===
                 S.GUI.OptoFraction = 0.2;
-                S.GUI.OptoTransitionTrials = 5;
-                S.GUI.OptoTransitionType = 1;
-                S.GUIMeta.OptoTransitionType.Style = 'popupmenu';
-                S.GUIMeta.OptoTransitionType.String = {'AlternatingShortToLong','AllShortToLong'};
-
+                % === Probe Trials specific ===
+                S.GUI.OptoFractionProbe = 1.0;
+                % === Block Transition specific ===
+                S.GUI.BlockTypeReceiveOpto = 1;
+                S.GUIMeta.BlockTypeReceiveOpto.Style = 'popupmenu';
+                S.GUIMeta.BlockTypeReceiveOpto.String = {'LongBlockOnly', 'ShortBlockOnly', 'BothBlocksShortLong'};
+                S.GUI.WhichBlockTransitions = 2;
+                S.GUIMeta.WhichBlockTransitions.Style = 'popupmenu';
+                S.GUIMeta.WhichBlockTransitions.String = {'AllTransitions', 'AlternatingTransitions'};
                 % ------------------------
                 % GUI Panels (boxes)
                 % ------------------------
@@ -86,18 +88,16 @@ classdef InitGUI
                     'AirPuff_OnsetDelay_SingleBlock','AirPuff_OnsetDelay_Short','AirPuff_OnsetDelay_Long', ...
                     'AirPuff_Dur','CheckEyeOpenAveragingBaseline','CheckEyeOpenTimeout', ...
                     'BlockLength','Margine'};
-
-                % NEW: probes separated into their own panel
+                % Probes in their own panel
                 S.GUIPanels.ProbeTrials = { ...
                     'UseProbeTrials', ...
                     'probetrials_percentage_perBlock', ...
                     'num_initial_nonprobe_trials_perBlock', ...
                     'ProbeMinSeparation'};
-
+                % Optogenetics panel (updated to match new fields)
                 S.GUIPanels.Optogenetics = { ...
                     'OptoEnabled','OptoSessionType','OptoOnset','OptoDuration','OptoPattern', ...
-                    'OptoFraction','OptoTransitionTrials','OptoTransitionType'};
-
+                    'OptoFraction','OptoFractionProbe','BlockTypeReceiveOpto','WhichBlockTransitions'};
                 % Airpuff test button
                 S.GUI.ActivateAirPuffPulse = @(src,event)fnActivateAirPuffPulse;
                 S.GUIMeta.ActivateAirPuffPulse.Style = 'pushbutton';
@@ -107,3 +107,9 @@ classdef InitGUI
         end
     end
 end
+
+
+
+
+
+

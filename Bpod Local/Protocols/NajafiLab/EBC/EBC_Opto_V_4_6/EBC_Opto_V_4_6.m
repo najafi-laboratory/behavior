@@ -196,6 +196,7 @@ try
     %Track the current trial within the block
     BlockTypes = repmat({''}, 1, MaxTrials);   %  'short'/'long'/'single'/'warm_up' string-safe
     probeTrialsThisBlock = [];
+    probeTrialsByBlock = cell(1, numel(blocks));   % block-relative lists
     optoTrialsThisBlock  = [];                 % absolute trial numbers (current block only)
     % isTransitionOptoBlock = false;
     
@@ -269,41 +270,40 @@ try
                 end
                 BlockTypes{currentTrial} = currentBlockType;
                % ========== Initialize probe trial indices ==========
-               if S.GUI.UseProbeTrials == 1
-                   numLeadIn = S.GUI.num_initial_nonprobe_trials_perBlock;
-                   blockStartTrial = 1;
-                   blockEndTrial = blockStartTrial + blocks(currentBlockIndex) - 2;
-                        
-                   minTrial = blockStartTrial + numLeadIn;
-                   maxTrial = blockEndTrial;
-                   probe_candidate_trials = minTrial:maxTrial;
-                   numCandidateTrials = length(probe_candidate_trials);
-    
-                   % Calculate percentage-based number of probes
-                   probe_fraction = S.GUI.probetrials_percentage_perBlock / 100;
-                   numProbes = round(probe_fraction * numCandidateTrials);
-    
-                   % Randomly assign probes
-                   % probeTrialsThisBlock = randsample(probe_candidate_trials, numProbes);
-                    
-                   % --- Random selection with minimum spacing ---
-                   gap = S.GUI.ProbeMinSeparation;   
-                   selected = [];
-                   pool = probe_candidate_trials;
-                    
-                   while ~isempty(pool) && numel(selected) < numProbes
-                        t = randsample(pool, 1);           
-                        selected(end+1) = t;               %#ok<AGROW>
-                        % keep only those at distance > gap from t
-                        pool = pool(abs(pool - t) > gap);
+                if S.GUI.UseProbeTrials == 1
+                  numLeadIn = S.GUI.num_initial_nonprobe_trials_perBlock;
+                  if currentBlockIndex == 1
+                    blockStartTrial = 1+ numWarmupTrials;
+                  else
+                    blockStartTrial = sum(blocks(1:currentBlockIndex - 1)) + 1;
+                  end
+                  blockEndTrial = blockStartTrial + blocks(currentBlockIndex) - 1;
+                  minTrial = blockStartTrial + numLeadIn;
+                  maxTrial = blockEndTrial - 2;  % exclude last trial from probes
+                  probe_candidate_trials = minTrial:maxTrial;
+                  numCandidateTrials = length(probe_candidate_trials);
+                  % percentage-based target
+                  probe_fraction = S.GUI.probetrials_percentage_perBlock / 100;
+                  numProbes = round(probe_fraction * numCandidateTrials);
+                  % --- Random selection with minimum spacing (bounded) ---
+                  gap = S.GUI.ProbeMinSeparation;   % e.g., 3 -> need >= 3 non-probes between probes
+                  sep = gap + 1;            % index separation
+                  selected = [];
+                  % keep picking until we hit numProbes (target) or run out of candidates
+                  while numel(selected) < numProbes && ~isempty(probe_candidate_trials)
+                    % pick one candidate at random
+                    t = probe_candidate_trials(randi(numel(probe_candidate_trials)));
+                    selected(end+1) = t; %#ok<AGROW>
+                    % remove any candidates too close (< sep) to the chosen one
+                    probe_candidate_trials = probe_candidate_trials(abs(probe_candidate_trials - t) >= sep);
                    end
                     
-                   probeTrialsThisBlock = sort(selected);
-    
-                   fprintf('Block #%d: %d probe trials selected from trials %d–%d (excluding first %d trials) with at least %d gaps between them\n', ...
-                        currentBlockIndex, numProbes, minTrial, maxTrial, numLeadIn,gap);
-                   fprintf('Probe trial indices for #1st Block after Warmup Trials: %s\n', mat2str(probeTrialsThisBlock));
-               end
+                  probeTrialsThisBlock = sort(selected);
+                  fprintf('Block #%d: %d probe trials selected from %d–%d (excl first %d; excl last %d); min gap=%d\n', ...
+                    currentBlockIndex, numel(probeTrialsThisBlock), minTrial, maxTrial, numLeadIn, blockEndTrial, S.GUI.ProbeMinSeparation);
+                  fprintf('Probe trial indices: %s\n', mat2str(probeTrialsThisBlock));
+                end
+
 
                % ========== Initialize OPTO selection ==========
                if S.GUI.OptoEnabled
@@ -376,41 +376,39 @@ try
 
     % ---------- BEGINNING OF BLOCK: select probe & opto trials ----------
     if currentTrialInBlock == 1
-        if S.GUI.UseProbeTrials == 1
-            numLeadIn = S.GUI.num_initial_nonprobe_trials_perBlock;
-            blockStartTrial = 1;
-            blockEndTrial = blockStartTrial + blocks(currentBlockIndex) - 2;
-                        
-            minTrial = blockStartTrial + numLeadIn;
-            maxTrial = blockEndTrial;
-            probe_candidate_trials = minTrial:maxTrial;
-            numCandidateTrials = length(probe_candidate_trials);
-    
-            % Calculate percentage-based number of probes
-            probe_fraction = S.GUI.probetrials_percentage_perBlock / 100;
-            numProbes = round(probe_fraction * numCandidateTrials);
-    
-                   % Randomly assign probes
-                   % probeTrialsThisBlock = randsample(probe_candidate_trials, numProbes);
+              if S.GUI.UseProbeTrials == 1
+                  numLeadIn = S.GUI.num_initial_nonprobe_trials_perBlock;
+                  if currentBlockIndex == 1
+                    blockStartTrial = 1+ numWarmupTrials;
+                  else
+                    blockStartTrial = sum(blocks(1:currentBlockIndex - 1)) + 1;
+                  end
+                  blockEndTrial = blockStartTrial + blocks(currentBlockIndex) - 1;
+                  minTrial = blockStartTrial + numLeadIn;
+                  maxTrial = blockEndTrial - 2;  % exclude last trial from probes
+                  probe_candidate_trials = minTrial:maxTrial;
+                  numCandidateTrials = length(probe_candidate_trials);
+                  % percentage-based target
+                  probe_fraction = S.GUI.probetrials_percentage_perBlock / 100;
+                  numProbes = round(probe_fraction * numCandidateTrials);
+                  % --- Random selection with minimum spacing (bounded) ---
+                  gap = S.GUI.ProbeMinSeparation;   % e.g., 3 -> need >= 3 non-probes between probes
+                  sep = gap + 1;            % index separation
+                  selected = [];
+                  % keep picking until we hit numProbes (target) or run out of candidates
+                  while numel(selected) < numProbes && ~isempty(probe_candidate_trials)
+                    % pick one candidate at random
+                    t = probe_candidate_trials(randi(numel(probe_candidate_trials)));
+                    selected(end+1) = t; %#ok<AGROW>
+                    % remove any candidates too close (< sep) to the chosen one
+                    probe_candidate_trials = probe_candidate_trials(abs(probe_candidate_trials - t) >= sep);
+                   end
                     
-            % --- Random selection with minimum spacing ---
-            gap = S.GUI.ProbeMinSeparation;   
-            selected = [];
-            pool = probe_candidate_trials;
-                    
-            while ~isempty(pool) && numel(selected) < numProbes
-                t = randsample(pool, 1);           
-                selected(end+1) = t;               %#ok<AGROW>
-                % keep only those at distance > gap from t
-                pool = pool(abs(pool - t) > gap);
-            end
-                    
-            probeTrialsThisBlock = sort(selected);
-    
-            fprintf('Block #%d: %d probe trials selected from trials %d–%d (excluding first %d trials) with at least %d gaps between them\n', ...
-                currentBlockIndex, numProbes, minTrial, maxTrial, numLeadIn,gap);
-            fprintf('Probe trial indices for #Block %d: %s\n',currentBlockIndex, mat2str(probeTrialsThisBlock));
-        end
+                  probeTrialsThisBlock = sort(selected);
+                  fprintf('Block #%d: %d probe trials selected from %d–%d (excl first %d; excl last %d); min gap=%d\n', ...
+                    currentBlockIndex, numel(probeTrialsThisBlock), minTrial, maxTrial, numLeadIn, blockEndTrial, S.GUI.ProbeMinSeparation);
+                  fprintf('Probe trial indices: %s\n', mat2str(probeTrialsThisBlock));
+             end
 
         % ---------- OPTO selection ----------
         % optoTrialsThisBlock   = [];
@@ -480,18 +478,18 @@ try
             switch S.GUI.OptoSessionType
                 case {1,2} % Random or Transition
                   isOptoTrial = ismember(currentTrial, optoTrialsThisBlock);
-                  if isOptoTrial
-                        fprintf('########################################\n');
-                        fprintf('OPTO =  TRUE  isOptoTrial = 1 .\n');
-                        fprintf('########################################\n');
-                  end
+                  % if isOptoTrial
+                  %       fprintf('########################################\n');
+                  %       fprintf('OPTO =  TRUE  isOptoTrial = 1 .\n');
+                  %       fprintf('########################################\n');
+                  % end
                 case 3   % ProbeTrialOpto: opto exactly on probe trials
                   isOptoTrial = isProbeTrial;
-                   if isOptoTrial
-                        fprintf('########################################\n');
-                        fprintf('OPTO =  TRUE  isOptoTrial = 1 the same as Probe Trials .\n');
-                        fprintf('########################################\n');
-                   end
+                   % if isOptoTrial
+                   %      fprintf('########################################\n');
+                   %      fprintf('OPTO =  TRUE  isOptoTrial = 1 the same as Probe Trials .\n');
+                   %      fprintf('########################################\n');
+                   % end
             end
          end
        end    
