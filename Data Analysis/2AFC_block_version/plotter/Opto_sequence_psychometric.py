@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from scipy import stats
+
 
 def plot_opto_comparison_curve(lick_properties, block_mode='all', ax=None, bin_width=0.01, fit_logistic=True):
     """
@@ -49,51 +51,51 @@ def plot_opto_comparison_curve(lick_properties, block_mode='all', ax=None, bin_w
         isi = []
         opto = []
         block = []
+        pre_opto = []
+        post_opto = []
+        choices = []
+        left_keys = ['short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick']
+        right_keys = ['short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick']
+        
         for key in keys:
-            isi.extend(lick_properties[key]['Trial_ISI'])
-            opto.extend(lick_properties[key]['opto_tag'])
-            block.extend(lick_properties[key]['block_type'])
-        return np.array(isi), np.array(opto), np.array(block)
+            trial_isi = lick_properties[key].get('Trial_ISI', [])
+            opto_tags = lick_properties[key].get('opto_tag', [])
+            block_types = lick_properties[key].get('block_type', [])
+            pre_opto_tags = lick_properties[key].get('is_pre_opto', [])
+            post_opto_tags = lick_properties[key].get('is_post_opto', [])
+            
+            isi.extend(trial_isi)
+            opto.extend(opto_tags)
+            block.extend(block_types)
+            pre_opto.extend(pre_opto_tags)
+            post_opto.extend(post_opto_tags)
+            choices.extend([0 if key in left_keys else 1] * len(trial_isi))
+        
+        return np.array(isi), np.array(opto), np.array(block), np.array(pre_opto), np.array(post_opto), np.array(choices)
     
     # Get data for all trials
     all_keys = [
         'short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick',
         'short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick'
     ]
-    isi_values, opto_tags, block_types = extract_lick_data(all_keys)
-    choices = np.concatenate([
-        np.zeros(len(lick_properties['short_ISI_reward_left_correct_lick']['Trial_ISI']) +
-                 len(lick_properties['long_ISI_punish_left_incorrect_lick']['Trial_ISI'])),
-        np.ones(len(lick_properties['short_ISI_punish_right_incorrect_lick']['Trial_ISI']) +
-                len(lick_properties['long_ISI_reward_right_correct_lick']['Trial_ISI']))
-    ])
+    isi_values, opto_tags, block_types, pre_opto_tags, post_opto_tags, choices = extract_lick_data(all_keys)
     
-    # Identify opto trial indices and their neighbors
-    opto_indices = np.where(opto_tags == 1)[0]
-    opto_indices = opto_indices[:-1]
-    opto_minus_one = opto_indices - 1
-    opto_plus_one = opto_indices + 1
-    
-    # Filter out invalid indices (e.g., opto-1 or opto+1 out of bounds or in neutral block)
-    valid_mask = (opto_minus_one >= 0) & (opto_plus_one < len(isi_values))
-    valid_mask &= (block_types[opto_minus_one] != 0) & (block_types[opto_indices] != 0) & (block_types[opto_plus_one] != 0)
-    
-    # Apply block mode filter
-    if block_mode == 'short':
-        valid_mask &= block_types[opto_indices] == 1
-    elif block_mode == 'long':
-        valid_mask &= block_types[opto_indices] == 2
-    
-    opto_indices = opto_indices[valid_mask]
-    opto_minus_one = opto_minus_one[valid_mask]
-    opto_plus_one = opto_plus_one[valid_mask]
-    
-    # Combine data for opto-1, opto, and opto+1
+    # Define trial groups based on opto conditions
     trial_groups = {
-        'opto-1': (opto_minus_one, 'Opto-1'),
-        'opto': (opto_indices, 'Opto'),
-        'opto+1': (opto_plus_one, 'Opto+1')
+        'opto-1': (np.where(pre_opto_tags == 1)[0], 'Opto-1'),
+        'opto': (np.where(opto_tags == 1)[0], 'Opto'),
+        'opto+1': (np.where(post_opto_tags == 1)[0], 'Opto+1')
     }
+    
+    # Apply block mode filter and exclude neutral blocks
+    for group in trial_groups:
+        indices, label = trial_groups[group]
+        valid_mask = block_types[indices] != 0
+        if block_mode == 'short':
+            valid_mask &= block_types[indices] == 1
+        elif block_mode == 'long':
+            valid_mask &= block_types[indices] == 2
+        trial_groups[group] = (indices[valid_mask], label)
     
     # Check for single ISI case
     unique_isi = np.unique(isi_values)
@@ -126,7 +128,7 @@ def plot_opto_comparison_curve(lick_properties, block_mode='all', ax=None, bin_w
                 bin_choices = group_choices[mask]
                 if len(bin_choices) > 0:
                     right_prob[i] = np.mean(bin_choices)
-                    sem[i] = np.std(bin_choices) / np.sqrt(len(bin_choices))
+                    sem[i] = sem(bin_choices, nan_policy='omit')
                     counts[i] = len(bin_choices)
             
             valid_mask = counts > 0
@@ -175,7 +177,7 @@ def plot_opto_comparison_curve(lick_properties, block_mode='all', ax=None, bin_w
                 bin_choices = group_choices[mask]
                 if len(bin_choices) > 0:
                     right_prob[i] = np.mean(bin_choices)
-                    sem[i] = np.std(bin_choices) / np.sqrt(len(bin_choices))
+                    sem[i] = stats.sem(bin_choices, nan_policy='omit')
                     counts[i] = len(bin_choices)
             
             valid_mask = counts > 0
@@ -243,7 +245,6 @@ def plot_opto_comparison_curve(lick_properties, block_mode='all', ax=None, bin_w
     
     return fig, ax, fit_params
 
-#############################################
 
 def plot_pooled_opto_comparison_curve(lick_properties_list, block_mode='all', ax=None, bin_width=0.05, fit_logistic=True):
     """
@@ -293,82 +294,73 @@ def plot_pooled_opto_comparison_curve(lick_properties_list, block_mode='all', ax
         isi = []
         opto = []
         block = []
+        pre_opto = []
+        post_opto = []
         choices = []
         session_indices = []
+        left_keys = ['short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick']
+        right_keys = ['short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick']
+        
         for session_idx, lick_properties in enumerate(lick_properties_list):
             for key in keys:
                 if key not in lick_properties:
                     continue
-                trial_isi = np.array(lick_properties[key]['Trial_ISI'])
-                trial_opto = np.array(lick_properties[key]['opto_tag'])
-                trial_block = np.array(lick_properties[key]['block_type'])
+                trial_isi = np.array(lick_properties[key].get('Trial_ISI', []))
+                trial_opto = np.array(lick_properties[key].get('opto_tag', []))
+                trial_block = np.array(lick_properties[key].get('block_type', []))
+                trial_pre_opto = np.array(lick_properties[key].get('is_pre_opto', []))
+                trial_post_opto = np.array(lick_properties[key].get('is_post_opto', []))
                 
                 # Validate lengths and filter NaNs
-                min_length = min(len(trial_isi), len(trial_opto), len(trial_block))
+                min_length = min(len(trial_isi), len(trial_opto), len(trial_block), len(trial_pre_opto), len(trial_post_opto))
                 if min_length == 0:
                     continue
                 
                 valid_mask = (
                     ~np.isnan(trial_isi[:min_length]) & 
                     ~np.isnan(trial_opto[:min_length]) &
-                    ~np.isnan(trial_block[:min_length])
+                    ~np.isnan(trial_block[:min_length]) &
+                    ~np.isnan(trial_pre_opto[:min_length]) &
+                    ~np.isnan(trial_post_opto[:min_length])
                 )
                 
                 isi.extend(trial_isi[:min_length][valid_mask])
                 opto.extend(trial_opto[:min_length][valid_mask])
                 block.extend(trial_block[:min_length][valid_mask])
+                pre_opto.extend(trial_pre_opto[:min_length][valid_mask])
+                post_opto.extend(trial_post_opto[:min_length][valid_mask])
+                choices.extend([0 if key in left_keys else 1] * np.sum(valid_mask))
                 session_indices.extend([session_idx] * np.sum(valid_mask))
-                
-                # Assign choices based on key
-                if 'left' in key:
-                    choices.extend([0] * np.sum(valid_mask))
-                else:
-                    choices.extend([1] * np.sum(valid_mask))
         
-        return np.array(isi), np.array(opto), np.array(block), np.array(choices), np.array(session_indices)
+        return np.array(isi), np.array(opto), np.array(block), np.array(pre_opto), np.array(post_opto), np.array(choices), np.array(session_indices)
     
     # Get data for all trials
     all_keys = [
         'short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick',
         'short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick'
     ]
-    isi_values, opto_tags, block_types, choices, session_indices = extract_lick_data(all_keys, lick_properties_list)
+    isi_values, opto_tags, block_types, pre_opto_tags, post_opto_tags, choices, session_indices = extract_lick_data(all_keys, lick_properties_list)
     
     if len(isi_values) == 0:
         print("No valid data to plot after pooling sessions.")
         return fig, ax, {}
     
-    # Identify opto trial indices and their neighbors
-    opto_indices = np.where(opto_tags == 1)[0]
-    opto_indices = opto_indices[:-1]
-    opto_minus_one = opto_indices - 1
-    opto_plus_one = opto_indices + 1
-    
-    # Filter out invalid indices (out of bounds, neutral block, or across sessions)
-    valid_mask = (opto_minus_one >= 0) & (opto_plus_one < len(isi_values))
-    valid_mask &= (block_types[opto_minus_one] != 0) & (block_types[opto_indices] != 0) & (block_types[opto_plus_one] != 0)
-    valid_mask &= (session_indices[opto_minus_one] == session_indices[opto_indices]) & (session_indices[opto_indices] == session_indices[opto_plus_one])
-    
-    # Apply block mode filter
-    if block_mode == 'short':
-        valid_mask &= (block_types[opto_indices] == 1)
-    elif block_mode == 'long':
-        valid_mask &= (block_types[opto_indices] == 2)
-    
-    opto_indices = opto_indices[valid_mask]
-    opto_minus_one = opto_minus_one[valid_mask]
-    opto_plus_one = opto_plus_one[valid_mask]
-    
-    if len(opto_indices) == 0:
-        print("No valid opto trials after filtering.")
-        return fig, ax, {}
-    
-    # Combine data for opto-1, opto, and opto+1
+    # Define trial groups based on opto conditions
     trial_groups = {
-        'opto-1': (opto_minus_one, 'Opto-1'),
-        'opto': (opto_indices, 'Opto'),
-        'opto+1': (opto_plus_one, 'Opto+1')
+        'opto-1': (np.where(pre_opto_tags == 1)[0], 'Opto-1'),
+        'opto': (np.where(opto_tags == 1)[0], 'Opto'),
+        'opto+1': (np.where(post_opto_tags == 1)[0], 'Opto+1')
     }
+    
+    # Apply block mode filter and exclude neutral blocks
+    for group in trial_groups:
+        indices, label = trial_groups[group]
+        valid_mask = block_types[indices] != 0
+        if block_mode == 'short':
+            valid_mask &= block_types[indices] == 1
+        elif block_mode == 'long':
+            valid_mask &= block_types[indices] == 2
+        trial_groups[group] = (indices[valid_mask], label)
     
     # Check for discrete ISI case
     unique_isi = np.unique(isi_values)
@@ -398,7 +390,7 @@ def plot_pooled_opto_comparison_curve(lick_properties_list, block_mode='all', ax
                 bin_choices = group_choices[mask]
                 if len(bin_choices) > 0:
                     right_prob[i] = np.mean(bin_choices)
-                    sem[i] = np.std(bin_choices) / np.sqrt(len(bin_choices))
+                    sem[i] = stats.sem(bin_choices, nan_policy='omit')
                     counts[i] = len(bin_choices)
             
             valid_mask = counts > 0
@@ -448,7 +440,7 @@ def plot_pooled_opto_comparison_curve(lick_properties_list, block_mode='all', ax
                 bin_choices = group_choices[mask]
                 if len(bin_choices) > 0:
                     right_prob[i] = np.mean(bin_choices)
-                    sem[i] = np.std(bin_choices) / np.sqrt(len(bin_choices))
+                    sem[i] = stats.sem(bin_choices, nan_policy='omit')
                     counts[i] = len(bin_choices)
             
             valid_mask = counts > 0
@@ -532,6 +524,7 @@ def plot_pooled_opto_comparison_curve(lick_properties_list, block_mode='all', ax
     
     return fig, ax, fit_params
 
+
 def plot_grand_average_opto_comparison_curve(lick_properties_list, block_mode='all', ax=None, bin_width=0.05, fit_logistic=True):
     """
     Plot grand average psychometric curves across sessions, comparing opto-1, opto, and opto+1 trials.
@@ -578,28 +571,38 @@ def plot_grand_average_opto_comparison_curve(lick_properties_list, block_mode='a
     
     # Extract data from a single session
     def extract_session_data(keys, lick_properties):
-        isi, opto, block, choices = [], [], [], []
+        isi, opto, block, pre_opto, post_opto, choices = [], [], [], [], [], []
+        left_keys = ['short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick']
+        right_keys = ['short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick']
+        
         for key in keys:
             if key not in lick_properties:
                 continue
-            trial_isi = np.array(lick_properties[key]['Trial_ISI'])
-            trial_opto = np.array(lick_properties[key]['opto_tag'])
-            trial_block = np.array(lick_properties[key]['block_type'])
+            trial_isi = np.array(lick_properties[key].get('Trial_ISI', []))
+            trial_opto = np.array(lick_properties[key].get('opto_tag', []))
+            trial_block = np.array(lick_properties[key].get('block_type', []))
+            trial_pre_opto = np.array(lick_properties[key].get('is_pre_opto', []))
+            trial_post_opto = np.array(lick_properties[key].get('is_post_opto', []))
             
-            min_length = min(len(trial_isi), len(trial_opto), len(trial_block))
+            min_length = min(len(trial_isi), len(trial_opto), len(trial_block), len(trial_pre_opto), len(trial_post_opto))
             if min_length == 0:
                 continue
             
             valid_mask = (
                 ~np.isnan(trial_isi[:min_length]) &
                 ~np.isnan(trial_opto[:min_length]) &
-                ~np.isnan(trial_block[:min_length])
+                ~np.isnan(trial_block[:min_length]) &
+                ~np.isnan(trial_pre_opto[:min_length]) &
+                ~np.isnan(trial_post_opto[:min_length])
             )
             isi.extend(trial_isi[:min_length][valid_mask])
             opto.extend(trial_opto[:min_length][valid_mask])
             block.extend(trial_block[:min_length][valid_mask])
-            choices.extend([0 if 'left' in key else 1] * np.sum(valid_mask))
-        return np.array(isi), np.array(opto), np.array(block), np.array(choices)
+            pre_opto.extend(trial_pre_opto[:min_length][valid_mask])
+            post_opto.extend(trial_post_opto[:min_length][valid_mask])
+            choices.extend([0 if key in left_keys else 1] * np.sum(valid_mask))
+        
+        return np.array(isi), np.array(opto), np.array(block), np.array(pre_opto), np.array(post_opto), np.array(choices)
     
     # Get all trial data across sessions
     all_keys = [
@@ -610,7 +613,7 @@ def plot_grand_average_opto_comparison_curve(lick_properties_list, block_mode='a
     # Collect all ISI values to determine discrete/continuous case
     all_isi = []
     for lick_properties in lick_properties_list:
-        isi, _, _, _ = extract_session_data(all_keys, lick_properties)
+        isi, _, _, _, _, _ = extract_session_data(all_keys, lick_properties)
         all_isi.extend(isi)
     
     all_isi = np.array(all_isi)
@@ -638,31 +641,25 @@ def plot_grand_average_opto_comparison_curve(lick_properties_list, block_mode='a
     def plot_group(centers, bins, group_indices, label, color):
         session_means, session_counts = [], []
         for lick_properties in lick_properties_list:
-            isi, opto_tags, block_types, choices = extract_session_data(all_keys, lick_properties)
+            isi, opto_tags, block_types, pre_opto_tags, post_opto_tags, choices = extract_session_data(all_keys, lick_properties)
             if len(isi) == 0:
                 continue
             
-            # Identify opto trial indices and neighbors
-            opto_indices = np.where(opto_tags == 1)[0]
-            opto_indices = opto_indices[:-1]
-            opto_minus_one = opto_indices - 1
-            opto_plus_one = opto_indices + 1
-            
-            # Filter valid indices
-            valid_mask = (opto_minus_one >= 0) & (opto_plus_one < len(isi))
-            valid_mask &= (block_types[opto_minus_one] != 0) & (block_types[opto_indices] != 0) & (block_types[opto_plus_one] != 0)
-            if block_mode == 'short':
-                valid_mask &= (block_types[opto_indices] == 1)
-            elif block_mode == 'long':
-                valid_mask &= (block_types[opto_indices] == 2)
-            
-            opto_indices = opto_indices[valid_mask]
+            # Select indices based on group
             if group_indices == 'opto-1':
-                indices = opto_minus_one[valid_mask]
+                indices = np.where(pre_opto_tags == 1)[0]
             elif group_indices == 'opto':
-                indices = opto_indices
+                indices = np.where(opto_tags == 1)[0]
             else:  # opto+1
-                indices = opto_plus_one[valid_mask]
+                indices = np.where(post_opto_tags == 1)[0]
+            
+            # Apply block mode and neutral block filters
+            valid_mask = block_types[indices] != 0
+            if block_mode == 'short':
+                valid_mask &= block_types[indices] == 1
+            elif block_mode == 'long':
+                valid_mask &= block_types[indices] == 2
+            indices = indices[valid_mask]
             
             if len(indices) == 0:
                 continue
@@ -783,6 +780,7 @@ def plot_grand_average_opto_comparison_curve(lick_properties_list, block_mode='a
     
     return fig, ax, fit_params
 
+
 def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', ax=None, bin_width=0.05, fit_quadratic=True):
     """
     Plot lick reaction time curves comparing opto-1, opto, and opto+1 trials as a function of ISI with SEM error bars.
@@ -832,15 +830,20 @@ def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', 
         reaction_times = []
         opto = []
         block = []
+        pre_opto = []
+        post_opto = []
+        
         for key in keys:
             if key not in lick_properties:
                 continue
-            trial_isi = np.array(lick_properties[key]['Trial_ISI'])
-            trial_rt = np.array(lick_properties[key]['Lick_reaction_time'])
-            trial_opto = np.array(lick_properties[key]['opto_tag'])
-            trial_block = np.array(lick_properties[key]['block_type'])
+            trial_isi = np.array(lick_properties[key].get('Trial_ISI', []))
+            trial_rt = np.array(lick_properties[key].get('Lick_reaction_time', []))
+            trial_opto = np.array(lick_properties[key].get('opto_tag', []))
+            trial_block = np.array(lick_properties[key].get('block_type', []))
+            trial_pre_opto = np.array(lick_properties[key].get('is_pre_opto', []))
+            trial_post_opto = np.array(lick_properties[key].get('is_post_opto', []))
             
-            min_length = min(len(trial_isi), len(trial_rt), len(trial_opto), len(trial_block))
+            min_length = min(len(trial_isi), len(trial_rt), len(trial_opto), len(trial_block), len(trial_pre_opto), len(trial_post_opto))
             if min_length == 0:
                 continue
                 
@@ -848,57 +851,47 @@ def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', 
                 ~np.isnan(trial_isi[:min_length]) & 
                 ~np.isnan(trial_rt[:min_length]) & 
                 ~np.isnan(trial_opto[:min_length]) &
-                ~np.isnan(trial_block[:min_length])
+                ~np.isnan(trial_block[:min_length]) &
+                ~np.isnan(trial_pre_opto[:min_length]) &
+                ~np.isnan(trial_post_opto[:min_length])
             )
             
             isi.extend(trial_isi[:min_length][valid_mask])
             reaction_times.extend(trial_rt[:min_length][valid_mask])
             opto.extend(trial_opto[:min_length][valid_mask])
             block.extend(trial_block[:min_length][valid_mask])
+            pre_opto.extend(trial_pre_opto[:min_length][valid_mask])
+            post_opto.extend(trial_post_opto[:min_length][valid_mask])
         
-        return np.array(isi), np.array(reaction_times), np.array(opto), np.array(block)
+        return np.array(isi), np.array(reaction_times), np.array(opto), np.array(block), np.array(pre_opto), np.array(post_opto)
     
     # Get data for all trials
     all_keys = [
         'short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick',
         'short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick'
     ]
-    isi_values, reaction_times, opto_tags, block_types = extract_lick_data(all_keys)
+    isi_values, reaction_times, opto_tags, block_types, pre_opto_tags, post_opto_tags = extract_lick_data(all_keys)
     
     if len(isi_values) == 0:
         print("No valid data to plot after filtering.")
         return fig, ax, {}
     
-    # Identify opto trial indices and their neighbors
-    opto_indices = np.where(opto_tags == 1)[0]
-    opto_indices = opto_indices[:-1]
-    opto_minus_one = opto_indices - 1
-    opto_plus_one = opto_indices + 1
-    
-    # Filter out invalid indices (out of bounds or in neutral block)
-    valid_mask = (opto_minus_one >= 0) & (opto_plus_one < len(isi_values))
-    valid_mask &= (block_types[opto_minus_one] != 0) & (block_types[opto_indices] != 0) & (block_types[opto_plus_one] != 0)
-    
-    # Apply block mode filter
-    if block_mode == 'short':
-        valid_mask &= (block_types[opto_indices] == 1)
-    elif block_mode == 'long':
-        valid_mask &= (block_types[opto_indices] == 2)
-    
-    opto_indices = opto_indices[valid_mask]
-    opto_minus_one = opto_minus_one[valid_mask]
-    opto_plus_one = opto_plus_one[valid_mask]
-    
-    if len(opto_indices) == 0:
-        print("No valid opto trials after filtering.")
-        return fig, ax, {}
-    
-    # Combine data for opto-1, opto, and opto+1
+    # Define trial groups based on opto conditions
     trial_groups = {
-        'opto-1': (opto_minus_one, 'Opto-1'),
-        'opto': (opto_indices, 'Opto'),
-        'opto+1': (opto_plus_one, 'Opto+1')
+        'opto-1': (np.where(pre_opto_tags == 1)[0], 'Opto-1'),
+        'opto': (np.where(opto_tags == 1)[0], 'Opto'),
+        'opto+1': (np.where(post_opto_tags == 1)[0], 'Opto+1')
     }
+    
+    # Apply block mode filter and exclude neutral blocks
+    for group in trial_groups:
+        indices, label = trial_groups[group]
+        valid_mask = block_types[indices] != 0
+        if block_mode == 'short':
+            valid_mask &= block_types[indices] == 1
+        elif block_mode == 'long':
+            valid_mask &= block_types[indices] == 2
+        trial_groups[group] = (indices[valid_mask], label)
     
     # Check for discrete ISI case
     unique_isi = np.unique(isi_values)
@@ -937,7 +930,7 @@ def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', 
                 bin_rt = rt[mask]
                 if len(bin_rt) > 0:
                     mean_rt[i] = np.mean(bin_rt)
-                    sem[i] = np.std(bin_rt) / np.sqrt(len(bin_rt))
+                    sem[i] = stats.sem(bin_rt, nan_policy='omit')
                     counts[i] = len(bin_rt)
         else:
             mean_rt = np.zeros(len(bins) - 1)
@@ -949,7 +942,7 @@ def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', 
                 bin_rt = rt[mask]
                 if len(bin_rt) > 0:
                     mean_rt[i] = np.mean(bin_rt)
-                    sem[i] = np.std(bin_rt) / np.sqrt(len(bin_rt))
+                    sem[i] = stats.sem(bin_rt, nan_policy='omit')
                     counts[i] = len(bin_rt)
         
         valid_mask = counts > 0
@@ -1007,7 +1000,6 @@ def plot_opto_comparison_reaction_time_curve(lick_properties, block_mode='all', 
     
     return fig, ax, fit_params
 
-
 def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_mode='all', ax=None, bin_width=0.05, fit_quadratic=True):
     """
     Plot reaction time curves for pooled data from multiple sessions, comparing opto-1, opto, and opto+1 trials.
@@ -1057,17 +1049,22 @@ def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_
         reaction_times = []
         opto = []
         block = []
+        pre_opto = []
+        post_opto = []
         session_indices = []
+        
         for session_idx, lick_properties in enumerate(lick_properties_list):
             for key in keys:
                 if key not in lick_properties:
                     continue
-                trial_isi = np.array(lick_properties[key]['Trial_ISI'])
-                trial_rt = np.array(lick_properties[key]['Lick_reaction_time'])
-                trial_opto = np.array(lick_properties[key]['opto_tag'])
-                trial_block = np.array(lick_properties[key]['block_type'])
+                trial_isi = np.array(lick_properties[key].get('Trial_ISI', []))
+                trial_rt = np.array(lick_properties[key].get('Lick_reaction_time', []))
+                trial_opto = np.array(lick_properties[key].get('opto_tag', []))
+                trial_block = np.array(lick_properties[key].get('block_type', []))
+                trial_pre_opto = np.array(lick_properties[key].get('is_pre_opto', []))
+                trial_post_opto = np.array(lick_properties[key].get('is_post_opto', []))
                 
-                min_length = min(len(trial_isi), len(trial_rt), len(trial_opto), len(trial_block))
+                min_length = min(len(trial_isi), len(trial_rt), len(trial_opto), len(trial_block), len(trial_pre_opto), len(trial_post_opto))
                 if min_length == 0:
                     continue
                 
@@ -1075,59 +1072,48 @@ def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_
                     ~np.isnan(trial_isi[:min_length]) & 
                     ~np.isnan(trial_rt[:min_length]) & 
                     ~np.isnan(trial_opto[:min_length]) &
-                    ~np.isnan(trial_block[:min_length])
+                    ~np.isnan(trial_block[:min_length]) &
+                    ~np.isnan(trial_pre_opto[:min_length]) &
+                    ~np.isnan(trial_post_opto[:min_length])
                 )
                 
                 isi.extend(trial_isi[:min_length][valid_mask])
                 reaction_times.extend(trial_rt[:min_length][valid_mask])
                 opto.extend(trial_opto[:min_length][valid_mask])
                 block.extend(trial_block[:min_length][valid_mask])
+                pre_opto.extend(trial_pre_opto[:min_length][valid_mask])
+                post_opto.extend(trial_post_opto[:min_length][valid_mask])
                 session_indices.extend([session_idx] * np.sum(valid_mask))
         
-        return np.array(isi), np.array(reaction_times), np.array(opto), np.array(block), np.array(session_indices)
+        return np.array(isi), np.array(reaction_times), np.array(opto), np.array(block), np.array(pre_opto), np.array(post_opto), np.array(session_indices)
     
     # Get data for all trials
     all_keys = [
         'short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick',
         'short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick'
     ]
-    isi_values, reaction_times, opto_tags, block_types, session_indices = extract_lick_data(all_keys, lick_properties_list)
+    isi_values, reaction_times, opto_tags, block_types, pre_opto_tags, post_opto_tags, session_indices = extract_lick_data(all_keys, lick_properties_list)
     
     if len(isi_values) == 0:
         print("No valid data to plot after pooling sessions.")
         return fig, ax, {}
     
-    # Identify opto trial indices and their neighbors
-    opto_indices = np.where(opto_tags == 1)[0]
-    opto_indices = opto_indices[:-1]
-    opto_minus_one = opto_indices - 1
-    opto_plus_one = opto_indices + 1
-    
-    # Filter out invalid indices (out of bounds, neutral block, or across sessions)
-    valid_mask = (opto_minus_one >= 0) & (opto_plus_one < len(isi_values))
-    valid_mask &= (block_types[opto_minus_one] != 0) & (block_types[opto_indices] != 0) & (block_types[opto_plus_one] != 0)
-    valid_mask &= (session_indices[opto_minus_one] == session_indices[opto_indices]) & (session_indices[opto_indices] == session_indices[opto_plus_one])
-    
-    # Apply block mode filter
-    if block_mode == 'short':
-        valid_mask &= (block_types[opto_indices] == 1)
-    elif block_mode == 'long':
-        valid_mask &= (block_types[opto_indices] == 2)
-    
-    opto_indices = opto_indices[valid_mask]
-    opto_minus_one = opto_minus_one[valid_mask]
-    opto_plus_one = opto_plus_one[valid_mask]
-    
-    if len(opto_indices) == 0:
-        print("No valid opto trials after filtering.")
-        return fig, ax, {}
-    
-    # Combine data for opto-1, opto, and opto+1
+    # Define trial groups based on opto conditions
     trial_groups = {
-        'opto-1': (opto_minus_one, 'Opto-1'),
-        'opto': (opto_indices, 'Opto'),
-        'opto+1': (opto_plus_one, 'Opto+1')
+        'opto-1': (np.where(pre_opto_tags == 1)[0], 'Opto-1'),
+        'opto': (np.where(opto_tags == 1)[0], 'Opto'),
+        'opto+1': (np.where(post_opto_tags == 1)[0], 'Opto+1')
     }
+    
+    # Apply block mode filter and exclude neutral blocks
+    for group in trial_groups:
+        indices, label = trial_groups[group]
+        valid_mask = block_types[indices] != 0
+        if block_mode == 'short':
+            valid_mask &= block_types[indices] == 1
+        elif block_mode == 'long':
+            valid_mask &= block_types[indices] == 2
+        trial_groups[group] = (indices[valid_mask], label)
     
     # Check for discrete ISI case
     unique_isi = np.unique(isi_values)
@@ -1166,7 +1152,7 @@ def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_
                 bin_rt = rt[mask]
                 if len(bin_rt) > 0:
                     mean_rt[i] = np.mean(bin_rt)
-                    sem[i] = np.std(bin_rt) / np.sqrt(len(bin_rt))
+                    sem[i] = stats.sem(bin_rt, nan_policy='omit')
                     counts[i] = len(bin_rt)
         else:
             mean_rt = np.zeros(len(bins) - 1)
@@ -1178,7 +1164,7 @@ def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_
                 bin_rt = rt[mask]
                 if len(bin_rt) > 0:
                     mean_rt[i] = np.mean(bin_rt)
-                    sem[i] = np.std(bin_rt) / np.sqrt(len(bin_rt))
+                    sem[i] = stats.sem(bin_rt, nan_policy='omit')
                     counts[i] = len(bin_rt)
         
         valid_mask = counts > 0
@@ -1236,6 +1222,7 @@ def plot_pooled_opto_comparison_reaction_time_curve(lick_properties_list, block_
     
     return fig, ax, fit_params
 
+
 def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list, block_mode='all', ax=None, bin_width=0.05, fit_quadratic=True):
     """
     Plot grand average reaction time curves across sessions, comparing opto-1, opto, and opto+1 trials.
@@ -1281,16 +1268,19 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
     
     # Extract data from a single session
     def extract_session_data(keys, lick_properties):
-        isi, reaction_times, opto, block = [], [], [], []
+        isi, reaction_times, opto, block, pre_opto, post_opto = [], [], [], [], [], []
+        
         for key in keys:
             if key not in lick_properties:
                 continue
-            trial_isi = np.array(lick_properties[key]['Trial_ISI'])
-            trial_rt = np.array(lick_properties[key]['Lick_reaction_time'])
-            trial_opto = np.array(lick_properties[key]['opto_tag'])
-            trial_block = np.array(lick_properties[key]['block_type'])
+            trial_isi = np.array(lick_properties[key].get('Trial_ISI', []))
+            trial_rt = np.array(lick_properties[key].get('Lick_reaction_time', []))
+            trial_opto = np.array(lick_properties[key].get('opto_tag', []))
+            trial_block = np.array(lick_properties[key].get('block_type', []))
+            trial_pre_opto = np.array(lick_properties[key].get('is_pre_opto', []))
+            trial_post_opto = np.array(lick_properties[key].get('is_post_opto', []))
             
-            min_length = min(len(trial_isi), len(trial_rt), len(trial_opto), len(trial_block))
+            min_length = min(len(trial_isi), len(trial_rt), len(trial_opto), len(trial_block), len(trial_pre_opto), len(trial_post_opto))
             if min_length == 0:
                 continue
                 
@@ -1298,14 +1288,18 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
                 ~np.isnan(trial_isi[:min_length]) &
                 ~np.isnan(trial_rt[:min_length]) &
                 ~np.isnan(trial_opto[:min_length]) &
-                ~np.isnan(trial_block[:min_length])
+                ~np.isnan(trial_block[:min_length]) &
+                ~np.isnan(trial_pre_opto[:min_length]) &
+                ~np.isnan(trial_post_opto[:min_length])
             )
             isi.extend(trial_isi[:min_length][valid_mask])
             reaction_times.extend(trial_rt[:min_length][valid_mask])
             opto.extend(trial_opto[:min_length][valid_mask])
             block.extend(trial_block[:min_length][valid_mask])
+            pre_opto.extend(trial_pre_opto[:min_length][valid_mask])
+            post_opto.extend(trial_post_opto[:min_length][valid_mask])
         
-        return np.array(isi), np.array(reaction_times), np.array(opto), np.array(block)
+        return np.array(isi), np.array(reaction_times), np.array(opto), np.array(block), np.array(pre_opto), np.array(post_opto)
     
     # Get all trial data across sessions
     all_keys = [
@@ -1316,7 +1310,7 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
     # Collect all ISI values to determine discrete/continuous case
     all_isi = []
     for lick_properties in lick_properties_list:
-        isi, _, _, _ = extract_session_data(all_keys, lick_properties)
+        isi, _, _, _, _, _ = extract_session_data(all_keys, lick_properties)
         all_isi.extend(isi)
     
     all_isi = np.array(all_isi)
@@ -1345,31 +1339,25 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
     def plot_group(centers, bins, group_indices, label, color):
         session_means, session_counts = [], []
         for lick_properties in lick_properties_list:
-            isi, reaction_times, opto_tags, block_types = extract_session_data(all_keys, lick_properties)
+            isi, reaction_times, opto_tags, block_types, pre_opto_tags, post_opto_tags = extract_session_data(all_keys, lick_properties)
             if len(isi) == 0:
                 continue
             
-            # Identify opto trial indices and neighbors
-            opto_indices = np.where(opto_tags == 1)[0]
-            opto_indices = opto_indices[:-1]
-            opto_minus_one = opto_indices - 1
-            opto_plus_one = opto_indices + 1
-            
-            # Filter valid indices
-            valid_mask = (opto_minus_one >= 0) & (opto_plus_one < len(isi))
-            valid_mask &= (block_types[opto_minus_one] != 0) & (block_types[opto_indices] != 0) & (block_types[opto_plus_one] != 0)
-            if block_mode == 'short':
-                valid_mask &= (block_types[opto_indices] == 1)
-            elif block_mode == 'long':
-                valid_mask &= (block_types[opto_indices] == 2)
-            
-            opto_indices = opto_indices[valid_mask]
+            # Select indices based on group
             if group_indices == 'opto-1':
-                indices = opto_minus_one[valid_mask]
+                indices = np.where(pre_opto_tags == 1)[0]
             elif group_indices == 'opto':
-                indices = opto_indices
+                indices = np.where(opto_tags == 1)[0]
             else:  # opto+1
-                indices = opto_plus_one[valid_mask]
+                indices = np.where(post_opto_tags == 1)[0]
+            
+            # Apply block mode and neutral block filters
+            valid_mask = block_types[indices] != 0
+            if block_mode == 'short':
+                valid_mask &= block_types[indices] == 1
+            elif block_mode == 'long':
+                valid_mask &= block_types[indices] == 2
+            indices = indices[valid_mask]
             
             if len(indices) == 0:
                 continue
@@ -1439,12 +1427,6 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
         
         return fit_params
     
-    # Get all trial data across sessions
-    all_keys = [
-        'short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick',
-        'short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick'
-    ]
-    
     # Plot data for each trial group
     fit_params = {}
     trial_groups = {
@@ -1474,5 +1456,4 @@ def plot_grand_average_opto_comparison_reaction_time_curve(lick_properties_list,
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     
-
     return fig, ax, fit_params
