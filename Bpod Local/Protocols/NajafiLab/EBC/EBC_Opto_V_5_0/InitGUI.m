@@ -7,7 +7,7 @@ classdef InitGUI
                 % Core EBC params
                 % ------------------------
                 S.GUI.ExperimenterInitials = 'Initials';
-                S.GUI.WheelRadius = 0.125;   % wheel radius in meters
+                S.GUI.WheelRadius = 0.075;   % wheel radius in meters
                 S.GUI.ITI_Pre  = 1;
                 S.GUI.ITI_Post = 3;
                 S.GUI.ITI_Extra = 3;

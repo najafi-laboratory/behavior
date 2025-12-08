@@ -37,10 +37,10 @@ try
     %% Initialize plots
     
     BpodParameterGUI('init', S); % Initialize parameter GUI plugin
-    BpodSystem.ProtocolFigures.ParameterGUI.Position = [9 53 442 185];
+    BpodSystem.ProtocolFigures.ParameterGUI.Position = [6 169 1209 616];
      
  
-    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [9 53 817 548]);
+    set(BpodSystem.ProtocolFigures.ParameterGUI, 'Position', [6 169 1209 616]);
     
 
     % Get the selected option from the popup menu
@@ -760,7 +760,12 @@ try
 
         sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', CamTrigOnDur, 'OnsetDelay', 0, 'Channel', 'BNC1',...
             'OnLevel', 1, 'OffLevel', 0,...
-            'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', CamTrigOffDur);         
+            'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', CamTrigOffDur);
+
+        % % imaging synchronization trial start signal
+        % sma = SetGlobalTimer(sma, 'TimerID', 4, 'Duration', 0.068, 'OnsetDelay', 0, 'Channel', 'BNC1',...
+        %     'OnLevel', 1, 'OffLevel', 0,...
+        %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', CamTrigOffDur);        
         
         if OptoTrigThisTrial
             sma = SetGlobalTimer(sma, 'TimerID', 4, ...
@@ -1055,7 +1060,7 @@ try
             BpodSystem.Data.Chemogenetics =  S.GUI.ChemogeneticsEnabled;
 
             % Show the following information to the Experimenter
-            protocol_version = 'EBC_Opto_V_4_9';
+            protocol_version = 'EBC_Opto_V_5_0';
             % fprintf('*******************************************************\n');
 
             % fprintf('\bf Bold text\n');  % This will just print "\bf Bold text"
