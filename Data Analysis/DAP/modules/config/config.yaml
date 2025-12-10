@@ -1,0 +1,1107 @@
+# Global configuration
+metadata:
+  version: "1.0"
+  description: "DAP Neural Data Analysis Configuration"
+  last_modified: "2025-01-20"
+
+# Visualization settings
+visualization:
+  show_plots: true  # Set to false to disable interactive plot display
+  spyder_mode: true  # Set to true when running in Spyder to preserve backend
+
+# Available preprocessors by module
+available_preprocessors:
+  single_interval_discrimination_preprocessor:
+    class: "SingleIntervalDiscriminationPreprocessor"
+    description: "Preprocessor for single interval discrimination experiments"  
+  eye_blink_conditioning_preprocessor:
+    class: "EyeBlinkConditioningPreprocessor"
+    description: "Preprocessor for eye blink conditioning experiments"
+  # Add other preprocessors here
+  # two_alternative_forced_choice_preprocessor:
+  #   class: "TwoAlternativeForcedChoicePreprocessor"
+  #   description: "Preprocessor for 2AFC experiments"
+
+# Available analyzers by module
+available_analyzers:
+  single_interval_discrimination_analyzer:
+    class: "SingleIntervalDiscriminationAnalyzer"
+    description: "Analyzer for single interval discrimination experiments"
+  eye_blink_conditioning_analyzer:
+    class: "EyeBlinkConditioningAnalyzer"
+    description: "Analyzer for eye blink conditioning experiments"    
+
+# Available visualizers by module
+available_visualizers:
+  single_interval_discrimination_visualizer:
+    class: "SingleIntervalDiscriminationVisualizer"
+    description: "Visualizer for single interval discrimination experiments"
+  eye_blink_conditioning_visualizer:
+    class: "EyeBlinkConditioningVisualizer"
+    description: "Visualizer for eye blink conditioning experiments"    
+
+# Available report generators by module
+available_report_generators:
+  single_interval_discrimination_report_generator:
+    class: "SingleIntervalDiscriminationReportGenerator"
+    description: "Report generator for single interval discrimination experiments"
+  eye_blink_conditioning_report_generator:
+    class: "EyeBlinkConditioningReportGenerator"
+    description: "Report generator for eye blink conditioning experiments"    
+
+# Available imaging preprocessors (generic)
+available_imaging_preprocessors:
+  general_imaging_preprocessor:
+    class: "GeneralImagingPreprocessor"
+    description: "Generic suite2p processing for any experiment"
+  single_interval_discrimination_imaging_preprocessor:
+    class: "SingleIntervalDiscriminationImagingPreprocessor"
+    description: "Imaging preprocessor for single interval discrimination experiments"
+  eye_blink_conditioning_imaging_preprocessor:
+    class: "EyeBlinkConditioningImagingPreprocessor"
+    description: "Imaging preprocessor for eye blink conditioning experiments"    
+
+# Available imaging analyzers by module
+available_imaging_analyzers:
+  single_interval_discrimination_imaging_analyzer:
+    class: "SingleIntervalDiscriminationImagingAnalyzer"
+    description: "Imaging analyzer for single interval discrimination experiments"
+  eye_blink_conditioning_imaging_analyzer:
+    class: "EyeBlinkConditioningImagingAnalyzer"
+    description: "Imaging analyzer for eye blink conditioning experiments"    
+
+
+
+# Environment paths
+paths:
+  session_data: C://behavior//session_data
+  extracted_data: C://behavior//extracted_session_data
+  preprocessed_data: C://behavior//preprocessed_session_data
+  imaging_data_base: C://behavior//2p_imaging//processed
+  error_log_path: C://PHD//GIT//data_analysis//DAP//output//error_log.txt
+  # output_dir_onedrive: OUTPUT_DIR_ONEDRIVE
+  # output_dir_local: OUTPUT_DIR_LOCAL
+  # figure_dir_local: FIGURE_DIR_LOCAL
+  # registry_path: FIGURE_REGISTRY
+  
+
+# Individual subject configurations
+subjects:
+  LCHR_MC01:
+    subject_name: "TS01_LChR"
+    session_folder: "LCHR_MC01"
+    sig_tag: "all"
+    force_label: nulls
+    sessions_to_process:
+      - LCHR_TS01_single_interval_discrimination_V_1_8_20250328_110455
+      - LCHR_TS01_single_interval_discrimination_V_1_8_20250329_113237    
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250629_155831
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250627_164527
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250626_161102
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250624_171515
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250620_174421
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250618_095010
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250617_163246
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250613_110425
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250612_100328
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250610_152358
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250606_155325
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250605_151844
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250604_144209
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250603_150233
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250530_144653
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250529_152851
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250528_142358
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250527_102214
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250523_135131
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250522_145311
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250521_133332
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250504_145543
+      # - LCHR_TS01_single_interval_discrimination_V_1_11_20250424_081627    
+      # - LCHR_TS01_single_interval_discrimination_V_1_10_20250417_075031
+      # - LCHR_TS01_single_interval_discrimination_V_1_10_20250416_225247     
+      # - LCHR_TS01_single_interval_discrimination_V_1_10_20250416_225247
+      # ... rest of sessions
+
+  LCHR_MC02:
+    subject_name: "TS02"
+    session_folder: "LCHR_MC02"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "LCHR_TS02_single_interval_discrimination_V_1_10_20250417_085055"
+      - "LCHR_TS02_single_interval_discrimination_V_1_11_20250424_082757"
+      # ... rest of sessions
+
+  SCHR_MC06:
+    subject_name: "TS06"
+    session_folder: "SCHR_MC06"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "SCHR_TS06_single_interval_discrimination_V_1_10_20250416_205942"
+      # ... rest of sessions
+
+  SCHR_MC07:
+    subject_name: "TS07"
+    session_folder: "SCHR_MC07"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "SCHR_TS07_single_interval_discrimination_V_1_10_20250408_091223"
+      # ... rest of sessions
+
+  SCHR_MC08:
+    subject_name: "TS08"
+    session_folder: "SCHR_MC08"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "SCHR_TS08_single_interval_discrimination_V_1_10_20250416_181214"
+      # ... rest of sessions
+
+  SCHR_MC09:
+    subject_name: "TS09"
+    session_folder: "SCHR_MC09"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "SCHR_TS09_single_interval_discrimination_V_1_10_20250416_190712"
+      # ... rest of sessions
+
+  TS03:
+    subject_name: "TS03_LG"
+    session_folder: "TS03"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "TS03_single_interval_discrimination_V_1_11_20250424_071549"
+
+  YH24LG:
+    subject_name: "YH24LG"
+    session_folder: "YH24LG"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+        # - YH24LG_single_interval_discrimination_V_1_11_20250505_202045
+        # - YH24LG_single_interval_discrimination_V_1_11_20250503_200839
+        # - YH24LG_single_interval_discrimination_V_1_11_20250502_191609
+        # - YH24LG_single_interval_discrimination_V_1_11_20250501_175735
+        # - YH24LG_single_interval_discrimination_V_1_11_20250430_194412
+        # - YH24LG_single_interval_discrimination_V_1_11_20250429_201430
+        # - YH24LG_single_interval_discrimination_V_1_11_20250428_195809
+        # - YH24LG_single_interval_discrimination_V_1_11_20250427_194412
+        # - YH24LG_single_interval_discrimination_V_1_11_20250426_181024
+        # - YH24LG_single_interval_discrimination_V_1_11_20250425_193529
+        # - YH24LG_single_interval_discrimination_V_1_11_20250424_203040
+        # - YH24LG_single_interval_discrimination_V_1_11_20250423_201844
+        # - YH24LG_single_interval_discrimination_V_1_8_20250422_182250
+    # Imaging session mappings
+    imaging_sessions:
+      #   experiment_dir: "2afc"  # Used to construct path: {imaging_data_base}/{experiment_type}/{subject_name}/                                        
+      - behavior_session: "YH24LG_single_interval_discrimination_V_1_11_20250410_162450"
+        imaging_folder: "YH24LG_CRBL_20250411_2afc"
+        experiment_dir: "2afc"  # Used to construct path: {imaging_data_base}/{experiment_type}/{subject_name}/      
+          
+                                          
+  YH18VT:
+    subject_name: "YH24LG"
+    session_folder: "YH24LG"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+        # - YH24LG_single_interval_discrimination_V_1_11_20250505_202045
+        # - YH24LG_single_interval_discrimination_V_1_11_20250503_200839
+        # - YH24LG_single_interval_discrimination_V_1_11_20250502_191609
+        # - YH24LG_single_interval_discrimination_V_1_11_20250501_175735
+    # Imaging session mappings
+    imaging_sessions:
+      - behavior_session: "YH24LG_single_interval_discrimination_V_1_11_20250410_162450"
+        imaging_folder: "YH24LG_CRBL_20250411_2afc"
+        experiment_dir: "passive"  # Used to construct path: {imaging_data_base}/{experiment_type}/{subject_name}/ 
+
+  Test:
+    subject_name: "Test"
+    session_folder: "Test"
+    sig_tag: "all"
+    force_label: null
+    sessions_to_process:
+      - "Test_EBC_Opto_V_5_0_20251208_160416"
+    imaging_sessions:
+      - behavior_session: "Test_EBC_Opto_V_5_0_20251208_160416"
+        imaging_folder: "YH24LG_CRBL_20250411_2afc"
+        experiment_dir: "ebc"  # Used to construct path: {imaging_data_base}/{experiment_type}/{subject_name}/              
+
+# Experiment configurations - these define experiment types and subject references
+experiment_configs:
+  # SID
+  single_interval_discrimination:
+    description: "Single interval discrimination experiment"
+    preprocessor_module: "single_interval_discrimination_preprocessor"  # Module to import
+    analyzer_module: "single_interval_discrimination_analyzer"  # Module to import
+    visualizer_module: "single_interval_discrimination_visualizer"  # Module to import
+    report_generator_module: "single_interval_discrimination_report_generator"  # Module to import
+    imaging_preprocessor_module: "single_interval_discrimination_imaging_preprocessor"  # Module to import for imaging preprocessing
+    imaging_analyzer_module: "single_interval_discrimination_imaging_analyzer"  # Module to import for imaging analysis
+    subject_configs:
+      LCHR_MC01: "LCHR_MC01"  # Reference to subjects section
+      LCHR_MC02: "LCHR_MC02"
+      SCHR_MC06: "SCHR_MC06"
+      SCHR_MC07: "SCHR_MC07"
+      SCHR_MC08: "SCHR_MC08"
+      SCHR_MC09: "SCHR_MC09"
+      TS03: "TS03"
+      YH24LG: "YH24LG"
+    
+    imaging_preprocessing:
+      enabled: true
+      experiment_subdir: "2afc"
+
+      # === 1) QC-lite (pre-dFF) ===
+      # Use lenient, morphology-based hard filters + trace proxy flags.
+      quality_control:
+        qc_method: "qc_new"          # was "manual"
+
+        # ---- base selection ----
+        use_iscell: true          # start from iscell[:,0]==1
+        min_probcell: 0.0         # optional: also require iscell[:,1] >= this
+
+        # ---- hard filters (drop) ----
+        hard_filters:
+          area_px: [20, 8000]     # uses Suite2p stat['npix']
+          n_components_max: 1     # our computed connected components
+          border_touch: false     # optional: drop ROIs touching image border
+          border_margin_px: 0     # pixels from edge considered touching
+
+        # ---- flags (annotate only, don't drop here) ----
+        flag_filters:
+          neuropil_ratio_max: 1.5 # mean(Fneu)/mean(F)
+          snr_proxy_min: 1.0      # (p95(F-Fneu)-median)/MAD
+          snr_quantile: 0.95      # allows you to change p95 if desired
+          motion_corr_max: 0.4    # max_t(|xoff|+|yoff|) from ops (if present)
+
+        # ---- optional legacy Suite2p metric gates (annotate; can use later) ----
+        legacy_metrics:
+          use: false
+          range_skew: [0, 2]                 # matches stat['skew']
+          range_aspect_ratio: [1.2, 5]       # matches stat['aspect_ratio']  <-- renamed for exactness
+          range_compact: [1.06, 5]           # matches stat['compact']
+          range_footprint: [1, 2]            # matches stat['footprint']
+          max_connect: 2                     # NOT Suite2p-native; our components sanity check
+
+        # ---- tags (semantic labels; annotate only) ----
+        soma_tag_rules:
+          circularity_min: 0.60   # 4 pi A / P^2
+          solidity_min: 0.85      # A/A_hull
+          aspect_max: 1.8         # major/minor <= this (aspect ratio)
+
+        # ---- outputs (housekeeping) ----
+        update_suite2p_iscell: true  # write back iscell[:,0] after hard filters
+
+        save_validation_plots: true
+        save_qc_reports: true
+
+      # === 2) Labeling (Cellpose overlap, single- or dual-channel) ===
+      labeling:
+        enabled: true
+
+        # which image to segment for somas
+        anat_image: "auto"         # ["auto"|"chan2"|"meanImgE"|"meanImg"|"path:<tif/npy>""]
+
+        # preproc of the anatomical image before Cellpose
+        anat_preproc:
+          normalize: true          # min-max normalize to [0,1]
+          bleedthrough_alpha: 0.0  # subtract alpha * meanFunc if > 0 (dual channel bleed fix)
+          gaussian_sigma: 0.0      # optional smoothing prior to cellpose
+
+        cellpose:
+          model_type: "cyto3"
+          diameter: 6
+          flow_threshold: 0.5
+          use_gpu: false
+
+        # how we define a "functional soma core" & how tolerant we are to small misregs
+        morphology:
+          core_erosion_px: 1       # shrink S2P ROI 1 px for core overlap
+          anat_dilate_px: 1        # grow Cellpose soma 1 px for safety
+          soma_area_px: [20, 8000] # filter cellpose somas by area
+
+        # how to classify each kept ROI by overlap
+        overlap:
+          metric: "iou"            # ["iou"|"frac_core"]
+          mode: "best_object"           # global or best_object
+          soma_iou_min: 0.35       # >= -> label "soma"
+          process_iou_max: 0.15    # <= -> label "process"
+          uncertain_between: true  # else "uncertain" if between thresholds
+          core_erosion_px: 1
+          anat_dilate_px: 0
+          use_qc_tags_when_single_channel: true
+        surrogate:
+          run_cellpose_on_single_channel: true
+          min_overlap_frac: 0.25        # ROI core ∩ surrogate / core
+          min_geom_score: 0.45          # require geometry support to upgrade
+        scoring:
+          w_geom: 0.6
+          w_anat: 1.0
+          w_surrogate: 0.4
+          w_neuropil: 0.3               # (future use; currently 0 effect if not present)
+          decision_conf_min: 0.55
+          decision_margin_min: 0.15    
+          anat_guardrails: False      
+
+        # duplicate marking in labeling stage (annotation only)
+        duplicates:
+          enable: true
+          dist_px: 18
+          corr_thr: 0.8
+          prefer: "snr"            # ["snr"|"amp"]
+
+        outputs:
+          write_labels_csv: true
+          write_h5: true
+          write_quickcheck: true   # small overlay PNGs for sanity check
+          overlay:            # NEW (controls overlap_overlay.png rendering)
+            plow: 0.01        # lower quantile for background scaling
+            phigh: 0.995      # upper quantile
+            gamma: 0.9        # gamma correction (<1 brightens midtones)
+            dim: 0.55         # multiply background after scaling
+            edge_width: 1     # outline thickness (pixels)
+            fill_alpha: 0.25  # 0 = no fill; else blend factor
+            show_legend: true # include legend with counts
+
+      # === 3) dFF prep (final traces) ===
+      trace_extraction:
+        fs_hz: 29.760441593958042
+        correct_pmt: false
+        normalize: false                 # keep dFF native; z-score later if needed
+        neuropil:
+          method: "regress"        # "scalar"|"regress"|"regress_ring"|"none"
+          alpha_init: 0.7
+          alpha_bounds: [0.3, 0.7]
+          ring_inner_px: 2
+          ring_outer_px: 8
+          ring_aggregate: median      # median | trimmed_mean
+          trimmed_mean_frac: 0.1
+          ring_chunk_frames: 1000
+          ring_cache: true          
+          exclude:
+            roi_masks: true
+            soma_masks: true
+            buffer_px: 2
+          fit:
+            subsample_k: 1            # >1 to stride frames (e.g. 5)
+            low_activity_quantile: 0.0  # 0 disables; e.g. 0.25 uses lowest 25% activity frames
+            min_frames: 500           # fallback to full if filtered frames < this
+            alpha_bounds: [0.3, 1.2]
+            intercept_policy: "ignore"  # use slope-only for ΔF/F
+            frames: "low_activity"      # "all"|"subsample:5"|"low_activity"            
+        baseline:
+          method: rolling_percentile_fast   # rolling_percentile_fast | gaussian  | hybrid
+          mode: centered                    # centered | causal
+          win_s: 15
+          quantile: 0.15
+          min_win_s: 8
+          gaussian_s_s: 2.0              # only used for gaussian/hybrid (seconds)
+          sig_baseline: 600
+          nbins: 512
+          floor_eps: 1e-3               # enforce positive F0
+        outliers:
+          enable: true
+          method: "zscore"
+          threshold: 6.0
+        post_filter:
+          enable: false
+          method: savgol                      # savgol | lowpass
+          savgol_window_s: 0.30             # only if method=savgol
+          savgol_poly: 3
+          lowpass_hz: 8.0
+        outputs:
+          write_checktrace: true
+          checktrace:
+            roi_selection:
+              mode: "ids"          # top_snr | random | ids | extremes_motion | all (careful)
+              n: 12
+              ids: [2,3,4,9,13,17,20,31,56,80,81,82,83,101,123,140,171,200]                  # used if mode=ids
+              seed: 17
+              require_keep: false      # if true restrict to keep_dff==1
+              label_filter: []         # e.g. ["soma","process"]
+            windows:
+              full_trace_if_short_s: 600
+              segment_mode: "stratified"   # stratified | random | fixed | none
+              segment_length_s: 8
+              n_segments: 4
+              random_seed: 17
+              allow_overlap: false
+              use_explicit_only: true
+              explicit_segments_s:
+              - [2000, 2038]
+              # - [1800, 1808]
+            events:
+              enable: true
+              z_threshold: 3.0
+              min_separation_s: 0.4
+              peri_window_s: 8          # total width (centered on event)
+              max_events_per_roi: 10
+              pick: "largest"           # largest | random | earliest
+            storage:
+              downsample_factor_preview: 2   # 1 = none
+              save_formats: ["png"]          # can add "svg"
+              dpi: 150
+              compress_png: true
+              max_timepoints_inline: 120000  # above this skip full-trace plots
+              single_folder: true    # NEW: true => all ROI plots in one folder (no per-ROI subdirs)
+            panels:
+              show_full_overview: true          # or false to skip
+              fig_height_per_row: 1.45
+              min_fig_height: 5.0
+              max_fig_height: 30.0
+              annotate_dff_outlier: true            
+              qc_overlay_wrap: 95
+              qc_overlay_max_lines: 0
+              full_overview_mode: window_pad    # or full
+              full_overview_pad_s: 30           # context around segment
+              window_time_mode: relative        # or set windows.time_mode: relative   
+              show_metrics: true         
+              show_raw: true          # F & Fneu
+              show_neuropil_fit: true
+              show_Fc: true
+              show_baseline: true
+              show_deltaF: true
+              show_dff_denom: true
+              show_dff: true
+              show_dff_outlier: true 
+              show_dff_filtered: true
+              show_spks: true
+              show_motion: true
+              show_events: true
+              show_neuropil_ring: false
+              show_full_overview: true
+              show_metrics: true
+              show_metrics_table: true        # separate table subplot
+              qc_overlay_max_lines: 0         # 0 -> no truncation              
+            annotate:
+              show_metrics: true
+              show_neuropil_params: true
+              show_baseline_params: true
+              show_quality_flags: true        
+            layout:
+              vertical_stack: true
+              stage_order: ["raw", 'spks', "Fc", "baseline", "deltaF", "dff", "dff_filtered"]
+              collapse_baseline_panel: false   # if true: plot Fc+baseline and dFF in same panel (2 y-axes or overlay bands)
+              scaling:
+                mode: "independent"   # independent | shared_raw_fc | normalized
+                normalize_panel: false  # if true, each panel height scaled to 1 (visual comparability)
+                show_zero_line: true
+
+      # === 4) Optional post-dFF refine ===
+      post_dff_qc:
+        enabled: true
+        write_keep_mask: true
+        ring_coverage_min: 0.5
+        ring_contam_max: 0.2
+        motion_trace: "rigid_corr"       # name of motion metric you saved in QC
+        event_band_hz: [0.05, 1.5]
+        phenotype:
+          thr_burst: 0.55
+          thr_plateau: 0.50
+          overlap_margin: 0.15
+          require_positive_class: false
+          weights:
+            snr: 1.3
+            trans: 1.2
+            templ: 1.0
+            er: 0.8
+            shape: 0.6
+            tpl: 1.3
+            cp: 1.0
+            mot: 0.7
+            art: 0.7
+            neg: 0.5
+            min: 0.3        
+        common:
+          use_relative_drift: true
+          artifact_z: 6.0
+          artifact_frac_max: 0.06      # fraction of frames allowed with |z|>6 (overrides artifact_z_max if set)
+          event_rate_max_hz: 5.0
+          event_refractory_s: 0.3
+          plateau_high_prct: 80
+          plateau_deriv_thr: 0.25
+          change_point_min_gap_s: 0.5
+          template_kernel_rise_s: 0.05
+          template_kernel_decay_s: 0.6
+          template_kernel_len_s: 2.0
+          shape_ratio_min: 0.2
+          shape_ratio_max: 1.2
+          change_point_z_max: 6.0
+          snr_min: 3.0
+          template_corr_p95_min: 0.55
+          drift_rel_slope_max_per_min: 0.02
+          motion_corr_max: 0.25
+          transientness_min: 0.25
+          min_dff_min: -0.80
+          dff_abs_max: 10.0  
+          negativity_frac_min: -0.25
+          ca_shape_frac_lo: -0.20
+          ca_shape_frac_hi: 0.18
+          guardrails_require_pass: 2       
+        per_label:
+          soma:
+            snr_min: 2.0
+            motion_corr_max: 0.25
+            neuropil_ratio_max: 0.60
+            drift_abs_slope_max_per_min: 0.02
+            drift_rel_slope_max_per_min: 0.02
+            transientness_min: 0.35
+            neuropil_ratio_max: 0.6
+            plateau_frac_max: 0.30
+            template_corr_p95_min: 0.55
+            ca_shape_frac_min: 0.25
+            change_point_z_max: 6.0
+            negativity_frac_max: 0.15
+          process:
+            snr_min: 1.0
+            motion_corr_max: 0.30
+            neuropil_ratio_max: 0.70
+            drift_rel_slope_max_per_min: 0.03
+            transientness_min: 0.25
+            neuropil_ratio_max: 0.7
+            plateau_frac_max: 0.45
+            template_corr_p95_min: 0.50
+            ca_shape_frac_min: 0.15
+            change_point_z_max: 6.0
+            negativity_frac_max: 0.20            
+          uncertain:
+            snr_min: 1.5
+            motion_corr_max: 0.25
+            neuropil_ratio_max: 0.65
+            drift_rel_slope_max_per_min: 0.04
+            transientness_min: 0.30
+            neuropil_ratio_max: 0.7
+            plateau_frac_max: 0.50
+            template_corr_p95_min: 0.30
+            ca_shape_frac_min: 0.20
+            change_point_z_max: 6.0
+            negativity_frac_max: 0.25
+
+    # Report generation settings
+    reporting:
+      templates_path: "modules/templates/single_interval_discrimination"
+      styles_path: "modules/templates/single_interval_discrimination/styles.css"
+      embed_figures: true
+      figure_format: "png"
+      relative_paths: true
+      reports_to_generate:
+        - executive_summary
+        - subject_performance
+        - group_comparison
+        - session_details
+      
+      # Dynamic figure references with placeholders
+      figure_references:
+        subject_performance:
+          - pattern: "{subject_id}_performance_over_sessions.png"
+            description: "Performance timeline across sessions"
+            required: true
+          - pattern: "{subject_id}_trial_outcomes_by_session.png"
+            description: "Trial outcomes across all sessions"
+            required: true
+            subfolder: "cross_session_analysis"
+          - pattern: "{subject_id}_rolling_performance_across_sessions.png"
+            description: "Rolling performance analysis"
+            required: false
+            subfolder: "cross_session_analysis"
+          - pattern: "{subject_id}_session_overview_trial_type_{session_date}.png"
+            description: "Session trial type overview"
+            required: false
+            subfolder: "session_overviews"
+            per_session: true  # Flag to indicate this should be resolved for each session
+          - pattern: "{subject_id}_session_overview_rt_{session_date}.png"
+            description: "Session reaction time overview"
+            required: false
+            subfolder: "session_overviews"
+            per_session: true
+        
+        session_details:
+          - pattern: "{subject_id}_session_overview_trial_type_{session_date}.png"
+            description: "Session trial type overview"
+            required: true
+            subfolder: "session_overviews"
+          - pattern: "{subject_id}_session_overview_rt_{session_date}.png"
+            description: "Session reaction time overview"  
+            required: false
+            subfolder: "session_overviews"
+        
+        executive_summary:
+          - pattern: "group_comparison.png"
+            description: "Group performance comparison"
+            required: false
+            location: "group"  # Indicates this is in group folder, not subject-specific
+        
+        group_comparison:
+          - pattern: "group_performance_summary.png"
+            description: "Overall group performance visualization"
+            required: false
+            location: "group"
+      
+      # Available placeholders for figure patterns
+      placeholders:
+        subject_id: "Subject identifier (e.g., LCHR_MC01)"
+        session_date: "Session date in YYYYMMDD format"
+        session_name: "Full session name"
+        run_id: "Current analysis run ID"
+        experiment_name: "Experiment configuration name"
+
+  # Eye blink conditioning
+  eye_blink_conditioning:
+    description: "Eye blink conditioning experiment"
+    preprocessor_module: "eye_blink_conditioning_preprocessor"  # Module to import
+    analyzer_module: "eye_blink_conditioning_analyzer"  # Module to import
+    visualizer_module: "eye_blink_conditioning_visualizer"  # Module to import
+    report_generator_module: "eye_blink_conditioning_report_generator"  # Module to import
+    imaging_preprocessor_module: "eye_blink_conditioning_imaging_preprocessor"  # Module to import for imaging preprocessing
+    imaging_analyzer_module: "eye_blink_conditioning_imaging_analyzer"  # Module to import for imaging analysis
+    subject_configs:
+      Test: "Test"  # Reference to subjects section
+    
+    imaging_preprocessing:
+      enabled: true
+      experiment_subdir: "ebc"
+
+      # === 1) QC-lite (pre-dFF) ===
+      # Use lenient, morphology-based hard filters + trace proxy flags.
+      quality_control:
+        qc_method: "qc_new"          # was "manual"
+
+        # ---- base selection ----
+        use_iscell: true          # start from iscell[:,0]==1
+        min_probcell: 0.0         # optional: also require iscell[:,1] >= this
+
+        # ---- hard filters (drop) ----
+        hard_filters:
+          area_px: [20, 8000]     # uses Suite2p stat['npix']
+          n_components_max: 1     # our computed connected components
+          border_touch: false     # optional: drop ROIs touching image border
+          border_margin_px: 0     # pixels from edge considered touching
+
+        # ---- flags (annotate only, don't drop here) ----
+        flag_filters:
+          neuropil_ratio_max: 1.5 # mean(Fneu)/mean(F)
+          snr_proxy_min: 1.0      # (p95(F-Fneu)-median)/MAD
+          snr_quantile: 0.95      # allows you to change p95 if desired
+          motion_corr_max: 0.4    # max_t(|xoff|+|yoff|) from ops (if present)
+
+        # ---- optional legacy Suite2p metric gates (annotate; can use later) ----
+        legacy_metrics:
+          use: false
+          range_skew: [0, 2]                 # matches stat['skew']
+          range_aspect_ratio: [1.2, 5]       # matches stat['aspect_ratio']  <-- renamed for exactness
+          range_compact: [1.06, 5]           # matches stat['compact']
+          range_footprint: [1, 2]            # matches stat['footprint']
+          max_connect: 2                     # NOT Suite2p-native; our components sanity check
+
+        # ---- tags (semantic labels; annotate only) ----
+        soma_tag_rules:
+          circularity_min: 0.60   # 4 pi A / P^2
+          solidity_min: 0.85      # A/A_hull
+          aspect_max: 1.8         # major/minor <= this (aspect ratio)
+
+        # ---- outputs (housekeeping) ----
+        update_suite2p_iscell: true  # write back iscell[:,0] after hard filters
+
+        save_validation_plots: true
+        save_qc_reports: true
+
+      # === 2) Labeling (Cellpose overlap, single- or dual-channel) ===
+      labeling:
+        enabled: true
+
+        # which image to segment for somas
+        anat_image: "auto"         # ["auto"|"chan2"|"meanImgE"|"meanImg"|"path:<tif/npy>""]
+
+        # preproc of the anatomical image before Cellpose
+        anat_preproc:
+          normalize: true          # min-max normalize to [0,1]
+          bleedthrough_alpha: 0.0  # subtract alpha * meanFunc if > 0 (dual channel bleed fix)
+          gaussian_sigma: 0.0      # optional smoothing prior to cellpose
+
+        cellpose:
+          model_type: "cyto3"
+          diameter: 6
+          flow_threshold: 0.5
+          use_gpu: false
+
+        # how we define a "functional soma core" & how tolerant we are to small misregs
+        morphology:
+          core_erosion_px: 1       # shrink S2P ROI 1 px for core overlap
+          anat_dilate_px: 1        # grow Cellpose soma 1 px for safety
+          soma_area_px: [20, 8000] # filter cellpose somas by area
+
+        # how to classify each kept ROI by overlap
+        overlap:
+          metric: "iou"            # ["iou"|"frac_core"]
+          mode: "best_object"           # global or best_object
+          soma_iou_min: 0.35       # >= -> label "soma"
+          process_iou_max: 0.15    # <= -> label "process"
+          uncertain_between: true  # else "uncertain" if between thresholds
+          core_erosion_px: 1
+          anat_dilate_px: 0
+          use_qc_tags_when_single_channel: true
+        surrogate:
+          run_cellpose_on_single_channel: true
+          min_overlap_frac: 0.25        # ROI core ∩ surrogate / core
+          min_geom_score: 0.45          # require geometry support to upgrade
+        scoring:
+          w_geom: 0.6
+          w_anat: 1.0
+          w_surrogate: 0.4
+          w_neuropil: 0.3               # (future use; currently 0 effect if not present)
+          decision_conf_min: 0.55
+          decision_margin_min: 0.15    
+          anat_guardrails: False      
+
+        # duplicate marking in labeling stage (annotation only)
+        duplicates:
+          enable: true
+          dist_px: 18
+          corr_thr: 0.8
+          prefer: "snr"            # ["snr"|"amp"]
+
+        outputs:
+          write_labels_csv: true
+          write_h5: true
+          write_quickcheck: true   # small overlay PNGs for sanity check
+          overlay:            # NEW (controls overlap_overlay.png rendering)
+            plow: 0.01        # lower quantile for background scaling
+            phigh: 0.995      # upper quantile
+            gamma: 0.9        # gamma correction (<1 brightens midtones)
+            dim: 0.55         # multiply background after scaling
+            edge_width: 1     # outline thickness (pixels)
+            fill_alpha: 0.25  # 0 = no fill; else blend factor
+            show_legend: true # include legend with counts
+
+      # === 3) dFF prep (final traces) ===
+      trace_extraction:
+        fs_hz: 29.760441593958042
+        correct_pmt: false
+        normalize: false                 # keep dFF native; z-score later if needed
+        neuropil:
+          method: "regress"        # "scalar"|"regress"|"regress_ring"|"none"
+          alpha_init: 0.7
+          alpha_bounds: [0.3, 0.7]
+          ring_inner_px: 2
+          ring_outer_px: 8
+          ring_aggregate: median      # median | trimmed_mean
+          trimmed_mean_frac: 0.1
+          ring_chunk_frames: 1000
+          ring_cache: true          
+          exclude:
+            roi_masks: true
+            soma_masks: true
+            buffer_px: 2
+          fit:
+            subsample_k: 1            # >1 to stride frames (e.g. 5)
+            low_activity_quantile: 0.0  # 0 disables; e.g. 0.25 uses lowest 25% activity frames
+            min_frames: 500           # fallback to full if filtered frames < this
+            alpha_bounds: [0.3, 1.2]
+            intercept_policy: "ignore"  # use slope-only for ΔF/F
+            frames: "low_activity"      # "all"|"subsample:5"|"low_activity"            
+        baseline:
+          method: rolling_percentile_fast   # rolling_percentile_fast | gaussian  | hybrid
+          mode: centered                    # centered | causal
+          win_s: 15
+          quantile: 0.15
+          min_win_s: 8
+          gaussian_s_s: 2.0              # only used for gaussian/hybrid (seconds)
+          sig_baseline: 600
+          nbins: 512
+          floor_eps: 1e-3               # enforce positive F0
+        outliers:
+          enable: true
+          method: "zscore"
+          threshold: 6.0
+        post_filter:
+          enable: false
+          method: savgol                      # savgol | lowpass
+          savgol_window_s: 0.30             # only if method=savgol
+          savgol_poly: 3
+          lowpass_hz: 8.0
+        outputs:
+          write_checktrace: true
+          checktrace:
+            roi_selection:
+              mode: "ids"          # top_snr | random | ids | extremes_motion | all (careful)
+              n: 12
+              ids: [2,3,4,9,13,17,20,31,56,80,81,82,83,101,123,140,171,200]                  # used if mode=ids
+              seed: 17
+              require_keep: false      # if true restrict to keep_dff==1
+              label_filter: []         # e.g. ["soma","process"]
+            windows:
+              full_trace_if_short_s: 600
+              segment_mode: "stratified"   # stratified | random | fixed | none
+              segment_length_s: 8
+              n_segments: 4
+              random_seed: 17
+              allow_overlap: false
+              use_explicit_only: true
+              explicit_segments_s:
+              - [2000, 2038]
+              # - [1800, 1808]
+            events:
+              enable: true
+              z_threshold: 3.0
+              min_separation_s: 0.4
+              peri_window_s: 8          # total width (centered on event)
+              max_events_per_roi: 10
+              pick: "largest"           # largest | random | earliest
+            storage:
+              downsample_factor_preview: 2   # 1 = none
+              save_formats: ["png"]          # can add "svg"
+              dpi: 150
+              compress_png: true
+              max_timepoints_inline: 120000  # above this skip full-trace plots
+              single_folder: true    # NEW: true => all ROI plots in one folder (no per-ROI subdirs)
+            panels:
+              show_full_overview: true          # or false to skip
+              fig_height_per_row: 1.45
+              min_fig_height: 5.0
+              max_fig_height: 30.0
+              annotate_dff_outlier: true            
+              qc_overlay_wrap: 95
+              qc_overlay_max_lines: 0
+              full_overview_mode: window_pad    # or full
+              full_overview_pad_s: 30           # context around segment
+              window_time_mode: relative        # or set windows.time_mode: relative   
+              show_metrics: true         
+              show_raw: true          # F & Fneu
+              show_neuropil_fit: true
+              show_Fc: true
+              show_baseline: true
+              show_deltaF: true
+              show_dff_denom: true
+              show_dff: true
+              show_dff_outlier: true 
+              show_dff_filtered: true
+              show_spks: true
+              show_motion: true
+              show_events: true
+              show_neuropil_ring: false
+              show_full_overview: true
+              show_metrics: true
+              show_metrics_table: true        # separate table subplot
+              qc_overlay_max_lines: 0         # 0 -> no truncation              
+            annotate:
+              show_metrics: true
+              show_neuropil_params: true
+              show_baseline_params: true
+              show_quality_flags: true        
+            layout:
+              vertical_stack: true
+              stage_order: ["raw", 'spks', "Fc", "baseline", "deltaF", "dff", "dff_filtered"]
+              collapse_baseline_panel: false   # if true: plot Fc+baseline and dFF in same panel (2 y-axes or overlay bands)
+              scaling:
+                mode: "independent"   # independent | shared_raw_fc | normalized
+                normalize_panel: false  # if true, each panel height scaled to 1 (visual comparability)
+                show_zero_line: true
+
+      # === 4) Optional post-dFF refine ===
+      post_dff_qc:
+        enabled: true
+        write_keep_mask: true
+        ring_coverage_min: 0.5
+        ring_contam_max: 0.2
+        motion_trace: "rigid_corr"       # name of motion metric you saved in QC
+        event_band_hz: [0.05, 1.5]
+        phenotype:
+          thr_burst: 0.55
+          thr_plateau: 0.50
+          overlap_margin: 0.15
+          require_positive_class: false
+          weights:
+            snr: 1.3
+            trans: 1.2
+            templ: 1.0
+            er: 0.8
+            shape: 0.6
+            tpl: 1.3
+            cp: 1.0
+            mot: 0.7
+            art: 0.7
+            neg: 0.5
+            min: 0.3        
+        common:
+          use_relative_drift: true
+          artifact_z: 6.0
+          artifact_frac_max: 0.06      # fraction of frames allowed with |z|>6 (overrides artifact_z_max if set)
+          event_rate_max_hz: 5.0
+          event_refractory_s: 0.3
+          plateau_high_prct: 80
+          plateau_deriv_thr: 0.25
+          change_point_min_gap_s: 0.5
+          template_kernel_rise_s: 0.05
+          template_kernel_decay_s: 0.6
+          template_kernel_len_s: 2.0
+          shape_ratio_min: 0.2
+          shape_ratio_max: 1.2
+          change_point_z_max: 6.0
+          snr_min: 3.0
+          template_corr_p95_min: 0.55
+          drift_rel_slope_max_per_min: 0.02
+          motion_corr_max: 0.25
+          transientness_min: 0.25
+          min_dff_min: -0.80
+          dff_abs_max: 10.0  
+          negativity_frac_min: -0.25
+          ca_shape_frac_lo: -0.20
+          ca_shape_frac_hi: 0.18
+          guardrails_require_pass: 2       
+        per_label:
+          soma:
+            snr_min: 2.0
+            motion_corr_max: 0.25
+            neuropil_ratio_max: 0.60
+            drift_abs_slope_max_per_min: 0.02
+            drift_rel_slope_max_per_min: 0.02
+            transientness_min: 0.35
+            neuropil_ratio_max: 0.6
+            plateau_frac_max: 0.30
+            template_corr_p95_min: 0.55
+            ca_shape_frac_min: 0.25
+            change_point_z_max: 6.0
+            negativity_frac_max: 0.15
+          process:
+            snr_min: 1.0
+            motion_corr_max: 0.30
+            neuropil_ratio_max: 0.70
+            drift_rel_slope_max_per_min: 0.03
+            transientness_min: 0.25
+            neuropil_ratio_max: 0.7
+            plateau_frac_max: 0.45
+            template_corr_p95_min: 0.50
+            ca_shape_frac_min: 0.15
+            change_point_z_max: 6.0
+            negativity_frac_max: 0.20            
+          uncertain:
+            snr_min: 1.5
+            motion_corr_max: 0.25
+            neuropil_ratio_max: 0.65
+            drift_rel_slope_max_per_min: 0.04
+            transientness_min: 0.30
+            neuropil_ratio_max: 0.7
+            plateau_frac_max: 0.50
+            template_corr_p95_min: 0.30
+            ca_shape_frac_min: 0.20
+            change_point_z_max: 6.0
+            negativity_frac_max: 0.25
+
+    # Report generation settings
+    reporting:
+      templates_path: "modules/templates/single_interval_discrimination"
+      styles_path: "modules/templates/single_interval_discrimination/styles.css"
+      embed_figures: true
+      figure_format: "png"
+      relative_paths: true
+      reports_to_generate:
+        - executive_summary
+        - subject_performance
+        - group_comparison
+        - session_details
+      
+      # Dynamic figure references with placeholders
+      figure_references:
+        subject_performance:
+          - pattern: "{subject_id}_performance_over_sessions.png"
+            description: "Performance timeline across sessions"
+            required: true
+          - pattern: "{subject_id}_trial_outcomes_by_session.png"
+            description: "Trial outcomes across all sessions"
+            required: true
+            subfolder: "cross_session_analysis"
+          - pattern: "{subject_id}_rolling_performance_across_sessions.png"
+            description: "Rolling performance analysis"
+            required: false
+            subfolder: "cross_session_analysis"
+          - pattern: "{subject_id}_session_overview_trial_type_{session_date}.png"
+            description: "Session trial type overview"
+            required: false
+            subfolder: "session_overviews"
+            per_session: true  # Flag to indicate this should be resolved for each session
+          - pattern: "{subject_id}_session_overview_rt_{session_date}.png"
+            description: "Session reaction time overview"
+            required: false
+            subfolder: "session_overviews"
+            per_session: true
+        
+        session_details:
+          - pattern: "{subject_id}_session_overview_trial_type_{session_date}.png"
+            description: "Session trial type overview"
+            required: true
+            subfolder: "session_overviews"
+          - pattern: "{subject_id}_session_overview_rt_{session_date}.png"
+            description: "Session reaction time overview"  
+            required: false
+            subfolder: "session_overviews"
+        
+        executive_summary:
+          - pattern: "group_comparison.png"
+            description: "Group performance comparison"
+            required: false
+            location: "group"  # Indicates this is in group folder, not subject-specific
+        
+        group_comparison:
+          - pattern: "group_performance_summary.png"
+            description: "Overall group performance visualization"
+            required: false
+            location: "group"
+      
+      # Available placeholders for figure patterns
+      placeholders:
+        subject_id: "Subject identifier (e.g., LCHR_MC01)"
+        session_date: "Session date in YYYYMMDD format"
+        session_name: "Full session name"
+        run_id: "Current analysis run ID"
+        experiment_name: "Experiment configuration name"
+
+
+# Subject groups for easy selection
+subject_groups:
+  all_2AFC:
+    - "LCHR_MC01"
+    - "LCHR_MC02" 
+    - "SCHR_MC06"
+    - "SCHR_MC07"
+    - "SCHR_MC08"
+    - "SCHR_MC09"
+    - "TS03"
+    - "YH24"
+  
+  all_EBC:
+    - "Test"
+
+  lchr_subjects:
+    - "LCHR_MC01"
+    - "LCHR_MC02"
+  
+  schr_subjects:
+    - "SCHR_MC06"
+    - "SCHR_MC07"
+    - "SCHR_MC08"
+    - "SCHR_MC09"
+  
+  lg_subjects:
+    - "TS03"
+    - "YH24"
+
+# Default settings
+defaults:
+  sig_tag: "all"
+  force_label: null
+  session_timeout: 3600
+  max_retries: 3
+
+# Logging configuration
+logging:
+  level: "INFO"
+  file_logging: true
+  console_logging: true
+  log_dir: "logs"
+

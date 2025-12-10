@@ -1,0 +1,1058 @@
+Spike transients (what we've been tuning for)
+Rate modulation (sustained elevation during behavior)
+Complex firing patterns (bursts, irregular trains)
+Subthreshold activity (climbing fiber EPSPs)
+State-dependent baseline shifts
+
+# Discover natural signal patterns without behavioral assumptions
+signal_patterns = unsupervised_signal_clustering(all_roi_traces)
+# Then map patterns to behavioral relevance
+behavioral_alignment = correlate_patterns_with_session_data(signal_patterns, session_events)
+
+
+# Build specific detectors for known signal types
+spike_detector = detect_ca_transients(...)      # Current approach
+rate_detector = detect_sustained_activity(...)   # New
+burst_detector = detect_complex_events(...)      # New
+baseline_detector = detect_state_changes(...)    # New
+
+# Then validate against session data
+validate_detectors_with_behavior(all_detectors, session_events)
+
+
+# Load and align behavioral/trial data
+session_data = load_session_data(cfg)
+behavioral_epochs = extract_behavioral_epochs(session_data)
+stimulus_timing = extract_stimulus_timing(session_data)
+
+# Create time-locked analysis windows
+trial_windows = align_imaging_to_behavior(data, session_data)
+
+
+# Multi-scale pattern extraction
+patterns = {
+    'transient': detect_transient_events(...),      # Keep current detector
+    'sustained': detect_sustained_periods(...),     # New: rate modulation
+    'complex': detect_complex_patterns(...),        # New: multi-component
+    'baseline': detect_baseline_shifts(...)         # New: state changes
+}
+
+# Behavioral correlation for each pattern type
+for pattern_type, events in patterns.items():
+    correlation = correlate_with_behavior(events, behavioral_epochs)
+    print(f"{pattern_type} correlation with behavior: {correlation}")
+
+
+
+
+        # Classify ROIs by dominant signal pattern
+    roi_signal_profiles = classify_rois_by_signal_type(patterns)
+    # Examples: "transient_responsive", "rate_modulated", "complex_mixed", "baseline_shifter"
+    
+    # This becomes our "task-agnostic" ROI filter
+    roi_quality_filter = create_adaptive_filter(roi_signal_profiles, spatial_features)
+
+
+
+
+
+
+
+
+
+
+
+        def load_session_behavioral_data(cfg: Dict[str, Any]) -> Dict[str, Any]:
+        """Load behavioral/trial timing data"""
+        # Need to know your data format:
+        # - Trial start/end times
+        # - Stimulus timing
+        # - Behavioral responses
+        # - Task epoch definitions
+        pass
+    
+    def align_imaging_to_behavior(imaging_data, session_data):
+        """Create time-locked analysis windows"""
+        # Align imaging timestamps to behavioral events
+        # Create epoch masks for different trial types
+        pass
+    
+    def detect_sustained_activity(trace, fs, min_duration_s=2.0, baseline_factor=1.5):
+        """Detect periods of sustained elevation (rate modulation)"""
+        # Different from transients - look for plateaus, ramps, sustained elevation
+        pass
+
+
+
+
+You could also consider building:
+
+A trial heatmap view showing responses across all trials
+Peri-event time histograms (PETH) for each ROI
+Population response summaries
+
+
+
+
+
+ROI 2: Shows clear dips/suppression during ISI periods (the light coral/blue shaded regions). This could represent:
+
+Inhibitory responses during the delay period
+Anticipatory suppression before the second stimulus
+Working memory-related activity patterns
+ROI 5: Shows rises/increases during ISI periods. This could be:
+
+Sustained activity encoding the first stimulus
+Working memory maintenance signals
+Anticipatory activity building toward the second stimulus
+
+
+
+
+
+
+1. Population-Level Analysis First
+Instead of single ROIs, look for:
+
+Trial-averaged responses across ISI conditions (short vs long)
+Population correlation patterns during different task epochs
+Dimensionality reduction (PCA/tSNE) to find task-relevant subspaces
+2. Systematic ISI Response Quantification
+For each ROI, measure:
+
+Baseline period (pre-trial)
+Flash 1 response (stimulus-locked)
+ISI period activity (working memory/anticipation)
+Flash 2 response (comparison/decision)
+Choice period activity (motor preparation)
+3. Statistical Approaches
+ANOVA: ROI × ISI condition × trial outcome
+Decoding: Can we predict ISI duration from neural activity?
+Correlation with behavior: Which ROIs predict choice accuracy?
+4. Temporal Dynamics
+Cross-correlation between ROI pairs during ISI
+Sliding window analysis to find task-relevant time periods
+State-space analysis to identify neural "states" during task
+Questions to Guide Implementation
+What's your primary hypothesis?
+
+Working memory encoding during ISI?
+Timing/duration encoding?
+Decision-related activity?
+What would constitute "important information"?
+
+Predicts behavior (accuracy, reaction time)?
+Distinguishes ISI conditions?
+Shows consistent temporal structure?
+Analysis scope?
+
+Focus on ISI period specifically?
+Include all task epochs?
+Compare correct vs incorrect trials?
+Validation strategy?
+
+Cross-validation across sessions?
+Bootstrap confidence intervals?
+Control analyses (shuffled trials)?
+Proposed Next Steps
+I'd suggest starting with ISI period analysis since that's where you're seeing the clearest differences:
+
+Extract ISI responses for all ROIs (baseline-corrected)
+Group by ISI duration (short vs long)
+Statistical testing (which ROIs show significant ISI effects?)
+Population analysis (PCA on ISI responses)
+Behavioral correlation (ISI responses vs choice accuracy)
+
+
+
+trial_start
+start_flash_1
+end_flash_1
+start_flash_2
+end_flash_2
+choice_start
+lick_start  (has an event time if lick is true, otherwise nan)
+choice_stop
+
+
+
+Key Findings from Component Reuse Analysis
+General Components (Multi-Event)
+These components appear to encode core task processes that span multiple events:
+
+Component 3 (5 events) - "Sustained Task Engagement"
+
+Appears in: end_flash_1 → start_flash_2 → end_flash_2 → choice_start → choice_stop
+High positive ROI counts throughout (66-98 positive ROIs)
+Likely encodes: sustained attention, working memory maintenance, decision preparation
+Component 0 (4 events) - "Inhibitory Control"
+
+Appears in: end_flash_1 → start_flash_2 → end_flash_2 → choice_start
+Dominated by negative ROIs (61-99 negative ROIs)
+Likely encodes: suppression of premature responses, impulse control
+Component 4 (4 events) - "Motor Preparation & Execution"
+
+Appears in: start_flash_1 → start_flash_2 → lick_start → choice_stop
+Strong positive activity at choice_start (103 positive ROIs)
+Likely encodes: motor planning and execution sequences
+Component 5 (4 events) - "Decision Formation"
+
+Appears in: end_flash_1 → choice_start → lick_start → choice_stop
+Likely encodes: decision-making processes, choice commitment
+Event-Specific Components
+These encode specialized event responses:
+
+Components 1 & 9: start_flash_1 specific (visual onset detection)
+Component 2: end_flash_2 specific (stimulus offset/comparison completion)
+Component 6: lick_start specific (motor execution)
+📊 Temporal Progression Analysis
+Component 3 (Sustained Engagement):
+F1_end: 82+ ROIs  →  F2_start: 71+ ROIs  →  F2_end: 8+ ROIs  →  Choice: 76+ ROIs
+
+
+
+Looking at Component 3's evolution shows a beautiful task progression pattern:
+
+This suggests sustained neural activity during stimulus presentation that drops during F2_end (stimulus comparison complete) then reactivates for choice.
+
+Component 0 shows the opposite pattern (inhibitory):
+Component 0 (Inhibitory Control):
+F1_end: 61- ROIs  →  F2_start: 76- ROIs  →  F2_end: 46- ROIs  →  Choice: 99- ROIs
+
+Maximum inhibition at choice_start - preventing premature responses.
+
+🧠 Biological Interpretation
+This pattern suggests your mice use a multi-component neural strategy:
+
+Stimulus Detection (Components 1, 9) → specialized visual responses
+Sustained Attention (Component 3) → maintain task focus during ISI
+Inhibitory Control (Component 0) → prevent premature responding
+Motor Preparation (Component 4) → plan appropriate response
+Decision Formation (Component 5) → commit to choice
+Motor Execution (Component 6) → execute lick
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Component 0: Inhibitory Control/Baseline Suppression
+Pattern: Consistently negative activation across all events (-106 to -8 net)
+Peak suppression: choice_stop (-106)
+Function: Likely represents inhibitory control or baseline suppression during task engagement
+Biological meaning: These ROIs are actively suppressed during task performance
+Component 3: Task Engagement/Attention
+Pattern: Strong positive activation during stimuli and action (+51 to +95), suppressed during end_flash_2 (-77)
+Peak activation: lick_start (+95)
+Function: Sustained attention and motor execution
+Biological meaning: Classic "task-positive" network that ramps up during stimulus processing and peaks during action
+Component 4: Motor Preparation/Execution
+Pattern: Dramatic peak at choice_start (+100), then drops during actual licking (-12)
+Peak activation: choice_start (+100)
+Function: Motor preparation and decision commitment
+Biological meaning: Neural activity for planning and initiating motor responses, consistent with premotor/motor cortex
+Component 5: Choice/Outcome Processing
+Pattern: Suppressed during choice formation (-95), then strongly activated at choice_stop (+99)
+Peak activation: choice_stop (+99)
+Function: Choice outcome processing and trial termination
+Biological meaning: Possibly reward/outcome evaluation or trial completion signaling
+🎯 Task-Relevant Insights
+Your components show a beautiful temporal progression through the discrimination task:
+
+Stimulus Processing (Components 3): Sustained during flash presentations
+Decision Formation (Component 4): Peaks during choice initiation
+Action Execution (Component 3): Peaks during licking
+Outcome Processing (Component 5): Activates after choice completion
+Inhibitory Control (Component 0): Maintains suppression throughout
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+✅ What’s Working Well
+
+Alignment + Sorting Scheme
+
+Sorting ROIs by onset/alignment in short trials and then re-using the same sort for long trials is powerful.
+
+It shows both shared coding (where long trials look like short near the aligned event) and divergent coding (where activity separates later in the sequence).
+
+Event-Locked Population Dynamics
+
+Flash1 (on/off) and early ISI: ROIs show similar ramping/transient patterns for short vs long, consistent with shared encoding of “stimulus onset.”
+
+Flash2 and choice/lick: activity diverges, showing interval-specific differentiation.
+
+Ramping Mechanism for Interval Encoding
+
+Several ROI groups show progressive ramping during the ISI, consistent with a mechanism for temporal accumulation / countdown to F2.
+
+The divergence is strongest flash2off → choice → lick, which matches decision readout timing.
+
+Overlap & Specialization
+
+Some ROIs participate across short and long (core timing/attention), others split (interval-specialized).
+
+You can now see which ROIs carry redundant vs unique contributions to the trial type discrimination.
+
+🔑 Emerging Picture
+
+Shared encoding dominates early (Flash1 → ISI onset).
+
+Differentiated encoding grows as the trial unfolds (Flash2 → decision → action).
+
+This fits a hierarchical timing model:
+
+Early → “when did the stimulus happen?” (shared).
+
+Mid (ISI) → “how long has it been?” (ramping).
+
+Late (choice/lick) → “which interval was it?” (differentiated).
+
+💡 Next Analysis Steps
+
+To sharpen the story, you could:
+
+Quantify ramp slopes / peak latencies
+
+Fit linear ramps or measure ROI peak timing differences short vs long.
+
+Confirms temporal encoding, not just stimulus locking.
+
+Cross-condition correlation
+
+Correlate ROI responses in short vs long at aligned points.
+
+Identifies “shared vs divergent” populations more formally.
+
+Component Overlap Matrix
+
+Map which ROIs appear across different component groups (Flash1, ISI, Choice, Lick).
+
+Tells you about “multi-role” vs “specialist” neurons.
+
+Trial-type decoding
+
+Use these ROI subsets (e.g. ISI-positive, Flash2-negative, Choice-positive) as feature sets for logistic regression / GLM-HMM.
+
+Directly test which groups carry interval discrimination signal.
+
+👉 So you’re already seeing what looks like a population ramping-to-decision code, with early overlap and late divergence. That’s a strong and interpretable result.
+
+Do you want me to sketch out a quantification pipeline (e.g. slope analysis, cross-condition correlation, decoding with ROI subsets) so you can go from “pretty plots” to statistical proof of these dynamics?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. Trace → Image
+
+Technique: Time-series → rasterized 2D images.
+
+What it does: Converts ΔF/F traces into visual patterns that CNNs can process.
+
+Why this: CNNs excel at spatial image features; alternative (raw timeseries into RNNs/autoencoders) would require training from scratch.
+
+2. ResNet (Residual Neural Network)
+
+What it does: Pretrained CNN extracts high-dimensional feature embeddings (e.g., 512-dim vectors) representing trace shape similarity.
+
+Why this: Uses transfer learning; pretrained ResNet captures general visual motifs without training. Alternatives (hand-engineered features, autoencoders) would require more data and tuning.
+
+3. PCA (Principal Component Analysis)
+
+What it does: Projects embeddings to directions of maximal variance; reduces redundancy/noise.
+
+Why this: Fast, linear, preserves global variance structure. Alternatives like random projection lose interpretability; t-SNE/UMAP directly on ResNet features can be noisy in high-dim.
+
+4. UMAP (Uniform Manifold Approximation and Projection)
+
+What it does: Nonlinear embedding that preserves local + global neighborhood structure in 2D/3D.
+
+Why this: Better global+local balance than t-SNE, scales well to large datasets. Alternatives (t-SNE, Isomap) distort global geometry or don’t scale.
+
+5. HDBSCAN (Hierarchical Density-Based Spatial Clustering of Applications with Noise)
+
+What it does: Groups points in embedding space into clusters based on density; labels low-density points as noise.
+
+Why this: No need to pre-specify cluster number (k), handles variable cluster shapes. Alternatives (k-means, GMM) assume spherical/parametric clusters.
+
+6. Hierarchical Iteration
+
+What it does: Recursively re-clusters within clusters, revealing finer substructure.
+
+Why this: Allows multi-scale organization of ROI groups; alternatives (flat clustering) miss nested structure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. CP Decomposition (CANDECOMP/PARAFAC)
+
+What it does: Factorizes a 3D data tensor (ROIs × time × trials/events) into a sum of components, each with a temporal profile, trial/event profile, and ROI weight (loading).
+
+Why this: Captures low-rank latent structure across multiple modes simultaneously. Alternatives (SVD/PCA) only handle 2D matrices and ignore trial-by-trial structure.
+
+Result: Each ROI receives loadings indicating how strongly it contributes to a given temporal/event component.
+
+2. PCA (Principal Component Analysis)
+
+What it does: Projects ROI activity (or CP component outputs) into orthogonal axes of maximal variance.
+
+Why this: Provides an interpretable low-dimensional basis; separates dominant variance sources. Alternatives like ICA (Independent Component Analysis) maximize independence, but less robust/stable on noisy neural data.
+
+Result: Each principal component gives a population “mode of activity,” and each ROI has a loading score (positive/negative contribution).
+
+3. ROI Loadings
+
+What it does: Loadings quantify each ROI’s contribution to a component (e.g., positive ramping, negative suppression).
+
+Why this: Lets you group ROIs by function, not anatomy or raw activity. Alternative grouping (e.g., anatomical region or raw clustering) misses trial-event-specific functional roles.
+
+Result: Sorted rasters / group averages highlight which ROIs share temporal coding roles (rampers, flash-locked, choice-related, etc.).
+
+Conceptual Flow
+
+CP (multi-way factorization) → finds latent event-linked activity components across trials/ROIs.
+
+PCA (linear variance reduction) → sharpens into orthogonal axes of dominant variance.
+
+ROI loadings → assign each ROI to functional components (positive/negative, strong/weak contributors).
+
+
+
+
+
+
+
+
+
+
+
+
+CANDECOMP / PARAFAC decomposition
+
+CANDECOMP = CANonical DECOMPosition (Carroll & Chang, 1970)
+
+PARAFAC = PARAllel FACtors (Harshman, 1970)
+
+They were developed independently at almost the same time, and later shown to be mathematically equivalent. That’s why people usually just say CP decomposition.
+
+👉 In practice, it means a tensor factorization:
+
+If you have a 3D array (e.g., ROI × time × trials), CP decomposes it into a sum of rank-1 tensors (outer products of 3 vectors).
+
+Each component has:
+
+an ROI “loading” vector (which neurons are involved),
+
+a time course (how it evolves in time),
+
+and a trial/event weight (when/where it matters).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+now that you’ve got clear ROI groups from the rasters/sorting, here’s a crisp, evidence-based path to go from “groups” → “signal identity (CF/PF/etc.)” → “circuit mapping,” tailored to L7-Cre GCaMP (Purkinje-cell imaging).
+
+1) Lock down morphology & compartments
+
+Goal: separate PC somata vs dendrites vs non-PC processes so CF/PF signatures aren’t mixed.
+
+Use your existing soma/process tags (circularity, solidity, aspect) to restrict analyses to PC dendrites (for CF/PF) and PC somata (mostly CF-dominated Ca).
+
+Rationale: CF input evokes large, widespread, “all-or-none” dendritic Ca events and complex spikes; PF inputs tend to be more local/graded in dendrites and weak in soma Ca. 
+PMC
++1
+ScienceDirect
+
+2) Event extraction with features for CF vs PF
+
+Detect events per ROI (OASIS/MLspike or simple peak + deconvolution) and compute:
+
+Amplitude/half-width/rise/decay, trial-aligned latency, CV/ISI stats, burstiness.
+
+Spatial spread: event-triggered ΔF/F maps—CF events recruit the full arbor (global); PF events are branch-local.
+
+Co-activity index: fraction of nearby PCs co-active within ±20–50 ms—CF events synchronize across parasagittal neighbors; PF does not. 
+PMC
++1
+
+Rule-of-thumb classifier (then refine with ML):
+
+CF-like: large amp, fast rise, broad dendritic footprint, rare (~1 Hz), high synchronous co-activation across nearby PCs.
+
+PF-like: smaller amp, local footprint, more frequent/graded, weak synchrony.
+Support from classic physiology/imaging: CF → complex spike & global dendritic Ca; PF → local dendritic Ca. 
+PMC
++1
+Journal of Neuroscience
+
+3) Microzone / banding (circuit-level fingerprint)
+
+Map CF synchrony topology:
+
+Build a coincidence graph of CF-like events across ROIs; run community detection and fit anisotropy (expect parasagittal “bands/microzones”).
+
+Use distance-vs-coincidence curves along sagittal vs transverse to show banding.
+
+Literature: CF inputs synchronize PC complex spikes in parasagittal microzones. 
+PMC
+
+4) Task alignment & coding (who signals what, when)
+
+Per event type (CF-like vs PF-like):
+
+Compute peri-event time histograms around F1/F2/choice/lick/outcome for short vs long.
+
+GLM/dPCA: regress trial variables (ISI, choice, reward, error) on event rates/latencies to demix timing vs decision vs outcome coding.
+
+CFs often carry teaching/error/salience signals; PFs carry context/sensorimotor streams. (Recent work shows multiplexing of movement/reward in CFs too.) 
+Nature
+
+5) Causal “input tagging” with tools you already have
+
+You’ve got DCN (lateral/interposed) opto. Use it to validate CF identity via the nucleo-olivary loop:
+
+DCN → inhibitory projection to IO; increasing DCN activity should suppress IO → reduce CF events.
+
+Protocol: interleave brief DCN-opto trials during your task; verify drop in CF-like event rate & synchrony, minimal change to PF-like features.
+
+This is a powerful in vivo tag without needing IO opsins. 
+eLife
+PMC
+
+(Optional) Positive CF tag: pharmacological or electrical IO/peduncle drive (or harmaline) should increase CF-like events & synchrony; use sparingly. 
+PMC
+
+6) Tie components/groups to circuit elements
+
+Take your CP/TCA components (ROI × time × bag/trial) and label each component by the fraction of CF-like vs PF-like events it explains.
+
+Components rich in CF-like features → climbing-fiber–dominated modules; PF-like → granule/parallel-fiber–dominated modules.
+
+This links your unsupervised groups to named circuit streams. (TCA/CP in neural data: neuron/time/trial factors.) 
+BrainsCAN
+ScienceDirect
+
+7) Close the loop with behavior
+
+For each microzone or component, model trial-by-trial influence on behavior:
+
+Does a CF-like burst near F2/outcome predict error correction or bias next-trial choice/RT?
+
+Do PF-like ramps carry ISI timing that predicts correct side?
+
+Use cross-validated GLMs (per-trial accuracy/choice/RT ~ CF/PF event regressors with lags).
+
+8) Deliverables you can drop in your report
+
+Event classifier performance (ROC for CF vs PF, using synchrony + footprint + waveform).
+
+Banding map with anisotropy metrics (microzones).
+
+TCA/CP components annotated “CF-dominated / PF-dominated,” with time/trial factors and example rasters.
+
+Causal validation: CF-rate/synchrony suppression with DCN-opto.
+
+Behavior link: coefficients showing which signals predict ISI discrimination vs choice/outcome.
+
+Why this works (key biology behind the analytics)
+
+CF → complex-spike, global dendritic Ca; synchronous across parasagittal neighbors. 
+PMC
++1
+
+PF → local dendritic Ca & graded integration; learning lives at the PF-PC synapse. 
+PMC
+ScienceDirect
+
+Nucleo-olivary feedback lets you suppress CFs via DCN—handy for in-vivo tagging. 
+eLife
+
+TCA/CP cleanly separates cell/time/trial factors for labeling components by input stream. 
+BrainsCAN
+PubMed
+
+Rastermap (you’re already using a similar idea) gives coherent functional sorting for visual QC.
+
+
+
+
+idea:  need both turtle and rabbit...
+-Ameircranston
+-Hossen Borg 
+
+
+
+
+
+
+
+
+
+
+This is a really rich set of observations. Let me try to break it down clearly:
+
+---
+
+### **1. Two apparent “signal types”**
+
+* **Classic Ca²⁺ transients (img1/img3/img5)**
+  – Fast rise, slower decay, stereotyped shape.
+  – These align well with what you’d expect from **CF-driven complex spikes** or strong PF bursts → big dendritic Ca influx.
+  – At choice start / lick start you see sharp, polarized responses (short vs long trials).
+
+* **Symmetric rise/fall, slower ramps (img2/img4/img6)**
+  – More “PF-like”, possibly summed excitatory/inhibitory drive or network-state coupling.
+  – Less transient-like, sometimes bipolar (positive in one condition, negative in the other).
+  – Could also include non-neuronal signals (neuropil/astrocytic), but the complementary trial patterns suggest they’re functionally meaningful rather than noise.
+
+---
+
+### **2. Choice-related alignment (img3 & img4)**
+
+* **CF-like traces (img3)**:
+  – Short reward vs long punish are strikingly similar.
+  – Short punish vs long reward look opposite.
+  – Suggests a strong mapping between **trial type × outcome** and PC dendritic activity.
+  – Could reflect error vs correct prediction: left-lick (short) reward evokes CF excitation, while right-lick (long) punishment evokes something very similar.
+
+* **PF-like traces (img4)**:
+  – Show bands of activation and suppression around choice.
+  – Complementary pattern between short vs long trials.
+  – Looks like a **population code for left vs right lick movement**: one polarity turns on for left, off for right.
+  – This “bipolar” tuning makes sense physiologically → easier for downstream circuits (DCN) to read out movement direction if one half of the PCs increase firing and the other half decrease.
+
+---
+
+### **3. Lick-aligned responses (img5 & img6)**
+
+* **Ca transient ROIs (img5)**:
+  – Some transient lick responses, but relatively sparse.
+  – Likely dominated by climbing fiber–related activity, which is less about the lick motor act itself and more about reinforcement/error context.
+
+* **PF-like ROIs (img6)**:
+  – Much stronger, polarized lick responses.
+  – Clear short vs long (left vs right spout) complementary activation.
+  – Suggests these are **motor-related PF inputs** driving PCs during lick execution.
+
+---
+
+### **4. Interpretation**
+
+* You seem to be seeing a **division of labor within your PC ROIs**:
+
+  * **CF-like** → encode outcome / prediction error, condition-specific.
+  * **PF-like** → encode motor output (lick side) and context-dependent modulation.
+
+* The “polarized complementary responses” (short rew ≈ long pun, and vice versa) fit well with the cerebellar computation story:
+
+  * PCs represent both the sensory-predictive state and the action-outcome association.
+  * For efficient coding, one arm of the population ramps while the other suppresses, so DCN output neurons get a strong differential drive with minimal net energy use.
+
+* Your thought about **energy/homeostasis** is on point: it’s metabolically efficient to polarize the population (half up, half down) rather than have everyone firing on both sides. That also supports stable PC → DCN balance.
+
+---
+
+### **5. Next analyses to confirm**
+
+* **Cluster PCs by temporal profile** (transient vs symmetric) and see if the separation is clean.
+* **Cross-condition correlations**:
+  – Are “short rewarded” and “long punished” ROIs the same cluster?
+  – Are “short punished” and “long rewarded” mirrored?
+* **Lick kinematics regression**: check whether the PF-like responses scale with lick amplitude/frequency.
+* **Cross-trial polarity consistency**: do the same ROIs always flip sign depending on left vs right licks?
+
+---
+
+✅ Overall:
+
+* **CF-like Ca²⁺ transients** are carrying outcome/prediction-error information, locked to choice and outcome.
+* **PF-like ramp/bipolar signals** are carrying movement (lick) side coding, tuned in a complementary push–pull fashion.
+* The population organization you describe (polarized, complementary coding) is exactly what’s expected for efficient PC → DCN communication.
+
+---
+
+Would you like me to draft a **schematic model figure** (e.g. showing CF-like vs PF-like input streams and how they polarize PC populations for left vs right licks) that you could use in your analysis slides?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Short answer: yes—there are at least **two storylines** here that look publishable if they hold up under controls.
+
+---
+
+# 1) “Reciprocal” CF-like population code tied to **time × outcome × choice**
+
+What you’re seeing:
+
+* CF-like (big Ca²⁺) transients that are **strong at short-F2 on rewarded trials** and look **very similar to long-F2 on punished trials** (and vice-versa).
+* Little evidence for active suppression at the “wrong” time; instead it’s **time-specific drive**.
+
+Why this is interesting:
+
+* CF signals are known to carry **prediction / reward information** across cerebellar regions, but a **reciprocal mapping across two decision times** within the same field of view (and aligned to choice) is not something I’ve seen spelled out. Prior work shows CF reward-prediction/error signals and region specificity, but not this **short↔long, reward↔punish mirroring** in a timing-based 2AFC lick task. ([eLife][1], [PMC][2])
+
+What to show (core figure):
+
+* ROI-wise **latency histograms** (short vs long) for CF-like units → bi-modal/time-tuned subpops.
+* **Difference waves** at the “pseudo-short” time on long trials to rule out inhibition (flat ≈ no drive).
+* **Choice-condition matrix**: (short-reward, short-punish, long-reward, long-punish) mean traces for the *same* ROIs to visualize the reciprocity.
+* **Microzone map** of these CF-like ROIs (below).
+
+Context anchors:
+
+* CF transients map to complex spikes and show parasagittal synchrony; your stripe-like banding matches this organization. ([Math at Princeton][3], [The Journal of Neuroscience][4])
+
+Risk/controls:
+
+* Make sure “PF-like” candidates aren’t motion/neuropil (you already started).
+* Add lick kinematics regressors so the CF-like reciprocity isn’t a covert movement artifact.
+
+---
+
+# 2) Spatial organization: **parasagittal microband(s)** that are time-tuned
+
+What you’re seeing:
+
+* CF-like ROIs line up in a **stripe (\~0.5–0.6 mm ML)** in lobule V; within-stripe units co-activate at the same event/latency.
+
+Why this is interesting:
+
+* Parasagittal microzones/stripes are established, but showing a **microband with selective preference for the short vs long event time**—and tying that to **choice/outcome reciprocity**—would be a clean systems story (module-level timing code). ([PMC][5])
+
+What to show:
+
+* **ML-axis projection** of CF-like centroids → GMM peak(s) → estimated stripe width.
+* **Synchrony vs distance**: higher within-stripe than across stripes around the preferred time. ([The Journal of Neuroscience][4])
+* If you see **adjacent stripes** preferring different times (short vs long), that’s a bonus.
+
+---
+
+# A third, optional angle (only if it survives artifact checks)
+
+You also see **bipolar, push–pull lick signals** (more “PF-like”): left vs right show complementary activation/suppression and stronger lick-locking than CF-like units. Lick-related PC activity is known (especially in crus II), but **a clean push–pull population code in lobule V** with **weak responses for the non-preferred side** would still be a nice, compact result—especially if you can show **MLI gating** of CF signals differs by condition. ([PubMed][6], [eLife][7], [PMC][8])
+
+(If the PF-like set fails your motion/neuropil tests, drop this and keep the CF/microzone storylines, which stand on their own.)
+
+---
+
+## Minimal validation plan (fast, high-yield)
+
+1. **Time-selectivity vs suppression**
+
+   * Omission-locked traces at the “short-F2 expected” time on long trials → test for negative deflection vs flat.
+   * Report effect sizes + CI; flat baseline supports **time-tuned drive**.
+
+2. **Reciprocity quantification**
+
+   * For each ROI, compute a 4-condition vector $SR, SP, LR, LP$; correlate SR with LP and SP with LR across ROIs; show population shift (SR↔LP high, SP↔LR high).
+
+3. **Stripe analysis**
+
+   * ML-axis density → stripe width; **within-stripe CF coactivation** vs **across-stripe** at preferred time.
+
+4. **Artifact gates (PF-like)**
+
+   * Motion regression, split-half reliability, label-shuffle nulls; keep only PF-like ROIs that pass.
+
+---
+
+## Why this can land at a conference (and where)
+
+* **Novel combo**: time-specific CF population coding with **reciprocal mapping across decision times/outcomes** plus **microband organization** is, to my knowledge, not explicitly shown this way. Prior CF studies emphasize prediction/error and synchrony, movement studies emphasize lick/motor coding—your **time×outcome×choice reciprocity** inside a **stripe** is the hook. ([eLife][1], [PMC][2], [The Journal of Neuroscience][4])
+
+* **Venues**: SfN (Systems/Cerebellum), COSYNE (if you lean into the population-code / reciprocity metric), Gordon Conf. on Cerebellum.
+
+---
+
+## Paper/abstract skeleton (drop-in)
+
+**Title**
+“Time-tuned climbing-fiber population codes in a parasagittal microband mirror choice–outcome contingencies in a timing-based 2AFC task”
+
+**One-liner**
+In mouse lobule V, a parasagittal band of Purkinje dendrites shows CF-like Ca²⁺ transients that are **strong at short-F2 when rewarded and at long-F2 when punished**, with the opposite mapping for the complementary conditions; the effect reflects **time-specific excitation**, not suppression.
+
+**Key figs**
+A) Start-/end-F2 rasters (4 conditions) + reciprocity matrix.
+B) Omission-locked analysis ruling out suppression.
+C) Stripe detection (ML projection + GMM) and synchrony-vs-distance.
+D) (Optional) Push–pull lick code from PF-like units after artifact gating.
+E) Model cartoon linking **IO CF timing** + **PF/MLI context** → DCN readout.
+
+---
+
+If you want, I can turn this into a **2-page abstract** and a **figure checklist** (panel-by-panel) tailored to your current plots.
+
+[1]: https://elifesciences.org/articles/46764?utm_source=chatgpt.com "Classical conditioning drives learned reward prediction ..."
+[2]: https://pmc.ncbi.nlm.nih.gov/articles/PMC6845228/?utm_source=chatgpt.com "Classical conditioning drives learned reward prediction ..."
+[3]: https://web.math.princeton.edu/~sswang/CB-general/olives/ozden_wang09_jneurosci_reduced.pdf?utm_source=chatgpt.com "Reliable Coding Emerges from Coactivation of Climbing ..."
+[4]: https://www.jneurosci.org/content/29/25/8005?utm_source=chatgpt.com "Spatial Pattern Coding of Sensory Information by Climbing ..."
+[5]: https://pmc.ncbi.nlm.nih.gov/articles/PMC6132822/?utm_source=chatgpt.com "Cerebellar Modules and Their Role as Operational ..."
+[6]: https://pubmed.ncbi.nlm.nih.gov/26561609/?utm_source=chatgpt.com "Chronic imaging of movement-related Purkinje cell calcium ..."
+[7]: https://elifesciences.org/articles/71464?utm_source=chatgpt.com "Cerebellum encodes and influences the initiation ..."
+[8]: https://pmc.ncbi.nlm.nih.gov/articles/PMC6120752/?utm_source=chatgpt.com "Inhibition gates supralinear Ca2+ signaling in Purkinje cell ..."
+
+
+
+
+
+
+
+
+
+
+
+
+
+Perfect—let’s laser-focus the story on the **similar/complementary encoding** and keep microzones out of scope for now.
+
+# Title options (pick one)
+
+* **Complementary Purkinje population codes for expected timing and choice in a 2AFC lick task**
+* **Decision-correctness at expected time and push–pull choice signals co-exist in cerebellar Purkinje cells**
+* **Time–correctness reciprocity and choice polarization in Purkinje cell calcium signals**
+
+# Ready-to-submit abstract (≈200–230 words)
+
+**Background:** In head-fixed mice performing a 2-alternative forced-choice task, the second flash (F2) occurs after a short or long interval and the animal licks left or right accordingly. Reward covaries with correctness.
+
+**Question:** Do Purkinje cell (PC) populations encode reward, motor side, or a correctness signal tied to the expected time of F2?
+
+**Methods:** Two-photon imaging of PC dendrites in lobule V during behavior. We split ROIs into “CF-like” (stereotyped Ca²⁺ transients) and “non-CF-like” candidates. Analyses use fixed windows: **F2 window** (0–300 ms post-F2), **Choice window** (−100–200 ms around lick), and a pre-F2 baseline. We compute an **F2 Response Index (F2RI)** and a **Choice Modulation Index (CMI)**, perform trial-matching on lick latency/count to control for motor differences, and lock long trials to a **pseudo-short** time to test for suppression vs absence of drive.
+
+**Results:** CF-like populations show a strong **time×correctness reciprocity**: robust F2 responses for **Short-Correct** trials and—complementarily—for **Long-Incorrect** trials, but weak/absent responses for Short-Incorrect and Long-Correct. On long-correct trials, responses emerge at **choice start** rather than at F2. This reciprocity persists in the **pre-lick** window and after matching lick kinematics, arguing against a motor-side explanation. Separately, around choice start we observe a **push–pull, side-polarized signal** (left vs right) that is largely independent of the F2-locked effect. Omission-locked analyses at the expected-short time on long trials show flat baselines, suggesting **absence of excitatory drive** rather than active suppression.
+
+**Conclusion:** PCs carry **two separable population codes**: (i) a **correctness-at-expected-time** signal at F2, and (ii) a **choice-polarized** push–pull signal at lick. This dissociates cerebellar decision/expectation coding from motor output and from reward delivery.
+
+# One-figure plan (fast to generate)
+
+A. **F2-aligned heatmaps** for Short-Correct and Long-Incorrect (same ROI order), plus Long-Correct and Short-Incorrect in a smaller row.
+B. **Choice-aligned heatmaps** sorted by CMI (left vs right).
+C. **Reciprocity scatter:** F2RI(Short-Correct) vs F2RI(Long-Incorrect) across ROIs (and the complementary pair).
+D. **Bar/violin:** F2RI across the four conditions (pre-lick window), with trial-matched replication inset.
+E. **Omission control:** pseudo-short on long trials (mean ± CI), showing flat baseline.
+
+# Minimal stats you can compute today
+
+* Effect sizes (Cohen’s d or Cliff’s δ) for F2RI: SC vs LC and LI vs SI.
+* Spearman ρ for reciprocity: F2RI(SC) vs F2RI(LI).
+* Pre- vs post-lick split: F2RI computed only before lick onset; CMI around choice.
+* Trial-matched confirmation (NN match on lick latency & count).
+
+# Labels & wording to use everywhere
+
+* Conditions: **Short-Correct (SC), Short-Incorrect (SI), Long-Correct (LC), Long-Incorrect (LI)**.
+* Indices: **F2RI** (F2 Response Index), **CMI** (Choice Modulation Index).
+* Windows: **F2 \[0–300 ms]**, **Choice \[−100–200 ms]**, **Baseline \[−400 to −100 ms]** relative to F2.
+
+If you want, I can draft the exact figure captions and a 6-line “Methods in brief” block to paste into the submission form.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+This is already a clean story. Let’s lock the **claims**, **stats**, and a one-figure plan you can finish fast—without touching microzones or DLC yet.
+
+# What to claim (safe, side-controlled)
+
+1. **F1 is shared** across conditions.
+2. **F2-locked modulation differs by condition even when lick side is held constant.**
+
+   * Compare pairs with the **same side**:
+
+     * Left-lick pair: **Short-Correct (SC)** vs **Long-Incorrect (LI)**
+     * Right-lick pair: **Long-Correct (LC)** vs **Short-Incorrect (SI)**
+3. A separate **choice-locked push–pull** signal appears at lick onset (left vs right), largely independent of the F2 effect.
+
+# Minimal quantification (do these)
+
+Use fixed windows everywhere:
+
+* **Baseline:** F2−400…−100 ms
+* **F2 window:** F2…F2+300 ms (drop trials with lick <100 ms after F2)
+* **Choice window:** lick−100…+200 ms
+
+### Metrics per ROI
+
+* **F2 Response Index (F2RI)** = mean(ΔF in F2 window) − mean(ΔF in Baseline)
+* **Choice Modulation Index (CMI)** = mean(ΔF in Choice window | Left) − Right
+* **Ramp Index (RI)** = mean(ΔF, −300…0 ms) slope (or Δ between −300…−150 and −150…0 ms) to show the “similar climb” you see
+
+### Side-controlled tests (key)
+
+* Δ\_left = **F2RI\_SC − F2RI\_LI** (both left-lick)
+* Δ\_right = **F2RI\_LC − F2RI\_SI** (both right-lick)
+* Stats: Wilcoxon signed-rank across ROIs (or bootstrap the median). Report median \[95% CI], p, and Cliff’s δ.
+* Quick robustness: **trial-match within side** on lick latency & lick count; recompute Δ\_left, Δ\_right.
+
+### Sanity checks you can show quickly
+
+* **F1 equality:** F1 window (F1…F1+300 ms) short vs long: tiny effect size (report CI).
+* **Fraction responding at F2:** %ROIs with F2RI > k·σ\_baseline (e.g., k=2) for SC, LI, LC, SI—bar plot.
+* **Omission control:** on long trials, pseudo-short time → mean ΔF \~ baseline (flat ≈ absence of drive).
+
+### Optional 60-minute decoder (nice if you can)
+
+* Train a linear classifier on **SC vs LI** using **pre-lick F2-window activity**, test on **LC vs SI** (and the reverse).
+  If AUC > 0.5 both ways, the F2 signal generalizes **across side**, supporting a side-independent condition code.
+
+# One-figure layout (fast)
+
+A) **F2-aligned heatmaps** (your panels), ordered by F2 activity in SC—show SC vs LI with the **same ROI order**; below, LC vs SI with the same order.
+B) **Bars/violins** of **Δ\_left** and **Δ\_right** (paired dots, p, CI, effect size).
+C) **Choice-aligned heatmap** sorted by CMI + population traces to display push–pull.
+D) **Omission control** inset: pseudo-short on long trials (mean ± CI).
+E) (Small) **F1 bar**: short vs long \~ equal.
+
+# Abstract text (side-aware, cautious; \~190 words)
+
+**Background** Head-fixed mice performed a timing-based 2AFC task: a second flash (F2) occurred after a short or long interval and animals licked left or right accordingly. Reward covaried with correctness.
+
+**Objective** Test whether Purkinje cell (PC) populations show F2-locked modulation beyond motor side.
+
+**Methods** Two-photon imaging of PC dendrites in lobule V. We used fixed analysis windows (F2: 0–300 ms; baseline: −400 to −100 ms; choice: −100 to +200 ms) and computed an F2 Response Index (F2RI) and a Choice Modulation Index (CMI). To control for lick side, we contrasted **Short-Correct vs Long-Incorrect** (left-lick pair) and **Long-Correct vs Short-Incorrect** (right-lick pair), restricting F2 analyses to pre-lick trials and optionally matching trials on lick latency/count.
+
+**Results** PCs exhibited clear **F2-locked modulation** that differed between conditions **within the same lick side**: F2 responses were larger for Short-Correct than Long-Incorrect in left-lick trials, and larger for Long-Correct than Short-Incorrect in right-lick trials. By contrast, a **choice-locked push–pull** signal emerged around lick onset (left>right or right>left across complementary ROI sets). F1 responses were similar across conditions. An omission-locked analysis at the expected short time on long trials showed baseline-level activity, consistent with absence of excitatory drive rather than active suppression.
+
+**Conclusion** Cerebellar PCs carry **side-controlled F2-locked condition signals** and a **separate choice-polarized component**, dissociating event-timing modulation from motor output.
+
+# Figure captions (succinct)
+
+* **A:** F2-aligned PC rasters for side-matched pairs (SC vs LI; LC vs SI), identical ROI order; vertical lines mark F2 and choice.
+* **B:** Side-matched differences in F2RI (median±CI; paired dots; Wilcoxon p; Cliff’s δ).
+* **C:** Choice-aligned heatmap sorted by CMI (push–pull).
+* **D:** Omission-locked mean at pseudo-short time on long trials (mean±CI \~ baseline).
+* **E:** F1 response (short vs long) — no significant difference.
+
+If you want, tell me how your arrays are named (condition labels, event times), and I’ll drop in concise code snippets for: F2RI/CMI computation, side-matched Δ tests with bootstrap CIs, and the simple cross-side decoder.

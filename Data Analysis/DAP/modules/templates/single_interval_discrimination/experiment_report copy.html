@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ report_title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 10px; }
+        h1 { color: #2c5aa0; }
+        h2 { color: #666; margin-top: 40px; }
+        
+        /* Single figure row - full width */
+        .figure-row-single {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .figure-row-single .figure img {
+            max-width: 100%;  /* Changed from 800px to 100% */
+            width: 100%;      /* Add this to force full width */
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        
+        /* Quad figure row - 4 figures per row */
+        .figure-row-quad {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .figure-row-quad .figure img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        
+        .figure { text-align: center; }
+        .session { margin: 30px 0; padding: 20px; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>{{ report_title }}</h1>
+    
+    {% for section in sections %}
+    <h2>{{ section.title }}</h2>
+    
+    {% if section.type == "figure_list" %}
+        {% for figure in section.figures %}
+            {% if figure.exists %}
+            <div class="figure-row-{{ figure.row_type }}">
+                <div class="figure">
+                    <a href="{{ figure.path }}" target="_blank">
+                        <img src="{{ figure.path }}" alt="Figure">
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    
+    {% elif section.type == "session_figures" %}
+        {% for session_date, figures in section.session_figures.items() %}
+        <div class="session">
+            <h3>Session {{ session_date }}</h3>
+            
+            <!-- Group figures by row type and display them -->
+            {% for figure in figures %}
+                {% if figure.exists %}
+                    {% if figure.row_type == "single" %}
+                        <div class="figure-row-single">
+                            <div class="figure">
+                                <a href="{{ figure.path }}" target="_blank">
+                                    <img src="{{ figure.path }}" alt="Session Figure">
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Now handle quad figures in a single row -->
+            {% set quad_figures = figures | selectattr('exists') | selectattr('row_type', 'equalto', 'quad') | list %}
+            {% if quad_figures %}
+                <div class="figure-row-quad">
+                    {% for figure in quad_figures %}
+                        <div class="figure">
+                            <a href="{{ figure.path }}" target="_blank">
+                                <img src="{{ figure.path }}" alt="Session Figure">
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% endfor %}
+</body>
+</html>
+

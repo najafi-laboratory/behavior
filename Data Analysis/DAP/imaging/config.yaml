@@ -1,0 +1,163 @@
+paths:
+  # plane_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/suite2p/plane0
+  # output_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/
+  # qc_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new
+  # plane_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/suite2p/plane0
+  # output_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/
+  # qc_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/qc_results_new
+  # plane_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/suite2p/plane0
+  # output_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/
+  # qc_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/qc_results_new
+  plane_dir: D:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/suite2p/plane0
+  output_dir: D:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/
+  qc_dir: D:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/qc_results_new    
+io:
+  memmap: true
+  copy_on_load: false
+selection:
+  only_iscell: true
+  iscell_prob_min: 0
+  keep_all: true
+anatomy:
+  prefer_channel: 2
+  use_max_proj_if_available: true
+labeling:
+  soma_area_min: 30
+  soma_area_max: 600
+  soma_elongation_max: 2.0
+  soma_circularity_min: 0.55
+  soma_iou_min: 0.25
+  # New scale-aware parameters
+  soma_area_um2_min: 50.0
+  soma_area_um2_max: 400.0
+  soma_diam_um_min: 4.0
+  soma_diam_um_max: 25.0
+  process:
+    thickness_um_max: 2.4
+    coherence_min: 0.55
+    length_um_min: 8.0
+    aspect_min: 1.9
+    circularity_max: 0.85
+  tie_breakers:
+    neighbor_snap:
+      max_edge_dist_um: 4.0
+      max_dtheta_deg: 20
+    field_prior:
+      window_um: 2.0
+      max_dtheta_deg: 25
+      coherence_min: 0.60
+    soma_halo:
+      radius_um: 3.0
+      circularity_min: 0.70
+    soma_speck_guard:
+      min_area_um2: 100.0
+      protect_labels: ['soma_cp']
+    border_uncertain_px: 4
+overlay:
+  bg_pmin: 1        # background display low percentile
+  bg_pmax: 99       # background display high percentile
+  alpha: 0.85
+  line_width: 1
+  color_soma: [255, 0, 0]
+  color_soma_cp: [255, 80, 0]
+  color_process: [0, 200, 255]
+  color_axon: [255, 255, 0]
+  color_dendrite: [0, 255, 0]
+  color_focus: [255, 255, 0]     # panel highlight color
+  fig_size: [8, 8]               # overlay composite
+  panel_fig_size: [8, 3]         # per-ROI panel
+  dpi: 140
+  overlay_filename: roi_overlay.png
+  panel_window_s: 40
+  save_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new/overlay_figs
+cellpose:
+  enable: true
+  model: cyto3
+  diam: null
+  gpu: false
+acq:
+  fs: 29.7604416
+neuropil:
+  enable: true
+  bounds: [0.3, 0.7]
+  lam: 0.0
+  fallback_alpha: 0.7
+
+baseline:
+  method: "custom"          # "custom" or "suite2p"
+  f0_epsilon: 1.0e-6       # Small value to prevent division by zero
+  
+  # Custom percentile-window method (your sophisticated approach)
+  custom:
+    win_s: 60.0
+    percentile: 15.0
+    smooth_sigma_s: 5.0
+    smooth_sigma_divisor: 5.0
+  
+  # Suite2p baseline methods
+  suite2p:
+    method: "maximin"        # "maximin", "constant", or "constant_prctile"
+    win_baseline: 60.0       # Window in seconds
+    sig_baseline: 5.0        # Gaussian sigma in frames (not seconds)
+    prctile_baseline: 8.0    # Only used for "constant_prctile"
+
+
+
+
+
+deconvolution:
+  enable: true               # Enable/disable spike deconvolution
+  tau_s: 0.25                # Decay time constant in seconds (typical for GCaMP6f)
+  batch_size: 20000          # Frames per batch (null = auto: min(T, 20000))
+  detrend_with_f0: true     # Use F0 for gentle detrending before deconvolution
+
+
+# Typical tau values:
+# GCaMP6f: ~0.7s
+# GCaMP6s: ~2.0s
+# jGCaMP7f: ~0.6s
+# jGCaMP8f: ~0.5s
+
+
+ca_transients:
+  smooth_sigma_s: 0.08      # Minimal smoothing
+  k_on: 2.0                 # Very low onset threshold
+  k_off: 1.2                # Very low offset threshold  
+  rise_max_s: 0.08           # Very permissive rise time
+  peak_win_s: 0.8           # Long peak search
+  decay_max_s: 2.5          # Very long decay allowance
+  min_amp: 0.08             # Very small amplitude threshold
+  
+  # Very relaxed constraints:
+  max_decay_slope_per_s: 6.0   # Allow very fast decays
+  min_series_peak_dff: 0.15     # Very low peak requirement
+  series_timeout_s: 5.0         # Long timeout
+  merge_gap_s: 0.1              # Minimal merging
+  min_snr: 1.5                  # Very permissive SNR
+  
+  # Disable strict filters:
+  min_event_duration_s: 0.150    # Very brief events OK
+  max_baseline_drift_per_s: 6.0 # Allow lots of drift
+  require_clear_peak: false     # No peak requirement
+
+outliers:
+  enable: true
+  z_thr: 12.0          # Increased from 8.0 - only catch extreme artifacts
+  preserve_transients: true    # New flag
+  negative_only: false         # Set true to only remove negative outliers
+  extreme_positive_multiplier: 2.0  # Only remove positive outliers > 2x threshold
+
+plot:
+  width: 8
+  height: 3
+
+review:
+  max_points_full: 6000
+  detail_segments:
+    # - [0, 40]
+    # - [300, 340]
+    - [600, 640]
+  fig_width: 11.0
+  row_height: 1.1
+  dpi: 140
+  save_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new/review_figs

@@ -1,0 +1,41 @@
+report:
+  title: "Single Interval Discrimination Analysis Report"
+  template: "experiment_report.html"
+  
+  sections:
+    - name: "overall_performance"
+      title: "Overall Performance"
+      type: "figure_list"
+      figures:
+        - pattern: "{subject_id}_performance_over_sessions.png"
+          row_type: "single"
+        - pattern: "{subject_id}_trial_outcomes_by_session.png"
+          subfolder: "cross_session_analysis"
+          row_type: "single"
+        - pattern: "{subject_id}_rolling_performance_across_sessions.png"
+          subfolder: "cross_session_analysis"
+          row_type: "single"          
+    
+    - name: "session_details"  
+      title: "Session Details"
+      type: "session_figures"
+      figures:
+        - pattern: "{subject_id}_session_overview_trial_type_{session_date}.png"
+          subfolder: "session_overviews"
+          row_type: "single"
+        - pattern: "{subject_id}_session_overview_rt_{session_date}.png"
+          subfolder: "session_overviews"
+          row_type: "single"
+        - pattern: "{subject_id}_isi_pdf_{session_date}.png"
+          subfolder: "session_overviews"
+          row_type: "quad"
+        - pattern: "{subject_id}_psychometric_{session_date}.png"
+          subfolder: "session_overviews"
+          row_type: "quad"
+        - pattern: "{subject_id}_rt_histogram_{session_date}.png"
+          subfolder: "session_overviews"
+          row_type: "quad"
+        - pattern: "{subject_id}_rt_stats_{session_date}.png"
+          subfolder: "session_overviews"
+          row_type: "quad"                              
+

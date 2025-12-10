@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Subject Performance - {{ subject_name }}{% endblock %}
+
+{% block header %}Performance Report - {{ subject_name }}{% endblock %}
+
+{% block additional_metadata %}
+<strong>Subject ID:</strong> {{ subject_id }}<br>
+<strong>Total Sessions:</strong> {{ overall_performance.total_sessions }}<br>
+<strong>Total Trials:</strong> {{ overall_performance.total_trials }}<br>
+{% endblock %}
+
+{% block content %}
+<h2>Overall Performance Summary</h2>
+<div class="grid-3">
+    <div class="metric-card">
+        <div class="metric-value">{{ "%.1f" | format(overall_performance.accuracy * 100) }}%</div>
+        <div class="metric-label">Overall Accuracy</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">{{ "%.1f" | format(overall_performance.hit_rate * 100) }}%</div>
+        <div class="metric-label">Hit Rate</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">{{ "%.1f" | format(overall_performance.false_alarm_rate * 100) }}%</div>
+        <div class="metric-label">False Alarm Rate</div>
+    </div>
+</div>
+
+<h2>Performance Visualizations</h2>
+{% if figures.get(subject_id + '_performance_over_sessions.png') and figures[subject_id + '_performance_over_sessions.png'].exists %}
+<div class="figure">
+    <img src="{{ figures[subject_id + '_performance_over_sessions.png'].path }}" alt="Performance Over Sessions">
+    <div class="figure-caption">{{ figures[subject_id + '_performance_over_sessions.png'].description }}</div>
+</div>
+{% endif %}
+
+{% if figures.get(subject_id + '_trial_outcomes_by_session.png') and figures[subject_id + '_trial_outcomes_by_session.png'].exists %}
+<div class="figure">
+    <img src="{{ figures[subject_id + '_trial_outcomes_by_session.png'].path }}" alt="Trial Outcomes by Session">
+    <div class="figure-caption">{{ figures[subject_id + '_trial_outcomes_by_session.png'].description }}</div>
+</div>
+{% endif %}
+
+<h2>Learning Progression</h2>
+{% if learning_metrics %}
+<div class="grid-2">
+    <div class="metric-card">
+        <div class="metric-value">{{ "%.1f" | format(learning_metrics.improvement_percentage) }}%</div>
+        <div class="metric-label">Performance Improvement</div>
+        <small>From {{ "%.1f" | format(learning_metrics.initial_accuracy * 100) }}% to {{ "%.1f" | format(learning_metrics.final_accuracy * 100) }}%</small>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">{{ "%.3f" | format(learning_metrics.learning_slope) }}</div>
+        <div class="metric-label">Learning Slope</div>
+        <small>{% if learning_metrics.learning_slope > 0 %}Positive trend{% elif learning_metrics.learning_slope < 0 %}Negative trend{% else %}No trend{% endif %}</small>
+    </div>
+</div>
+{% endif %}
+
+{% if figures.get(subject_id + '_rolling_performance_across_sessions.png') and figures[subject_id + '_rolling_performance_across_sessions.png'].exists %}
+<div class="figure">
+    <img src="{{ figures[subject_id + '_rolling_performance_across_sessions.png'].path }}" alt="Rolling Performance">
+    <div class="figure-caption">{{ figures[subject_id + '_rolling_performance_across_sessions.png'].description }}</div>
+</div>
+{% endif %}
+
+<h2>Session Overview Figures</h2>
+{% if session_figures %}
+    {% for session_date, session_figs in session_figures.items() %}
+    <h3>Session {{ session_date }}</h3>
+    <div class="grid-2">
+        {% set trial_type_fig = session_figs.get(subject_id + '_session_overview_trial_type_' + session_date + '.png') %}
+        {% if trial_type_fig and trial_type_fig.exists %}
+        <div class="figure">
+            <img src="{{ trial_type_fig.path }}" alt="Session Trial Type Overview">
+            <div class="figure-caption">{{ trial_type_fig.description }}</div>
+        </div>
+        {% endif %}
+        
+        {% set rt_fig = session_figs.get(subject_id + '_session_overview_rt_' + session_date + '.png') %}
+        {% if rt_fig and rt_fig.exists %}
+        <div class="figure">
+            <img src="{{ rt_fig.path }}" alt="Session RT Overview">
+            <div class="figure-caption">{{ rt_fig.description }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<p><em>No session overview figures available.</em></p>
+{% endif %}
+
+<h2>Session-by-Session Performance</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Session</th>
+            <th>Date</th>
+            <th>Trials</th>
+            <th>Accuracy</th>
+            <th>Hit Rate</th>
+            <th>False Alarm Rate</th>
+            <th>Median RT (ms)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for session in session_performance %}
+        <tr>
+            <td>{{ session.session_name }}</td>
+            <td>{{ session.date }}</td>
+            <td>{{ session.trials }}</td>
+            <td>{{ "%.1f" | format(session.accuracy * 100) }}%</td>
+            <td>{{ "%.1f" | format(session.hit_rate * 100) }}%</td>
+            <td>{{ "%.1f" | format(session.false_alarm_rate * 100) }}%</td>
+            <td>{{ "%.0f" | format(session.median_rt) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

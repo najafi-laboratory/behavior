@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Data Analysis Pipeline Interactive Mode",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "python": "${command:python.interpreterPath}"
+        },
+        {
+            "name": "Data Analysis Pipeline Command Line Mode",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "args": ["-s", "LCHR_MC01", "-e", "single_interval_discrimination"],
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "python": "${command:python.interpreterPath}"
+        }
+    ]
+}
