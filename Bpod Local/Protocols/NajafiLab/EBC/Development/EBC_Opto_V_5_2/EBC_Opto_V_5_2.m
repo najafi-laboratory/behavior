@@ -79,6 +79,20 @@ try
     %     disp(['AirPuffPulseTimer reStarted']);
     % end 
     
+    % manually toggle BNC
+    Ch = 8;  % BNC Out 1
+    % Ch = 9;  % BNC Out 2
+    % BpodSystem.HardwareState.OutputState(Ch) =
+    % 1-BpodSystem.HardwareState.OutputState(Ch);    % toggle output state
+    BpodSystem.HardwareState.OutputState(Ch) = 0;
+    OverrideMessage = ['O' DigitalOutputChannel BpodSystem.HardwareState.OutputState(Ch)];
+    BpodSystem.SerialPort.write(OverrideMessage, 'uint8');
+
+
+    BpodSystem.HardwareState.OutputState(Ch) = 1;
+    OverrideMessage = ['O' DigitalOutputChannel BpodSystem.HardwareState.OutputState(Ch)];
+    BpodSystem.SerialPort.write(OverrideMessage, 'uint8');    
+
 
     % wait for parameter update and confirm before beginning trial loop
     input('Set parameters and press enter to continue >', 's'); 
