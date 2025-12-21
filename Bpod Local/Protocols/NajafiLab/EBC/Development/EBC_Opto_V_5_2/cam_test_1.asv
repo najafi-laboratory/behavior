@@ -79,28 +79,22 @@ for i = 1:3
     % trigger(vid);    
     pause(1);  % let acquisition run
 
-    if i == 3
-        stop(vid);
-    end
-
     % Grab any frames acquired so far
     if vid.FramesAvailable > 0
         disp(['TrialNum: ' num2str(i)]);
-        disp(['FramesAcquired so far: ' num2str(vid.FramesAcquired)])
         disp(['FramesAvailable: ' num2str(vid.FramesAvailable)]);
-        % frames = getdata(vid, vid.FramesAvailable);
-        [data, time, metadata] = getdata(vid, vid.FramesAvailable);
+        frames = getdata(vid, vid.FramesAvailable);
         
         % Optionally make sub-video
         subV = VideoWriter([folder + 'Trial' + num2str(i) + '.mp4'],'MPEG-4');
         open(subV);
-        writeVideo(subV, data);
+        writeVideo(subV, frames);
         close(subV);
     end
 
-    ;
+    disp(['FramesAcquired so far: ' num2str(vid.FramesAcquired)]);
 end
-disp(['FramesAcquired so far: ' num2str(vid.FramesAcquired)]);
+
 
 
 stop(vid)
