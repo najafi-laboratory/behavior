@@ -46,6 +46,7 @@ classdef EyelidAnalyzer < handle
         fpsCheck = 0;
         fps
         frame
+        FramesAcquired;
         
         hasSSImg = false;
         hFig
@@ -96,6 +97,7 @@ classdef EyelidAnalyzer < handle
         % vidWriter
         vidTimer
         vidTimerPeriod = 0.030;
+        vidTime = [];
 
         startTime  % To store the start time of the video
         stopTime      
@@ -332,6 +334,77 @@ classdef EyelidAnalyzer < handle
             end
         end
 
+        function startSessionVideo(obj, subjectName)
+            triggerCondition = "risingEdge";
+            triggerSource = 'externalTriggerMode14-Source2';
+            triggerconfig(obj.vid, "hardware", triggerCondition, triggerSource);
+
+            obj.vid.ROIPosition = [160 142 448 370];
+            
+            obj.camEvents = obj.vid.EventLog;
+            obj.vid.FramesPerTrigger = 1;
+            obj.vid.TriggerRepeat = inf;
+            % obj.vid.LoggingMode = "disk&memory";
+            obj.vid.LoggingMode = "memory";
+            % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');            
+            % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
+            obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_SessionVid_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
+            obj.EBC_vid_log_trial.FrameRate = 250; %400; % err for framerate too high
+            % obj.EBC_vid_log_trial.Quality = 90;
+            % obj.vid.DiskLogger = obj.EBC_vid_log_trial;
+            open(obj.EBC_vid_log_trial);
+
+            obj.clearFecPlot();            
+
+            start(obj.vid);
+            tic
+            % trigger(obj.vid);
+            % obj.trialVidStartTime = datetime("now");
+            % obj.startTime = datetime('now');
+
+            % Create a timer to update the video display and get fec data
+            if isempty(obj.vidTimer) || ~isvalid(obj.vidTimer)
+                obj.vidTimer = timer('TimerFcn',@(x,y)obj.updateTrialsVideo(), 'ExecutionMode', 'fixedSpacing', 'Period', obj.vidTimerPeriod, 'StartDelay',0.005);
+                % start(obj.vidTimer);
+                disp(['Video Update Timer Created']);
+            else
+                % start(obj.vidTimer);
+            end  
+
+            % obj.syncLog = struct;
+            % obj.syncLog.time = [];
+            % obj.syncLog.lineStatus = [];
+
+            % obj.trialVidStartTime = datetime("now");
+            % start(obj.vidTimer);
+            obj.setTrialData();
+            obj.clearFecPlot();    
+            obj.trialVidStartTime = datetime("now");
+
+       
+        end
+
+
+        function startUpdateTrialsVideo(obj, currentTrial, subjectName)
+            obj.vid.ROIPosition = [160 142 448 370];
+            
+            tic
+
+            % Create a timer to update the video display and get fec data
+            if isempty(obj.vidTimer) || ~isvalid(obj.vidTimer)
+                obj.vidTimer = timer('TimerFcn',@(x,y)obj.updateTrialsVideo(), 'ExecutionMode', 'fixedSpacing', 'Period', obj.vidTimerPeriod, 'StartDelay',0.005);
+                % start(obj.vidTimer);
+                disp(['Video Update Timer Created']);
+            else
+                % start(obj.vidTimer);
+            end  
+
+            % start(obj.vidTimer);
+            obj.setTrialData();
+            obj.clearFecPlot();    
+            obj.trialVidStartTime = datetime("now");
+        end
+
         function startTrialsVideo(obj, currentTrial, subjectName)
             triggerCondition = "risingEdge";
             % triggerSource = "externalTriggerMode0-Source2";
@@ -435,7 +508,7 @@ classdef EyelidAnalyzer < handle
                 stop(obj.vidTimer);
             end
 
-            stop(obj.vid);
+            % stop(obj.vid);
 
             if isobject(obj.roiHandle) && isvalid(obj.roiHandle)  
                 % obj.roiPosition = getPosition(obj.roiHandle);  % Get ROI position before getting images 
@@ -444,18 +517,36 @@ classdef EyelidAnalyzer < handle
 
             % disp(['debug']);
 
+
             if obj.vid.FramesAvailable > 0
-                % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])                
-                % numFramesVid_ITI = min(obj.vid.FramesAvailable, numFramesVid + numFramesITI);
-                numFramesVid = min(obj.vid.FramesAvailable, numFramesVid);
-                numFramesPreVid = obj.vid.FramesAvailable - numFramesVid;
-                if numFramesPreVid > 0
-                    getdata(obj.vid, numFramesPreVid); % move intitial images, if any, to get to ITI_Pre seconds before LED_Onset
-                end
+                % % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])                
+                % % numFramesVid_ITI = min(obj.vid.FramesAvailable, numFramesVid + numFramesITI);
+                % 
+                % numFramesVid = min(obj.vid.FramesAvailable, numFramesVid);
+                % numFramesPreVid = obj.vid.FramesAvailable - numFramesVid;
+                % if numFramesPreVid > 0
+                %     getdata(obj.vid, numFramesPreVid); % move intitial images, if any, to get to ITI_Pre seconds before LED_Onset
+                % end
+
+                numFramesVidKeep = obj.vid.FramesAvailable;
+
+                obj.vid.FramesAvailable
+                numFramesVid
+                % numFramesPreVid
+                numFramesVidKeep                
                 
                 [data, time, metadata] = getdata(obj.vid, numFramesVidKeep);
+
+                obj.vidTime = [obj.vidTime time'];
+                length(obj.vidTime)
+                d = diff(obj.vidTime);                  
+                n = 23
+                [largestDiffs, idx] = maxk(d, n);
+
+
+
                 % obj.frame = data(:,:,:,end);
-                checkFps = 0;
+                checkFps = 1;
                 if checkFps == 1
                     timeCheck = time - time(1);
                     Ts = diff(time);
@@ -473,7 +564,7 @@ classdef EyelidAnalyzer < handle
                 writeVideo(obj.EBC_vid_log_trial, data(:,:,:,1:numFramesVidKeep));
                 toc
                 % test = milliseconds(obj.AirPuffOnsetTime - obj.LEDOnsetTime)
-                flushdata(obj.vid);
+                % flushdata(obj.vid);
                 disp(['Processing FEC Data...']);
                 tic
                 obj.setTrialData()
@@ -493,7 +584,7 @@ classdef EyelidAnalyzer < handle
 
                 % obj.setTrialData();
                 % obj.clearFecPlot();
-                close(obj.EBC_vid_log_trial);
+                % close(obj.EBC_vid_log_trial);
             else
                 disp('no images? check proto');
             end            
@@ -516,7 +607,32 @@ classdef EyelidAnalyzer < handle
             if ~isempty(obj.vid) && isvalid(obj.vid)
                 stop(obj.vid);
             end            
+
+            obj.FramesAcquired = obj.vid.FramesAcquired;
+
         end
+
+        % stop full-session video, currently uses existing stopTrialsVideo
+        function stopSessionVideo(obj)
+            % wait until disk logger has stored all acquired frames            
+            while (obj.vid.FramesAcquired ~= obj.vid.DiskLoggerFrameCount)
+                obj.vid.FramesAcquired
+                obj.vid.DiskLoggerFrameCount                
+                pause(.1);
+            end
+            obj.FramesAcquired = obj.vid.FramesAcquired
+            % obj.stopTrialsVideo;
+        end          
+        % function stopSessionVideo(obj)
+        %     % wait until disk logger has stored all acquired frames            
+        %     while (obj.vid.FramesAcquired ~= obj.vid.DiskLoggerFrameCount)
+        %         obj.vid.FramesAcquired
+        %         obj.vid.DiskLoggerFrameCount                
+        %         pause(.1);
+        %     end
+        %     obj.FramesAcquired = obj.vid.FramesAcquired
+        %     % obj.stopTrialsVideo;
+        % end        
 
         function updateTrialsVideo(obj)
             % obj.syncLog.time = [obj.syncLog.time; second(datetime('now'))];

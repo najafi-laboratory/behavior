@@ -37,6 +37,16 @@ void setup() {
   // while (!Serial) {}
 }
 
+void TriggerOn() {
+    // Enable PWM output on OC1B (pin 10)
+  TCCR1A |= (1 << COM1B1);
+}
+
+void TriggerOff() {
+  // Disable PWM output (pin forced LOW)
+  TCCR1A &= ~(1 << COM1B1);
+  digitalWrite(10, LOW);  // ensure clean low  
+}
 
 void loop() {
   if (Serial.available() > 0) {
@@ -44,13 +54,20 @@ void loop() {
 
     if (cmd == 0x01) {
       // Enable PWM output on OC1B (pin 10)
-      TCCR1A |= (1 << COM1B1);
+      //TCCR1A |= (1 << COM1B1);
+      TriggerOn();
     } 
     else if (cmd == 0x02) {
       // Disable PWM output (pin forced LOW)
-      TCCR1A &= ~(1 << COM1B1);
-      digitalWrite(10, LOW);  // ensure clean low
-    } 
+      //TCCR1A &= ~(1 << COM1B1);
+      //digitalWrite(10, LOW);  // ensure clean low
+      TriggerOff();
+    }
+    else if (cmd == 0x03) {
+      // Disable PWM output and return acknowledge
+      TriggerOff();
+      Serial.write((uint8_t)0x2B);   // reply "echo"
+    }
     // else: ignore unknown command
   }
 }

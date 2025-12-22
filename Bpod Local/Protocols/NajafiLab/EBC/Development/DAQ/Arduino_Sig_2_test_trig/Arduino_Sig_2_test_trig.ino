@@ -9,6 +9,8 @@ volatile bool running = false;
 const uint8_t N_PULSES = 10;
 const uint16_t DUTY = 125;   // example duty
 
+volatile uint32_t pwmPulseCount = 0;
+
 void setup() {
   pinMode(10, OUTPUT);   // OC1B
   digitalWrite(10, LOW);  // ensure clean low

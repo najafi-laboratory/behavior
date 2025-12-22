@@ -3,10 +3,56 @@ try
     global BpodSystem
     global S
     global MEV
+    global A
     
+
+
+    %% Connect Arduino
+    disp('Connecting Arduino...');
+    port = "COM7";      % <-- change to arduino COM port
+    baud = 115200;    
+    A = serialport(port, baud);
+    % Create cleanup object immediately
+    cleanupObj = onCleanup(@() cleanSerial(A));
+    % IMPORTANT: Arduino often resets when you open the port
+    pause(2.0);
+    % Send CONNECT/PWM OFF command (0x03)
+    write(A, uint8(3), "uint8");
+    pause(0.05);
+    if A.NumBytesAvailable > 0
+        reply = read(A, 1, "uint8");
+        fprintf("Reply byte: 0x%02X\n", reply);
+        if reply == 43
+            disp("Arduino connected.  PWM Trigger inactive.");
+        end
+    else    
+        disp("Arduino not connected.");
+    end
+
+    %% connect DAQ
+    dq = daq("ni");
+    flush(dq);
+    ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
+    ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
+
+    dq.Rate = 5000;   % sampling rate if 2x channels    
+    BpodSystem.Data.daqDataAll = [];
+    BpodSystem.Data.daqTimestampsAll = [];
+
+    % chunkDuration = seconds(1);
+    % chunkDuration = milliseconds(20);
+    % while dq.Running
+    %     [data, timestamps] = read(dq,chunkDuration,OutputFormat="Matrix");
+    %     dataAll = [dataAll; data];
+    %     timestampsAll = [timestampsAll; timestamps];
+    %     plot(timestampsAll,dataAll)
+    %     plot(timestamps,data)
+    %     pause(0.5*seconds(chunkDuration))
+    % end
+
     
     %% init encoder object
-    BpodSystem.PluginObjects.R = struct;
+    BpodSystem.PluginObjects.R = struct;    
 
     %% Assert Rotary Encoder modules are present + USB-paired (via USB button on console GUI)
     disp('Connecting Encoder...');
@@ -236,9 +282,19 @@ try
     BpodSystem.Data.EncoderDataSession.EventTimestamps = [];
     BpodSystem.Data.EncoderDataSession.PositionsUnwrapped = [];
     BpodSystem.Data.EncoderDataSession.LinearPositions = [];
+    
 
     %% sync trial-specific parameters from GUI
     % main loop for trials
+
+    % start session video
+    MEV.startSessionVideo(BpodSystem.GUIData.SubjectName);
+    % start DAQ
+    start(dq,"Duration",hours(2))
+    pause(1);
+    % Send PWM ON command (0x01), trigger start session video
+    write(A, uint8(1), "uint8");
+
     
    for currentTrial = 1:MaxTrials
        
@@ -670,7 +726,8 @@ try
 
         MEV.setTrialData();
         MEV.setEventTimes(S.GUI.LED_OnsetDelay, AirPuff_OnsetDelay, S.GUI.ITI_Pre);
-        MEV.startTrialsVideo(currentTrial, BpodSystem.GUIData.SubjectName);
+        % MEV.startTrialsVideo(currentTrial, BpodSystem.GUIData.SubjectName);
+        MEV.startUpdateTrialsVideo(currentTrial, BpodSystem.GUIData.SubjectName);
         MEV.LEDOnsetTime = 0;
         MEV.AirPuffOnsetTime = 0;
         MEV.plotLEDOnset();
@@ -766,9 +823,16 @@ try
             'OnMessage', 1, 'OffMessage', 0);
 
 
-        sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', CamTrigOnDur, 'OnsetDelay', 0, 'Channel', 'BNC1',...
-            'OnLevel', 1, 'OffLevel', 0,...
-            'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', CamTrigOffDur);
+        % now using arduino pwm as cam trigger
+        % sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', CamTrigOnDur, 'OnsetDelay', 0, 'Channel', 'BNC1',...
+        %     'OnLevel', 1, 'OffLevel', 0,...
+        %     'Loop', 1, 'SendGlobalTimerEvents', 0, 'LoopInterval', CamTrigOffDur);
+
+        % trial synch signal, daq records, align with bpod PWM times
+        sma = SetGlobalTimer(sma, 'TimerID', 3, 'Duration', 0.6, 'OnsetDelay', 0,...
+            'Channel', 'PWM1', 'PulseWidthByte', 255, 'PulseOffByte', 0,...
+            'Loop', 0, 'SendGlobalTimerEvents', 0, 'LoopInterval', 0); 
+
 
         % % imaging synchronization trial start signal
         % sma = SetGlobalTimer(sma, 'TimerID', 4, 'Duration', 0.068, 'OnsetDelay', 0, 'Channel', 'BNC1',...
@@ -931,6 +995,18 @@ try
             if useStateTiming
                 StateTiming();
             end
+
+            % update daq data
+            [daqData, daqTimestamps] = read(dq,"all",OutputFormat="Matrix");
+            daqData = daqData';
+            daqTimestamps = daqTimestamps';
+            BpodSystem.Data.daqDataAll = [BpodSystem.Data.daqDataAll daqData];
+            BpodSystem.Data.daqTimestampsAll = [BpodSystem.Data.daqTimestampsAll daqTimestamps];
+            % % plot(timestampsAll,dataAll)
+            % figure;
+            % plot(daqTimestamps,daqData)
+            % pause(0.5*seconds(chunkDuration))            
+
 
             BpodSystem.Data.EncoderData{currentTrial} = BpodSystem.PluginObjects.R.readUSBStream(); % Get rotary encoder data captured since last call to R.readUSBStream()
             % Align this trial's rotary encoder timestamps to state machine trial-start (timestamp of '#' command sent from state machine to encoder module in 'TrialStart' state)
@@ -1192,6 +1268,42 @@ try
         HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
 
+            % Send PWM OFF command (0x02), stops camera trigger
+            write(A, uint8(2), "uint8");
+            pause(1);
+            % --- Request pulse count ---
+            write(A, uint8(4), "uint8");   % 0x04            
+            % Read 4 bytes (uint32)
+            raw = read(A, 4, "uint8");            
+            % Convert to uint32
+            pulseCount = typecast(uint8(raw), 'uint32');            
+            fprintf("Pulse count = %d\n", pulseCount);            
+            BpodSystem.Data.TriggerPulseCount = pulseCount;
+
+            % get and store remaining images
+            MEV.processTrialsVideo(numFramesVid, numFramesITI, numFramesVidKeep);
+            MEV.stopTrialsVideo;            
+            % MEV.getVideoData;
+            BpodSystem.Data.vidTime = MEV.vidTime;
+            BpodSystem.Data.FramesAcquired = MEV.FramesAcquired;
+
+            % get remaining daq data
+            stop(dq);
+            [daqData, daqTimestamps] = read(dq,"all",OutputFormat="Matrix");
+            daqData = daqData';
+            daqTimestamps = daqTimestamps';
+            BpodSystem.Data.daqDataAll = [BpodSystem.Data.daqDataAll daqData];
+            BpodSystem.Data.daqTimestampsAll = [BpodSystem.Data.daqTimestampsAll daqTimestamps];      
+            figure;
+            plot(daqTimestamps,daqData)            
+            figure;
+            plot(BpodSystem.Data.daqTimestampsAll,BpodSystem.Data.daqDataAll)   
+            trialSyncChannel = BpodSystem.Data.daqDataAll(1, :);
+            camStrobeChannel = BpodSystem.Data.daqDataAll(2, :);
+
+            trialSyncChannel_rising = sum(diff(trialSyncChannel > 0) == 1)
+            camStrobeChannel_rising = sum(diff(camStrobeChannel > 0) == 1)
+                      
 
             % If proto completes without crashing, calculate unwrapped
             % angular and linear encoder positions
@@ -1210,23 +1322,23 @@ try
             DegToRad = pi/180;
             BpodSystem.Data.EncoderDataSession.LinearPositions = S.GUI.WheelRadius * BpodSystem.Data.EncoderDataSession.PositionsUnwrapped * DegToRad;
 
-            figure;
-            plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
-            hold on;
-            plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.PositionsUnwrapped, 'r', 'LineWidth', 1.5);            
-            hold off;
-            
-            xlabel('Time');
-            ylabel('Position');
-            legend('Positions', 'PositionsUnwrapped');
-            title('Position vs Time');
-
-            figure;
-            plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.LinearPositions, 'g', 'LineWidth', 1.5);
-            xlabel('Time');
-            ylabel('Position');
-            legend('LinearPositions');
-            title('Position vs Time');
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
+            % hold on;
+            % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.PositionsUnwrapped, 'r', 'LineWidth', 1.5);            
+            % hold off;
+            % 
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('Positions', 'PositionsUnwrapped');
+            % title('Position vs Time');
+            % 
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.LinearPositions, 'g', 'LineWidth', 1.5);
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('LinearPositions');
+            % title('Position vs Time');
 
             BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
 
@@ -1234,9 +1346,14 @@ try
             BpodSystem.PluginObjects.R.sendThresholdEvents = 'off'; % Stop sending threshold events to state machine
             BpodSystem.PluginObjects.R = [];             
 
-            MEV.stopTrialsVideo;
-            MEV.onGUIClose;
+            % MEV.stopSessionVideo;
+            % BpodSystem.Data.FramesAcquired = MEV.FramesAcquired;
+            SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
+            fprintf("FramesAcquired = %d\n", BpodSystem.Data.FramesAcquired);
+            MEV.onGUIClose;            
             MEV = [];
+
+            A = [];
 
             if ~isempty(BpodSystem.Data.AirPuffPulseTimer) && isvalid(BpodSystem.Data.AirPuffPulseTimer)
                 stop(BpodSystem.Data.AirPuffPulseTimer);
@@ -1248,7 +1365,7 @@ try
         end
     end
 
-
+    A = [];
 
     MEV = [];
 
@@ -1291,7 +1408,7 @@ catch MatlabException
     fprintf(fid,'%s\n', num2str(session_date));
 
     % rig specs
-    fprintf(fid,'%s\n', 'Joystick Rig - Behavior Room');
+    fprintf(fid,'%s\n', 'EBC Rig - Behavior Room');
     % fprintf(fid,'%s\n', computer);
     % fprintf(fid,'%s\n', feature('GetCPU'));
     % fprintf(fid,'%s\n', getenv('NUMBER_OF_PROCESSORS'));
@@ -1318,8 +1435,15 @@ catch MatlabException
     BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
 
     try
+        A = [];
+    catch MatlabException
+        disp(MatlabException.identifier);
+        disp(getReport(MatlabException));
+    end
+
+    try
         MEV.onGUIClose;
-        MEV = [];        
+        MEV = [];            
     catch MatlabException
         disp(MatlabException.identifier);
         disp(getReport(MatlabException));
@@ -1351,3 +1475,10 @@ function SetRigID(BpodSystem)
     end
 end
 
+
+function cleanSerial(s)
+    if ~isempty(s) && isvalid(s)
+        flush(s);
+        delete(s);   % closes the serial port
+    end
+end
