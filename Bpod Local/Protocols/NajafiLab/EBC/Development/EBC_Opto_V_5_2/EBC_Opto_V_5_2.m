@@ -233,6 +233,8 @@ try
     BpodSystem.Data.EncoderDataSession.nPositions = 0;
     BpodSystem.Data.EncoderDataSession.Positions = [];
     BpodSystem.Data.EncoderDataSession.Times = [];
+    BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned = [];
+    BpodSystem.Data.EncoderDataSession.TimesSessionAligned = [];
     BpodSystem.Data.EncoderDataSession.EventTimestamps = [];
     BpodSystem.Data.EncoderDataSession.PositionsUnwrapped = [];
     BpodSystem.Data.EncoderDataSession.LinearPositions = [];
@@ -1004,6 +1006,10 @@ try
                 BpodSystem.Data.EncoderDataSession.nPositions = BpodSystem.Data.EncoderDataSession.nPositions + BpodSystem.Data.EncoderData{currentTrial}.nPositionsOrig;
                 BpodSystem.Data.EncoderDataSession.Positions = [BpodSystem.Data.EncoderDataSession.Positions BpodSystem.Data.EncoderData{currentTrial}.PositionsOrig];
                 BpodSystem.Data.EncoderDataSession.Times = [BpodSystem.Data.EncoderDataSession.Times BpodSystem.Data.EncoderData{currentTrial}.TimesOrig];
+                TimesFirstTrialAligned = BpodSystem.Data.EncoderData{currentTrial}.TimesOrig - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1) + BpodSystem.Data.TrialStartTimestamp(currentTrial) - BpodSystem.Data.TrialStartTimestamp(1);
+                BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned = [BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned TimesFirstTrialAligned];
+                TimesSessionAligned = BpodSystem.Data.EncoderData{currentTrial}.TimesOrig - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1) + BpodSystem.Data.TrialStartTimestamp(currentTrial);
+                BpodSystem.Data.EncoderDataSession.TimesSessionAligned = [BpodSystem.Data.EncoderDataSession.TimesSessionAligned TimesSessionAligned];
             end
 
             BpodSystem.Data.EncoderDataSession.EventTimestamps = [BpodSystem.Data.EncoderDataSession.EventTimestamps BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps];
@@ -1210,7 +1216,7 @@ try
             DegToRad = pi/180;
             BpodSystem.Data.EncoderDataSession.LinearPositions = S.GUI.WheelRadius * BpodSystem.Data.EncoderDataSession.PositionsUnwrapped * DegToRad;
 
-            % code to check session encoder data
+            % % code to check session encoder data
             % figure;
             % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
             % hold on;
@@ -1228,6 +1234,26 @@ try
             % ylabel('Position');
             % legend('LinearPositions');
             % title('Position vs Time');
+            % 
+            % 
+            % % code to check session encoder data
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
+            % hold on;
+            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.PositionsUnwrapped, 'r', 'LineWidth', 1.5);            
+            % hold off;
+            % 
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('Positions', 'PositionsUnwrapped');
+            % title('Position vs Time');
+            % 
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.LinearPositions, 'g', 'LineWidth', 1.5);
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('LinearPositions');
+            % title('Position vs Time');            
 
             BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
 

@@ -78,7 +78,7 @@ try
     %     start(BpodSystem.AirPuffPulseTimer);
     %     disp(['AirPuffPulseTimer reStarted']);
     % end 
-    
+     
 
     % wait for parameter update and confirm before beginning trial loop
     input('Set parameters and press enter to continue >', 's'); 
@@ -233,8 +233,11 @@ try
     BpodSystem.Data.EncoderDataSession.nPositions = 0;
     BpodSystem.Data.EncoderDataSession.Positions = [];
     BpodSystem.Data.EncoderDataSession.Times = [];
+    BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned = [];
+    BpodSystem.Data.EncoderDataSession.TimesSessionAligned = [];
     BpodSystem.Data.EncoderDataSession.EventTimestamps = [];
-
+    BpodSystem.Data.EncoderDataSession.PositionsUnwrapped = [];
+    BpodSystem.Data.EncoderDataSession.LinearPositions = [];
 
     %% sync trial-specific parameters from GUI
     % main loop for trials
@@ -995,18 +998,22 @@ try
     
             if (S.GUI.WheelDirection == 2)
                 BpodSystem.Data.EncoderData{currentTrial}.Positions = -BpodSystem.Data.EncoderData{currentTrial}.Positions;
+                BpodSystem.Data.EncoderData{currentTrial}.PositionsOrig = -BpodSystem.Data.EncoderData{currentTrial}.PositionsOrig;
             end
 
             % Update session encoder data
-            if BpodSystem.Data.EncoderData{currentTrial}.nPositions > 0
-                BpodSystem.Data.EncoderDataSession.nPositions = BpodSystem.Data.EncoderDataSession.nPositions + BpodSystem.Data.EncoderData{currentTrial}.nPositions;
+            if BpodSystem.Data.EncoderData{currentTrial}.nPositionsOrig > 0
+                BpodSystem.Data.EncoderDataSession.nPositions = BpodSystem.Data.EncoderDataSession.nPositions + BpodSystem.Data.EncoderData{currentTrial}.nPositionsOrig;
+                BpodSystem.Data.EncoderDataSession.Positions = [BpodSystem.Data.EncoderDataSession.Positions BpodSystem.Data.EncoderData{currentTrial}.PositionsOrig];
+                BpodSystem.Data.EncoderDataSession.Times = [BpodSystem.Data.EncoderDataSession.Times BpodSystem.Data.EncoderData{currentTrial}.TimesOrig];
+                TimesFirstTrialAligned = BpodSystem.Data.EncoderData{currentTrial}.TimesOrig - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1) + BpodSystem.Data.TrialStartTimestamp(currentTrial) - BpodSystem.Data.TrialStartTimestamp(1);
+                BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned = [BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned TimesFirstTrialAligned];
+                TimesSessionAligned = BpodSystem.Data.EncoderData{currentTrial}.TimesOrig - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1) + BpodSystem.Data.TrialStartTimestamp(currentTrial);
+                BpodSystem.Data.EncoderDataSession.TimesSessionAligned = [BpodSystem.Data.EncoderDataSession.TimesSessionAligned TimesSessionAligned];
             end
-    
-                BpodSystem.Data.EncoderDataSession.nPositions = 0;
-                BpodSystem.Data.EncoderDataSession.Positions = [];
-                BpodSystem.Data.EncoderDataSession.Times = [];
-                BpodSystem.Data.EncoderDataSession.EventTimestamps = [];            
 
+            BpodSystem.Data.EncoderDataSession.EventTimestamps = [BpodSystem.Data.EncoderDataSession.EventTimestamps BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps];
+          
             % unwrap circular distance
             wrap = 2880;                     % half encoder range in degrees
             scale = pi / wrap;               % scale units -> radians
@@ -1190,6 +1197,63 @@ try
 
         HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
         if BpodSystem.Status.BeingUsed == 0 % If protocol was stopped, exit the loop
+
+
+            % If proto completes without crashing, calculate unwrapped
+            % angular and linear encoder positions
+                        % unwrap circular distance
+            wrap = 2880;                     % half encoder range in degrees
+            scale = pi / wrap;               % scale units -> radians
+            
+            BpodSystem.Data.EncoderDataSession.PositionsUnwrapped = unwrap(BpodSystem.Data.EncoderDataSession.Positions * scale) / scale;
+
+            %            
+            % convert circular to linear distance
+            % encoder position is recorded in degrees
+            % convert degrees to radians
+            % distance traveled is then arc length
+            % arc length = wheel_radius * radians
+            DegToRad = pi/180;
+            BpodSystem.Data.EncoderDataSession.LinearPositions = S.GUI.WheelRadius * BpodSystem.Data.EncoderDataSession.PositionsUnwrapped * DegToRad;
+
+            % % code to check session encoder data
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
+            % hold on;
+            % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.PositionsUnwrapped, 'r', 'LineWidth', 1.5);            
+            % hold off;
+            % 
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('Positions', 'PositionsUnwrapped');
+            % title('Position vs Time');
+            % 
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.LinearPositions, 'g', 'LineWidth', 1.5);
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('LinearPositions');
+            % title('Position vs Time');
+            % 
+            % 
+            % % code to check session encoder data
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
+            % hold on;
+            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.PositionsUnwrapped, 'r', 'LineWidth', 1.5);            
+            % hold off;
+            % 
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('Positions', 'PositionsUnwrapped');
+            % title('Position vs Time');
+            % 
+            % figure;
+            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.LinearPositions, 'g', 'LineWidth', 1.5);
+            % xlabel('Time');
+            % ylabel('Position');
+            % legend('LinearPositions');
+            % title('Position vs Time');            
 
             BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
 
