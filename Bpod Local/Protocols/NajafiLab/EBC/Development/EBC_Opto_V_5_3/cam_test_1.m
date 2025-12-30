@@ -7,12 +7,30 @@ vid = [];
 
 
 % imaqhwinfo
+% info = imaqhwinfo('gentl');
 % info = imaqhwinfo('pointgrey', 1);
 % formats = info.SupportedFormats
 
 
 vid = videoinput('pointgrey', 1, "F7_Raw8_640x512_Mode1");
 src = getselectedsource(vid);
+
+% vid = videoinput('gentl', 1);
+
+% [snapshot, metadata] = getsnapshot(vid);
+% imshow(snapshot);
+
+% Example: make sure chunk mode is on (if accessible)
+% src.ChunkModeActive = 'On';    % property names vary by adaptor
+
+vid.FramesPerTrigger = 1;
+vid.TriggerRepeat = Inf;
+
+start(vid);
+img = getdata(vid, 1);
+
+imshow(img);
+
 
 % propinfo(src, 'ExposureMode')
 % src.ExposureMode = "Auto";

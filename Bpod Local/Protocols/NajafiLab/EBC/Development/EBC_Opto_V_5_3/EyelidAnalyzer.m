@@ -95,6 +95,7 @@ classdef EyelidAnalyzer < handle
         vid        
         video
         % vidWriter
+        vidMetadata = [];
         vidTimer
         vidTimerPeriod = 0.030;
         vidTime = [];
@@ -298,7 +299,9 @@ classdef EyelidAnalyzer < handle
             
             obj.vid.LoggingMode = "memory";
 
-            obj.vid.ROIPosition = [160 142 448 370];
+            obj.vid.ROIPosition = [0 0 640 512];
+            % obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [240 166 192 200];
 
             start(obj.vid);
             trigger(obj.vid);
@@ -339,7 +342,9 @@ classdef EyelidAnalyzer < handle
             triggerSource = 'externalTriggerMode14-Source2';
             triggerconfig(obj.vid, "hardware", triggerCondition, triggerSource);
 
-            obj.vid.ROIPosition = [160 142 448 370];
+            obj.vid.ROIPosition = [0 0 640 512];
+            % obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [240 166 192 200];
             
             obj.camEvents = obj.vid.EventLog;
             obj.vid.FramesPerTrigger = 1;
@@ -386,7 +391,7 @@ classdef EyelidAnalyzer < handle
 
 
         function startUpdateTrialsVideo(obj, currentTrial, subjectName)
-            obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [160 142 448 370];
             
             tic
 
@@ -411,15 +416,14 @@ classdef EyelidAnalyzer < handle
             triggerSource = 'externalTriggerMode14-Source2';
             triggerconfig(obj.vid, "hardware", triggerCondition, triggerSource);
 
-            obj.vid.ROIPosition = [160 142 448 370];
+            obj.vid.ROIPosition = [0 0 640 512];
+            % obj.vid.ROIPosition = [160 142 448 370];
             
             obj.camEvents = obj.vid.EventLog;
             obj.vid.FramesPerTrigger = 1;
             obj.vid.TriggerRepeat = inf;
             % obj.vid.LoggingMode = "disk&memory";
             obj.vid.LoggingMode = "memory";
-            % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');            
-            % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial.FrameRate = 250; %400; % err for framerate too high
             % obj.EBC_vid_log_trial.Quality = 90;
@@ -531,9 +535,9 @@ classdef EyelidAnalyzer < handle
                 numFramesVidKeep = obj.vid.FramesAvailable;
 
                 obj.vid.FramesAvailable
-                numFramesVid
+                % numFramesVid
                 % numFramesPreVid
-                numFramesVidKeep                
+                % numFramesVidKeep                
                 
                 [data, time, metadata] = getdata(obj.vid, numFramesVidKeep);
 
@@ -543,15 +547,17 @@ classdef EyelidAnalyzer < handle
                 n = 23
                 [largestDiffs, idx] = maxk(d, n);
 
+                obj.vidMetadata = [obj.vidMetadata metadata'];
+
 
 
                 % obj.frame = data(:,:,:,end);
-                checkFps = 1;
+                checkFps = 0;
                 if checkFps == 1
                     timeCheck = time - time(1);
                     Ts = diff(time);
                     avgFps_MeanBased = 1/mean(Ts)
-                    avgFps_NumFramesPerVidTime = length(time)/time(end)
+                    avgFps_NumFramesPerVidTime = length(time)/timeCheck(end)
                 end
                 % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
                 % set(obj.imgOrigHandle, 'CData', rgbFrame);

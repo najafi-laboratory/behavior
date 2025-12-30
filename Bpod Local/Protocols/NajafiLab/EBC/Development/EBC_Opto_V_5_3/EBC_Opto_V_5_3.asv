@@ -1282,10 +1282,13 @@ try
 
             % get and store remaining images
             MEV.processTrialsVideo(numFramesVid, numFramesITI, numFramesVidKeep);
-            
-            MEV.stopSessionVideo;
+            MEV.stopTrialsVideo;            
+            % MEV.getVideoData;
+            BpodSystem.Data.vidTime = MEV.vidTime;
+            BpodSystem.Data.vidMetadata = MEV.vidMetadata;
             BpodSystem.Data.FramesAcquired = MEV.FramesAcquired;
-
+            fprintf("FramesAcquired = %d\n", BpodSystem.Data.FramesAcquired);
+            
             % get remaining daq data
             stop(dq);
             [daqData, daqTimestamps] = read(dq,"all",OutputFormat="Matrix");
@@ -1296,13 +1299,67 @@ try
             figure;
             plot(daqTimestamps,daqData)            
             figure;
-            plot(BpodSystem.Data.daqTimestampsAll,BpodSystem.Data.daqDataAll)   
+            plot(BpodSystem.Data.daqTimestampsAll,BpodSystem.Data.daqDataAll) 
+            daqTimestampsAll = BpodSystem.Data.daqTimestampsAll;
+
+
+
+
             trialSyncChannel = BpodSystem.Data.daqDataAll(1, :);
             camStrobeChannel = BpodSystem.Data.daqDataAll(2, :);
 
-            trialSyncChannel_rising = sum(diff(trialSyncChannel > 0) == 1)
-            camStrobeChannel_rising = sum(diff(camStrobeChannel > 0) == 1)
-                      
+            trialSyncBin = trialSyncChannel > 1.5;
+            camStrobeBin = camStrobeChannel > 1.5;
+
+            % probably need to binarize these
+            trialSyncChannel_numRising = sum(diff(trialSyncBin > 0) == 1)
+            camStrobeChannel_numRising = sum(diff(camStrobeBin > 0) == 1)
+
+            fallIdx = find(diff(camStrobeBin > 0) == -1);
+
+            daqTimestampsAll_firstImgAligned = daqTimestampsAll - daqTimestampsAll(fallIdx(1));
+
+                     
+            vidMetadata = BpodSystem.Data.vidMetadata;
+            vidTime = BpodSystem.Data.vidTime;
+            length(vidTime)
+            d = diff(vidTime);                  
+            n = pulseCount - BpodSystem.Data.FramesAcquired;
+            [largestDiffs, idx] = maxk(d, n);         
+
+
+            nth_idx = 1888;  % example: 5th falling edge
+
+            timeNearLargeDiff = vidTime(nth_idx) - vidTime(1);
+
+            
+            [~, idxNearLargeDiff] = min(abs(daqTimestampsAll_firstImgAligned - timeNearLargeDiff));
+
+
+            % if nth_idx <= numel(fallIdx)
+            %     fe_idx = fallIdx(nth_idx);
+            % else
+            %     error('Requested falling edge exceeds number of detected edges.');
+            % end
+            % 
+            % check_idx = fe_idx;
+
+            check_idx = idxNearLargeDiff;
+
+
+            fs = 1 / median(diff(daqTimestampsAll));  % Hz
+            n_ms = 60;                      % example: ±5 ms
+            nSamp = round((n_ms/1000) * fs);
+            i1 = max(1, check_idx - nSamp);
+            i2 = min(numel(camStrobeChannel), check_idx + nSamp);
+            strobeSeg = camStrobeChannel(i1:i2);
+            % timeSeg   = daqTimestampsAll(i1:i2) - daqTimestampsAll(check_idx);
+            timeSeg   = daqTimestampsAll(i1:i2);
+            figure;
+            plot(timeSeg*1000, strobeSeg)
+            xlabel('Time (ms)')
+            xline(daqTimestampsAll(check_idx),'r')
+
 
             % If proto completes without crashing, calculate unwrapped
             % angular and linear encoder positions
