@@ -686,11 +686,12 @@ classdef EBC_PostProcess_V_5_3 < handle
             offArr = [];
             nibArr = [];            
             frameIdx = 1;
-            initFrameIdx = frameIdx;
+            % initFrameIdx = frameIdx;
+            estFrames = 10000;
             try
                 % process each image
-                while hasFrame(reader)
-                % while frameIdx <= 2000
+                % while hasFrame(reader)
+                while frameIdx <= estFrames
                     if d.CancelRequested
                         break;
                     end
@@ -779,7 +780,8 @@ classdef EBC_PostProcess_V_5_3 < handle
             % Backward-compatible per-trial segmentation
             nTrials = obj.SessionData.nTrials;
             nStarts = numel(obj.trialSyncRiseTimes);
-            for trial = 1:nTrials
+            % for trial = 1:nTrials
+            for trial = 1:6
                 if trial > nStarts
                     obj.SessionData.RawEvents.Trial{1,trial}.Data.FECTimes = [];
                     obj.SessionData.RawEvents.Trial{1,trial}.Data.FEC = [];
@@ -797,7 +799,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             figure;
             hold on;
             % plot(obj.FECTimes(1:2000), obj.FEC);
-            plot(obj.FECTimes, obj.FEC, 'b', 'DisplayName','FEC');
+            plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
 
             led_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(1);
             ap_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(1);
@@ -811,9 +813,11 @@ classdef EBC_PostProcess_V_5_3 < handle
 
             figure();
             hold on;
-            p1 = plot(obj.FECTimes, obj.FEC, 'DisplayName','FEC');
+            % p1 = plot(obj.FECTimes, obj.FEC, 'DisplayName','FEC');
+            p1 = plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
 
-            for trial = (1:obj.SessionData.nTrials)
+            % for trial = (1:obj.SessionData.nTrials)
+            for trial = (1:6)
                 led_time = obj.SessionData.RawEvents.Trial{1,trial}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(trial);
                 ap_time = obj.SessionData.RawEvents.Trial{1,trial}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(trial);
                 ap_actual_time = ap_time + valveDelay;

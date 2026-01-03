@@ -663,6 +663,23 @@ classdef EBC_PostProcess_V_5_3 < handle
             D = bitand(word, 2^4 - 1);                  % lower 4 bits (frame number nibble)
         end
 
+        function [fecVal, eyeArea, nib] = processFrameFast(obj, frame, mask, maskIdx, thresh, totalEllipsePixels)
+            % fast grayscale
+            if size(frame,3) == 3
+                gray = 0.2989*frame(:,:,1) + 0.5870*frame(:,:,2) + 0.1140*frame(:,:,3);
+            else
+                gray = frame;
+            end
+            gray(~mask) = 0;
+
+            bin = gray > (thresh*255);          % logical
+            eyeArea = sum(~bin(maskIdx));       % black pixels in ROI
+            fecVal  = 1 - (eyeArea / totalEllipsePixels);
+
+            [~,~,~,nib] = obj.extractTimestamp(frame);
+        end
+
+
         function runProcessing(obj, varargin)
             if isempty(obj.sessionVideoReader)
                 uialert(obj.fig,'Load a session video first.','Process Error');
@@ -675,7 +692,7 @@ classdef EBC_PostProcess_V_5_3 < handle
 
             reader = obj.sessionVideoReader;
             reader.CurrentTime = 0;
-
+            
             estFrames = max(1, floor(reader.Duration * reader.FrameRate));
             d = uiprogressdlg(obj.fig,'Title','Processing','Message','0% complete','Cancelable','on');
 
@@ -687,10 +704,10 @@ classdef EBC_PostProcess_V_5_3 < handle
             nibArr = [];            
             frameIdx = 1;
             % initFrameIdx = frameIdx;
-            estFrames = 10000;
             try
                 % process each image
-                % while hasFrame(reader)
+                estFrames = 10000;
+                % while hasFrame(reader)                
                 while frameIdx <= estFrames
                     if d.CancelRequested
                         break;
@@ -699,10 +716,11 @@ classdef EBC_PostProcess_V_5_3 < handle
                     fecRaw(frameIdx,1) = obj.calculateRawFEC(frame); %#ok<AGROW>
                     eyeAreas(frameIdx,1) = obj.eyeAreaPixels; %#ok<AGROW>
 
-                    [A,B,C,D] = obj.extractTimestamp(frame);
-                    secArr(frameIdx,1) = A; %#ok<AGROW>
-                    cycArr(frameIdx,1) = B; %#ok<AGROW>
-                    offArr(frameIdx,1) = C; %#ok<AGROW>
+                    % [A,B,C,D] = obj.extractTimestamp(frame);
+                    [~,~,~,D] = obj.extractTimestamp(frame);
+                    % secArr(frameIdx,1) = A; %#ok<AGROW>
+                    % cycArr(frameIdx,1) = B; %#ok<AGROW>
+                    % offArr(frameIdx,1) = C; %#ok<AGROW>
                     nibArr(frameIdx,1) = D; %#ok<AGROW>
 
 
@@ -718,10 +736,148 @@ classdef EBC_PostProcess_V_5_3 < handle
 
             obj.fecDataRaw = fecRaw;
             obj.eyeAreaSeries = eyeAreas;
-            obj.secondCount = secArr;
-            obj.cycleCount = cycArr;
-            obj.cycleOffset = offArr;
+            % obj.secondCount = secArr;
+            % obj.cycleCount = cycArr;
+            % obj.cycleOffset = offArr;
             obj.frameNibble = nibArr;
+
+% % ...inside runProcessing, after creating reader/estFrames/d...
+%             fecRaw   = nan(estFrames,1);
+%             eyeAreas = nan(estFrames,1);
+%             nibArr   = nan(estFrames,1);
+
+%             % precompute mask & constants
+%             sampleFrame = readFrame(reader);           % peek first frame
+%             reader.CurrentTime = 0;                    % rewind
+%             mask = obj.roiMask;
+%             if size(mask,1) ~= size(sampleFrame,1) || size(mask,2) ~= size(sampleFrame,2)
+%                 mask = imresize(mask, [size(sampleFrame,1) size(sampleFrame,2)]);
+%             end
+%             maskIdx = mask(:) ~= 0;
+%             totalEllipsePixels = nnz(maskIdx);
+%             thresh = obj.binarizationThreshold / 255;
+
+%             frameIdx = 1;
+%             progressStride = 50; % update UI every N frames
+%             try
+%                 while hasFrame(reader)
+%                     if d.CancelRequested, break; end
+%                     frame = readFrame(reader);
+
+%                     % fast grayscale (avoids function-call overhead)
+%                     if size(frame,3) == 3
+%                         gray = 0.2989*frame(:,:,1) + 0.5870*frame(:,:,2) + 0.1140*frame(:,:,3);
+%                     else
+%                         gray = frame;
+%                     end
+%                     gray(~mask) = 0;
+
+%                     bin = gray > (thresh*255);               % logical
+%                     eyeArea = sum(~bin(maskIdx));            % black pixels in ROI
+
+%                     eyeAreas(frameIdx) = eyeArea;
+%                     fecRaw(frameIdx)   = 1 - (eyeArea / totalEllipsePixels);
+
+%                     [~,~,~,D] = obj.extractTimestamp(frame);
+%                     nibArr(frameIdx) = D;
+
+%                     if mod(frameIdx, progressStride) == 0
+%                         d.Value = min(frameIdx/estFrames,1);
+%                         d.Message = sprintf('%.0f%% complete', 100*d.Value);
+%                         drawnow limitrate;
+%                     end
+%                     frameIdx = frameIdx + 1;
+%                 end
+%             catch ME
+%                 close(d);
+%                 rethrow(ME);
+%             end
+%             close(d);
+
+%             % trim prealloc to actual count
+%             fecRaw   = fecRaw(1:frameIdx-1);
+%             eyeAreas = eyeAreas(1:frameIdx-1);
+%             nibArr   = nibArr(1:frameIdx-1);
+
+%             obj.fecDataRaw   = fecRaw;
+%             obj.eyeAreaSeries = eyeAreas;
+%             obj.totalEllipsePixels = totalEllipsePixels;
+%             obj.frameNibble = nibArr;
+% % ...rest of runProcessing unchanged...
+
+
+%             % precompute mask & constants
+%             sampleFrame = readFrame(reader);           % peek first frame
+%             reader.CurrentTime = 0;                    % rewind
+%             mask = obj.roiMask;
+%             if size(mask,1) ~= size(sampleFrame,1) || size(mask,2) ~= size(sampleFrame,2)
+%                 mask = imresize(mask, [size(sampleFrame,1) size(sampleFrame,2)]);
+%             end
+%             maskIdx = mask(:) ~= 0;
+%             totalEllipsePixels = nnz(maskIdx);
+%             thresh = obj.binarizationThreshold / 255;
+% % ...after maskIdx/totalEllipsePixels/thresh are set...
+%             fecRaw   = nan(estFrames,1);
+%             eyeAreas = nan(estFrames,1);
+%             nibArr   = nan(estFrames,1);
+
+%             frameIdx = 1;
+%             chunkSize = 128;              % tune for memory vs speed
+%             progressStride = 10;          % UI updates per chunk
+%             usePar = license('test','Distrib_Computing_Toolbox');
+
+%             try
+%                 while hasFrame(reader)
+%                     if d.CancelRequested, break; end
+
+%                     % read a chunk of frames serially
+%                     frames = cell(chunkSize,1);
+%                     k = 0;
+%                     while k < chunkSize && hasFrame(reader)
+%                         k = k + 1;
+%                         frames{k} = readFrame(reader);
+%                     end
+%                     frames = frames(1:k);
+
+%                     % process chunk in parallel if available
+%                     chunkFEC = zeros(k,1);
+%                     chunkEye = zeros(k,1);
+%                     chunkNib = zeros(k,1);
+
+%                     if usePar && k > 1
+%                         parfor j = 1:k
+%                             [chunkFEC(j), chunkEye(j), chunkNib(j)] = obj.processFrameFast(frames{j}, mask, maskIdx, thresh, totalEllipsePixels);
+%                         end
+%                     else
+%                         for j = 1:k
+%                             [chunkFEC(j), chunkEye(j), chunkNib(j)] = obj.processFrameFast(frames{j}, mask, maskIdx, thresh, totalEllipsePixels);
+%                         end
+%                     end
+
+%                     idxRange = frameIdx:(frameIdx + k - 1);
+%                     fecRaw(idxRange)   = chunkFEC;
+%                     eyeAreas(idxRange) = chunkEye;
+%                     nibArr(idxRange)   = chunkNib;
+%                     frameIdx = frameIdx + k;
+
+%                     if mod(frameIdx, progressStride*chunkSize) == 0
+%                         d.Value = min(frameIdx/estFrames,1);
+%                         d.Message = sprintf('%.0f%% complete', 100*d.Value);
+%                         drawnow limitrate;
+%                     end
+%                 end
+%             catch ME
+%                 close(d);
+%                 rethrow(ME);
+%             end
+%             close(d);
+
+%             % trim to actual count
+%             fecRaw   = fecRaw(1:frameIdx-1);
+%             eyeAreas = eyeAreas(1:frameIdx-1);
+%             nibArr   = nibArr(1:frameIdx-1);
+% ...rest of runProcessing unchanged...
+
 
             unwrapNib = nibArr(:);
             wrapOffset = 0;
@@ -737,8 +893,8 @@ classdef EBC_PostProcess_V_5_3 < handle
 
 
             % compute timestamp (seconds + cycle/7999)
-            cycleSeconds = double(obj.cycleCount) / 7999;
-            obj.timestampSec = double(obj.secondCount) + cycleSeconds;
+            % cycleSeconds = double(obj.cycleCount) / 7999;
+            % obj.timestampSec = double(obj.secondCount) + cycleSeconds;
                     
             % binarize DAQ
             binTrial = obj.binarizeSignal(obj.daqTrialSync);
@@ -776,6 +932,8 @@ classdef EBC_PostProcess_V_5_3 < handle
             totalEllipse = obj.totalEllipsePixels;
             obj.FEC = arrayfun(@(ea)obj.calculateAdjustedFEC(ea,totalEllipse), eyeAreas);
 
+            % figure;
+            % plot(obj.FECTimes,obj.daqCamStrobe(1:length(obj.FECTimes)))
 
             % Backward-compatible per-trial segmentation
             nTrials = obj.SessionData.nTrials;
@@ -791,6 +949,7 @@ classdef EBC_PostProcess_V_5_3 < handle
                 tEnd   = obj.SessionData.TrialEndTimestamp(trial);
                 idxWin = obj.FECTimes >= tStart & obj.FECTimes <= tEnd;
                 obj.SessionData.RawEvents.Trial{1,trial}.Data.FECTimes = obj.FECTimes(idxWin) - tStart;
+                disp(trial);
                 obj.SessionData.RawEvents.Trial{1,trial}.Data.FEC      = obj.FEC(idxWin);
             end
 
@@ -799,7 +958,10 @@ classdef EBC_PostProcess_V_5_3 < handle
             figure;
             hold on;
             % plot(obj.FECTimes(1:2000), obj.FEC);
-            plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
+            % plot(obj.FECTimes, obj.FEC, 'b', 'DisplayName','FEC');
+            % FECdecoded = length(obj.FEC);
+            % plot(obj.FECTimes(1:FECdecoded), obj.FEC, 'b', 'DisplayName','FEC');
+            plot(obj.FECTimes, obj.FEC(length(obj.FECTimes)), 'b', 'DisplayName','FEC');
 
             led_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(1);
             ap_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(1);
@@ -814,7 +976,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             figure();
             hold on;
             % p1 = plot(obj.FECTimes, obj.FEC, 'DisplayName','FEC');
-            p1 = plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
+            p1 = plot(obj.FECTimes(1:FECdecoded), obj.FEC, 'b', 'DisplayName','FEC');
 
             % for trial = (1:obj.SessionData.nTrials)
             for trial = (1:6)
@@ -830,7 +992,10 @@ classdef EBC_PostProcess_V_5_3 < handle
             % legend show;
             hold off;            
 
-            for trial = (1:obj.SessionData.nTrials)
+
+            nTrials = obj.SessionData.nTrials;
+            nTrialsMax = 6;
+            for trial = (1:min(nTrialsMax,nTrials))
                 figure;
                 time = obj.SessionData.RawEvents.Trial{1,trial}.Data.FECTimes;
                 fec = obj.SessionData.RawEvents.Trial{1,trial}.Data.FEC;
