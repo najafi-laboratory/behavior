@@ -9,35 +9,8 @@ switch true
         MEV.triggerTrialsVideo();
         SendBpodSoftCode(1); % Indicate to the state machine that video start
     case code == 2
-        % t = timerfindall;  % returns all timers (running or stopped)
-        % disp(t)
-
-        % t = timerfindall('Running','on');
-        % fprintf('Running timers: %d\n', numel(t));
-        % 
-        % for k = 1:numel(t)
-        %     fprintf('Timer %d: Name="%s", Mode=%s, Period=%.2f\n', ...
-        %         k, t(k).Name, t(k).ExecutionMode, t(k).Period);
-        % end
-
-
-
-        % fig = gcf;
-        % lsn = findall(fig, 'Type', 'listener');
-        % fprintf('Number of listeners on figure: %d\n', numel(lsn));
-        % for k = 1:numel(lsn)
-        %     disp(lsn(k).Callback)     % function handle
-        %     disp(lsn(k).EventName)    % which event triggers it
-        % end
-
-        % ax = gca;
-        % lsn_ax = findall(ax, 'Type', 'listener');
-        % fprintf('Number of listeners on axes: %d\n', numel(lsn_ax));
-
-
-        fprintf('Iteration %d: %d timers, %d fig listeners\n', ...
-                S.GUI.currentTrial, numel(timerfindall), numel(findall(gcf,'Type','listener')));
-
+        t = timerfindall;  % returns all timers (running or stopped)
+disp(t)
 
         MEV.eyeOpen = false;
         ticB = tic;

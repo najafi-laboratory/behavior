@@ -124,7 +124,7 @@ classdef InitGUI
                 S.GUIPanels.AirPuffPulse = {'ActivateAirPuffPulse','AirPuff_Pulse_Dur'};
 
                 % imaging rig pupil color
-                S.GUI.PupilColorForImaging = 2;
+                S.GUI.PupilColorForImaging = 1;
                 S.GUIMeta.PupilColorForImaging.Style = 'popupmenu';
                 S.GUIMeta.PupilColorForImaging.String = {'Black','White'};
                 S.GUIPanels.Imaging = { 'PupilColorForImaging'};

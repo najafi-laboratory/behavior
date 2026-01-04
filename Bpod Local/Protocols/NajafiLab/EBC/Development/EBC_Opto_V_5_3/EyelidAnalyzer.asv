@@ -24,6 +24,8 @@ classdef EyelidAnalyzer < handle
         camEvents
         currentFrame
 
+        DiskLoggerFrameCount = 0;
+
         EBC_vid_log_trial
         eyeAreaPixels            
         eyeOpen = false;
@@ -95,6 +97,7 @@ classdef EyelidAnalyzer < handle
         vid        
         video
         % vidWriter
+        vidMetadata = [];
         vidTimer
         vidTimerPeriod = 0.030;
         vidTime = [];
@@ -298,7 +301,9 @@ classdef EyelidAnalyzer < handle
             
             obj.vid.LoggingMode = "memory";
 
-            obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [0 0 640 512];
+            % obj.vid.ROIPosition = [160 142 448 370];
+            obj.vid.ROIPosition = [240 166 192 200];
 
             start(obj.vid);
             trigger(obj.vid);
@@ -339,19 +344,22 @@ classdef EyelidAnalyzer < handle
             triggerSource = 'externalTriggerMode14-Source2';
             triggerconfig(obj.vid, "hardware", triggerCondition, triggerSource);
 
-            obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [0 0 640 512];
+            % obj.vid.ROIPosition = [160 142 448 370];
+            obj.vid.ROIPosition = [240 166 192 200];
             
             obj.camEvents = obj.vid.EventLog;
             obj.vid.FramesPerTrigger = 1;
             obj.vid.TriggerRepeat = inf;
             % obj.vid.LoggingMode = "disk&memory";
-            obj.vid.LoggingMode = "memory";
+            obj.vid.LoggingMode = "disk";
+            % obj.vid.LoggingMode = "memory";
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');            
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_SessionVid_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial.FrameRate = 250; %400; % err for framerate too high
             % obj.EBC_vid_log_trial.Quality = 90;
-            % obj.vid.DiskLogger = obj.EBC_vid_log_trial;
+            obj.vid.DiskLogger = obj.EBC_vid_log_trial;
             open(obj.EBC_vid_log_trial);
 
             obj.clearFecPlot();            
@@ -386,7 +394,7 @@ classdef EyelidAnalyzer < handle
 
 
         function startUpdateTrialsVideo(obj, currentTrial, subjectName)
-            obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [160 142 448 370];
             
             tic
 
@@ -411,15 +419,15 @@ classdef EyelidAnalyzer < handle
             triggerSource = 'externalTriggerMode14-Source2';
             triggerconfig(obj.vid, "hardware", triggerCondition, triggerSource);
 
-            obj.vid.ROIPosition = [160 142 448 370];
+            % obj.vid.ROIPosition = [0 0 640 512];
+            % obj.vid.ROIPosition = [160 142 448 370];
+            obj.vid.ROIPosition = [240 166 192 200];
             
             obj.camEvents = obj.vid.EventLog;
             obj.vid.FramesPerTrigger = 1;
             obj.vid.TriggerRepeat = inf;
             % obj.vid.LoggingMode = "disk&memory";
             obj.vid.LoggingMode = "memory";
-            % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');            
-            % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial.FrameRate = 250; %400; % err for framerate too high
             % obj.EBC_vid_log_trial.Quality = 90;
@@ -460,7 +468,8 @@ classdef EyelidAnalyzer < handle
             obj.setTrialData();
             obj.clearFecPlot();             
             obj.trialVidStartTime = datetime("now");
-            start(obj.vidTimer);            
+            start(obj.vidTimer);    
+            fprintf('trialVidStartTime = %.3f\n', seconds(datetime("now")-obj.trialVidStartTime));
         end
 
 
@@ -508,93 +517,105 @@ classdef EyelidAnalyzer < handle
                 stop(obj.vidTimer);
             end
 
-            % stop(obj.vid);
-
-            if isobject(obj.roiHandle) && isvalid(obj.roiHandle)  
-                % obj.roiPosition = getPosition(obj.roiHandle);  % Get ROI position before getting images 
-                obj.roiPosition = obj.roiHandle.Position;
-            end
-
-            % disp(['debug']);
-
-
-            if obj.vid.FramesAvailable > 0
-                % % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])                
-                % % numFramesVid_ITI = min(obj.vid.FramesAvailable, numFramesVid + numFramesITI);
-                % 
-                % numFramesVid = min(obj.vid.FramesAvailable, numFramesVid);
-                % numFramesPreVid = obj.vid.FramesAvailable - numFramesVid;
-                % if numFramesPreVid > 0
-                %     getdata(obj.vid, numFramesPreVid); % move intitial images, if any, to get to ITI_Pre seconds before LED_Onset
-                % end
-
-                numFramesVidKeep = obj.vid.FramesAvailable;
-
-                obj.vid.FramesAvailable
-                numFramesVid
-                % numFramesPreVid
-                numFramesVidKeep                
-                
-                [data, time, metadata] = getdata(obj.vid, numFramesVidKeep);
-
-                obj.vidTime = [obj.vidTime time'];
-                length(obj.vidTime)
-                d = diff(obj.vidTime);                  
-                n = 23
-                [largestDiffs, idx] = maxk(d, n);
+ 
+            obj.DiskLoggerFrameCount = obj.vid.DiskLoggerFrameCount;
+            obj.FramesAcquired = obj.vid.FramesAcquired;
+            fDiff = obj.FramesAcquired - obj.DiskLoggerFrameCount;
+            x = 3.14159;
+            fprintf('DiskLoggerFrameCount = %d\n', obj.DiskLoggerFrameCount);
+            fprintf('FramesAcquired = %d\n', obj.FramesAcquired);
+            fprintf('fDiff = %d\n', fDiff);
 
 
-
-                % obj.frame = data(:,:,:,end);
-                checkFps = 1;
-                if checkFps == 1
-                    timeCheck = time - time(1);
-                    Ts = diff(time);
-                    avgFps_MeanBased = 1/mean(Ts)
-                    avgFps_NumFramesPerVidTime = length(time)/time(end)
-                end
-                % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
-                % set(obj.imgOrigHandle, 'CData', rgbFrame);
-
-                % update to use parallel pool for writing video data
-                disp(['Writing Video File...']);
-                tic
-                % numFramesVid = numFramesVid;
-                % numFramesVideo = numFramesVideo;
-                writeVideo(obj.EBC_vid_log_trial, data(:,:,:,1:numFramesVidKeep));
-                toc
-                % test = milliseconds(obj.AirPuffOnsetTime - obj.LEDOnsetTime)
-                % flushdata(obj.vid);
-                disp(['Processing FEC Data...']);
-                tic
-                obj.setTrialData()
-                for i = 1:numFramesVidKeep
-                    obj.frame = data(:,:,:,i);
-                    obj.binarizeImage();
-                    % obj.updateBinaryVideo();
-                    obj.calculatePostFEC(time(i));
-                    % pause(0.0002);
-                end
-                toc
-                % figure();
-                % montage(data);
-                % pause(1);
-                % obj.updateBinaryVideo;   
-                % obj.calculateFEC;
-
-                % obj.setTrialData();
-                % obj.clearFecPlot();
-                % close(obj.EBC_vid_log_trial);
-            else
-                disp('no images? check proto');
-            end            
-
-            
-
-            % while (obj.vid.FramesAcquired ~= obj.vid.DiskLoggerFrameCount)   
-            %     disp(['FramesAcquired ' num2str(obj.vid.FramesAcquired) '  DiskLoggerFrameCount ' num2str(obj.vid.DiskLoggerFrameCount)])
-            %     pause(0.1)
-            % end     
+            % % stop(obj.vid);
+            % 
+            % if isobject(obj.roiHandle) && isvalid(obj.roiHandle)  
+            %     % obj.roiPosition = getPosition(obj.roiHandle);  % Get ROI position before getting images 
+            %     obj.roiPosition = obj.roiHandle.Position;
+            % end
+            % 
+            % % disp(['debug']);
+            % 
+            % 
+            % if obj.vid.FramesAvailable > 0
+            %     % % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])                
+            %     % % numFramesVid_ITI = min(obj.vid.FramesAvailable, numFramesVid + numFramesITI);
+            %     % 
+            %     % numFramesVid = min(obj.vid.FramesAvailable, numFramesVid);
+            %     % numFramesPreVid = obj.vid.FramesAvailable - numFramesVid;
+            %     % if numFramesPreVid > 0
+            %     %     getdata(obj.vid, numFramesPreVid); % move intitial images, if any, to get to ITI_Pre seconds before LED_Onset
+            %     % end
+            % 
+            %     numFramesVidKeep = obj.vid.FramesAvailable;
+            % 
+            %     obj.vid.FramesAvailable
+            %     % numFramesVid
+            %     % numFramesPreVid
+            %     % numFramesVidKeep                
+            % 
+            %     [~, time, metadata] = getdata(obj.vid, numFramesVidKeep);
+            % 
+            %     obj.vidTime = [obj.vidTime time'];
+            %     % length(obj.vidTime)
+            %     % d = diff(obj.vidTime);                  
+            %     % n = 23
+            %     % [largestDiffs, idx] = maxk(d, n);
+            % 
+            %     obj.vidMetadata = [obj.vidMetadata metadata'];
+            % 
+            % 
+            % 
+            %     % obj.frame = data(:,:,:,end);
+            %     checkFps = 0;
+            %     if checkFps == 1
+            %         timeCheck = time - time(1);
+            %         Ts = diff(time);
+            %         avgFps_MeanBased = 1/mean(Ts)
+            %         avgFps_NumFramesPerVidTime = length(time)/timeCheck(end)
+            %     end
+            %     % rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+            %     % set(obj.imgOrigHandle, 'CData', rgbFrame);
+            % 
+            %     % update to use parallel pool for writing video data
+            %     disp(['Writing Video File...']);
+            %     tic
+            %     % numFramesVid = numFramesVid;
+            %     % numFramesVideo = numFramesVideo;
+            %     % writeVideo(obj.EBC_vid_log_trial, data(:,:,:,1:numFramesVidKeep));
+            %     toc
+            %     % test = milliseconds(obj.AirPuffOnsetTime - obj.LEDOnsetTime)
+            %     % flushdata(obj.vid);
+            %     disp(['Processing FEC Data...']);
+            %     tic
+            %     obj.setTrialData()
+            %     % for i = 1:numFramesVidKeep
+            %     %     obj.frame = data(:,:,:,i);
+            %     %     obj.binarizeImage();
+            %     %     % obj.updateBinaryVideo();
+            %     %     obj.calculatePostFEC(time(i));
+            %     %     % pause(0.0002);
+            %     % end
+            %     toc
+            %     % figure();
+            %     % montage(data);
+            %     % pause(1);
+            %     % obj.updateBinaryVideo;   
+            %     % obj.calculateFEC;
+            % 
+            %     % obj.setTrialData();
+            %     % obj.clearFecPlot();
+            %     % close(obj.EBC_vid_log_trial);
+            % else
+            %     disp('no images? check proto');
+            % end            
+            % 
+            % 
+            % 
+            % % while (obj.vid.FramesAcquired ~= obj.vid.DiskLoggerFrameCount)   
+            % %     disp(['FramesAcquired ' num2str(obj.vid.FramesAcquired) '  DiskLoggerFrameCount ' num2str(obj.vid.DiskLoggerFrameCount)])
+            % %     pause(0.1)
+            % % end     
         end        
 
         function stopTrialsVideo(obj)
@@ -608,12 +629,14 @@ classdef EyelidAnalyzer < handle
                 stop(obj.vid);
             end            
 
-            obj.FramesAcquired = obj.vid.FramesAcquired;
+            % obj.FramesAcquired = obj.vid.FramesAcquired;
 
         end
 
         % stop full-session video, currently uses existing stopTrialsVideo
         function stopSessionVideo(obj)
+            obj.stopTrialsVideo;
+            pause(1);
             % wait until disk logger has stored all acquired frames            
             while (obj.vid.FramesAcquired ~= obj.vid.DiskLoggerFrameCount)
                 obj.vid.FramesAcquired
@@ -621,7 +644,6 @@ classdef EyelidAnalyzer < handle
                 pause(.1);
             end
             obj.FramesAcquired = obj.vid.FramesAcquired
-            % obj.stopTrialsVideo;
         end          
         % function stopSessionVideo(obj)
         %     % wait until disk logger has stored all acquired frames            
@@ -643,23 +665,33 @@ classdef EyelidAnalyzer < handle
                 obj.roiPosition = obj.roiHandle.Position;
             end
 
-            if obj.vid.FramesAvailable > 0
-                % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])
-                % [data, time, metadata] = getdata(obj.vid, obj.vid.FramesAvailable);
-                % obj.frame = data(:,:,:,end);
-                
-                obj.frame = getsnapshot(obj.vid);
-
-                rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
-                set(obj.imgOrigHandle, 'CData', rgbFrame);
-
-                % writeVideo(obj.EBC_vid_log_trial, data);
-
-                % flushdata(obj.vid);
-                obj.updateBinaryVideo;   
-                obj.calculateFEC('trial');
-                obj.hasSSImg = true;
+            % if obj.vid.FramesAvailable > 0
+            % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])
+            % [data, time, metadata] = getdata(obj.vid, obj.vid.FramesAvailable);
+            % obj.frame = data(:,:,:,end);
+            if (seconds(datetime('now') - obj.startTime) < 2)
+                fprintf('currentTime = %.3f\n', seconds(datetime('now') - obj.startTime));
             end
+            % obj.frame = getsnapshot(obj.vid);
+            obj.frame = peekdata(obj.vid,1);
+
+            rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
+            set(obj.imgOrigHandle, 'CData', rgbFrame);
+
+            % writeVideo(obj.EBC_vid_log_trial, data);
+
+            % flushdata(obj.vid);
+            obj.updateBinaryVideo;   
+            obj.calculateFEC('trial');
+            obj.hasSSImg = true;
+
+            if (obj.fecAVG / 100) <= obj.FECTrialStartThresh
+                obj.eyeOpen = true;
+            else
+                obj.eyeOpen = false;
+            end   
+            obj.hasSSImg = false;                
+            % end
         end
 
         % add other session/trial vars here to set at trial start

@@ -5,14 +5,7 @@ try
     global MEV
     global A
     
-    
-    
-    % lastwarn
-    % dbstop if warning
-    % dbclear if warning
 
-    % warning('off','MATLFAB:graphics:axes:MultipleCoordinateSystems');
-    dbstop if warning
 
     %% Connect Arduino
     disp('Connecting Arduino...');
@@ -286,8 +279,6 @@ try
     BpodSystem.Data.EncoderDataSession.nPositions = 0;
     BpodSystem.Data.EncoderDataSession.Positions = [];
     BpodSystem.Data.EncoderDataSession.Times = [];
-    BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned = [];
-    BpodSystem.Data.EncoderDataSession.TimesSessionAligned = [];
     BpodSystem.Data.EncoderDataSession.EventTimestamps = [];
     BpodSystem.Data.EncoderDataSession.PositionsUnwrapped = [];
     BpodSystem.Data.EncoderDataSession.LinearPositions = [];
@@ -301,7 +292,7 @@ try
     % 'timestamps-workaround'
     % wait for experimentor to select 'timestamps' to embed
     % local camera oscillator bit code in images
-    input('Select Timestamp embedded image information in FlyCapture/PointGrey GUI >', 's'); 
+    input('Set parameters and press enter to continue >', 's'); 
     % start DAQ
     start(dq,"Duration",hours(2))
     % delay to make sure daq has started recording before starting cam
@@ -990,9 +981,6 @@ try
           'StateChangeConditions', {'Tup', '>exit'}, ...
           'OutputActions', {'GlobalTimerCancel', '100'});         
     
-
-        
-
         SendStateMachine(sma); % Send the state matrix to the Bpod device   
 
         RawEvents = RunStateMachine; % Run the trial and return events
@@ -1001,8 +989,6 @@ try
 
 
         % MEV.processTrialsVideo(numFramesVid, numFramesITI, wasCheckEyeOpenTimeout);
-        % update v_5_3, vid is stored using disklogger, however we still
-        % use processTrialsVideo to get beh computer timing and metadata
         MEV.processTrialsVideo(numFramesVid, numFramesITI, numFramesVidKeep);
 
         disp(['Trial Video Processed...']);
@@ -1100,10 +1086,6 @@ try
                 BpodSystem.Data.EncoderDataSession.nPositions = BpodSystem.Data.EncoderDataSession.nPositions + BpodSystem.Data.EncoderData{currentTrial}.nPositionsOrig;
                 BpodSystem.Data.EncoderDataSession.Positions = [BpodSystem.Data.EncoderDataSession.Positions BpodSystem.Data.EncoderData{currentTrial}.PositionsOrig];
                 BpodSystem.Data.EncoderDataSession.Times = [BpodSystem.Data.EncoderDataSession.Times BpodSystem.Data.EncoderData{currentTrial}.TimesOrig];
-                TimesFirstTrialAligned = BpodSystem.Data.EncoderData{currentTrial}.TimesOrig - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1) + BpodSystem.Data.TrialStartTimestamp(currentTrial) - BpodSystem.Data.TrialStartTimestamp(1);
-                BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned = [BpodSystem.Data.EncoderDataSession.TimesFirstTrialAligned TimesFirstTrialAligned];
-                TimesSessionAligned = BpodSystem.Data.EncoderData{currentTrial}.TimesOrig - BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps(1) + BpodSystem.Data.TrialStartTimestamp(currentTrial);
-                BpodSystem.Data.EncoderDataSession.TimesSessionAligned = [BpodSystem.Data.EncoderDataSession.TimesSessionAligned TimesSessionAligned];
             end
 
             BpodSystem.Data.EncoderDataSession.EventTimestamps = [BpodSystem.Data.EncoderDataSession.EventTimestamps BpodSystem.Data.EncoderData{currentTrial}.EventTimestamps];
@@ -1304,10 +1286,9 @@ try
             fprintf("Pulse count = %d\n", pulseCount);            
             BpodSystem.Data.TriggerPulseCount = pulseCount;
 
-            % get and store remaining timing/metadata
+            % get and store remaining images
             MEV.processTrialsVideo(numFramesVid, numFramesITI, numFramesVidKeep);
-            MEV.stopTrialsVideo;  
-            MEV.stopSessionVideo;            
+            MEV.stopTrialsVideo;            
             % MEV.getVideoData;
             BpodSystem.Data.vidTime = MEV.vidTime;
             BpodSystem.Data.vidMetadata = MEV.vidMetadata;
@@ -1345,20 +1326,20 @@ try
             daqTimestampsAll_firstImgAligned = daqTimestampsAll - daqTimestampsAll(fallIdx(1));
 
                      
-            % vidMetadata = BpodSystem.Data.vidMetadata;
-            % vidTime = BpodSystem.Data.vidTime;
-            % length(vidTime)
-            % d = diff(vidTime);                  
-            % n = pulseCount - BpodSystem.Data.FramesAcquired;
-            % [largestDiffs, idx] = maxk(d, n);         
-            % 
-            % 
-            % nth_idx = 1888;  % example: 5th falling edge
-            % 
-            % timeNearLargeDiff = vidTime(nth_idx) - vidTime(1);
-            % 
-            % 
-            % [~, idxNearLargeDiff] = min(abs(daqTimestampsAll_firstImgAligned - timeNearLargeDiff));
+            vidMetadata = BpodSystem.Data.vidMetadata;
+            vidTime = BpodSystem.Data.vidTime;
+            length(vidTime)
+            d = diff(vidTime);                  
+            n = pulseCount - BpodSystem.Data.FramesAcquired;
+            [largestDiffs, idx] = maxk(d, n);         
+
+
+            nth_idx = 1888;  % example: 5th falling edge
+
+            timeNearLargeDiff = vidTime(nth_idx) - vidTime(1);
+
+            
+            [~, idxNearLargeDiff] = min(abs(daqTimestampsAll_firstImgAligned - timeNearLargeDiff));
 
 
             % if nth_idx <= numel(fallIdx)
@@ -1369,21 +1350,21 @@ try
             % 
             % check_idx = fe_idx;
 
-            % check_idx = idxNearLargeDiff;
+            check_idx = idxNearLargeDiff;
 
 
-            % fs = 1 / median(diff(daqTimestampsAll));  % Hz
-            % n_ms = 60;                      % example: ±5 ms
-            % nSamp = round((n_ms/1000) * fs);
-            % i1 = max(1, check_idx - nSamp);
-            % i2 = min(numel(camStrobeChannel), check_idx + nSamp);
-            % strobeSeg = camStrobeChannel(i1:i2);
-            % % timeSeg   = daqTimestampsAll(i1:i2) - daqTimestampsAll(check_idx);
-            % timeSeg   = daqTimestampsAll(i1:i2);
-            % figure;
-            % plot(timeSeg*1000, strobeSeg)
-            % xlabel('Time (ms)')
-            % % xline(daqTimestampsAll(check_idx),'r')
+            fs = 1 / median(diff(daqTimestampsAll));  % Hz
+            n_ms = 60;                      % example: ±5 ms
+            nSamp = round((n_ms/1000) * fs);
+            i1 = max(1, check_idx - nSamp);
+            i2 = min(numel(camStrobeChannel), check_idx + nSamp);
+            strobeSeg = camStrobeChannel(i1:i2);
+            % timeSeg   = daqTimestampsAll(i1:i2) - daqTimestampsAll(check_idx);
+            timeSeg   = daqTimestampsAll(i1:i2);
+            figure;
+            plot(timeSeg*1000, strobeSeg)
+            xlabel('Time (ms)')
+            % xline(daqTimestampsAll(check_idx),'r')
 
 
             % If proto completes without crashing, calculate unwrapped
@@ -1403,7 +1384,6 @@ try
             DegToRad = pi/180;
             BpodSystem.Data.EncoderDataSession.LinearPositions = S.GUI.WheelRadius * BpodSystem.Data.EncoderDataSession.PositionsUnwrapped * DegToRad;
 
-            % % code to check session encoder data
             % figure;
             % plot(BpodSystem.Data.EncoderDataSession.Times, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
             % hold on;
@@ -1421,27 +1401,7 @@ try
             % ylabel('Position');
             % legend('LinearPositions');
             % title('Position vs Time');
-            % 
-            % 
-            % % code to check session encoder data
-            % figure;
-            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.Positions, 'b', 'LineWidth', 1.5); 
-            % hold on;
-            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.PositionsUnwrapped, 'r', 'LineWidth', 1.5);            
-            % hold off;
-            % 
-            % xlabel('Time');
-            % ylabel('Position');
-            % legend('Positions', 'PositionsUnwrapped');
-            % title('Position vs Time');
-            % 
-            % figure;
-            % plot(BpodSystem.Data.EncoderDataSession.TimesSessionAligned, BpodSystem.Data.EncoderDataSession.LinearPositions, 'g', 'LineWidth', 1.5);
-            % xlabel('Time');
-            % ylabel('Position');
-            % legend('LinearPositions');
-            % title('Position vs Time');            
-            
+
             BpodSystem.setStatusLED(1); % enable Bpod status LEDs after session
 
             BpodSystem.PluginObjects.R.stopUSBStream; % Stop streaming position data

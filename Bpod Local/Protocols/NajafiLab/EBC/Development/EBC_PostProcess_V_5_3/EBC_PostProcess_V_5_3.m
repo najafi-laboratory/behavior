@@ -464,9 +464,9 @@ classdef EBC_PostProcess_V_5_3 < handle
             end
             grayFrame = im2gray(obj.currentFrame);
             mask = obj.roiMask;
-            if ~isequal(size(mask),size(grayFrame))
-                mask = imresize(mask,size(grayFrame));
-            end
+            % if ~isequal(size(mask),size(grayFrame))
+            %     mask = imresize(mask,size(grayFrame));
+            % end
             grayFrame(~mask) = 0;
             binFrame = imbinarize(grayFrame, obj.binarizationThreshold/255);
             obj.binFrame = binFrame;
@@ -640,7 +640,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             if isempty(obj.fecDataRaw)
                 error('No raw FEC data available. Run processing first.');
             end
-            obj.minFur = max(obj.fecDataRaw);
+            obj.minFur = min(obj.totalEllipsePixels - obj.eyeAreaPixels);
         end
 
         function [A,B,C,D] = extractTimestamp(obj, frame)
@@ -687,11 +687,11 @@ classdef EBC_PostProcess_V_5_3 < handle
             nibArr = [];            
             frameIdx = 1;
             % initFrameIdx = frameIdx;
-            estFrames = 10000;
+            % estFrames = 10000;
             try
                 % process each image
-                % while hasFrame(reader)
-                while frameIdx <= estFrames
+                while hasFrame(reader)
+                % while frameIdx <= estFrames
                     if d.CancelRequested
                         break;
                     end
@@ -748,6 +748,17 @@ classdef EBC_PostProcess_V_5_3 < handle
             trialIdx  = obj.risingEdgeIndices(binTrial);
             strobeIdx = obj.risingEdgeIndices(binStrobe);
 
+            % trim cam strobe if trailing pulses
+            % cam strobe pulses restart after stop(vid) at session end as
+            % cam switches to 'freerunning' without storing images
+            % trailing pulses aren't actual images in video
+
+            %  BpodSystem.Data.TriggerPulseCount 
+            [strobeMaxDiff, strobeMaxDiffIdx] = max(diff(strobeIdx));
+            if strobeMaxDiff > 30
+                strobeIdx = strobeIdx(1:strobeMaxDiffIdx);
+            end
+
             % align DAQ clock to session clock using trial sync edges
             obj.alignDaqToSession(trialIdx);
 
@@ -764,7 +775,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             obj.camStrobeRiseTimes  = tsAligned(strobeIdx);
 
             % dropped frames and adjusted strobe times
-            obj.findDroppedFrameNumbers();
+            obj.findDroppedFrameNumbers();   %  obj.droppedFrameNumbers
             obj.adjustCamStrobeTimes();  % removes missing image rise times, obj.camStrobeRiseTimesAdjusted
 
             % exposure center per image
@@ -780,8 +791,8 @@ classdef EBC_PostProcess_V_5_3 < handle
             % Backward-compatible per-trial segmentation
             nTrials = obj.SessionData.nTrials;
             nStarts = numel(obj.trialSyncRiseTimes);
-            % for trial = 1:nTrials
-            for trial = 1:6
+            for trial = 1:nTrials
+            % for trial = 1:6
                 if trial > nStarts
                     obj.SessionData.RawEvents.Trial{1,trial}.Data.FECTimes = [];
                     obj.SessionData.RawEvents.Trial{1,trial}.Data.FEC = [];
@@ -799,7 +810,9 @@ classdef EBC_PostProcess_V_5_3 < handle
             figure;
             hold on;
             % plot(obj.FECTimes(1:2000), obj.FEC);
-            plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
+            % plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
+            % plot(obj.FECTimes, obj.FEC(1:length(obj.FECTimes)), 'b', 'DisplayName','FEC');
+            plot(obj.FECTimes, obj.FEC, 'b', 'DisplayName','FEC');
 
             led_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(1);
             ap_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(1);
@@ -816,21 +829,29 @@ classdef EBC_PostProcess_V_5_3 < handle
             % p1 = plot(obj.FECTimes, obj.FEC, 'DisplayName','FEC');
             p1 = plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
 
-            % for trial = (1:obj.SessionData.nTrials)
-            for trial = (1:6)
+            for trial = (1:obj.SessionData.nTrials)
+            % for trial = (1:4)
                 led_time = obj.SessionData.RawEvents.Trial{1,trial}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(trial);
                 ap_time = obj.SessionData.RawEvents.Trial{1,trial}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(trial);
                 ap_actual_time = ap_time + valveDelay;
+                start_time = obj.SessionData.RawEvents.Trial{1,trial}.States.Start(1) + obj.SessionData.TrialStartTimestamp(trial);
+                iti_pre = obj.SessionData.RawEvents.Trial{1,trial}.States.ITI_Pre(1) + obj.SessionData.TrialStartTimestamp(trial);
+                check_eye_open = obj.SessionData.RawEvents.Trial{1,trial}.States.CheckEyeOpen(1) + obj.SessionData.TrialStartTimestamp(trial);
 
                 xl1 = xline(led_time, '--b', 'DisplayName', 'LED Turned On');
                 xl2 = xline(ap_time, '--r', 'DisplayName', 'Air Puff');
                 xl3 = xline(ap_actual_time, '--g', 'DisplayName', 'Air Puff Actual');
+                xl4 = xline(start_time, '--b', 'DisplayName', 'Start');
+                xl5 = xline(iti_pre, '--r', 'DisplayName', 'ITI_Pre');
+                xl6 = xline(check_eye_open, '--g', 'DisplayName', 'Check_Eye_Open');
             end
-            legend([p1 xl1 xl2 xl3], {'FEC', 'LED Turned On', 'Air Puff', 'Air Puff Actual'})
+            % legend([p1 xl1 xl2 xl3], {'FEC', 'LED Turned On', 'Air Puff', 'Air Puff Actual'});
+            legend([p1 xl1 xl2 xl3 xl4 xl5 xl6], {'FEC', 'LED Turned On', 'Air Puff', 'Air Puff Actual', 'Start', 'ITI_Pre', 'Check_Eye_Open'});
             % legend show;
             hold off;            
 
             for trial = (1:obj.SessionData.nTrials)
+            % for trial = (1:4)
                 figure;
                 time = obj.SessionData.RawEvents.Trial{1,trial}.Data.FECTimes;
                 fec = obj.SessionData.RawEvents.Trial{1,trial}.Data.FEC;
