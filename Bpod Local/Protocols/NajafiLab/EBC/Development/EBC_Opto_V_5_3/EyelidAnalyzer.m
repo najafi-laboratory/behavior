@@ -208,7 +208,21 @@ classdef EyelidAnalyzer < handle
             end
 
             obj.imgOrigHandle = imshow(obj.frame, 'Parent', obj.axOriginal);
-            obj.imgBinHandle =  imshow(obj.frame, 'Parent', obj.axThresholded);
+            % ax = obj.axOriginal;
+            % axis(ax, 'normal')               % undo axis image / ij
+            % ax.DataAspectRatioMode = 'auto'; % critical
+            % ax.PlotBoxAspectRatioMode = 'auto';
+
+
+            obj.imgBinHandle =  imshow(obj.frame, 'Parent', obj.axThresholded);            
+            % ax = obj.axThresholded;
+            % axis(ax, 'normal')
+            % ax.DataAspectRatioMode = 'auto';
+            % ax.PlotBoxAspectRatioMode = 'auto';
+
+            % ax = gca;
+            % axis(ax,'normal')        % removes axis image
+            % ax.DataAspectRatioMode = 'auto';
 
             obj.adjustFECStartThreshold;
 
@@ -303,7 +317,8 @@ classdef EyelidAnalyzer < handle
 
             % obj.vid.ROIPosition = [0 0 640 512];
             % obj.vid.ROIPosition = [160 142 448 370];
-            obj.vid.ROIPosition = [240 166 192 200];
+            % obj.vid.ROIPosition = [240 166 192 200];
+            obj.vid.ROIPosition = [304 150 192 200];
 
             start(obj.vid);
             trigger(obj.vid);
@@ -346,7 +361,8 @@ classdef EyelidAnalyzer < handle
 
             % obj.vid.ROIPosition = [0 0 640 512];
             % obj.vid.ROIPosition = [160 142 448 370];
-            obj.vid.ROIPosition = [240 166 192 200];
+            % obj.vid.ROIPosition = [240 166 192 200];
+            obj.vid.ROIPosition = [304 150 192 200];
             
             obj.camEvents = obj.vid.EventLog;
             obj.vid.FramesPerTrigger = 1;
@@ -421,7 +437,8 @@ classdef EyelidAnalyzer < handle
 
             % obj.vid.ROIPosition = [0 0 640 512];
             % obj.vid.ROIPosition = [160 142 448 370];
-            obj.vid.ROIPosition = [240 166 192 200];
+            % obj.vid.ROIPosition = [240 166 192 200];
+            obj.vid.ROIPosition = [304 150 192 200];
             
             obj.camEvents = obj.vid.EventLog;
             obj.vid.FramesPerTrigger = 1;
@@ -469,7 +486,7 @@ classdef EyelidAnalyzer < handle
             obj.clearFecPlot();             
             obj.trialVidStartTime = datetime("now");
             start(obj.vidTimer);    
-            fprintf('trialVidStartTime = %.3f\n', seconds(datetime("now")-obj.trialVidStartTime));
+            % fprintf('trialVidStartTime = %.3f\n', seconds(datetime("now")-obj.trialVidStartTime));
         end
 
 
@@ -669,9 +686,13 @@ classdef EyelidAnalyzer < handle
             % disp([' FramesAvailable ' num2str(obj.vid.FramesAvailable)])
             % [data, time, metadata] = getdata(obj.vid, obj.vid.FramesAvailable);
             % obj.frame = data(:,:,:,end);
-            if (seconds(datetime('now') - obj.trialVidStartTime) < 2)
-                fprintf('currentTime = %.3f\n', seconds(datetime('now') - obj.trialVidStartTime));
-            end
+
+
+            % if (seconds(datetime('now') - obj.trialVidStartTime) < 2)
+            %     fprintf('currentTime = %.3f\n', seconds(datetime('now') - obj.trialVidStartTime));
+            % end
+
+
             % obj.frame = getsnapshot(obj.vid);
             obj.frame = peekdata(obj.vid,1);
 

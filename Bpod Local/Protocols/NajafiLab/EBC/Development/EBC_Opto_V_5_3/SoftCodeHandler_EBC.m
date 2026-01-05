@@ -34,18 +34,18 @@ switch true
         % lsn_ax = findall(ax, 'Type', 'listener');
         % fprintf('Number of listeners on axes: %d\n', numel(lsn_ax));
 
-
-        fprintf('Iteration %d: %d timers, %d fig listeners\n', ...
-                S.GUI.currentTrial, numel(timerfindall), numel(findall(gcf,'Type','listener')));
+        % 
+        % fprintf('Iteration %d: %d timers, %d fig listeners\n', ...
+        %         S.GUI.currentTrial, numel(timerfindall), numel(findall(gcf,'Type','listener')));
 
 
         MEV.eyeOpen = false;
         ticB = tic;
-        ticA = tic;
+        % ticA = tic;
         while ~MEV.eyeOpen
             % MEV.checkEyeOpen();
-            tA = toc(ticA);
-            fprintf('tA = %.3f\n', tA);
+            % tA = toc(ticA);
+            % fprintf('tA = %.3f\n', tA);
             CheckEyeOpenTimeCheck = toc(ticB);
             if CheckEyeOpenTimeCheck > S.GUI.CheckEyeOpenTimeout
                 SendBpodSoftCode(2);

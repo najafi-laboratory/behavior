@@ -6,13 +6,15 @@ try
     global A
     
     
-    
+    SetRigID(BpodSystem);
     % lastwarn
     % dbstop if warning
     % dbclear if warning
+    % dbstatus
+
 
     % warning('off','MATLFAB:graphics:axes:MultipleCoordinateSystems');
-    dbstop if warning
+    % dbstop if warning
 
     %% Connect Arduino
     disp('Connecting Arduino...');
@@ -1574,6 +1576,8 @@ function SetRigID(BpodSystem)
             BpodSystem.Data.RigName = 'JoystickRig';
         case 'COS-3A17904'
             BpodSystem.Data.RigName = 'JoystickRig2';
+        case 'COS-3A15535'
+            BpodSystem.Data.RigName = 'EBCRig';
     end
 end
 
