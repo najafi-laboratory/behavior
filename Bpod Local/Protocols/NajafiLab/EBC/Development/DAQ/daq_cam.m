@@ -47,55 +47,55 @@
 % myDAQ
 
 clear all
+
+dq = daq("ni");
+flush(dq);
+in_ch_0 = addinput(dq, "myDAQ1", "ai0", "Voltage");   % AI channel 0
+in_ch_1 = addinput(dq, "myDAQ1", "ai1", "Voltage");   % AI channel 1
+
+% out_ch_0 = addoutput(dq, "myDAQ1", "ao0", "Voltage");   % AI channel 0
+
+
+dq.Rate = 10000;   % sampling rate
 % 
-% dq = daq("ni");
-% flush(dq);
-% in_ch_0 = addinput(dq, "myDAQ1", "ai0", "Voltage");   % AI channel 0
-% in_ch_1 = addinput(dq, "myDAQ1", "ai1", "Voltage");   % AI channel 1
+% fs = dq.Rate;   % 10 kS/s
 % 
-% % out_ch_0 = addoutput(dq, "myDAQ1", "ao0", "Voltage");   % AI channel 0
+% on_samples  = round(1e-3 * fs);   % 1 ms
+% off_samples = round(3e-3 * fs);   % 3 ms
 % 
+% one_period = [ ...
+%     ones(on_samples,1); ...
+%     zeros(off_samples,1) ...
+% ];
 % 
-% dq.Rate = 10000;   % sampling rate
-% % 
-% % fs = dq.Rate;   % 10 kS/s
-% % 
-% % on_samples  = round(1e-3 * fs);   % 1 ms
-% % off_samples = round(3e-3 * fs);   % 3 ms
-% % 
-% % one_period = [ ...
-% %     ones(on_samples,1); ...
-% %     zeros(off_samples,1) ...
-% % ];
-% % 
-% % nPeriods = 250;   % 1 second of data
-% % signalData = repmat(one_period, nPeriods, 1);
-% % 
-% % % Scale pulse amplitude (example: 0–5 V)
-% % signalData = 5 * signalData;
-% % 
-% % write(dq, signalData);
+% nPeriods = 250;   % 1 second of data
+% signalData = repmat(one_period, nPeriods, 1);
 % 
-% % data = read(dq, seconds(1));
-% % plot(data.Time, data.ai0)
-% % start(dq,"Duration",seconds(30))
-% start(dq,"Duration",hours(2))
-% % start(dq,"Continuous",hours(2))
-% % start(dq,"RepeatOutput",hours(2))
+% % Scale pulse amplitude (example: 0–5 V)
+% signalData = 5 * signalData;
 % 
-% dataAll = [];
-% timestampsAll = [];
-% 
-% % chunkDuration = seconds(1);
-% chunkDuration = milliseconds(20);
-% while dq.Running
-%     [data, timestamps] = read(dq,chunkDuration,OutputFormat="Matrix");
-%     dataAll = [dataAll; data];
-%     timestampsAll = [timestampsAll; timestamps];
-%     % plot(timestampsAll,dataAll)
-%     plot(timestamps,data)
-%     pause(0.5*seconds(chunkDuration))
-% end
+% write(dq, signalData);
+
+% data = read(dq, seconds(1));
+% plot(data.Time, data.ai0)
+% start(dq,"Duration",seconds(30))
+start(dq,"Duration",hours(2))
+% start(dq,"Continuous",hours(2))
+% start(dq,"RepeatOutput",hours(2))
+
+dataAll = [];
+timestampsAll = [];
+
+% chunkDuration = seconds(1);
+chunkDuration = milliseconds(20);
+while dq.Running
+    [data, timestamps] = read(dq,chunkDuration,OutputFormat="Matrix");
+    dataAll = [dataAll; data];
+    timestampsAll = [timestampsAll; timestamps];
+    % plot(timestampsAll,dataAll)
+    plot(timestamps,data)
+    pause(0.5*seconds(chunkDuration))
+end
 
 
 % NI USB-6008
@@ -125,31 +125,31 @@ clear all
 % ch_0 = addinput(dq, "Dev1", "port0/line0", "Digital");   % DI channel 0
 % ch_0.TerminalConfig = "SingleEnded";
 % ch_1.TerminalConfig = "SingleEnded";
-
-dq = daq("ni");
-flush(dq);
-ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
-ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
-
-dq.Rate = 5000;   % sampling rate if 2x channels
-% data = read(dq, seconds(1));
-% plot(data.Time, data.ai0)
-% start(dq,"Duration",seconds(30))
-start(dq,"Duration",hours(2))
-
-dataAll = [];
-timestampsAll = [];
-
-% chunkDuration = seconds(1);
-chunkDuration = milliseconds(20);
-while dq.Running
-    % [data, timestamps] = read(dq,chunkDuration,OutputFormat="Matrix");
-    [data, timestamps] = read(dq,"all",OutputFormat="Matrix");
-    data = data';
-    timestamps = timestamps';
-    dataAll = [dataAll data];
-    timestampsAll = [timestampsAll timestamps];
-    % plot(timestampsAll,dataAll)
-    plot(timestamps,data)
-    pause(0.5*seconds(chunkDuration))
-end
+% 
+% dq = daq("ni");
+% flush(dq);
+% ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
+% ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
+% 
+% dq.Rate = 5000;   % sampling rate if 2x channels
+% % data = read(dq, seconds(1));
+% % plot(data.Time, data.ai0)
+% % start(dq,"Duration",seconds(30))
+% start(dq,"Duration",hours(2))
+% 
+% dataAll = [];
+% timestampsAll = [];
+% 
+% % chunkDuration = seconds(1);
+% chunkDuration = milliseconds(20);
+% while dq.Running
+%     % [data, timestamps] = read(dq,chunkDuration,OutputFormat="Matrix");
+%     [data, timestamps] = read(dq,"all",OutputFormat="Matrix");
+%     data = data';
+%     timestamps = timestamps';
+%     dataAll = [dataAll data];
+%     timestampsAll = [timestampsAll timestamps];
+%     % plot(timestampsAll,dataAll)
+%     plot(timestamps,data)
+%     pause(0.5*seconds(chunkDuration))
+% end

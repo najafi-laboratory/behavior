@@ -1,7 +1,7 @@
 % MATLAB: send 1-byte commands to Arduino
 % Test serial comms with Arduino_Sig_1
 
-port = "COM7";      % <-- change to your COM port
+port = "COM5";      % <-- change to your COM port
 baud = 115200;
 
 s = serialport(port, baud);

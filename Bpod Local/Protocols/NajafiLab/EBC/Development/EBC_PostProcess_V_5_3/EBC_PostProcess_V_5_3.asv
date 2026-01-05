@@ -831,9 +831,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             xl1 = xline(led_time, '--b', 'DisplayName', 'LED Turned On');
             xl2 = xline(ap_time, '--r', 'DisplayName', 'Air Puff');
             xl3 = xline(ap_actual_time, '--g', 'DisplayName', 'Air Puff Actual');
-            xl4 = xline(start_time, '--b', 'DisplayName', 'Start');
-            xl5 = xline(iti_pre, '--r', 'DisplayName', 'ITI_Pre');
-            xl6 = xline(check_eye_open, '--g', 'DisplayName', 'Check_Eye_Open');            
+            
 
             legend show;
             hold off;

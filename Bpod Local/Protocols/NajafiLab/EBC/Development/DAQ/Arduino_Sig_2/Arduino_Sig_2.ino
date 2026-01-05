@@ -51,7 +51,6 @@ void TriggerOff() {
 void loop() {
   if (Serial.available() > 0) {
     uint8_t cmd = (uint8_t)Serial.read();
-
     if (cmd == 0x01) {
       // Enable PWM output on OC1B (pin 10)
       //TCCR1A |= (1 << COM1B1);
