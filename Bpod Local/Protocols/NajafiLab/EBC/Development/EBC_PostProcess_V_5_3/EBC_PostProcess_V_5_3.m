@@ -21,6 +21,7 @@ classdef EBC_PostProcess_V_5_3 < handle
         fecDataRaw = []
         FEC = []
         fecTimes = []   % derived timestamp in seconds
+        ellipsePixelSeries = []
         eyeAreaSeries = []
         minFur = []
         totalEllipsePixels = 0
@@ -612,9 +613,9 @@ classdef EBC_PostProcess_V_5_3 < handle
                 error('Frame is empty.');
             end
             mask = obj.roiMask;
-            if size(mask,1) ~= size(frame,1) || size(mask,2) ~= size(frame,2)
-                mask = imresize(mask, [size(frame,1) size(frame,2)]);
-            end
+            % if size(mask,1) ~= size(frame,1) || size(mask,2) ~= size(frame,2)
+            %     mask = imresize(mask, [size(frame,1) size(frame,2)]);
+            % end
             grayFrame = im2gray(frame);
             grayFrame(~mask) = 0;
             obj.binFrame = imbinarize(grayFrame, obj.binarizationThreshold/255);
@@ -640,7 +641,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             if isempty(obj.fecDataRaw)
                 error('No raw FEC data available. Run processing first.');
             end
-            obj.minFur = min(obj.totalEllipsePixels - obj.eyeAreaPixels);
+            obj.minFur = min(obj.ellipsePixelSeries - obj.eyeAreaSeries);
         end
 
         function [A,B,C,D] = extractTimestamp(obj, frame)
@@ -680,6 +681,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             d = uiprogressdlg(obj.fig,'Title','Processing','Message','0% complete','Cancelable','on');
 
             fecRaw = [];
+            ellipsePixels = [];
             eyeAreas = [];
             secArr = [];
             cycArr = [];
@@ -697,6 +699,7 @@ classdef EBC_PostProcess_V_5_3 < handle
                     end
                     frame = readFrame(reader);
                     fecRaw(frameIdx,1) = obj.calculateRawFEC(frame); %#ok<AGROW>
+                    ellipsePixels(frameIdx,1) = obj.totalEllipsePixels; %#ok<AGROW>
                     eyeAreas(frameIdx,1) = obj.eyeAreaPixels; %#ok<AGROW>
 
                     [A,B,C,D] = obj.extractTimestamp(frame);
@@ -717,6 +720,7 @@ classdef EBC_PostProcess_V_5_3 < handle
             close(d);
 
             obj.fecDataRaw = fecRaw;
+            obj.ellipsePixelSeries = ellipsePixels;
             obj.eyeAreaSeries = eyeAreas;
             obj.secondCount = secArr;
             obj.cycleCount = cycArr;
