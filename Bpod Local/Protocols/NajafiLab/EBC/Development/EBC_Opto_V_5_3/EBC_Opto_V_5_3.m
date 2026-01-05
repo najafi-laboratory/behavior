@@ -41,8 +41,14 @@ try
     %% connect DAQ
     dq = daq("ni");
     flush(dq);
-    ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
-    ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
+    switch BpodSystem.Data.RigName   
+        case 'ImagingRig'
+            ch_0 = addinput(dq, "myDAQ1", "ai0", "Voltage");   % AI channel 0
+            ch_1 = addinput(dq, "myDAQ1", "ai1", "Voltage");   % AI channel 1
+        case 'EBCRig'
+            ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
+            ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
+    end
 
     dq.Rate = 5000;   % sampling rate if 2x channels    
     BpodSystem.Data.daqDataAll = [];
