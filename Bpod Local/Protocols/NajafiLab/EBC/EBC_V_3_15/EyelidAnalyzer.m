@@ -28,7 +28,6 @@ classdef EyelidAnalyzer < handle
         eyeAreaPixels            
         eyeOpen = false;
         eyeOpenAvgWindow = 0.2;  % 200ms
-        PupilColor = 0;
         
         fec
         fecAVG = 100;
@@ -104,14 +103,13 @@ classdef EyelidAnalyzer < handle
     end
     
     methods
-        function obj = EyelidAnalyzer(subjectName, PupilColorForImaging)
+        function obj = EyelidAnalyzer(subjectName)
             % Init Properties
 
             % Initialize data storage
             obj.fecData = [];
             obj.fecTimes = [];
             obj.binaryVideos = {};
-            obj.PupilColor = PupilColorForImaging-1;
             
             % Create GUI
             obj.createGUI();    
@@ -234,24 +232,14 @@ classdef EyelidAnalyzer < handle
         end
 
         function onGUIClose(obj, ~, ~)
-            close(obj.EBC_vid_log_trial);
-
+            % close(obj.EBC_vid_log_trial);
             delete(obj.vid)
-            % delete(obj.src)
+            clear obj.vid
 
             obj.stopPreTrialVideo(); % Ensure the live video is stopped
-
             % obj.saveSettings(); % Save settings before closing
-
             delete(obj.hFig); % Close the figure
-            % close(obj.hFig); % Close the figure
             % delete(timerfindall)
-
-            clear obj.vid;
-            % clear obj.src;
-            clear obj.hFig;
-
-            java.lang.System.gc();
         end     
 
         function stopPreTrialVideo(obj, ~, ~)
@@ -535,7 +523,7 @@ classdef EyelidAnalyzer < handle
                 obj.frame = getsnapshot(obj.vid);
 
                 rgbFrame = double(cat(3, obj.frame, obj.frame, obj.frame)) / 255; % Convert to RGB by replicating the single channel, Normalize to [0, 1] double precision
-                % set(obj.imgOrigHandle, 'CData', rgbFrame);
+                set(obj.imgOrigHandle, 'CData', rgbFrame);
 
                 % writeVideo(obj.EBC_vid_log_trial, data);
 
@@ -575,12 +563,12 @@ classdef EyelidAnalyzer < handle
 
         function updateBinaryVideo(obj)
             obj.binarizeImage();
-            % set(obj.imgBinHandle, 'CData', obj.binFrame);
+            set(obj.imgBinHandle, 'CData', obj.binFrame);
         end
 
         function calculateFEC(obj, mode)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
-            obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == obj.PupilColor);  % Black pixels inside the ellipse
+            obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
             furPixels = obj.totalEllipsePixels - obj.eyeAreaPixels;
                         
@@ -636,7 +624,7 @@ classdef EyelidAnalyzer < handle
 
         function calculatePostFEC(obj, currentTime)
             obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
-            obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == obj.PupilColor);  % Black pixels inside the ellipse
+            obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse
             
             furPixels = obj.totalEllipsePixels - obj.eyeAreaPixels;
                         
@@ -686,7 +674,7 @@ classdef EyelidAnalyzer < handle
         function setEyeOpenMax(obj, ~, ~)
             if isobject(obj.roiHandle) && isvalid(obj.roiHandle)
                 obj.totalEllipsePixels = numel(find(obj.mask == 1));  % Total area inside the ellipse
-                obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == obj.PupilColor);  % Black pixels inside the ellipse                
+                obj.eyeAreaPixels = sum(obj.binFrame(obj.mask == 1) == 0);  % Black pixels inside the ellipse                
                 obj.minFur = obj.totalEllipsePixels - obj.eyeAreaPixels;     
             end            
         end
