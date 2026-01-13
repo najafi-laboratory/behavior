@@ -757,8 +757,6 @@ classdef EBC_PostProcess_V_5_3 < handle
             % cam switches to 'freerunning' without storing images
             % trailing pulses aren't actual images in video
 
-            % TODO might update this to use camstrobe > arduino pulse count
-
             %  BpodSystem.Data.TriggerPulseCount 
             [strobeMaxDiff, strobeMaxDiffIdx] = max(diff(strobeIdx));
             if strobeMaxDiff > 30
@@ -793,6 +791,11 @@ classdef EBC_PostProcess_V_5_3 < handle
             totalEllipse = obj.totalEllipsePixels;
             obj.FEC = arrayfun(@(ea)obj.calculateAdjustedFEC(ea,totalEllipse), eyeAreas);
 
+            % paper testing shows ~20ms delay for air after opening valve.
+            % need to quantify more accurately with statistical tests
+            % across session
+            valveDelay = 0.02;        % 20ms delay for air travel
+            obj.SessionData.valveDelay = valveDelay;            
 
             % Backward-compatible per-trial segmentation
             nTrials = obj.SessionData.nTrials;
@@ -808,15 +811,14 @@ classdef EBC_PostProcess_V_5_3 < handle
                 tEnd   = obj.SessionData.TrialEndTimestamp(trial);
                 idxWin = obj.FECTimes >= tStart & obj.FECTimes <= tEnd;
                 obj.SessionData.RawEvents.Trial{1,trial}.Data.FECTimes = obj.FECTimes(idxWin) - tStart;
-                obj.SessionData.RawEvents.Trial{1,trial}.Data.eyeAreaPixels = obj.eyeAreaSeries(idxWin);
-                obj.SessionData.RawEvents.Trial{1,trial}.Data.totalEllipsePixels = obj.ellipsePixelSeries(idxWin);
+                obj.SessionData.RawEvents.Trial{1,trial}.Data.FEC      = obj.FEC(idxWin);
+                obj.SessionData.RawEvents.Trial{1,trial}.Data.totalEllipsePixels = totalEllipse;
+                obj.SessionData.RawEvents.Trial{1,trial}.Data.eyeAreaPixels = eyeAreas(idxWin);
+                obj.SessionData.RawEvents.Trial{1,trial}.Data.minFur = obj.minFur;
+                obj.SessionData.RawEvents.Trial{1,1}.Events.AirContact = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + valveDelay;               
             end
 
-            %             obj.fecDataRaw = fecRaw;
-            % obj.ellipsePixelSeries = ellipsePixels;
-            % obj.eyeAreaSeries = eyeAreas;
 
-            valveDelay = 0.02;        % 20ms delay for air travel
 
             figure;
             hold on;
@@ -831,9 +833,6 @@ classdef EBC_PostProcess_V_5_3 < handle
             xl1 = xline(led_time, '--b', 'DisplayName', 'LED Turned On');
             xl2 = xline(ap_time, '--r', 'DisplayName', 'Air Puff');
             xl3 = xline(ap_actual_time, '--g', 'DisplayName', 'Air Puff Actual');
-            xl4 = xline(start_time, '--b', 'DisplayName', 'Start');
-            xl5 = xline(iti_pre, '--r', 'DisplayName', 'ITI_Pre');
-            xl6 = xline(check_eye_open, '--g', 'DisplayName', 'Check_Eye_Open');            
 
             legend show;
             hold off;
@@ -883,6 +882,10 @@ classdef EBC_PostProcess_V_5_3 < handle
                 hold off;    
             end   
         
+
+            S.SessionData = obj.SessionData;
+            save(obj.sessionDataPath, '-struct', 'S');
+
 
             
 
