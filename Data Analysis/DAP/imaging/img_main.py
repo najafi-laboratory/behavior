@@ -10785,7 +10785,7 @@ if __name__ == "__main__":
     print("=== SUITE2P PROCESSING PIPELINE ===")
     
     # Configuration
-    cfg_path = r"D:/PHD/GIT/data_analysis/DAP/imaging/config.yaml"
+    cfg_path = r"C:/GIT/behavior/Data Analysis/DAP/imaging/config.yaml"
     cfg = load_cfg_yaml(cfg_path)
     # validate_cfg(cfg)
     

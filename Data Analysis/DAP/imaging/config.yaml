@@ -1,16 +1,16 @@
 paths:
-  # plane_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/suite2p/plane0
-  # output_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/
-  # qc_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new
-  # plane_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/suite2p/plane0
-  # output_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/
-  # qc_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/qc_results_new
-  # plane_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/suite2p/plane0
-  # output_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/
-  # qc_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/qc_results_new
-  plane_dir: D:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/suite2p/plane0
-  output_dir: D:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/
-  qc_dir: D:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/qc_results_new    
+  # plane_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/suite2p/plane0
+  # output_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/
+  # qc_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new
+  # plane_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/suite2p/plane0
+  # output_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/
+  # qc_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/qc_results_new
+  plane_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/suite2p/plane0
+  output_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/
+  qc_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/qc_results_new
+  # plane_dir: C:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/suite2p/plane0
+  # output_dir: C:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/
+  # qc_dir: C:/behavior/2p_imaging/processed/passive/YH18VT/YH18VT_V1_20250326_4131FixJitterOdd/qc_results_new    
 io:
   memmap: true
   copy_on_load: false
@@ -69,7 +69,9 @@ overlay:
   dpi: 140
   overlay_filename: roi_overlay.png
   panel_window_s: 40
-  save_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new/overlay_figs
+  # save_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new/overlay_figs
+  # save_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/qc_results_new/overlay_figs
+  save_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/qc_results_new/overlay_figs
 cellpose:
   enable: true
   model: cyto3
@@ -160,4 +162,6 @@ review:
   fig_width: 11.0
   row_height: 1.1
   dpi: 140
-  save_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new/review_figs
+  # save_dir: D:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250620_2afc-494/qc_results_new/review_figs
+  # save_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250618_2afc-490/qc_results_new/review_figs
+  save_dir: C:/behavior/2p_imaging/processed/2afc/YH24LG/YH24LG_CRBL_lobulev_20250610_2afc-447/qc_results_new/review_figs

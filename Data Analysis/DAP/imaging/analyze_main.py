@@ -722,6 +722,69 @@ def visualize_components_short_long_fixed_aligned_with_differences_rois(data: Di
     )
 
 
+
+
+
+def visualize_components_isi_list_fixed_aligned_with_differences_rois(
+    data: Dict[str, Any],
+    roi_list: Optional[List[int]] = None,
+    isi_list: Optional[List[float]] = None,
+    isi_tol_ms: float = 0.5,
+    **kwargs,
+) -> None:
+    """
+    Wrapper around visualize_components_short_long_fixed_aligned_with_differences_rois
+    that restricts plotting to a user-specified list of ISIs.
+
+    Parameters
+    ----------
+    data : Dict[str, Any]
+        Standard session dict containing df_trials and imaging data.
+    roi_list : list[int], optional
+        ROIs to include (forwarded to the base function).
+    isi_list : list[float], optional
+        ISIs (ms) to include; e.g., [700, 1700].
+    isi_tol_ms : float, default 0.5
+        Absolute tolerance (ms) when matching ISIs.
+    **kwargs :
+        Passed through to visualize_components_short_long_fixed_aligned_with_differences_rois
+        (e.g., align_event, sorting_event, pre_event_s, post_event_s, raster_mode, etc.)
+    """
+    if isi_list is None or len(isi_list) == 0:
+        print("⚠️  No isi_list provided; falling back to full short/long split.")
+        return visualize_components_short_long_fixed_aligned_with_differences_rois(
+            data, roi_list=roi_list, **kwargs
+        )
+
+    df_trials = data.get("df_trials", None)
+    if df_trials is None or "isi" not in df_trials.columns:
+        print("❌ df_trials with 'isi' column is required.")
+        return
+
+    isi_array = df_trials["isi"].to_numpy()
+    mask = np.zeros_like(isi_array, dtype=bool)
+    for target in isi_list:
+        mask |= np.isclose(isi_array, target, atol=isi_tol_ms)
+
+    n_trials = mask.sum()
+    if n_trials == 0:
+        print(f"⚠️  No trials found for ISIs {isi_list} (tol={isi_tol_ms} ms).")
+        return
+
+    # Shallow copy of data with filtered trials to avoid mutating the caller's data
+    data_subset = dict(data)
+    data_subset["df_trials"] = df_trials[mask].copy()
+
+    print(f"🧹 Filtering to {n_trials} trials for ISIs {isi_list} (tol={isi_tol_ms} ms).")
+    return visualize_components_short_long_fixed_aligned_with_differences_rois(
+        data_subset, roi_list=roi_list, **kwargs
+    )
+
+
+
+
+
+
 def _get_roi_average_response_in_window_short_only(data: Dict[str, Any],
                                                   roi_idx: int,
                                                   event_name: str,
@@ -18537,7 +18600,7 @@ if __name__ == "__main__":
 
     
 # # Configuration
-cfg_path = r"D:/PHD/GIT/data_analysis/DAP/imaging/config.yaml"
+cfg_path = r"C:/GIT/behavior/Data Analysis/DAP/imaging/config.yaml"
 # cfg = load_cfg_yaml(cfg_path)
 
 
@@ -18591,18 +18654,18 @@ align_event_list = {
 }
 
 
-# # window
-# align_event_list = {
-#     'start_flash_1_self': ('start_flash_1', 'start_flash_1', 0.75, 0.75),
-#     'end_f1_self': ('end_flash_1', 'end_flash_1', 0.75, 0.75),
-#     'start_flash_2_self_aligned': ('start_flash_2', 'start_flash_2', 2.5, 1.0),
-#     'end_flash_2_self_aligned': ('end_flash_2', 'end_flash_2', 2.5, 1.0),
-#     'choice_self_aligned': ('choice_start', 'choice_start', 1.0, 1.5),
-#     'lick_self_aligned': ('lick_start', 'lick_start', 1.0, 4.0),  
-#     # 'choice_sorted_f1_aligned': ('start_flash_1', 'choice_start', 1.0, 8.0),   
-#     # 'f1_sorted_choice_aligned': ('choice_start', 'start_flash_1', 4.0, 5.0),   
-#     # 'choice_sorted_lick_aligned': ('lick_start', 'choice_start', 4.0, 5.0),
-# }
+# window
+align_event_list = {
+    # 'start_flash_1_self': ('start_flash_1', 'start_flash_1', 0.75, 0.75),
+    # 'end_f1_self': ('end_flash_1', 'end_flash_1', 0.75, 0.75),
+    # 'start_flash_2_self_aligned': ('start_flash_2', 'start_flash_2', 2.5, 1.0),
+    # 'end_flash_2_self_aligned': ('end_flash_2', 'end_flash_2', 2.5, 1.0),
+    'choice_self_aligned': ('choice_start', 'choice_start', 1.0, 1.5),
+    'lick_self_aligned': ('lick_start', 'lick_start', 1.0, 4.0),  
+    # 'choice_sorted_f1_aligned': ('start_flash_1', 'choice_start', 1.0, 8.0),   
+    # 'f1_sorted_choice_aligned': ('choice_start', 'start_flash_1', 4.0, 5.0),   
+    # 'choice_sorted_lick_aligned': ('lick_start', 'choice_start', 4.0, 5.0),
+}
 
 
 
@@ -18611,26 +18674,28 @@ align_event_list = {
 # }
 
 
-multi_cluster_rois = []
+# multi_cluster_rois = []
 # cf_like = [5,25,29,45,49,52,55,64,67,102]   # 6-20
 # pf_like = [0,2,9,12,13,14,15,20,23,26,31,39,42,43,50,53,57,65,66,103] # 6-20
-cf_like = [2,7,11,12,14,23,36,38]  # 6-18
-pf_like = [17,19,24,51,60,63,68,73,94]  # 6-18
+# # cf_like = [2,7,11,12,14,23,36,38]  # 6-18
+# # pf_like = [17,19,24,51,60,63,68,73,94]  # 6-18
 
 
-cluster_id_list = cf_like
-cluster_id_list = pf_like
-cluster_id_list = cf_like + pf_like
+# cluster_id_list = cf_like
+# # cluster_id_list = pf_like
+# # cluster_id_list = cf_like + pf_like
 
-for cluster_id in cluster_id_list:
-    cluster_rois = np.where(data['df_rois']['cluster_idx'] == cluster_id)[0]
-    multi_cluster_rois.extend(cluster_rois[:])  
-roi_list = multi_cluster_rois
+# for cluster_id in cluster_id_list:
+#     cluster_rois = np.where(data['df_rois']['cluster_idx'] == cluster_id)[0]
+#     multi_cluster_rois.extend(cluster_rois[:])  
+# roi_list = multi_cluster_rois
 
-top_predictive_rois = [315,152,2015,640,175,11,150,215,88,67] # pred 6-18
+roi_list = data['df_rois']['idx']
+
+# top_predictive_rois = [315,152,2015,640,175,11,150,215,88,67] # pred 6-18
 
 
-roi_list = top_predictive_rois
+# roi_list = top_predictive_rois
 
 for config_name, (align_event, sort_event, pre_s, post_s) in align_event_list.items():
     print(f"\n=== Processing {config_name} ===")
@@ -18651,6 +18716,685 @@ for config_name, (align_event, sort_event, pre_s, post_s) in align_event_list.it
 
 
 
+# %%
+
+
+
+    #    short  200.,  325.,  450.,  575.,  700.
+
+    #    long 1700., 1850., 2000., 2150., 2300
+
+
+isi_list = [700, 1700]
+# isi_list = [200, 2300]
+ 
+for config_name, (align_event, sort_event, pre_s, post_s) in align_event_list.items():
+    print(f"\n=== Processing {config_name} ===")
+    print(f"Align: {align_event}, Sort: {sort_event}, Window: -{pre_s}s to +{post_s}s")
+    visualize_components_isi_list_fixed_aligned_with_differences_rois(
+        data=data,
+        roi_list=roi_list,
+        isi_list=isi_list,
+        isi_tol_ms=50.0,
+        align_event=align_event,
+        sorting_event=sort_event,
+        pre_event_s=pre_s,
+        post_event_s=post_s,
+        raster_mode='trial_averaged',
+        fixed_row_height_px=6.0,
+        max_raster_height_px=10000.0,
+        zscore=False
+    )
+
+
+# %%
+
+
+
+# def find_choice_polarized_rois(
+#     data: Dict[str, Any],
+#     roi_list: Optional[List[int]] = None,
+#     align_event: str = "choice_start",
+#     window_s: Tuple[float, float] = (-0.05, 0.25),
+#     effect_threshold: float = 0.3,
+#     min_trials_per_side: int = 6,
+#     zscore: bool = False,
+# ) -> Dict[str, Any]:
+#     """
+#     Identify ROIs whose activity near choice onset differs for left- vs right-lick trial sets.
+#     Left set:  short rewarded (left lick) + long punished (left lick)
+#     Right set: short punished (right lick) + long rewarded (right lick)
+#     """
+#     df = data["df_trials"]
+#     if align_event not in df.columns:
+#         print(f"❌ align_event '{align_event}' not in df_trials")
+#         return {}
+#     if roi_list is None:
+#         roi_list = list(range(data["dFF_clean"].shape[0]))
+
+#     mean_isi = np.mean(df["isi"].dropna())
+#     left_mask = ((df["isi"] <= mean_isi) & (df["rewarded"] == 1)) | ((df["isi"] > mean_isi) & (df["punished"] == 1))
+#     right_mask = ((df["isi"] <= mean_isi) & (df["punished"] == 1)) | ((df["isi"] > mean_isi) & (df["rewarded"] == 1))
+
+#     dff_aligned, t_aligned, trial_mask, roi_indices = extract_event_aligned_data(
+#         data, event_name=align_event, pre_event_s=abs(window_s[0]) + 1.0, post_event_s=window_s[1] + 1.0, roi_list=roi_list
+#     )
+
+#     jwin = (t_aligned >= window_s[0]) & (t_aligned <= window_s[1])
+#     valid_left = trial_mask & left_mask.values
+#     valid_right = trial_mask & right_mask.values
+
+#     if valid_left.sum() < min_trials_per_side or valid_right.sum() < min_trials_per_side:
+#         print(f"⚠️ Not enough trials (left={valid_left.sum()}, right={valid_right.sum()}); adjust thresholds.")
+#         return {}
+
+#     X = dff_aligned
+#     if zscore:
+#         X = (X - np.nanmean(X, axis=2, keepdims=True)) / (np.nanstd(X, axis=2, keepdims=True) + 1e-6)
+
+#     left_resp = np.nanmean(X[:, valid_left, :][:, :, jwin], axis=(1, 2))
+#     right_resp = np.nanmean(X[:, valid_right, :][:, :, jwin], axis=(1, 2))
+#     effect = left_resp - right_resp
+
+#     polarized_mask = np.abs(effect) >= effect_threshold
+#     polarized_rois = list(np.array(roi_indices)[polarized_mask])
+#     return {
+#         "roi_indices": polarized_rois,
+#         "effect": effect,
+#         "left_resp": left_resp,
+#         "right_resp": right_resp,
+#         "mean_isi": mean_isi,
+#         "window": window_s,
+#         "align_event": align_event,
+#     }
+
+
+
+
+import numpy as np
+import h5py
+import os
+from pathlib import Path
+
+
+def _load_suite2p_plane(plane_dir: Union[str, Path]) -> Tuple[Optional[np.ndarray], Optional[list], Optional[dict]]:
+    """Load mean image, stat, ops from a suite2p plane directory."""
+    plane_dir = Path(plane_dir)
+    stat_path = plane_dir / "stat.npy"
+    ops_path = plane_dir / "ops.npy"
+    mean_fallback = plane_dir / "plane0" / "meanImg.npy"  # sometimes stored nested
+    mean_img = None
+    stat = None
+    ops = None
+    try:
+        if stat_path.exists():
+            stat = np.load(stat_path, allow_pickle=True).tolist()
+        if ops_path.exists():
+            ops = np.load(ops_path, allow_pickle=True).item()
+            if "meanImg" in ops:
+                mean_img = ops.get("meanImg")
+        if mean_img is None:
+            alt = plane_dir / "meanImg.npy"
+            if alt.exists():
+                mean_img = np.load(alt, allow_pickle=True)
+            elif mean_fallback.exists():
+                mean_img = np.load(mean_fallback, allow_pickle=True)
+    except Exception as e:
+        print(f"⚠️ Failed to load suite2p plane from {plane_dir}: {e}")
+    return mean_img, stat, ops
+
+def plot_rois_on_mask(
+    data: Dict[str, Any],
+    roi_list: Optional[List[int]] = None,
+    mask_alpha: float = 0.75,
+    roi_alpha: float = 0.6,
+    edge_color: str = "lime",
+    face_color: str = "none",
+    linewidth: float = 1.0,
+    title: str = "ROIs over mask",
+    bg_path: Optional[str] = None,
+    plane_dir: Optional[str] = None,  # NEW: load directly from suite2p plane
+) -> None:
+    """
+    Overlay ROI footprints on a background mask/mean image.
+    """
+    # Optionally override data with suite2p plane contents
+    s2p_mean, s2p_stat, s2p_ops = (None, None, None)
+    if plane_dir is not None:
+        s2p_mean, s2p_stat, s2p_ops = _load_suite2p_plane(plane_dir)
+        if s2p_mean is not None:
+            data = dict(data)  # shallow copy
+            data["mean_img"] = s2p_mean
+        if s2p_stat is not None:
+            data["stat"] = s2p_stat
+        if s2p_ops is not None:
+            data["ops"] = s2p_ops
+
+    # Try external masks.h5 first if provided
+    bg = None
+    if bg_path and os.path.exists(bg_path):
+        try:
+            with h5py.File(bg_path, "r") as f:
+                for key in f.keys():
+                    arr = f[key][:]
+                    if isinstance(arr, np.ndarray) and arr.ndim == 2:
+                        bg = arr
+                        break
+        except Exception as e:
+            print(f"⚠️ Could not read {bg_path}: {e}")
+
+    # Fallback to in-memory (or suite2p-loaded) candidates
+    if bg is None:
+        bg_candidates = [
+            data.get("mean_img"),
+            data.get("mean_image"),
+            data.get("meanImg"),
+            data.get("meanImgE"),
+        ]
+        if "ops" in data and isinstance(data["ops"], dict):
+            bg_candidates.extend([data["ops"].get("meanImg"), data["ops"].get("meanImgE")])
+        bg = next((b for b in bg_candidates if isinstance(b, np.ndarray) and b.ndim == 2), None)
+
+    if bg is None:
+        print("❌ No 2-D background image found.")
+        return
+
+    # Normalize background
+    bg = np.array(bg, dtype=float)
+    bg = np.nan_to_num(bg, nan=np.nanmedian(bg))
+    vmin, vmax = np.percentile(bg, [1, 99])
+    bg_disp = np.clip((bg - vmin) / (vmax - vmin + 1e-6), 0, 1)
+
+    # Resolve ROI list
+    n_rois = data.get("dFF_clean", np.empty((0,))).shape[0]
+    if roi_list is None:
+        roi_list = list(range(n_rois if n_rois > 0 else len(data.get("stat", []))))
+    roi_list = [r for r in roi_list if r >= 0]
+
+    if len(roi_list) == 0:
+        print("❌ No valid ROIs to plot.")
+        return
+
+    # plt.figure(figsize=(6, 6))
+    # plt.imshow(bg_disp, cmap="gray", alpha=mask_alpha)
+    
+    plt.figure(figsize=(6, 6))
+    plt.imshow(bg_disp, cmap="gray", alpha=mask_alpha, origin="upper")    
+
+    # Footprints from suite2p stat
+    if "stat" in data and isinstance(data["stat"], (list, tuple)) and len(data["stat"]) > 0:
+        for ridx in roi_list:
+            if ridx >= len(data["stat"]):
+                continue
+            st = data["stat"][ridx]
+            if all(k in st for k in ("xpix", "ypix")):
+                xpix, ypix = np.array(st["xpix"]), np.array(st["ypix"])
+                plt.scatter(
+                    xpix, ypix, s=4, facecolors=face_color,
+                    edgecolors=edge_color, alpha=roi_alpha, linewidths=linewidth
+                )
+            elif "med" in st:
+                cy, cx = st["med"]
+                plt.scatter(cx, cy, s=12, c=edge_color, alpha=roi_alpha, marker="o")
+    elif "df_rois" in data and {"x", "y"}.issubset(set(data["df_rois"].columns)):
+        xs = data["df_rois"].loc[roi_list, "x"].to_numpy()
+        ys = data["df_rois"].loc[roi_list, "y"].to_numpy()
+        plt.scatter(xs, ys, s=12, c=edge_color, alpha=roi_alpha,
+                    marker="o", edgecolors=edge_color, facecolors=face_color, linewidths=linewidth)
+    else:
+        print("⚠️ No ROI footprints/centroids found; showing background only.")
+
+    # if "ops" in data and isinstance(data["ops"], dict) and "Lx" in data["ops"]:
+    #     lx = data["ops"]["Lx"]
+    #     plt.axvline(lx / 2, color="cyan", ls="--", alpha=0.4)
+    
+    if "ops" in data and isinstance(data["ops"], dict) and "Lx" in data["ops"]:
+        lx = data["ops"]["Lx"]
+        plt.axvline(lx / 2, color="cyan", ls="--", alpha=0.4)    
+
+    # plt.gca().invert_yaxis()
+    plt.title(f"{title} (n={len(roi_list)})")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+def find_choice_polarized_rois(
+    data: Dict[str, Any],
+    roi_list: Optional[List[int]] = None,
+    align_event: str = "choice_start",
+    window_s: Tuple[float, float] = (-0.05, 0.25),
+    effect_threshold: float = 0.3,
+    min_trials_per_side: int = 6,
+    zscore: bool = False,
+    plane_dir: Optional[str] = None,  # NEW: enforce same suite2p indexing
+) -> Dict[str, Any]:
+    """
+    Identify ROIs whose activity near choice onset differs for left- vs right-lick trial sets.
+    Left set:  short rewarded (left lick) + long punished (left lick)
+    Right set: short punished (right lick) + long rewarded (right lick)
+    """
+    # If a suite2p plane is specified, load stat/ops so indices match footprints
+    if plane_dir is not None:
+        mean_img, s2p_stat, s2p_ops = _load_suite2p_plane(plane_dir)
+        if s2p_stat is not None:
+            data = dict(data)
+            data["stat"] = s2p_stat
+        if s2p_ops is not None:
+            data["ops"] = s2p_ops
+
+    # Sanity: lengths must match
+    n_dff = data["dFF_clean"].shape[0]
+    n_stat = len(data.get("stat", []))
+    # if n_stat and n_dff != n_stat:
+    #     print(f"❌ ROI count mismatch: dFF_clean={n_dff}, stat={n_stat}. Aborting to avoid index misalignment.")
+    #     return {}
+
+    df = data["df_trials"]
+    if align_event not in df.columns:
+        print(f"❌ align_event '{align_event}' not in df_trials")
+        return {}
+    if roi_list is None:
+        roi_list = list(range(n_dff))
+
+    mean_isi = np.mean(df["isi"].dropna())
+    left_mask = ((df["isi"] <= mean_isi) & (df["rewarded"] == 1)) | ((df["isi"] > mean_isi) & (df["punished"] == 1))
+    right_mask = ((df["isi"] <= mean_isi) & (df["punished"] == 1)) | ((df["isi"] > mean_isi) & (df["rewarded"] == 1))
+
+    dff_aligned, t_aligned, trial_mask, roi_indices = extract_event_aligned_data(
+        data, event_name=align_event, pre_event_s=abs(window_s[0]) + 1.0, post_event_s=window_s[1] + 1.0, roi_list=roi_list
+    )
+
+    jwin = (t_aligned >= window_s[0]) & (t_aligned <= window_s[1])
+    valid_left = trial_mask & left_mask.values
+    valid_right = trial_mask & right_mask.values
+
+    if valid_left.sum() < min_trials_per_side or valid_right.sum() < min_trials_per_side:
+        print(f"⚠️ Not enough trials (left={valid_left.sum()}, right={valid_right.sum()}); adjust thresholds.")
+        return {}
+
+    X = dff_aligned
+    if zscore:
+        X = (X - np.nanmean(X, axis=2, keepdims=True)) / (np.nanstd(X, axis=2, keepdims=True) + 1e-6)
+
+    left_resp = np.nanmean(X[:, valid_left, :][:, :, jwin], axis=(1, 2))
+    right_resp = np.nanmean(X[:, valid_right, :][:, :, jwin], axis=(1, 2))
+    effect = left_resp - right_resp
+
+    polarized_mask = np.abs(effect) >= effect_threshold
+    polarized_rois_filtered = list(np.array(roi_indices)[polarized_mask])
+
+    # Map filtered indices back to original suite2p indices if available
+    roi_index_map = data.get("roi_index_map", {})
+    f2o = roi_index_map.get("filtered_to_original", {})
+    polarized_rois_original = [
+        int(f2o.get(int(rf), rf)) for rf in polarized_rois_filtered
+    ]
+
+    return {
+        "roi_indices": polarized_rois_original,  # suite2p index space
+        "roi_indices_filtered": polarized_rois_filtered,
+        "effect": effect,
+        "left_resp": left_resp,
+        "right_resp": right_resp,
+        "mean_isi": mean_isi,
+        "window": window_s,
+        "align_event": align_event,
+    }
+
+
+
+
+def plot_choice_polarized_roi_map(
+    data: Dict[str, Any],
+    polarized_rois: List[int],
+    title: str = "Choice-polarized ROIs",
+    save_path: Optional[str] = None,
+    plane_dir: Optional[str] = None,   # load stat/ops to lock indices
+    show_footprints: bool = False,     # draw footprints for polarized ROIs
+) -> None:
+    """Scatter ROIs to inspect symmetry (suite2p coords, origin=upper)."""
+    # Optionally override with suite2p plane contents
+    if plane_dir is not None:
+        mean_img, s2p_stat, s2p_ops = _load_suite2p_plane(plane_dir)
+        if s2p_stat is not None:
+            data = dict(data)
+            data["stat"] = s2p_stat
+        if s2p_ops is not None:
+            data["ops"] = s2p_ops
+
+    # Get centroids
+    if "stat" in data:
+        centroids = np.array([s.get("med", (np.nan, np.nan)) for s in data["stat"]])  # (y,x)
+    elif "df_rois" in data and {"x", "y"}.issubset(set(data["df_rois"].columns)):
+        centroids = data["df_rois"][["y", "x"]].to_numpy()  # (y,x)
+    else:
+        print("❌ No ROI centroid info found (expected suite2p 'stat' or df_rois with x,y).")
+        return
+
+    all_x, all_y = centroids[:, 1], centroids[:, 0]
+    sel_mask = np.zeros(len(centroids), dtype=bool)
+    sel_mask[[r for r in polarized_rois if 0 <= r < len(centroids)]] = True
+
+    plt.figure(figsize=(6, 6))
+    plt.imshow(np.ones((2, 2)), alpha=0)  # placeholder to allow origin control
+    plt.scatter(all_x, all_y, s=6, c="lightgray", alpha=0.35, label="All ROIs")
+    plt.scatter(all_x[sel_mask], all_y[sel_mask], s=18, c="crimson", alpha=0.9, label="Polarized")
+
+    # Optional footprints for polarized ROIs
+    if show_footprints and "stat" in data:
+        for ridx in np.where(sel_mask)[0]:
+            st = data["stat"][ridx]
+            if all(k in st for k in ("xpix", "ypix")):
+                plt.scatter(st["xpix"], st["ypix"], s=4, facecolors="none",
+                            edgecolors="crimson", alpha=0.6, linewidths=0.8)
+
+    # Midline and bounds from ops
+    if "ops" in data and isinstance(data["ops"], dict):
+        if "Lx" in data["ops"]:
+            lx = data["ops"]["Lx"]
+            plt.axvline(lx / 2, color="cyan", ls="--", alpha=0.6, label="Vertical midline")
+            plt.xlim(0, lx)
+        if "Ly" in data["ops"]:
+            plt.ylim(0, data["ops"]["Ly"])
+
+    # Suite2p origin is top-left; do NOT invert y
+    plt.gca().invert_yaxis() if True else None
+
+    plt.legend()
+    plt.title(f"{title} (n={sel_mask.sum()})")
+    plt.xlabel("X (pixels)")
+    plt.ylabel("Y (pixels)")
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=300)
+    plt.show()
+
+
+# # --- example usage (uncomment to run) ---
+# # roi_list = None  # or your ROI subset
+# pol = find_choice_polarized_rois(data, roi_list=roi_list, align_event="choice_start",
+#                                  window_s=(-0.1, 0.3), effect_threshold=0.2, zscore=False)
+# if pol:
+#     # plot_choice_polarized_roi_map(data, pol["roi_indices"], title="Choice-polarized ROIs near choice onset")
+#     plot_choice_polarized_roi_map(
+#         data, pol["roi_indices"], title="Choice-polarized ROIs near choice onset",
+#         plane_dir=cfg.get("suite2p_plane_dir", None), show_footprints=True
+#     )
+# # def plot_choice_polarized_roi_map(
+# #     data: Dict[str, Any],
+# #     polarized_rois: List[int],
+# #     title: str = "Choice-polarized ROIs",
+# #     save_path: Optional[str] = None,
+# #     plane_dir: Optional[str] = None,  # NEW: optionally load stat/ops from suite2p plane
+# # )
+
+
+# --- example usage with consistent plane for both detection and plotting ---
+plane = r"D:\data\behavior\2p_imaging\processed\2afc\YH24LG\YH24LG_CRBL_lobulev_20250618_2afc-490\suite2p\plane0"
+pol = find_choice_polarized_rois(data, roi_list=roi_list, align_event="choice_start",
+                                 window_s=(-0.1, 0.3), effect_threshold=0.2,
+                                 zscore=False, plane_dir=plane)
+if pol:
+    plot_choice_polarized_roi_map(
+        data, pol["roi_indices"], title="Choice-polarized ROIs (suite2p index space)",
+        plane_dir=plane, show_footprints=True
+    )
+
+
+
+
+# --- usage example ---
+# plot_rois_on_mask(data, roi_list=pol['roi_indices'], title="My ROIs overlay")
+
+
+plot_rois_on_mask(
+    data,
+    roi_list=pol['roi_indices'],
+    plane_dir=r"D:\data\behavior\2p_imaging\processed\2afc\YH24LG\YH24LG_CRBL_lobulev_20250618_2afc-490\suite2p\plane0",
+    title="Choice-polarized ROIs (suite2p index space)"
+)
+
+
+# %%
+
+
+
+
+# window
+align_event_list = {
+    # 'start_flash_1_self': ('start_flash_1', 'start_flash_1', 0.75, 0.75),
+    # 'end_f1_self': ('end_flash_1', 'end_flash_1', 0.75, 0.75),
+    # 'start_flash_2_self_aligned': ('start_flash_2', 'start_flash_2', 2.5, 1.0),
+    # 'end_flash_2_self_aligned': ('end_flash_2', 'end_flash_2', 2.5, 1.0),
+    'choice_self_aligned': ('choice_start', 'choice_start', 1.0, 1.5),
+    'lick_self_aligned': ('lick_start', 'lick_start', 1.0, 4.0),  
+    # 'choice_sorted_f1_aligned': ('start_flash_1', 'choice_start', 1.0, 8.0),   
+    # 'f1_sorted_choice_aligned': ('choice_start', 'start_flash_1', 4.0, 5.0),   
+    # 'choice_sorted_lick_aligned': ('lick_start', 'choice_start', 4.0, 5.0),
+}
+
+for config_name, (align_event, sort_event, pre_s, post_s) in align_event_list.items():
+    print(f"\n=== Processing {config_name} ===")
+    print(f"Align: {align_event}, Sort: {sort_event}, Window: -{pre_s}s to +{post_s}s")    
+    visualize_components_short_long_fixed_aligned_with_differences_rois(
+        data, 
+        roi_list=pol['roi_indices'],
+        align_event=align_event,
+        sorting_event=sort_event,
+        pre_event_s=pre_s,
+        post_event_s=post_s,
+        raster_mode='trial_averaged',
+        fixed_row_height_px=6.0,
+        max_raster_height_px=10000.0,
+        zscore=False
+    )
+
+
+
+
+# %%
+
+def plot_raw_roi_traces_by_condition(
+    data: Dict[str, Any],
+    roi_indices: List[int],
+    align_event: str = "choice_start",
+    pre_s: float = 0.75,
+    post_s: float = 1.25,
+    n_trials_per_cond: int = 8,
+    use_signal: str = "dFF_clean",  # or "F" / "Fc" if available
+) -> None:
+    """
+    Plot per-trial raw traces for ROI list, split by (Short/Long)×(Rewarded/Punished).
+    Useful to distinguish neural transients from movement-induced drifts.
+    """
+    if use_signal not in data:
+        print(f"❌ Signal '{use_signal}' not in data.")
+        return
+    if align_event not in data["df_trials"].columns:
+        print(f"❌ align_event '{align_event}' not in df_trials.")
+        return
+
+    sig = data[use_signal]
+    t_img = data["imaging_time"]
+    df = data["df_trials"]
+
+    mean_isi = np.mean(df["isi"].dropna())
+    cond_defs = {
+        "Short Rewarded": (df["isi"] <= mean_isi) & (df["rewarded"] == 1),
+        "Short Punished": (df["isi"] <= mean_isi) & (df["punished"] == 1),
+        "Long Rewarded":  (df["isi"] > mean_isi)  & (df["rewarded"] == 1),
+        "Long Punished":  (df["isi"] > mean_isi)  & (df["punished"] == 1),
+    }
+
+    dt = np.median(np.diff(t_img))
+    t_rel = np.arange(-pre_s, post_s, dt)
+
+    n_rows = 2
+    n_cols = 2
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 8), sharex=True)
+    axes = axes.ravel()
+    colors = plt.cm.tab10(np.arange(len(roi_indices)) % 10)
+    roi_offsets = np.arange(len(roi_indices)) * 1  # vertical offsets
+
+    for ax, (cond_name, cond_mask) in zip(axes, cond_defs.items()):
+        trials = df[cond_mask & df[align_event].notna()]
+        if len(trials) == 0:
+            ax.text(0.5, 0.5, "no trials", ha="center", va="center")
+            ax.set_title(cond_name)
+            continue
+        trial_ids = trials.sample(min(n_trials_per_cond, len(trials)), random_state=0).index
+
+        for tid in trial_ids:
+            row = df.loc[tid]
+            t0 = row["trial_start_timestamp"] + row[align_event]
+            t_start = t0 - pre_s
+            t_end = t0 + post_s
+            idx0 = np.searchsorted(t_img, t_start)
+            idx1 = np.searchsorted(t_img, t_end)
+            idx0 = max(0, idx0)
+            idx1 = min(len(t_img), idx1)
+            if idx1 - idx0 < 3:
+                continue
+            t_slice = t_img[idx0:idx1] - t0
+            traces = sig[np.array(roi_indices)[:, None], np.arange(idx0, idx1)]
+            # interpolate each ROI to common t_rel
+            for k, roi_tr in enumerate(traces):
+                if np.all(np.isnan(roi_tr)):
+                    continue
+                yi = np.interp(t_rel, t_slice, roi_tr, left=np.nan, right=np.nan)
+                ax.plot(t_rel, yi + roi_offsets[k], color=colors[k], alpha=0.4, linewidth=0.8)
+
+        ax.axvline(0, color="k", ls="--", alpha=0.6)
+        ax.set_title(f"{cond_name} (n={len(trial_ids)})")
+        ax.set_ylabel("ROI (offset)")
+        ax.grid(alpha=0.2)
+
+    axes[-1].set_xlabel(f"Time from {align_event} (s)")
+    legend_lines = [plt.Line2D([0], [0], color=colors[k], lw=2) for k in range(len(roi_indices))]
+    axes[0].legend(legend_lines, [f"ROI {r}" for r in roi_indices], loc="upper right", fontsize=8)
+    plt.tight_layout()
+    plt.show()
+
+
+
+plot_raw_roi_traces_by_condition(
+    data,
+    pol["roi_indices_filtered"],  # already mapped to suite2p indices
+    align_event="choice_start",
+    pre_s=0.75,
+    post_s=3.25,
+    n_trials_per_cond=30,
+    use_signal="dFF_clean"
+)
+
+
+# %%
+
+
+def plot_raw_roi_traces_by_condition_vertical(
+    data: Dict[str, Any],
+    roi_indices: List[int],
+    align_event: str = "choice_start",
+    pre_s: float = 0.75,
+    post_s: float = 1.25,
+    n_trials_per_cond: int = 8,
+    use_signal: str = "dFF_clean",
+) -> None:
+    """
+    Plot per-trial raw traces for ROI list, vertically stacked:
+      Short Rewarded
+      Short Punished
+      Long Rewarded
+      Long Punished
+    """
+    if use_signal not in data:
+        print(f"❌ Signal '{use_signal}' not in data.")
+        return
+    if align_event not in data["df_trials"].columns:
+        print(f"❌ align_event '{align_event}' not in df_trials.")
+        return
+
+    sig = data[use_signal]
+    t_img = data["imaging_time"]
+    df = data["df_trials"]
+
+    mean_isi = np.mean(df["isi"].dropna())
+    cond_defs = [
+        ("Short Rewarded", (df["isi"] <= mean_isi) & (df["rewarded"] == 1)),
+        ("Short Punished", (df["isi"] <= mean_isi) & (df["punished"] == 1)),
+        ("Long Rewarded",  (df["isi"] > mean_isi)  & (df["rewarded"] == 1)),
+        ("Long Punished",  (df["isi"] > mean_isi)  & (df["punished"] == 1)),
+    ]
+
+    dt = np.median(np.diff(t_img))
+    t_rel = np.arange(-pre_s, post_s, dt)
+
+    fig, axes = plt.subplots(len(cond_defs), 1, figsize=(80, 60), sharex=True)
+    colors = plt.cm.tab10(np.arange(len(roi_indices)) % 10)
+    roi_offsets = np.arange(len(roi_indices)) * 8.0  # vertical offsets
+
+    for ax, (cond_name, cond_mask) in zip(axes, cond_defs):
+        trials = df[cond_mask & df[align_event].notna()]
+        if len(trials) == 0:
+            ax.text(0.5, 0.5, "no trials", ha="center", va="center")
+            ax.set_title(cond_name)
+            continue
+
+        trial_ids = trials.sample(min(n_trials_per_cond, len(trials)), random_state=0).index
+        for tid in trial_ids:
+            row = df.loc[tid]
+            t0 = row["trial_start_timestamp"] + row[align_event]
+            t_start = t0 - pre_s
+            t_end = t0 + post_s
+            idx0 = np.searchsorted(t_img, t_start)
+            idx1 = np.searchsorted(t_img, t_end)
+            idx0 = max(0, idx0)
+            idx1 = min(len(t_img), idx1)
+            if idx1 - idx0 < 3:
+                continue
+            t_slice = t_img[idx0:idx1] - t0
+            traces = sig[np.array(roi_indices)[:, None], np.arange(idx0, idx1)]
+            for k, roi_tr in enumerate(traces):
+                if np.all(np.isnan(roi_tr)):
+                    continue
+                yi = np.interp(t_rel, t_slice, roi_tr, left=np.nan, right=np.nan)
+                ax.plot(t_rel, yi + roi_offsets[k], color=colors[k], alpha=0.4, linewidth=0.8)
+
+        ax.axvline(0, color="k", ls="--", alpha=0.6)
+        ax.set_title(f"{cond_name} (n={len(trial_ids)})")
+        ax.set_ylabel("ROI (offset)")
+        ax.grid(alpha=0.2)
+
+    axes[-1].set_xlabel(f"Time from {align_event} (s)")
+    legend_lines = [plt.Line2D([0], [0], color=colors[k], lw=2) for k in range(len(roi_indices))]
+    axes[0].legend(legend_lines, [f"ROI {r}" for r in roi_indices], loc="upper right", fontsize=8)
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+plot_raw_roi_traces_by_condition_vertical(
+    data,
+    pol["roi_indices_filtered"],
+    align_event="choice_start",
+    pre_s=0.75,
+    post_s=3.25,
+    n_trials_per_cond=10,
+    use_signal="dFF_clean"
+)
 
 
 # %%
@@ -19176,10 +19920,14 @@ _generate_full_duration_paper_summary(summary['decoder_results'], summary['prech
 # STEP X 4 COMPREHENSIVE ISI-MATCHED CHOICE PREDICTION ANALYSIS
 
 
-cf_like = [2,7,11,12,14,23,36,38]  # 6-18
-pf_like = [17,19,24,51,60,63,68,73,94]  # 6-18
+
+cf_like = [5,25,29,45,49,52,55,64,67,102]   # 6-20
+pf_like = [0,2,9,12,13,14,15,20,23,26,31,39,42,43,50,53,57,65,66,103] # 6-20
+
+# cf_like = [2,7,11,12,14,23,36,38]  # 6-18
+# pf_like = [17,19,24,51,60,63,68,73,94]  # 6-18
 cluster_id_list = cf_like + pf_like
-cluster_id_list = cf_like
+# cluster_id_list = cf_like
 # cluster_id_list = pf_like
 multi_cluster_rois = []
 for cluster_id in cf_like:
@@ -19188,8 +19936,8 @@ for cluster_id in cf_like:
     multi_cluster_rois.extend(cluster_rois)
 
 
-top_predictive_rois = [315,152,2015,640,175,11,150,215,88,67] # pred 6-18
-multi_cluster_rois = top_predictive_rois
+# top_predictive_rois = [315,152,2015,640,175,11,150,215,88,67] # pred 6-18
+# multi_cluster_rois = top_predictive_rois
 
 
 
@@ -19238,6 +19986,9 @@ visualize_temporal_dynamics(temporal_analysis)
 
 
 # Set up ROI list for analysis
+
+
+
 cf_like = [2,7,11,12,14,23,36,38]  # 6-18
 pf_like = [17,19,24,51,60,63,68,73,94]  # 6-18
 cluster_id_list = cf_like + pf_like
