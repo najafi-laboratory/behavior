@@ -76,6 +76,7 @@ classdef EyelidAnalyzer < handle
         sliderEyeOpen
         src
         subjectName
+        session_id
 
         tAdjustThresh
         tCurrentTrialNumber_nonTimeout;
@@ -372,7 +373,7 @@ classdef EyelidAnalyzer < handle
             % obj.vid.LoggingMode = "memory";
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');            
             % obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_TrialVid_', num2str(currentTrial), '_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
-            obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_SessionVid_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '.avi'], 'Grayscale AVI');
+            obj.EBC_vid_log_trial = VideoWriter([obj.trialVideoDir, subjectName, '_SessionVid_', datestr(now, 'yyyy-mm-dd_HHMMSS'), '_ID', num2str(obj.session_id) '.avi'], 'Grayscale AVI');
             obj.EBC_vid_log_trial.FrameRate = 250; %400; % err for framerate too high
             % obj.EBC_vid_log_trial.Quality = 90;
             obj.vid.DiskLogger = obj.EBC_vid_log_trial;

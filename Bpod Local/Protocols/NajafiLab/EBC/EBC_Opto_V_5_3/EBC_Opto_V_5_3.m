@@ -5,6 +5,11 @@ try
     global MEV
     global A
     
+    % generate session random number to match video
+    session_id = randi([100000 999999]);
+    [Filepath, Name, Ext] = fileparts(BpodSystem.Path.CurrentDataFile);
+    Name = [Name '_ID' num2str(session_id)];
+    BpodSystem.Path.CurrentDataFile = fullfile(Filepath, [Name Ext]);
     
     SetRigID(BpodSystem);
     % lastwarn
@@ -41,14 +46,8 @@ try
     %% connect DAQ
     dq = daq("ni");
     flush(dq);
-    switch BpodSystem.Data.RigName   
-        case 'ImagingRig'
-            ch_0 = addinput(dq, "myDAQ1", "ai0", "Voltage");   % AI channel 0
-            ch_1 = addinput(dq, "myDAQ1", "ai1", "Voltage");   % AI channel 1
-        case 'EBCRig'
-            ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
-            ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
-    end
+    ch_0 = addinput(dq, "Dev1", "ai0", "Voltage");   % AI channel 0
+    ch_1 = addinput(dq, "Dev1", "ai1", "Voltage");   % AI channel 1
 
     dq.Rate = 5000;   % sampling rate if 2x channels    
     BpodSystem.Data.daqDataAll = [];
@@ -124,6 +123,7 @@ try
     end
     
     MEV = EyelidAnalyzer(BpodSystem.GUIData.SubjectName, S.GUI.PupilColorForImaging);
+    MEV.session_id = session_id;    % add session ID to match with video file
     MEV.initPlotLines();
 
     BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_EBC';
