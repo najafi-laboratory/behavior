@@ -9,7 +9,7 @@
 
 
 % daq.getDevices
-
+    
 % daqhelp
 
 
