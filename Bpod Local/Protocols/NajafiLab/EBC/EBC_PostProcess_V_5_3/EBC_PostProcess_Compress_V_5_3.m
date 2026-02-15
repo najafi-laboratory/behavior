@@ -187,6 +187,10 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
                 'ButtonPushedFcn',@obj.runProcessing);
             obj.processButton.Layout.Column = 3;
 
+            % obj.processButton = uibutton(obj.buttonGrid,'Text','Process', ...
+            %     'ButtonPushedFcn',@obj.runProcessing);
+            % obj.processButton.Layout.Column = 4;
+
             obj.exportButton = uibutton(obj.buttonGrid,'Text','Export Results');
             obj.exportButton.Layout.Column = 4;
         end
@@ -803,7 +807,12 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
                     nibArr(frameIdx,1) = D; %#ok<AGROW>
 
                     % if compress enabled
+                    % tic
                     writeVideo(obj.sessionVideoWriter, frame);
+                    % ct = toc;
+                    % fprintf('Time to compress image: %.3f s\n', ct);
+                    % tcv = ct * (estFrames - frameIdx);
+                    % fprintf('Remaining time to compress video: %.3f s\n', tcv);
                     
                     d.Value = min(frameIdx/estFrames,1);
                     d.Message = sprintf('%.0f%% complete', 100*d.Value);
@@ -950,8 +959,8 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
 
 
 
-            figure;
-            hold on;
+            % figure;
+            % hold on;
             % plot(obj.FECTimes(1:2000), obj.FEC);
             % plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
             % plot(obj.FECTimes, obj.FEC(1:length(obj.FECTimes)), 'b', 'DisplayName','FEC');
@@ -959,10 +968,12 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
 
             led_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(1);
             ap_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(1);
+            % opto_time = obj.SessionData.RawEvents.Trial{1, 1}.Events.GlobalTimer4_Start + obj.SessionData.TrialStartTimestamp(1);
             ap_actual_time = ap_time + valveDelay;
             xl1 = xline(led_time, '--b', 'DisplayName', 'LED Turned On');
             xl2 = xline(ap_time, '--r', 'DisplayName', 'Air Puff');
             xl3 = xline(ap_actual_time, '--g', 'DisplayName', 'Air Puff Actual');
+            xl4 = xline(ap_actual_time, '--k', 'DisplayName', 'Opto');
 
             legend show;
             hold off;
@@ -972,8 +983,23 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
             % p1 = plot(obj.FECTimes, obj.FEC, 'DisplayName','FEC');
             p1 = plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
 
-            for trial = (1:obj.SessionData.nTrials)
-            % for trial = (1:4)
+            SessionData = obj.SessionData;
+            % save(obj.sessionDataPath, '-struct', 'S');
+            save(obj.sessionDataPath, 'SessionData');
+
+            % for trial = (1:obj.SessionData.nTrials)
+            for trial = (1:4)
+
+            if ~isfield(obj.SessionData.RawEvents.Trial{1,trial}, 'Events') || ...
+                ~isfield(obj.SessionData.RawEvents.Trial{1,trial}.Events, 'GlobalTimer1_Start') || ...
+                ~isfield(obj.SessionData.RawEvents.Trial{1,trial}.Events, 'GlobalTimer2_Start')
+                continue
+            end
+            if ~isfield(obj.SessionData.RawEvents.Trial{1,trial}, 'States')
+               continue
+            end
+
+
                 led_time = obj.SessionData.RawEvents.Trial{1,trial}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(trial);
                 ap_time = obj.SessionData.RawEvents.Trial{1,trial}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(trial);
                 ap_actual_time = ap_time + valveDelay;
@@ -990,7 +1016,7 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
             end
             % legend([p1 xl1 xl2 xl3], {'FEC', 'LED Turned On', 'Air Puff', 'Air Puff Actual'});
             legend([p1 xl1 xl2 xl3 xl4 xl5 xl6], {'FEC', 'LED Turned On', 'Air Puff', 'Air Puff Actual', 'Start', 'ITI_Pre', 'Check_Eye_Open'});
-            % legend show;
+            legend show;
             hold off;            
 
             % for trial = (1:obj.SessionData.nTrials)
@@ -1033,9 +1059,9 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
             % end               
 
             % 
-            SessionData = obj.SessionData;
-            % save(obj.sessionDataPath, '-struct', 'S');
-            save(obj.sessionDataPath, 'SessionData');
+            % SessionData = obj.SessionData;
+            % % save(obj.sessionDataPath, '-struct', 'S');
+            % save(obj.sessionDataPath, 'SessionData');
             % save(obj.sessionDataPath, 'SessionData', '-append');
             
 
