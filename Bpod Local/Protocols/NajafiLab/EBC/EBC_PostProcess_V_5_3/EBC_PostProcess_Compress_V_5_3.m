@@ -849,6 +849,9 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
             % obj.frameNumArr = unwrapNib + (initFrameIdx - 1);
 
 
+            % incremental saves in case post proc crash            
+            SessionData = obj.SessionData;
+            save(obj.sessionDataPath, 'SessionData'); 
 
             obj.SessionData.fecDataRaw = obj.fecDataRaw;
             obj.SessionData.ellipsePixelSeries = obj.ellipsePixelSeries;
@@ -858,6 +861,10 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
             obj.SessionData.cycleOffset = obj.cycleOffset;
             obj.SessionData.frameNibble = obj.frameNibble;            
             obj.SessionData.frameNumArr = obj.frameNumArr;
+
+            % incremental saves in case post proc crash            
+            SessionData = obj.SessionData;
+            save(obj.sessionDataPath, 'SessionData');            
 
             % compute timestamp (seconds + cycle/7999)
             cycleSeconds = double(obj.cycleCount) / 7999;
@@ -878,6 +885,10 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
 
             obj.SessionData.trialIdx = trialIdx;
             obj.SessionData.strobeIdx = strobeIdx;
+
+            % incremental saves in case post proc crash
+            SessionData = obj.SessionData;
+            save(obj.sessionDataPath, 'SessionData');   
 
             % trim cam strobe if trailing pulses
             % cam strobe pulses restart after stop(vid) at session end as
@@ -957,14 +968,30 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
                 obj.SessionData.RawEvents.Trial{1,1}.Events.AirContact = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + valveDelay;               
             end
 
-
+            SessionData = obj.SessionData;
+            % save(obj.sessionDataPath, '-struct', 'S');
+            save(obj.sessionDataPath, 'SessionData');
 
             % figure;
             % hold on;
             % plot(obj.FECTimes(1:2000), obj.FEC);
             % plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
             % plot(obj.FECTimes, obj.FEC(1:length(obj.FECTimes)), 'b', 'DisplayName','FEC');
-            plot(obj.FECTimes, obj.FEC, 'b', 'DisplayName','FEC');
+            t = obj.FECTimes(:);
+            y = obj.FEC(:);
+            if isempty(t) || isempty(y)
+              warning('FEC plot skipped: empty FECTimes or FEC.');
+            else
+              n = min(numel(t), numel(y));  % force same length
+              t = t(1:n);
+              y = y(1:n);
+              % optional: remove NaNs/Infs (can happen after processing)
+              good = isfinite(t) & isfinite(y);
+              t = t(good);
+              y = y(good);
+              plot(t, y, 'b', 'DisplayName', 'FEC');
+            end
+            % plot(obj.FECTimes, obj.FEC, 'b', 'DisplayName','FEC');
 
             led_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer1_Start + obj.SessionData.TrialStartTimestamp(1);
             ap_time = obj.SessionData.RawEvents.Trial{1,1}.Events.GlobalTimer2_Start + obj.SessionData.TrialStartTimestamp(1);
@@ -983,9 +1010,7 @@ classdef EBC_PostProcess_Compress_V_5_3 < handle
             % p1 = plot(obj.FECTimes, obj.FEC, 'DisplayName','FEC');
             p1 = plot(obj.FECTimes(1:length(obj.FEC)), obj.FEC, 'b', 'DisplayName','FEC');
 
-            SessionData = obj.SessionData;
-            % save(obj.sessionDataPath, '-struct', 'S');
-            save(obj.sessionDataPath, 'SessionData');
+
 
             % for trial = (1:obj.SessionData.nTrials)
             for trial = (1:4)
