@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Summary{% endblock %}
+
+{% block header %}Executive Summary - {{ experiment_name }}{% endblock %}
+
+{% block additional_metadata %}
+<strong>Subjects Analyzed:</strong> {{ subjects_analyzed }}<br>
+{% endblock %}
+
+{% block content %}
+<h2>Key Findings</h2>
+{% for finding in key_findings %}
+<div class="finding">{{ finding }}</div>
+{% endfor %}
+
+<h2>Group Performance Overview</h2>
+{% if figures.get('group_comparison.png') and figures['group_comparison.png'].exists %}
+<div class="figure">
+    <img src="{{ figures['group_comparison.png'].path }}" alt="Group Performance Comparison">
+    <div class="figure-caption">{{ figures['group_comparison.png'].description }}</div>
+</div>
+{% endif %}
+
+<div class="grid-3">
+    <div class="metric-card">
+        <div class="metric-value">{{ "%.1f" | format(group_stats.mean_accuracy * 100) }}%</div>
+        <div class="metric-label">Average Accuracy</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">{{ subjects_analyzed }}</div>
+        <div class="metric-label">Subjects Analyzed</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">{{ group_stats.total_sessions }}</div>
+        <div class="metric-label">Total Sessions</div>
+    </div>
+</div>
+
+<h2>Recommendations</h2>
+{% for recommendation in recommendations %}
+<div class="recommendation">{{ recommendation }}</div>
+{% endfor %}
+
+<h2>Subject Summary</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Subject ID</th>
+            <th>Subject Name</th>
+            <th>Sessions</th>
+            <th>Total Trials</th>
+            <th>Accuracy</th>
+            <th>Hit Rate</th>
+            <th>False Alarm Rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for subject in subject_summary %}
+        <tr>
+            <td>{{ subject.subject_id }}</td>
+            <td>{{ subject.subject_name }}</td>
+            <td>{{ subject.session_count }}</td>
+            <td>{{ subject.total_trials }}</td>
+            <td>{{ "%.1f" | format(subject.accuracy * 100) }}%</td>
+            <td>{{ "%.1f" | format(subject.hit_rate * 100) }}%</td>
+            <td>{{ "%.1f" | format(subject.false_alarm_rate * 100) }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

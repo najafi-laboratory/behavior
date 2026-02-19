@@ -1,0 +1,17 @@
+
+
+
+'trial_index', 'Start', 'ITI_Pre', 'CheckEyeOpen', 'LED_Onset',
+       'MaybeTriggerOpto', 'LED_Puff_ISI', 'AirPuff', 'ITI_Post', 'ITI',
+       'CamOff', 'OptoOnly', 'CheckEyeOpenTimeout', 'GlobalTimer3_Start',
+       'SoftCode1', 'Tup', 'GlobalTimer1_Start', 'GlobalTimer1_End',
+       'GlobalTimer2_Start', 'GlobalTimer2_End', 'FECRaw', 'FEC', 'FECTimes',
+       'eyeAreaPixels', 'totalEllipsePixels', 'FECTrialStartThresh', 'minFur',
+       'ISI', 'AirPuff_OnsetDelay', 'BlockType', 'IsProbeTrial', 'IsOptoTrial',
+       'nPositions', 'Positions', 'Times', 'nEvents', 'EventTypes',
+       'EventCodes', 'EventTimestamps', 'PositionsUnwrapped',
+       'LinearPositions', 'trial_start_timestamp', 'trial_stop_timestamp',
+       'trial_start', 'trial_cam_start'
+
+
+

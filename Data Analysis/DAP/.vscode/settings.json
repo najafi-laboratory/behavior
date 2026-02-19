@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "C:\\Users\\timst\\.conda\\envs\\base_vscode\\python.exe",
+  "python.terminal.activateEnvironment": true,
+  
+  // Notebook output settings to reduce scrollbars
+  "notebook.output.scrolling": false,
+  "notebook.output.textLineLimit": 1000,
+  "notebook.output.wordWrap": true
+}

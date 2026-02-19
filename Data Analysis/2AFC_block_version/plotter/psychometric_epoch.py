@@ -13,20 +13,20 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
     with 3 subplots per row (short, long, and all blocks with early/late superimposed) and saves to a PDF.
 
     Args:
-        sessions_data (dict): Dictionary from prepare_session_data containing outcomes, lick_properties, opto_tags, block_types, and dates.
+        sessions_data (dict): Dictionary containing dates and lick_properties for each session.
+        subject (str): Subject identifier.
+        data_paths (list): List of data file paths for naming output files.
         output_pdf (str): Path to save the output PDF file.
         bin_width (float): Width of ISI bins for multiple ISI cases.
         fit_logistic (bool): Whether to fit a logistic curve for multiple ISI cases.
+        save_path (str, optional): Directory to save the output PDF.
 
     Returns:
         None: Generates and saves plots to a PDF file.
     """
     # Extract session data
     dates = sessions_data['dates']
-    outcomes_list = sessions_data['outcomes']
     lick_properties_list = sessions_data['lick_properties']
-    opto_tags_list = sessions_data['opto_tags']
-    block_types_list = sessions_data['block_type']
     n_sessions = len(dates)
 
     def identify_blocks(block_types):
@@ -51,34 +51,56 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
             blocks.append((current_block_type, start_idx, len(block_types)))
         return blocks
 
-    def split_block_epochs(block_types, outcomes, opto_tags, lick_properties):
-        """Split blocks into early and late epochs, excluding opto trials."""
-        blocks = identify_blocks(block_types)
+    def split_block_epochs(lick_properties):
+        """Split blocks into early and late epochs, excluding opto trials and neutral blocks."""
+        blocks = []
+        # Collect all block types and corresponding trial indices
+        all_block_types = []
+        trial_indices = []
+        for key in ['short_ISI_reward_left_correct_lick', 'short_ISI_reward_right_incorrect_lick',
+                    'short_ISI_punish_right_incorrect_lick', 'short_ISI_punish_left_correct_lick',
+                    'long_ISI_reward_right_correct_lick', 'long_ISI_reward_left_incorrect_lick',
+                    'long_ISI_punish_left_incorrect_lick', 'long_ISI_punish_right_correct_lick']:
+            block_types = lick_properties[key].get('block_type', [])
+            for i in range(len(block_types)):
+                all_block_types.append(block_types[i])
+                trial_indices.append(i)
+        
+        if not all_block_types:
+            return {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}, \
+                   {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
+        
+        # Sort by trial index to reconstruct trial order
+        sorted_indices = np.argsort(trial_indices)
+        all_block_types = np.array(all_block_types)[sorted_indices]
+        trial_indices = np.array(trial_indices)[sorted_indices]
+        
+        # Identify blocks
+        blocks = identify_blocks(all_block_types)
+        
         early_data = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
         late_data = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
         
         left_keys = ['short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick']
         right_keys = ['short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick']
         
-        for block_type, start, end in blocks:
-            if block_type not in [1, 2]:
-                continue
-            block_length = end - start
-            midpoint = start + block_length // 2
+        for key in left_keys + right_keys:
+            trial_isi = lick_properties[key].get('Trial_ISI', [])
+            opto_tags = lick_properties[key].get('opto_tag', [])
+            block_types = lick_properties[key].get('block_type', [])
+            epochs = lick_properties[key].get('epoch', [])
             
-            for i in range(start, end):
-                if opto_tags[i] == 1:  # Exclude opto trials
+            for i in range(len(trial_isi)):
+                if trial_isi[i] is None or opto_tags[i] == 1 or block_types[i] == 0:
                     continue
-                block_key = 'short' if block_type == 1 else 'long'
-                target = early_data if i < midpoint else late_data
-                
-                # Extract ISI and choices from lick_properties for this trial
-                for key in left_keys + right_keys:
-                    if i < len(lick_properties[key]['Trial_ISI']) and lick_properties[key]['Trial_ISI'][i] is not None:
-                        target[block_key]['isi'].append(lick_properties[key]['Trial_ISI'][i])
-                        target[block_key]['choices'].append(1 if key in right_keys else 0)
-                        target['all']['isi'].append(lick_properties[key]['Trial_ISI'][i])
-                        target['all']['choices'].append(1 if key in right_keys else 0)
+                block_key = 'short' if block_types[i] == 1 else 'long' if block_types[i] == 2 else None
+                if block_key is None:
+                    continue
+                target = early_data if epochs[i] == 1 else late_data
+                target[block_key]['isi'].append(trial_isi[i])
+                target[block_key]['choices'].append(1 if key in right_keys else 0)
+                target['all']['isi'].append(trial_isi[i])
+                target['all']['choices'].append(1 if key in right_keys else 0)
         
         return early_data, late_data
 
@@ -179,8 +201,8 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
     # Process pooled data
     pooled_early = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
     pooled_late = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
-    for outcomes, lick_props, opto_tags, block_types in zip(outcomes_list, lick_properties_list, opto_tags_list, block_types_list):
-        early_data, late_data = split_block_epochs(block_types, outcomes, opto_tags, lick_props)
+    for lick_props in lick_properties_list:
+        early_data, late_data = split_block_epochs(lick_props)
         for block in ['short', 'long', 'all']:
             pooled_early[block]['isi'].extend(early_data[block]['isi'])
             pooled_early[block]['choices'].extend(early_data[block]['choices'])
@@ -273,8 +295,8 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
             ax3.set_title('Pooled All Blocks')
 
         # Plot individual sessions (3 subplots per session with superimposed early/late)
-        for i, (date, outcomes, lick_props, opto_tags, block_types) in enumerate(zip(dates, outcomes_list, lick_properties_list, opto_tags_list, block_types_list)):
-            early_data, late_data = split_block_epochs(block_types, outcomes, opto_tags, lick_props)
+        for i, (date, lick_props) in enumerate(zip(dates, lick_properties_list)):
+            early_data, late_data = split_block_epochs(lick_props)
             
             # Short blocks
             ax1 = fig.add_subplot(gs[i + 1, 0])

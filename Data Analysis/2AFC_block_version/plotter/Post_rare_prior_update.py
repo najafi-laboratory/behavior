@@ -334,4 +334,3 @@ def plot_post_rare_trial_analysis(sessions_data, subject, data_paths, save_path=
     plt.close()
     
     return pooled_results, short_results, long_results
-

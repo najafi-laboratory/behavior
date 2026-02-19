@@ -1,0 +1,64 @@
+Signal Quality Metrics:
+SNR of raw fluorescence (F)
+
+std(F) / mean(F) or coefficient of variation
+Signal dynamic range: (max(F) - min(F)) / mean(F)
+Baseline stability
+
+Trend in baseline over time (linear fit slope)
+Baseline noise level (std of bottom percentile)
+Neuropil contamination indicators
+
+corr(F, Fneu) - correlation between cell and neuropil
+mean(Fneu) / mean(F) - relative neuropil strength
+Spectral coherence between F and Fneu
+Motion-related Quality:
+Motion correlation
+
+corr(F, motion_x), corr(F, motion_y)
+corr(Fneu, motion)
+Motion artifact detection (sudden jumps correlated with motion)
+Motion severity during session
+
+Max motion displacement
+Motion stability (std of motion traces)
+Fraction of frames with large motion
+Temporal Pattern Analysis:
+Activity characteristics
+
+Sparsity of activity
+Number of potential events (peaks above threshold)
+Autocorrelation structure
+Artifact detection
+
+Sudden jumps/discontinuities
+Saturation events (max pixel values)
+Dead periods (unusually flat segments)
+
+
+
+
+1. Recording-Level General Checks (First Priority)
+Suite2p metrics: Motion correction quality, bad frames detection, registration drift
+Overall recording stability: Check for systematic drift, sudden jumps, or recording interruptions
+Basic statistics: Number of cells detected, overall fluorescence levels, baseline stability
+2. Cell-Level Outlier Detection
+Spike artifact detection: Identify and handle extreme fluorescence values that could be artifacts
+Outlier handling strategy: Replace with interpolated values from nearest non-outlier neighbors (left/right)
+Preserve signal integrity: Need robust thresholds to avoid removing true biological signals
+3. Frequency Domain Analysis
+Power line noise: 60Hz and harmonics detection
+Movement artifacts: Low-frequency drift patterns
+Filtering considerations: Conservative approach to preserve calcium dynamics
+4. SNR Calculations (Multiple Types)
+Trial-based SNR: Peak response vs pre-stimulus baseline across trials
+General SNR: Overall signal quality across full recording
+Time window flexibility: Adapt analysis window based on measurement type
+Key Considerations:
+Outlier Detection: Critical balance between artifact removal and signal preservation - calcium transients can have legitimate large amplitude changes
+
+Suite2p Integration: Leverage existing quality metrics rather than reinventing - motion correction scores, registration quality, etc.
+
+Frequency Analysis: Conservative filtering approach - calcium signals have specific frequency characteristics we need to preserve
+
+SNR Metrics: Multiple complementary measures since different experiments may need different SNR definitions

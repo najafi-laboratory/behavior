@@ -1,0 +1,123 @@
+Absolutely—here’s a concise, field-tested map of popular ways to filter, sort, and group calcium fluorescence (ΔF/F) traces, with one-line “what/why” blurbs and acronyms expanded.
+
+
+
+
+
+Preprocess & Clean (filtering before grouping)
+
+NoRMCorre — Non-Rigid Motion Correction: online piecewise-rigid registration; fast and scalable for large FOVs. 
+PubMed
+GitHub
+
+FISSA — Fast Image Signal Separation Analysis: neuropil decontamination via local “surrounds” + NMF; improves single-cell ΔF/F specificity. 
+Nature
+PubMed
+
+
+
+
+
+
+
+
+Extract ROIs & Traces (who’s a neuron + their time series)
+
+Suite2p: end-to-end pipeline (registration, ROI detection, neuropil correction, traces); very fast, widely adopted. 
+BioRxiv
++1
+
+CaImAn: open-source toolkit incl. CNMF/online CNMF and multi-session registration; highly scalable. 
+eLife
+PMC
+
+CNMF-E — Constrained NMF for Endoscopic (1-photon): handles large, fluctuating background; strong for miniscope data. 
+eLife
+PMC
+
+EXTRACT: robust, GPU-accelerated cell extraction with good false-positive control. 
+BioRxiv
+
+MIN1PIPE: miniscope-focused extraction pipeline; practical for 1-photon videos. 
+PMC
+
+CellSort (PCA/ICA): classic PCA→ICA demixing; still useful baseline/teaching tool. 
+PMC
+
+HNCcorr / SCALPEL: alternative segmentation (combinatorial/dictionary-learning) when CNMF-style methods struggle. 
+arXiv
++1
+
+
+
+
+
+Infer Events/Spikes (denoise & standardize activity for sorting)
+
+OASIS: fast sparse deconvolution to estimate spikes from ΔF/F online. 
+PLOS
+PMC
+
+MLspike: model-based spike inference (indicator kinetics, baselines) for accurate event timing. 
+Nature
+
+
+
+
+
+
+
+Sort / Group by Activity Patterns (make rasters coherent; find ensembles)
+
+Rastermap: orders neurons along a manifold so rasters become visually coherent; great for “functional sorting.” 
+BioRxiv
+PyPI
+
+HDBSCAN + UMAP/t-SNE: density-based clustering atop nonlinear embeddings to group ROIs by trial-locked dynamics (parameter-light, noise-robust). (General methods; pairs well with your pipeline.)
+
+SeqNMF — Sequential Non-negative Matrix Factorization: discovers repeated temporal sequences directly from calcium activity; ideal when dynamics are motif-like. 
+eLife
+PMC
+
+
+
+
+
+
+
+
+Demix by Task Variables / Latents (separate short vs long ISI, etc.)
+
+dPCA — Demixed PCA: linear reduction that separates variance by task factors (stimulus/choice/ISI), aiding interpretability. 
+eLife
+
+GPFA — Gaussian-Process Factor Analysis: smooth low-dimensional latent trajectories per trial; good for ramping/dynamics comparisons. 
+PubMed
+
+(Tensor) Component Analysis / TCA: 3-way factorization (neurons × time × trials) that cleanly splits cell/temporal/trial factors for population motifs. 
+PubMed
+
+Longitudinal Alignment (grouping across days/sessions)
+
+CellReg: probabilistic cross-session ROI matching with confidence scores; standard for chronic imaging. 
+PubMed
+
+
+
+
+
+
+
+
+
+
+
+All-in-one / GUI pipelines (useful for end-to-end or validation)
+
+Minian (Python): open-source pipeline with interactive viz/validation; laptop-friendly. 
+eLife
+
+(Also worth a look): reviews comparing pipelines and best practices. 
+ScienceDirect
+
+If you like, I can suggest drop-in swaps for parts of your stack (e.g., FISSA before ResNet features, OASIS before UMAP/HDBSCAN, dPCA downstream of your ramp-aligned rasters) and sketch minimal code/parameters to try next.

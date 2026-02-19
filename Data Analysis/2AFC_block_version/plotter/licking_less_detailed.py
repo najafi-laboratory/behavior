@@ -5,10 +5,10 @@ from scipy.optimize import curve_fit
 # Single sessions plotter ------------------------------------------------------------
 
 # Plotting function for psychometric curve
-def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None, bin_width=0.01, fit_logistic=True, opto_split=False):
+def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None, bin_width=0.01, fit_logistic=True, opto_split=False, block_selection='all'):
     """
     Plot psychometric curves showing probability of right port choice as a function of ISI with SEM.
-    Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
+    Superimposes curves for block_type 1 (Short) and block_type 2 (Long), with option to select specific blocks.
     Handles both single ISI per condition (short/long) and multiple ISI values.
     
     Parameters:
@@ -25,6 +25,8 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
         Whether to fit and plot a logistic function to the data (used when multiple ISIs)
     opto_split : bool, optional
         Whether to split data by opto_tag (control vs. opto trials)
+    block_selection : str, optional
+        Which blocks to plot: 'all' (both block 1 and 2), 'block1' (only block 1), 'block2' (only block 2)
         
     Returns:
     --------
@@ -35,6 +37,11 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
     fit_params : dict or None
         Parameters of the logistic fit (for multiple ISIs) or linear fit (for single ISIs), if applicable
     """
+    # Validate block_selection parameter
+    valid_blocks = ['all', 'block1', 'block2']
+    if block_selection not in valid_blocks:
+        raise ValueError(f"block_selection must be one of {valid_blocks}")
+
     # Create figure and axes if not provided
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -45,7 +52,7 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
     colors = {
         'all': {'block1': '#787573', 'block2': '#000000'},
         'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
-        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'punished': {'block1': "#d77267", 'block2': "#ba0000"},
         'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
         'control': {'block1': "#787573", 'block2': "#000000"}
     }
@@ -110,8 +117,6 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
             return None
         
         # Map block_type to label
-        # if block_type == 0:
-        #     block_label = 'Neutral'
         if block_type == 1:
             block_label = 'Short'
         elif block_type == 2:
@@ -159,7 +164,6 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
                 b = y1 - m * x1
                 inflection_point = (0.5 - b) / m
                 if min(x1, x2) <= inflection_point <= max(x1, x2):
-                    # ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
                     ax.text(inflection_point, 0.1, f'{label} IP ({block_label}): {inflection_point:.2f}s',
                            color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                     fit_params = {'x0': inflection_point, 'slope': m, 'intercept': b}
@@ -212,9 +216,6 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
                     ip_index = np.argmin(np.abs(y_fit - 0.5))
                     ip_value = x_fit[ip_index]
                     inflection_point = ip_value
-                    # ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
-                    # ax.text(inflection_point, 0.1, f'{label} IP ({block_label}): {inflection_point:.2f}s',
-                    #        color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                     
                     fit_params = {'L': popt[0], 'k': popt[1], 'x0': popt[2]}
                 except Exception as e:
@@ -222,42 +223,46 @@ def plot_psychometric_curve_less(lick_properties, filter_outcomes='all', ax=None
             
             return fit_params
     
+    # Determine which blocks to plot
+    blocks_to_plot = [1, 2] if block_selection == 'all' else [1] if block_selection == 'block1' else [2]
+    
     # Plot data for each block type
     fit_params = {}
     title_suffix = filter_outcomes.capitalize() + ' Trials'
+    if block_selection == 'block1':
+        title_suffix += ' (Short Block)'
+    elif block_selection == 'block2':
+        title_suffix += ' (Long Block)'
+    else:
+        title_suffix += ' (All Blocks)'
     
     if opto_split:
-        # Plot control trials for both block types
+        # Plot control trials for selected block(s)
         fit_params['control'] = {}
-        for block_type in [1, 2]:
+        for block_type in blocks_to_plot:
             if np.any(block_types == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, 'Control',
                     colors['control'][f'block{block_type}'], opto_value=0, block_type=block_type
                 )
         
-        # Plot opto trials for both block types if they exist
+        # Plot opto trials for selected block(s) if they exist
         if np.any(opto_tags == 1):
             fit_params['opto'] = {}
-            for block_type in [1, 2]:
+            for block_type in blocks_to_plot:
                 if np.any(block_types == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         isi_values, choices, block_types, 'Opto',
                         colors['opto'][f'block{block_type}'], opto_value=1, block_type=block_type
                     )
     else:
-        # Plot for both block types
-        for block_type in [1, 2]:
+        # Plot for selected block(s)
+        for block_type in blocks_to_plot:
             if np.any(block_types == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, filter_outcomes.capitalize(),
                     colors[filter_outcomes][f'block{block_type}'], block_type=block_type
                 )
-    
-    # Add ISI divider if available
-    # if 'ISI_devider' in lick_properties:
-    #     isi_divider = lick_properties['ISI_devider']
-    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
     
     # Customize plot
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
@@ -740,10 +745,10 @@ def plot_isi_reaction_time_less(lick_properties, filter_outcomes='all', ax=None,
 
 # Plotting functions for pooling sessions ------------------------------------------------------
 # Plotting function for pooled psychometric curve
-def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False):
+def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False, block_selection='all'):
     """
     Plot psychometric curve for pooled data from multiple sessions, showing probability of right port choice as a function of ISI with SEM.
-    Superimposes curves for block_type 1 (Short) and block_type 2 (Long).
+    Superimposes curves for block_type 1 (Short) and block_type 2 (Long), with option to select specific blocks.
     Handles both continuous ISI values and fixed single ISI values for short and long trials.
     
     Parameters:
@@ -761,6 +766,8 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
         Whether to fit and plot a logistic function to the data (only for continuous ISI data)
     opto_split : bool, optional
         Whether to split data by opto_tag (control vs. opto trials)
+    block_selection : str, optional
+        Which blocks to plot: 'all' (both block 1 and 2), 'block1' (only block 1), 'block2' (only block 2)
         
     Returns:
     --------
@@ -771,6 +778,11 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
     fit_params : dict or None
         Parameters of the logistic fit, if fit_logistic=True and continuous ISI data
     """
+    # Validate block_selection parameter
+    valid_blocks = ['all', 'block1', 'block2']
+    if block_selection not in valid_blocks:
+        raise ValueError(f"block_selection must be one of {valid_blocks}")
+
     # Create figure and axes if not provided
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -781,7 +793,7 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
     colors = {
         'all': {'block1': '#787573', 'block2': '#000000'},
         'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
-        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'punished': {'block1': "#d77267", 'block2': "#ba0000"},
         'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
         'control': {'block1': "#787573", 'block2': "#000000"}
     }
@@ -874,8 +886,6 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
             return None
         
         # Map block_type to label
-        # if block_type == 0:
-        #     block_label = 'Neutral'
         if block_type == 1:
             block_label = 'Short'
         elif block_type == 2:
@@ -959,9 +969,6 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
                     ip_index = np.argmin(np.abs(y_fit - 0.5))
                     ip_value = x_fit[ip_index]
                     inflection_point = ip_value
-                    # ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
-                    # ax.text(inflection_point, 0.1, f'{label} IP ({block_label}): {inflection_point:.2f}s',
-                    #        color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                     
                     fit_params = {'L': popt[0], 'k': popt[1], 'x0': popt[2]}
                 except Exception as e:
@@ -969,31 +976,41 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
         
         return fit_params
     
+    # Determine which blocks to plot
+    blocks_to_plot = [1, 2] if block_selection == 'all' else [1] if block_selection == 'block1' else [2]
+    
     # Plot data
     fit_params = {}
     title_suffix = filter_outcomes.capitalize() + ' Trials'
+    if block_selection == 'block1':
+        title_suffix += ' (Short Block)'
+    elif block_selection == 'block2':
+        title_suffix += ' (Long Block)'
+    else:
+        title_suffix += ' (All Blocks)'
+    
     if opto_split:
-        # Plot control trials for both block types
+        # Plot control trials for selected block(s)
         fit_params['control'] = {}
-        for block_type in [1, 2]:
+        for block_type in blocks_to_plot:
             if np.any(block_types == block_type):
                 fit_params['control'][f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, 'Control',
                     colors['control'][f'block{block_type}'], opto_value=0, block_type=block_type
                 )
         
-        # Plot opto trials for both block types if they exist
+        # Plot opto trials for selected block(s) if they exist
         if np.any(opto_tags == 1):
             fit_params['opto'] = {}
-            for block_type in [1, 2]:
+            for block_type in blocks_to_plot:
                 if np.any(block_types == block_type):
                     fit_params['opto'][f'block{block_type}'] = plot_group(
                         isi_values, choices, block_types, 'Opto',
                         colors['opto'][f'block{block_type}'], opto_value=1, block_type=block_type
                     )
     else:
-        # Plot for both block types
-        for block_type in [1, 2]:
+        # Plot for selected block(s)
+        for block_type in blocks_to_plot:
             if np.any(block_types == block_type):
                 fit_params[f'block{block_type}'] = plot_group(
                     isi_values, choices, block_types, filter_outcomes.capitalize(),
@@ -1008,9 +1025,6 @@ def plot_pooled_psychometric_curve_less(lick_properties_list, filter_outcomes='a
                 isi_divider = lick_properties['ISI_devider']
             elif isi_divider != lick_properties['ISI_devider']:
                 print(f"Warning: Inconsistent ISI_devider values across sessions. Using {isi_divider}.")
-    
-    # if isi_divider is not None:
-    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
     
     # Customize plot
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
@@ -1517,7 +1531,43 @@ def plot_pooled_reaction_time_curve_less(lick_properties_list, filter_outcomes='
     return fig, ax, fit_params
 
 # Fucntions for Grand Average plots ------------------------------------------------------
-def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False):
+def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outcomes='all', ax=None, bin_width=0.05, fit_logistic=True, opto_split=False, block_selection='all'):
+    """
+    Plot grand average psychometric curve across multiple sessions, showing probability of right port choice as a function of ISI with SEM.
+    Superimposes curves for block_type 1 (Short) and block_type 2 (Long), with option to select specific blocks.
+    Handles both continuous ISI values and fixed single ISI values for short and long trials.
+    
+    Parameters:
+    -----------
+    lick_properties_list : list of dict
+        List of dictionaries, each containing lick properties from a session with structure:
+        {'short_ISI_reward_left_correct_lick': {...}, 'long_ISI_punish_left_incorrect_lick': {...}, ...}
+    filter_outcomes : str, optional
+        'all' for both rewarded and punished trials, 'rewarded' for rewarded trials only, 'punished' for punished trials only
+    ax : matplotlib.axes.Axes, optional
+        Axes to plot on. If None, creates a new figure and axes
+    bin_width : float, optional
+        Width of ISI bins for calculating choice probability (used for continuous ISI data)
+    fit_logistic : bool, optional
+        Whether to fit and plot a logistic function to the data (only for continuous ISI data)
+    opto_split : bool, optional
+        Whether to split data by opto_tag (control vs. opto trials)
+    block_selection : str, optional
+        Which blocks to plot: 'all' (both block 1 and 2), 'block1' (only block 1), 'block2' (only block 2)
+        
+    Returns:
+    --------
+    fig : matplotlib.figure.Figure
+        Figure object
+    ax : matplotlib.axes.Axes
+        Axes object with the plot
+    fit_params : dict or None
+        Parameters of the logistic fit, if fit_logistic=True and continuous ISI data
+    """
+    # Validate block_selection parameter
+    valid_blocks = ['all', 'block1', 'block2']
+    if block_selection not in valid_blocks:
+        raise ValueError(f"block_selection must be one of {valid_blocks}")
 
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -1527,7 +1577,7 @@ def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outc
     colors = {
         'all': {'block1': '#787573', 'block2': '#000000'},
         'rewarded': {'block1': "#8bfa7c", 'block2': "#01c401"},
-        'punished': { 'block1': "#d77267", 'block2': "#ba0000"},
+        'punished': {'block1': "#d77267", 'block2': "#ba0000"},
         'opto': {'block1': "#8c8ce2", 'block2': "#0133c7"},
         'control': {'block1': "#787573", 'block2': "#000000"}
     }
@@ -1677,20 +1727,27 @@ def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outc
                 ax.plot(x_fit, y_fit, '-', color=color, linewidth=2,
                         label=f"{label} fit ({block_label})")
                 ip_value = x_fit[np.argmin(np.abs(y_fit - 0.5))]
-                # ax.axvline(x=ip_value, color=color, linestyle='--', alpha=0.5)
-                # ax.text(ip_value, 0.1, f'{label} IP ({block_label}): {ip_value:.2f}s',
-                #         color=color, ha='center', bbox=dict(facecolor='white', alpha=0.7))
                 fit_params = {'L': popt[0], 'k': popt[1], 'x0': popt[2]}
             except Exception as e:
                 print(f"Fit error for {label} ({block_label}): {e}")
 
         return fit_params
 
+    # Determine which blocks to plot
+    blocks_to_plot = [1, 2] if block_selection == 'all' else [1] if block_selection == 'block1' else [2]
+
     fit_params = {}
     title_suffix = filter_outcomes.capitalize() + ' Trials'
+    if block_selection == 'block1':
+        title_suffix += ' (Short Block)'
+    elif block_selection == 'block2':
+        title_suffix += ' (Long Block)'
+    else:
+        title_suffix += ' (All Blocks)'
+
     for mode in ['control', 'opto'] if opto_split else ['main']:
         fit_params[mode] = {}
-        for block_type in [1, 2]:
+        for block_type in blocks_to_plot:
             if np.any(all_block == block_type):
                 args = (isi_centers, None) if is_discrete else (bin_centers, bins)
                 fit_params[mode][f'block{block_type}'] = plot_group(*args,
@@ -1700,8 +1757,6 @@ def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outc
                     block_type=block_type)
 
     isi_divider = next((lp['ISI_devider'] for lp in lick_properties_list if 'ISI_devider' in lp), None)
-    # if isi_divider is not None:
-    #     ax.axvline(x=isi_divider, color='r', linestyle='--', alpha=0.3)
 
     ax.set_xlabel('Inter-Stimulus Interval (s)', fontsize=12)
     ax.set_ylabel('Probability of Right Choice', fontsize=12)
@@ -1714,7 +1769,6 @@ def plot_grand_average_psychometric_curve_less(lick_properties_list, filter_outc
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     return fig, ax, fit_params
-
 # Fucn
 
 def plot_grand_average_isi_reaction_time_less(lick_properties_list, filter_outcomes='all', ax=None, opto_split=False):
