@@ -10,13 +10,6 @@ import os
 def identify_rare_trials(trial_types, block_types):
     """
     Identify rare trials based on block type and trial type.
-    
-    Parameters:
-    trial_types: list/array where 1=short, 2=long
-    block_types: list/array where 0=neutral, 1=short block, 2=long block
-    
-    Returns:
-    numpy array: Boolean mask indicating rare trials
     """
     trial_types = np.array(trial_types)
     block_types = np.array(block_types)
@@ -28,296 +21,212 @@ def identify_rare_trials(trial_types, block_types):
     
     return rare_mask
 
-def compute_rare_trial_fractions_from_sessions(sessions_data, pool_blocks=True):
+def compute_rare_trial_fractions(sessions_data, block_analysis='pooled', filter_mode='all'):
     """
-    Compute fraction correct for rare-1, rare, and rare+1 trials for each session.
+    Compute fraction correct for rare-1, rare, and rare+1 trials.
     
     Parameters:
-    sessions_data: dict with keys 'outcomes', 'trial_types', 'block_type', 'dates'
-    pool_blocks: if True, pool rare trials from short and long blocks
-    
-    Returns:
-    DataFrame with columns: session, condition, fraction_correct, n_trials
+    sessions_data: dict with session data
+    block_analysis: 'pooled', 'short', 'long'
+    filter_mode: 
+        'control': ALL trials (rare-1, rare, rare+1) must be non-opto.
+        'opto': The RARE trial must be opto (neighbors included regardless).
+        'all': No opto filtering.
     """
-    
     results = []
-    
     n_sessions = len(sessions_data['outcomes'])
+    opto_list = sessions_data.get('opto_tags', [[]] * n_sessions)
     
     for session_idx in range(n_sessions):
         outcomes = sessions_data['outcomes'][session_idx]
         trial_types = sessions_data['trial_types'][session_idx]
         block_types = sessions_data['block_type'][session_idx]
         date = sessions_data['dates'][session_idx]
+        opto_raw = opto_list[session_idx]
         
-        # Convert outcomes to binary (1 for correct, 0 for incorrect)
-        outcomes_binary = np.array([1 if outcome == 'Reward' else 0 for outcome in outcomes])
-        
-        # Skip sessions with insufficient trials
-        if len(outcomes) < 3:
+        n_trials = len(outcomes)
+        if n_trials < 3:
             continue
-            
-        # Identify rare trials
-        rare_mask = identify_rare_trials(trial_types, block_types)
-        rare_indices = np.where(rare_mask)[0]
-        
-        if len(rare_indices) == 0:
-            continue
-            
-        # Get rare-1, rare, and rare+1 trials
-        conditions = {
-            'rare-1': [],
-            'rare': [],
-            'rare+1': []
-        }
-        
-        for rare_idx in rare_indices:
-            # rare-1 (trial before rare trial)
-            if rare_idx > 0:
-                conditions['rare-1'].append(rare_idx - 1)
-            
-            # rare (the rare trial itself)
-            conditions['rare'].append(rare_idx)
-            
-            # rare+1 (trial after rare trial)
-            if rare_idx < len(outcomes) - 1:
-                conditions['rare+1'].append(rare_idx + 1)
-        
-        # Compute fraction correct for each condition
-        for condition, indices in conditions.items():
-            if len(indices) > 0:
-                condition_outcomes = outcomes_binary[indices]
-                
-                # Only include completed trials (not NaN)
-                valid_mask = ~np.isnan(condition_outcomes)
-                completed_outcomes = condition_outcomes[valid_mask]
-                
-                if len(completed_outcomes) > 0:
-                    fraction_correct = completed_outcomes.mean()
-                    n_trials = len(completed_outcomes)
-                    
-                    results.append({
-                        'session': session_idx,
-                        'date': date,
-                        'condition': condition,
-                        'fraction_correct': fraction_correct,
-                        'n_trials': n_trials
-                    })
-    
-    return pd.DataFrame(results)
 
-def compute_rare_trial_fractions_by_block_type(sessions_data, block_analysis='short'):
-    """
-    Compute fraction correct for rare trials separated by block type.
-    
-    Parameters:
-    sessions_data: dict with keys 'outcomes', 'trial_types', 'block_type', 'dates'
-    block_analysis: 'short' for short blocks only, 'long' for long blocks only
-    
-    Returns:
-    DataFrame with columns: session, condition, fraction_correct, n_trials
-    """
-    
-    results = []
-    n_sessions = len(sessions_data['outcomes'])
-    
-    for session_idx in range(n_sessions):
-        outcomes = sessions_data['outcomes'][session_idx]
-        trial_types = sessions_data['trial_types'][session_idx]
-        block_types = sessions_data['block_type'][session_idx]
-        date = sessions_data['dates'][session_idx]
+        # 1. Clean Opto Tags
+        if opto_raw is None or len(opto_raw) == 0:
+            opto_clean = np.zeros(n_trials)
+        else:
+            temp = pd.to_numeric(opto_raw, errors='coerce')
+            opto_clean = np.nan_to_num(temp, nan=0.0)
+            if len(opto_clean) < n_trials:
+                opto_clean = np.pad(opto_clean, (0, n_trials - len(opto_clean)), constant_values=0)
+            elif len(opto_clean) > n_trials:
+                opto_clean = opto_clean[:n_trials]
+
+        # 2. Identify Rare Trials
+        rare_mask = identify_rare_trials(trial_types, block_types)
         
-        # Convert outcomes to binary
-        outcomes_binary = np.array([1 if outcome == 'Reward' else 0 for outcome in outcomes])
-        
-        if len(outcomes) < 3:
-            continue
-        
-        # Filter for specific block type and identify rare trials
+        # 3. Apply Block Filtering
         if block_analysis == 'short':
-            # Short blocks (block_type=1) with long rare trials (trial_type=2)
-            block_mask = np.array(block_types) == 1
-            rare_mask = (np.array(block_types) == 1) & (np.array(trial_types) == 2)
-        else:  # 'long'
-            # Long blocks (block_type=2) with short rare trials (trial_type=1)
-            block_mask = np.array(block_types) == 2
-            rare_mask = (np.array(block_types) == 2) & (np.array(trial_types) == 1)
+            block_mask = (np.array(block_types) == 1)
+            rare_mask = rare_mask & block_mask
+        elif block_analysis == 'long':
+            block_mask = (np.array(block_types) == 2)
+            rare_mask = rare_mask & block_mask
         
         rare_indices = np.where(rare_mask)[0]
-        
         if len(rare_indices) == 0:
             continue
+            
+        outcomes_binary = np.array([1 if outcome == 'Reward' else 0 for outcome in outcomes])
         
-        # Get rare-1, rare, and rare+1 trials
-        conditions = {
-            'rare-1': [],
-            'rare': [],
-            'rare+1': []
-        }
+        # 4. Process Conditions (rare-1, rare, rare+1)
+        conditions = {'rare-1': [], 'rare': [], 'rare+1': []}
         
         for rare_idx in rare_indices:
-            # rare-1 (trial before rare trial) - must also be in same block type
-            if rare_idx > 0 and block_mask[rare_idx - 1]:
-                conditions['rare-1'].append(rare_idx - 1)
-            
-            # rare (the rare trial itself)
-            conditions['rare'].append(rare_idx)
-            
-            # rare+1 (trial after rare trial) - must also be in same block type
-            if rare_idx < len(outcomes) - 1 and block_mask[rare_idx + 1]:
-                conditions['rare+1'].append(rare_idx + 1)
-        
-        # Compute fraction correct for each condition
+            # Check Indices Validity
+            if rare_idx == 0 or rare_idx >= n_trials - 1:
+                continue
+                
+            idx_prev = rare_idx - 1
+            idx_curr = rare_idx
+            idx_next = rare_idx + 1
+
+            # --- FILTERING LOGIC ---
+            if filter_mode == 'control':
+                # STRICT: All 3 trials must be non-opto
+                if (opto_clean[idx_prev] == 0 and 
+                    opto_clean[idx_curr] == 0 and 
+                    opto_clean[idx_next] == 0):
+                    
+                    conditions['rare-1'].append(idx_prev)
+                    conditions['rare'].append(idx_curr)
+                    conditions['rare+1'].append(idx_next)
+                    
+            elif filter_mode == 'opto':
+                # TARGET: The Rare trial (idx_curr) must be opto. 
+                # We don't filter neighbors based on opto.
+                if opto_clean[idx_curr] != 0:
+                    conditions['rare-1'].append(idx_prev)
+                    conditions['rare'].append(idx_curr)
+                    conditions['rare+1'].append(idx_next)
+                    
+            else: # 'all'
+                # No filter
+                conditions['rare-1'].append(idx_prev)
+                conditions['rare'].append(idx_curr)
+                conditions['rare+1'].append(idx_next)
+
+        # 5. Compute Fractions
         for condition, indices in conditions.items():
             if len(indices) > 0:
                 condition_outcomes = outcomes_binary[indices]
-                
-                # Only include completed trials
                 valid_mask = ~np.isnan(condition_outcomes)
                 completed_outcomes = condition_outcomes[valid_mask]
                 
                 if len(completed_outcomes) > 0:
                     fraction_correct = completed_outcomes.mean()
-                    n_trials = len(completed_outcomes)
+                    n_count = len(completed_outcomes)
                     
                     results.append({
                         'session': session_idx,
                         'date': date,
                         'condition': condition,
                         'fraction_correct': fraction_correct,
-                        'n_trials': n_trials,
-                        'block_type': block_analysis
+                        'n_trials': n_count
                     })
     
     return pd.DataFrame(results)
 
 def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=None):
     """
-    Plot all three analyses (pooled, short blocks, long blocks) in a 3x2 grid with summary stats.
-    Shows rare-1, rare, and rare+1 trial comparison using KDE line plots for distributions.
-    
-    Parameters:
-    sessions_data: dict from prepare_session_data function
-    subject: subject identifier
-    data_paths: list of data file paths
-    save_path: optional path to save the figure
+    Plot rare trial analysis in a 9-column grid (Control, Opto, All) x (Pooled, Short, Long).
     """
     
-    # Compute all three analyses
-    pooled_results = compute_rare_trial_fractions_from_sessions(sessions_data, pool_blocks=True)
-    short_results = compute_rare_trial_fractions_by_block_type(sessions_data, block_analysis='short')
-    long_results = compute_rare_trial_fractions_by_block_type(sessions_data, block_analysis='long')
+    # Configuration: (Filter Mode, Block Analysis, Title)
+    configs = [
+        ('control', 'pooled', 'Control: Pooled'),
+        ('control', 'short',  'Control: Short Blocks'),
+        ('control', 'long',   'Control: Long Blocks'),
+        ('opto',    'pooled', 'Opto: Pooled'),
+        ('opto',    'short',  'Opto: Short Blocks'),
+        ('opto',    'long',   'Opto: Long Blocks'),
+        ('all',     'pooled', 'All: Pooled'),
+        ('all',     'short',  'All: Short Blocks'),
+        ('all',     'long',   'All: Long Blocks')
+    ]
     
-    # Debug: Print results info
-    print(f"Pooled results: {len(pooled_results)} rows, columns: {list(pooled_results.columns) if len(pooled_results) > 0 else 'Empty'}")
-    print(f"Short results: {len(short_results)} rows, columns: {list(short_results.columns) if len(short_results) > 0 else 'Empty'}")
-    print(f"Long results: {len(long_results)} rows, columns: {list(long_results.columns) if len(long_results) > 0 else 'Empty'}")
+    # Create figure with GridSpec (9 columns)
+    fig = plt.figure(figsize=(40, 12))
+    gs = gridspec.GridSpec(3, 9, height_ratios=[1, 1, 0.6], hspace=0.3, wspace=0.3)
     
-    # Create empty DataFrame with correct structure if results are empty
-    empty_df = pd.DataFrame(columns=['session', 'date', 'condition', 'fraction_correct', 'n_trials'])
-    
-    if len(pooled_results) == 0:
-        pooled_results = empty_df.copy()
-    if len(short_results) == 0:
-        short_results = empty_df.copy()
-    if len(long_results) == 0:
-        long_results = empty_df.copy()
-    
-    # Create figure with GridSpec
-    fig = plt.figure(figsize=(18, 12))
-    gs = gridspec.GridSpec(3, 3, height_ratios=[1, 1, 0.4], hspace=0.3, wspace=0.3)
-    
-    # Define conditions and colors
     conditions = ['rare-1', 'rare', 'rare+1']
     colors = ['blue', 'red', 'green']
     condition_labels = ['Control (rare-1)', 'Perturbation (rare)', 'Adaptation (rare+1)']
     
-    # Analysis results and titles
-    analyses = [
-        (pooled_results, "Pooled: Short & Long Blocks"),
-        (short_results, "Short Blocks Only"),
-        (long_results, "Long Blocks Only")
-    ]
-    
-    for col, (fraction_data, title) in enumerate(analyses):
+    for col_idx, (filt_mode, block_cond, title) in enumerate(configs):
         
-        # Top row: KDE line plot for distribution
-        ax_density = fig.add_subplot(gs[0, col])
+        # Compute data for this column
+        fraction_data = compute_rare_trial_fractions(sessions_data, block_analysis=block_cond, filter_mode=filt_mode)
+        
+        # --- Row 0: Density Plot (KDE) ---
+        ax_density = fig.add_subplot(gs[0, col_idx])
         
         for condition, color, label in zip(conditions, colors, condition_labels):
-            # Check if DataFrame has the condition column and data
             if 'condition' in fraction_data.columns and len(fraction_data) > 0:
                 condition_data = fraction_data[fraction_data['condition'] == condition]['fraction_correct']
             else:
-                condition_data = pd.Series(dtype=float)  # Empty series
+                condition_data = pd.Series(dtype=float)
             
-            if len(condition_data) > 1:  # Need at least 2 points for KDE
+            if len(condition_data) > 1:
                 try:
-                    # Check if data has sufficient variance
-                    if condition_data.std() > 1e-10:  # Has meaningful variance
-                        # Plot KDE without filling
+                    if condition_data.std() > 1e-10:
                         sns.kdeplot(data=condition_data, ax=ax_density, color=color, 
                                     label=f"{label} (n={len(condition_data)})", 
                                     linewidth=2, fill=False)
-                        # Add mean line
-                        mean_val = condition_data.mean()
-                        ax_density.axvline(mean_val, color=color, linestyle='--', alpha=0.7)
+                        ax_density.axvline(condition_data.mean(), color=color, linestyle='--', alpha=0.7)
                     else:
-                        # All values are nearly identical - show as single vertical line
-                        mean_val = condition_data.mean()
-                        ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(condition_data)})", 
-                                         linewidth=3, alpha=0.7)
+                        ax_density.axvline(condition_data.mean(), color=color, label=f"{label} (n={len(condition_data)})", 
+                                           linewidth=3, alpha=0.7)
                 except Exception:
-                    # Fallback for any issues - show as vertical line
-                    mean_val = condition_data.mean()
-                    ax_density.axvline(mean_val, color=color, label=f"{label} (n={len(condition_data)})", 
-                                      linewidth=3, alpha=0.7)
+                    ax_density.axvline(condition_data.mean(), color=color, label=f"{label} (n={len(condition_data)})", 
+                                       linewidth=3, alpha=0.7)
             elif len(condition_data) == 1:
-                # Single point - show as vertical line
-                ax_density.axvline(condition_data.iloc[0], color=color, label=label, 
-                                  linewidth=3, alpha=0.7)
+                ax_density.axvline(condition_data.iloc[0], color=color, label=label, linewidth=3, alpha=0.7)
         
-        ax_density.set_xlabel('Fraction Correct')
-        ax_density.set_ylabel('Density')
-        ax_density.set_title(f'{title}\nDistribution Across Sessions')
-        ax_density.legend(fontsize=8)
+        ax_density.set_title(title, fontsize=10, fontweight='bold')
+        if col_idx == 0: ax_density.set_ylabel('Density')
+        else: ax_density.set_ylabel('')
+        ax_density.set_xlabel('')
         ax_density.set_xlim(0, 1)
+        if col_idx == 0: ax_density.legend(fontsize=6, loc='upper left')
         ax_density.spines['top'].set_visible(False)
         ax_density.spines['right'].set_visible(False)
         
-        # Middle row: Cumulative distributions
-        ax_cumulative = fig.add_subplot(gs[1, col])
+        # --- Row 1: Cumulative distributions ---
+        ax_cumulative = fig.add_subplot(gs[1, col_idx])
         
         for condition, color, label in zip(conditions, colors, condition_labels):
-            # Check if DataFrame has the condition column and data
             if 'condition' in fraction_data.columns and len(fraction_data) > 0:
                 condition_data = fraction_data[fraction_data['condition'] == condition]['fraction_correct']
             else:
-                condition_data = pd.Series(dtype=float)  # Empty series
+                condition_data = pd.Series(dtype=float)
             
             if len(condition_data) > 0:
-                # Sort data for cumulative plot
                 sorted_data = np.sort(condition_data)
                 n = len(sorted_data)
                 cumulative = np.arange(1, n + 1) / n
-                
                 ax_cumulative.plot(sorted_data, cumulative, color=color, label=label, 
-                                 linewidth=2, marker='o', markersize=4)
+                                   linewidth=2, marker='o', markersize=4)
         
+        if col_idx == 0: ax_cumulative.set_ylabel('Cumulative Prob.')
+        else: ax_cumulative.set_ylabel('')
         ax_cumulative.set_xlabel('Fraction Correct')
-        ax_cumulative.set_ylabel('Cumulative Probability')
-        ax_cumulative.set_title('Cumulative Distribution')
-        ax_cumulative.legend(fontsize=8)
         ax_cumulative.set_xlim(0, 1)
         ax_cumulative.set_ylim(-0.1, 1.1)
         ax_cumulative.spines['top'].set_visible(False)
         ax_cumulative.spines['right'].set_visible(False)
         
-        # Bottom row: Summary statistics text
-        ax_text = fig.add_subplot(gs[2, col])
+        # --- Row 2: Summary statistics text ---
+        ax_text = fig.add_subplot(gs[2, col_idx])
         ax_text.axis('off')
         
-        # Create summary statistics text
         summary_text = []
         summary_text.append(f"Summary Statistics - {title}")
         summary_text.append("=" * 40)
@@ -326,7 +235,7 @@ def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=N
             if 'condition' in fraction_data.columns and len(fraction_data) > 0:
                 condition_data = fraction_data[fraction_data['condition'] == condition]['fraction_correct']
             else:
-                condition_data = pd.Series(dtype=float)  # Empty series
+                condition_data = pd.Series(dtype=float)
                 
             if len(condition_data) > 0:
                 summary_text.append(f"\n{condition.upper()}:")
@@ -338,22 +247,22 @@ def plot_all_rare_trial_analyses(sessions_data, subject, data_paths, save_path=N
             else:
                 summary_text.append(f"\n{condition.upper()}: No data")
         
-        # Add text to subplot
         text_content = '\n'.join(summary_text)
         ax_text.text(0.05, 0.95, text_content, transform=ax_text.transAxes, 
-                    fontsize=9, verticalalignment='top', fontfamily='monospace',
-                    bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
-    
-    plt.suptitle('Rare Trial Analysis: Fraction Correct Across All Conditions', 
+                     fontsize=9, verticalalignment='top', fontfamily='monospace',
+                     bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgray', alpha=0.8))
+
+    plt.suptitle(f'Rare Trial Analysis: Split by Opto - {subject}', 
                  fontsize=16, fontweight='bold', y=0.98)
     
     plt.tight_layout()
     
     if save_path:
-        output_path = os.path.join(save_path, f'Rare_Trial_Analysis_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
+        s_str = data_paths[-1].split("_")[-2] if len(data_paths) > 0 else "end"
+        e_str = data_paths[0].split("_")[-2] if len(data_paths) > 0 else "start"
+        output_path = os.path.join(save_path, f'Rare_Trial_Analysis_SplitOpto_{subject}_{s_str}_{e_str}.pdf')
         fig.savefig(output_path, dpi=300, bbox_inches='tight')
     
     plt.close()
     
-    return pooled_results, short_results, long_results
-
+    return

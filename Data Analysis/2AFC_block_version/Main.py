@@ -38,405 +38,407 @@ from plotter.Opto_sequence_psychometric import (
 )
 
 from plotter.rare_trial_analysis import plot_all_rare_trial_analyses
+from plotter.Performance_by_stimulus import plot_performance_by_stimulus
+from plotter.learned_trial_number_expo_fitted import analyze_learning_dynamics_fitted
+from plotter.learned_trial_number import analyze_learning_dynamics
+from plotter.Reaction_time_rare_trials import plot_reaction_time_rare_trials
+from plotter.Reaction_time_block_transition import plot_reaction_time_transitions
+from plotter.Reaction_time_stimulus_type import plot_rt_by_block_status
+from plotter.Adaptaion_around_rare import plot_rare_trial_performance
 from plotter.trial_by_trial_adaptation import plot_block_transitions
 from plotter.psychometric_epoch import plot_psychometric_epochs
 from plotter.Majority_trials_analysis import plot_all_majority_trial_analysis
 from plotter.Rare_vs_majority import plot_all_rare_vs_majority_analysis 
 from plotter.Post_rare_prior_update import plot_post_rare_trial_analysis
+from plotter.psychometric_Blockwise import plot_psychometric_control_opto_epochs
+from plotter.Summary_stat import plot_summary_stats
 
 # Configuration
 # YH24LG ##############################################################################################################################
+# NOTE: These are the sessions we started double block paradigm
+# NOTE: Sessions 20250714, 20250801, 20250905, 20250916, 20250919, 20251114 are excluded 
 # DATA_PATHS = [
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250515_181907.mat',
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250516_155653.mat',
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250519_175144.mat',
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250520_184030.mat',
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250521_192620.mat',
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250522_181837.mat',
-#     'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250523_173031.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250528_213836.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250529_181219.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250530_215515.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250601_173229.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_single_interval_discrimination_V_1_11_20250604_191000.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250624_150012.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250625_164242.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250626_182737.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250628_192014.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250630_174909.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250701_154950.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250702_140050.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250703_164706.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250708_192901.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250709_174856.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250710_130625.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250711_093117.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250714_175052.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250715_180125.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250717_144725.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250718_172810.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250722_175504.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250730_193455.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250731_163425.mat',
-    # 'F:\Single_Interval_discrimination\Data_behavior\YH24LG\\block_trials\YH24LG_block_single_interval_discrimination_V_1_20250801_115408.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250624_150012.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250625_164242.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250626_182737.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250628_192014.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250630_174909.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250701_154950.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250702_140050.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250703_164706.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250708_192901.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250709_174856.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250710_130625.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250711_093117.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250715_180125.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250717_144725.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250718_172810.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250722_175504.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250730_193455.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250731_163425.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250805_133504.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250808_180200.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250811_195235.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250814_121831.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250819_182316.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250822_143100.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250826_143546.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250902_155717.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250903_112248.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250904_145410.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250909_155820.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250910_163253.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250911_143000.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250912_141501.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250917_215445.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250923_163844.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250924_180806.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250925_173549.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250929_160056.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20250930_164710.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251001_151717.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251002_154335.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251003_151814.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251008_173017.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251009_161811.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251010_171101.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251013_170824.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251014_150532.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251015_164533.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\YH24LG\YH24LG_block_single_interval_discrimination_V_1_20251016_151502.mat",
+#               ]
+
 
 # SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\YH24LG'
-# TS01_LChR ##############################################################################################################################
-# DATA_PATHS = [
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250417_075031.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250416_225247.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250414_073145.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250413_111016.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250411_112942.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250410_125310.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250409_190250.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250330_132843.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_8_20250329_113237.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_8_20250328_110455.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250327_184557.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250326_204535.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250324_202107.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250321_195823.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_11_20250521_133332.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_11_20250522_145311.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\MC01_LChR_block_single_interval_discrimination_V_1_20250721_171746.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\MC01_LChR_block_single_interval_discrimination_V_1_20250722_193326.mat',
-# ]
 
-# Opto-Mid
-# DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250224_221618.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250225_191740.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250226_204526.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250227_195132.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250301_213418.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250302_212005.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250303_205316.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250304_195615.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250305_163852.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250306_202610.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250308_214653.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_9_20250309_220849.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250311_195050.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250312_215826.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250314_205555.mat',        
-# ]
+# MC06_SChR ##############################################################################################################################
 
-# Opto-Early
-# DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250316_213144.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250317_213448.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250318_184345.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250320_203341.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250321_195823.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250324_202107.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250326_204535.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250327_184557.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250330_132843.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250331_141036.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250401_154509.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250403_202240.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250404_231556.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250405_113729.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250406_165117.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS01_LChR\\LCHR_TS01_single_interval_discrimination_V_1_10_20250407_100841.mat',        
-# ]
-
-# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS01_LChR'
-
-# TS02_LChR ##############################################################################################################################
-# DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250417_085055.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250416_220127.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250415_145638.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250414_172542.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250411_103435.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250410_074411.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250409_201614.mat',
-# ]
-
-#Opto Left
-# DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250225_201421.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250301_223020.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250303_215451.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250305_175626.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250308_230024.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250309_230705.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250316_220701.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250317_223308.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250318_175930.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250320_213030.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250327_174456.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250331_150124.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250401_163804.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250403_210843.mat',
-# ] 
-
-#Opto Right
-# DATA_PATHS = [
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250224_231949.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250227_205609.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250302_222506.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250304_205131.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_9_20250306_212416.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250324_211801.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250405_124545.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250407_191414.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250409_201614.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250410_074411.mat',
-    # 0.5_2.0
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250411_103435.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250415_145638.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250416_220127.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS02_LChR\\LCHR_TS02_single_interval_discrimination_V_1_10_20250417_085055.mat',
-# ] 
-
-# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS02_LChR'
-
-# TS06_SChR ##############################################################################################################################
 DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250416_205942.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250415_091444.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250414_093242.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250411_092808.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250410_181115.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250409_091345.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250408_081805.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_11_20250520_171227.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_11_20250521_162255.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_11_20250522_150940.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_11_20250523_142618.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250708_170047.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250709_181730.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250718_141657.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250721_151425.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250723_121759.mat',
-    'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250728_144311.mat',
-    'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250730_180438.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\MC06_SChR2_block_single_interval_discrimination_V_1_20250801_144807.mat',
-]
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250708_170047.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250709_181730.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250718_141657.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250721_151425.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250723_121759.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250728_144311.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250730_180438.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250801_144807.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250805_171451.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250806_173317.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250807_184602.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250808_121500.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250811_170819.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250815_134127.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250819_110233.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250902_191953.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250903_134632.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250904_112921.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250908_151528.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250909_145508.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250910_144110.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250912_143347.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250915_155646.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250923_140941.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250924_151234.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250926_143659.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250929_145231.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250930_145534.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251001_174232.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251002_135323.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251003_144924.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251007_132950.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251008_160423.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251009_150137.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251010_142810.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251013_161935.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251014_155647.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251015_155010.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251016_124808.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251020_171536.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251021_140348.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251022_130756.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251023_141919.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251024_153832.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251027_190105.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251028_111727.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251029_131423.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251030_140422.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251031_141541.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251103_141954.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251104_144535.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251105_110149.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251106_145814.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251107_131242.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251110_160243.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251111_143458.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251113_141100.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251124_155049.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251125_154612.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251126_110859.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251128_083211.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251202_122724.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251204_143218.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251205_135637.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251206_151925.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251209_145044.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251210_101224.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251211_145503.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251212_134446.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251215_114901.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251216_151339.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251217_150520.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251218_164007.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251222_134238.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260108_130953.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260109_132420.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260112_183827.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260113_095249.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260114_144555.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260115_154411.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260120_132752.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260121_143350.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260122_150723.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260123_110027.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260127_134849.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260128_134756.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260129_095204.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260130_111626.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260202_143727.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260203_140921.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260204_143807.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260205_162549.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260209_110037.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260210_152859.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260211_132110.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260212_142543.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260213_105123.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260217_171315.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260218_162836.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260219_135617.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260220_110558.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260224_160017.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260225_135329.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260226_133633.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260227_115418.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260302_140324.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260303_152200.mat",
+              "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260304_150642.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260305_150431.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260306_133055.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260309_152730.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260310_164042.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260311_135102.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260312_150454.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260313_154230.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260316_143647.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260317_121120.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260318_160047.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260319_140601.mat",
+            #   "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20260320_102546.mat",
 
-# Early Sessions
+             ]
+
+# non-opto:
+    # Mid 2: 07/21, 08/01, 09/29, 09/30, 12/09, 12/10
+    # Well- trained: 11/24, 11/25, 11/26, 11/28, 12/02, 12/04, 12/05, 12/06, 12/11
+    # NOTE: Sessions 11/24, 11/25, 11/26, 11/28 are excluded
+# DATA_PATHS = ["F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250721_151425.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250801_144807.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250929_145231.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250930_145534.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251103_141954.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251104_144535.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251105_110149.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251106_145814.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251107_131242.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251110_160243.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251202_122724.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251204_143218.mat",
+#              ]
+
+
+# random opto:
+    # Mid 2 (80/20, before the trial fraction of each block is 70/30): 09/03, 09/04, 09/09, 09/10, 09/12
+    # NOTE: Session 11/25, 09/12 is excluded
 # DATA_PATHS = [
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250202_211817.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250203_194230.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250204_214022.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250205_203111.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250206_194910.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250207_203520.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250208_204546.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250209_201603.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250210_204947.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250211_200103.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250212_192216.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250213_200211.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250214_192650.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250215_204923.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250216_200125.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250217_200351.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250219_214316.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250220_193735.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250221_202845.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250222_202429.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250223_214929.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250224_202126.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250225_180751.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250226_193449.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250227_181143.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250228_184705.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250301_195035.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250302_200603.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250303_181215.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250304_181850.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250305_144045.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250306_173937.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250307_182322.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250308_190009.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250309_194452.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250311_172619.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250312_185158.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250314_175841.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250315_193142.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250316_191706.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250317_192051.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250318_201115.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250319_193603.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250321_180418.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250324_184805.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_8_20250325_212742.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250329_122935.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250330_113915.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250401_121236.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250403_080400.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250404_215615.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250903_134632.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250904_112921.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250909_145508.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250910_144110.mat",
+#              ]
 
-# Opto_frontal
+
+# Early-block opto:
+    # Mid 2: 09/15, 09/23, 09/24, 10/02, 10/03, 10/07, 10/08, 10/09, 10/10, 10/13, 10/14, 10/21
+    # Well-trained: 10/15, 10/16, 10/22, 10/23, 10/24, 10/27, 10/28, 10/29, 10/30, 10/31, 11/11 (edited) 
+    # NOTE: Sessions 10/03, 10/24, 10/28 is excluded
 # DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250404_215615.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250405_170954.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250406_150431.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250407_064206.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250408_081805.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250409_091345.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250410_181115.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250411_092808.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250415_091444.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS06_SChR\\SCHR_TS06_single_interval_discrimination_V_1_10_20250416_205942.mat',
-# ]
-SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS06_SChR'
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250915_155646.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250923_140941.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20250924_151234.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251002_135323.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251007_132950.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251008_160423.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251009_150137.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251010_142810.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251013_161935.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251014_155647.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251021_140348.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251015_155010.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251016_124808.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251022_130756.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251023_141919.mat",       
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251027_190105.mat",    
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251029_131423.mat", 
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251031_141541.mat", 
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC06\MC06_SChR2_block_single_interval_discrimination_V_1_20251111_143458.mat",            
+#              ]
 
-# TS07_SChR ##############################################################################################################################
+SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\MC06_SChR'
+
+# MC07_SChR ##############################################################################################################################
+# non-opto:
+    # Mid 2: 08/01, 09/08, 09/26, 09/29, 09/30, 10/01
+    # Well- trained: 11/24, 11/25, 11/26, 11/28, 12/02, 12/04
+    # NOTE: Sessions 09/28, 09/26, 10/01, 11/10, 11/25, 11/26 are excluded
 # DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250416_200308.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250415_133410.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250414_111734.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250413_101621.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250411_125506.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250410_191332.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250409_100600.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_10_20250408_091223.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_11_20250519_143224.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_11_20250520_113325.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_11_20250521_153605.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_11_20250522_154441.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_11_20250523_145112.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\MC07_SChR2_block_single_interval_discrimination_V_1_20250708_182849.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\MC07_SChR2_block_single_interval_discrimination_V_1_20250718_154210.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\MC07_SChR2_block_single_interval_discrimination_V_1_20250728_171725.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\MC07_SChR2_block_single_interval_discrimination_V_1_20250730_164050.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\MC07_SChR2_block_single_interval_discrimination_V_1_20250801_160230.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20250801_160230.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20250929_162847.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251103_151600.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251104_153124.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251105_153946.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251106_155500.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251107_141717.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251124_163510.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251128_091455.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251202_131606.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251204_152940.mat",
+#               ]
 
-# EArly Sessions
+
+# random opto:
+    # Mid 2: 09/03, 09/08, 09/09, 09/10
+    # NOTE: Session 09/03, 09/08, 09/09, 09/10 is excluded
 # DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250202_213027.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250203_195348.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250204_215113.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250205_205733.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250206_201914.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250207_211831.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250208_211540.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250209_203634.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS07_SChR\\SCHR_TS07_single_interval_discrimination_V_1_8_20250210_210146.mat',
-# ]
+#               
+#              ]
 
-# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS07_SChR'
 
-# TS08_SChR ##############################################################################################################################
+# Early-block opto:
+    # Mid 2: 09/15, 10/01, 10/02, 10/03, 10/07, 10/08, 10/09, 10/10, 10/13, 10/14, 10/15, 10/21, 10/22
+    # Well-trained: 10/27, 10/28, 10/29, 10/30, 10/31,11/03, 11/04, 11/05, 11/06, 11/07, 11/10, 11/11
 # DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250416_181214.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250415_072926.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250414_144258.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250411_080113.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250410_083251.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250409_072225.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250408_101149.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_11_20250520_145038.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_11_20250521_173839.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_11_20250522_161149.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_11_20250523_161505.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20250915_164829.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251001_163659.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251002_145135.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251003_155130.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251007_154027.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251008_173530.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251009_163015.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251010_154737.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251013_151852.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251014_165705.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251015_145514.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251021_145908.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251022_141742.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251027_180852.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251028_133131.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251029_141932.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251030_162648.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251031_151428.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC07\MC07_SChR2_block_single_interval_discrimination_V_1_20251111_152919.mat",
+#               ]
 
-# Early Sessions
+# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\MC07_SChR'
+
+# MC08_SChR ##############################################################################################################################
+# non-opto:
+    # Mid 2: 08/07, 08/08, 08/11, 08/12, 08/14, 08/15, 08/19, 08/20, 08/21, 08/22, 08/25
+    # Well- trained: 11/25, 11/26, 11/28, 12/02, 12/03, 12/04, 12/05, 12/09, 12/10, 12/11
+    # NOTE: Sessions 08/22, 11/25, 1203 are excluded
 # DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250219_140438.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250220_171938.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250221_163247.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250222_174259.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250223_193305.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250224_191424.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250225_140656.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250226_172556.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250227_102122.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_8_20250228_120127.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250807_161922.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250808_141934.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250811_190814.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250812_155927.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250814_113936.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250815_165438.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250819_172012.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250820_130848.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250821_143112.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250825_144118.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251103_161207.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251105_164015.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251126_153003.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251128_095657.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251202_140232.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251204_161155.mat",
+#               ]
 
+
+# random opto:
+    # Mid 2 (70/30): 07/31, 08/05, 08/06, 08/26, 09/02,
+    # Mid 2 (80/20): 09/03, 09/04, 09/08, 09/09, 09/10, 09/12
+    # NOTE: Sessions 07/31 are excluded
 # DATA_PATHS = [
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250327_211331.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250328_140930.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250329_103723.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250330_095530.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250331_112110.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250401_133940.mat',
-    # interval 0.5_2.0
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250404_190523.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250405_193322.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250406_125720.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250407_081958.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250408_101149.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250409_072225.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250410_083251.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250411_080113.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250414_144258.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250415_072926.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS08_SChR\\SCHR_TS08_single_interval_discrimination_V_1_10_20250416_181214.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250805_105209.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250806_153404.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250826_133754.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250902_172446.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250903_113809.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250904_153648.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250908_160433.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250909_172047.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250910_165937.mat",
+#               ]    
 
-# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS08_SChR'
 
-# TS09_SChR ##############################################################################################################################
+# Early-block opto:
+    # Mid 2: 09/15, 09/17, 09/22, 09/23, 09/24, 09/25, 09/26, 09/29, 09/30, 10/01, 10/02, 10/03, 10/07, 10/08, 10/09, 10/10, 10/13, 10/14
+    # Well-trained: 10/15, 10/16, 10/21, 10/22, 10/23, 10/27, 10/28, 10/29, 10/30, 10/31, 11/04, 11/06, 11/07, 11/10, 11/11
+    # NOTE: Sessions 09/17, 9/23, 10/09, 10/10, 10/23, 10/31, 11/06, 11/07, 11/11 are excluded
 # DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250416_190712.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250415_081728.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250414_153403.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250411_083631.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250410_092709.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250409_081814.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250408_110157.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_11_20250519_153025.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_11_20250520_141023.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_11_20250521_163618.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_11_20250522_163802.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_11_20250523_154646.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250716_181406.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250717_132157.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250718_165543.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250721_141705.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250722_171626.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250723_184741.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250724_104755.mat',
-    # 'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250730_113733.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250731_183251.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\MC09_SChR2_block_single_interval_discrimination_V_1_20250801_182848.mat',
-# ]
-# Early Sessions
-# DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250219_142634.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250220_112515.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250221_164603.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250222_175431.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250223_194106.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250224_191907.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250225_140615.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250226_172646.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_8_20250227_113639.mat',
-# ]
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250915_145020.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250922_110520.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250924_140225.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250925_140419.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250926_135711.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250929_141221.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20250930_140955.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251001_152748.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251002_103634.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251003_134413.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251007_110204.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251008_150910.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251013_171746.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251014_143422.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251015_170000.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251016_152558.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251021_131128.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251022_151220.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251027_170933.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251028_143535.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251029_152156.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251030_151008.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251104_104812.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC08\MC08_SChR2_block_single_interval_discrimination_V_1_20251110_150812.mat",
+#               ]
 
-# Opto_PPC
-# DATA_PATHS = [
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250327_220834.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250328_145956.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250329_112423.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250330_104559.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250331_121221.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250401_144409.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250403_192913.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250404_203608.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250405_202305.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250406_141128.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250407_091521.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250409_081814.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250410_092709.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250411_083631.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250414_153403.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250415_081728.mat',
-#     'F:\\Single_Interval_discrimination\\Data_behavior\\TS09_SChR\\SCHR_TS09_single_interval_discrimination_V_1_10_20250416_190712.mat',
-# ]
+# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\MC08_SChR'
 
-# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\TS09_SChR'
+# MC09_SChR ##############################################################################################################################
+# non-opto: 
+    # 07/31 was the only non-opto session using double-block protocol.
+
+
+
+# random opto:
+    # Mid 1: 07/07, 07/09, 07/11, 07/14, 07/15
+    # Mid 2:07/16, 07/17, 07/18, 07/21, 07/22, 07/23, 07/24, 07/30, 07/31, 08/01, 08/05, 08/06, 08/07, 08/08, 08/11, 08/12, 08/15, 08/18, 08/19, 08/21, 08/25, 08/26
+# DATA_PATHS = ["F:\Single_Interval_discrimination\Data_behavior\SCHR_MC09\MC09_SChR2_block_single_interval_discrimination_V_1_20240707_155808.mat",
+#               "F:\Single_Interval_discrimination\Data_behavior\SCHR_MC09\MC09
+
+
+# SAVE_PATH = 'F:\\Single_Interval_discrimination\\Figures\\MC09_SChR'
 ###############################################################################################################################################
 
 # Ensure save directory exists
@@ -769,60 +771,95 @@ def analyze_all_conditions(sessions_data, data_paths, save_path=SAVE_PATH):
 
 if __name__ == "__main__":
     # sort from the latest sessions data
-    data_paths = sorted(DATA_PATHS, key=lambda x: x.split('_')[-2], reverse=True)
+    data_paths = sorted(DATA_PATHS, key=lambda x: x.split('_')[-2], reverse=False)
     subject = parse_behavior_file_path(data_paths[0])[0]
 
     # Prepare and plot session data
     sessions_data = prepare_session_data(data_paths)
 
-    # Generate session plots
-    pdf_filename = generate_session_plots_pdf(data_paths)
-    print(f"Session plots saved to: {pdf_filename}")
+    # # Generate session plots
+    # pdf_filename = generate_session_plots_pdf(data_paths)
+    # print(f"Session plots saved to: {pdf_filename}")
 
-    # Plot outcomes
-    outcome_filename = plot_all_sessions_outcome(sessions_data, data_paths)
-    print(f"Outcome plots saved to: {outcome_filename}")
+    # # Plot outcomes
+    # outcome_filename = plot_all_sessions_outcome(sessions_data, data_paths)
+    # print(f"Outcome plots saved to: {outcome_filename}")
 
-    # Plot opto sequence performance
-    outcome_filename = plot_all_sessions_opto_seq(sessions_data, data_paths)
-    print(f"Opto performance plots saved to: {outcome_filename}")
+    # # Plot opto sequence performance
+    # outcome_filename = plot_all_sessions_opto_seq(sessions_data, data_paths)
+    # print(f"Opto performance plots saved to: {outcome_filename}")
 
-    # plot opto seq psychometric analysis
-    psychometric_filename = plot_psychometric_analysis_opto_seq(sessions_data, data_paths, save_path=SAVE_PATH)
-    print(f"Opto psychometric analysis saved to: {psychometric_filename}")
+    # # plot opto seq psychometric analysis
+    # psychometric_filename = plot_psychometric_analysis_opto_seq(sessions_data, data_paths, save_path=SAVE_PATH)
+    # print(f"Opto psychometric analysis saved to: {psychometric_filename}")
     
-    # Plot psychometric analysis
-    psychometric_filename = plot_psychometric_analysis(sessions_data, data_paths)
-    print(f"Psychometric analysis saved to: {psychometric_filename}")
+    # # Plot psychometric analysis
+    # psychometric_filename = plot_psychometric_analysis(sessions_data, data_paths)
+    # print(f"Psychometric analysis saved to: {psychometric_filename}")
 
-    # Plot psychometric with less detail
+    # # Plot psychometric with less detail
     psychometric_filename = plot_psychometric_analysis_less_detailed(sessions_data, data_paths, save_path=SAVE_PATH)
     print(f"Psychometric analysis saved to: {psychometric_filename}")
 
-    # plot psychometric halves
-    psychometric_filename = plot_psychometric_analysis_halves(sessions_data, data_paths, save_path=SAVE_PATH)
-    print('Psychometric halves analysis saved to:', psychometric_filename)
+    # # plot psychometric halves
+    # psychometric_filename = plot_psychometric_analysis_halves(sessions_data, data_paths, save_path=SAVE_PATH)
+    # print('Psychometric halves analysis saved to:', psychometric_filename)
 
-    # Rare trial analysis
-    pooled, short, long = analyze_all_conditions(sessions_data, data_paths)
-    print('Rare trials analysis saved')
+    # # Rare trial analysis
+    # analyze_all_conditions(sessions_data, data_paths)
+    # print('Rare trials analysis saved')
 
-    # Plot majarity of trials
-    plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
-    print('Majority trials analysis saved')
+    # # Plot majarity of trials
+    # plot_all_majority_trial_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Majority trials analysis saved')
 
-    # Plot majority vs rare trials
-    plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
-    print('Majority vs rare trials analysis saved')
+    # # Plot majority vs rare trials
+    # plot_all_rare_vs_majority_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Majority vs rare trials analysis saved')
 
-    # trial_by_trial_adaptation
-    plot_block_transitions(sessions_data, subject, data_paths, save_path=SAVE_PATH)
-    print('Adaptation analysis saved')
+    # # trial_by_trial_adaptation
+    # plot_block_transitions(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Adaptation analysis saved')
 
-    # Plot post rare trial analysis (we have 2 epochs for each block)
-    plot_post_rare_trial_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
-    print('Post rare trial analysis saved')
+    # # rare trial adaptation analysis
+    # plot_rare_trial_performance(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Rare trial adaptation analysis saved')
 
-    # Plot psychometric analysis for epochs
-    plot_psychometric_epochs(sessions_data, subject, data_paths, save_path=SAVE_PATH)
-    print('Psychometric epochs analysis saved')
+    # # reaction time analysis for block transtions
+    # plot_reaction_time_transitions(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Reaction time transitions analysis saved') 
+
+    # # reaction time analysis for rare trials
+    # plot_reaction_time_rare_trials(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Reaction time rare trials analysis saved')
+
+    # # Plot post rare trial analysis (we have 2 epochs for each block)
+    # plot_post_rare_trial_analysis(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Post rare trial analysis saved')
+
+    # # Plot psychometric analysis for epochs
+    # plot_psychometric_epochs(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Psychometric epochs analysis saved')
+
+    # # New version of psychometric analysis for control vs opto block
+    # plot_psychometric_control_opto_epochs(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+
+    # # trial dynamics analysis
+    # analyze_learning_dynamics(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Learning dynamics analysis saved')
+
+    # # trial dynamic analysis with fitted exponential
+    # analyze_learning_dynamics_fitted(sessions_data, subject, data_paths, save_path=SAVE_PATH, example_session_idx=0)
+    # print('Learning dynamics fitted analysis saved')
+    
+    # # Stimulus specific perfromance
+    # plot_performance_by_stimulus(sessions_data, subject, data_paths, save_path=SAVE_PATH) 
+    # print('Performance by stimulus analysis saved')
+
+    # # Stimulus specific reaction time
+    # plot_rt_by_block_status(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Reaction time by stimulus analysis saved')
+
+    # # statistical analysis for all conditions
+    # plot_summary_stats(sessions_data, subject, data_paths, save_path=SAVE_PATH)
+    # print('Statistical summary analysis saved')

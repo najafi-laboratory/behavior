@@ -6,28 +6,32 @@ from scipy.optimize import curve_fit
 from matplotlib.backends.backend_pdf import PdfPages
 import os
 
-def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psychometric_epochs.pdf', bin_width=0.01, fit_logistic=True, save_path=None):
+def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psychometric_epochs_opto.pdf', bin_width=0.01, fit_logistic=True, save_path=None):
     """
-    Plot psychometric curves for early and late epochs of short and long blocks, including pooled data
-    across sessions and individual session plots, excluding opto trials and neutral blocks. Uses GridSpec
-    with 3 subplots per row (short, long, and all blocks with early/late superimposed) and saves to a PDF.
-
-    Args:
-        sessions_data (dict): Dictionary containing dates and lick_properties for each session.
-        subject (str): Subject identifier.
-        data_paths (list): List of data file paths for naming output files.
-        output_pdf (str): Path to save the output PDF file.
-        bin_width (float): Width of ISI bins for multiple ISI cases.
-        fit_logistic (bool): Whether to fit a logistic curve for multiple ISI cases.
-        save_path (str, optional): Directory to save the output PDF.
-
-    Returns:
-        None: Generates and saves plots to a PDF file.
+    Plot psychometric curves separating Block (Short/Long), Epoch (Early/Late), and Trial Type (Opto/Control).
+    Generates a 12-column figure.
     """
-    # Extract session data
-    dates = sessions_data['dates']
-    lick_properties_list = sessions_data['lick_properties']
-    n_sessions = len(dates)
+    
+    # --- Configuration ---
+    # Colors
+    colors = {
+        'early_opto': 'deepskyblue',  # Light Blue
+        'early_control': 'gray',      # Gray
+        'late_opto': 'blue',          # Blue
+        'late_control': 'black'       # Black
+    }
+    
+    # Comparisons config: (Title, [Condition 1 key, Condition 2 key])
+    comparisons = [
+        ('Opto: Early vs Late', ['early_opto', 'late_opto']),
+        ('Ctrl: Early vs Late', ['early_control', 'late_control']),
+        ('Early: Opto vs Ctrl', ['early_opto', 'early_control']),
+        ('Late: Opto vs Ctrl', ['late_opto', 'late_control'])
+    ]
+    
+    block_order = ['short', 'long', 'all']
+
+    # --- Helper Functions ---
 
     def identify_blocks(block_types):
         """Identify start and end indices of short (1) and long (2) blocks, excluding neutral (0)."""
@@ -51,72 +55,96 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
             blocks.append((current_block_type, start_idx, len(block_types)))
         return blocks
 
+    def initialize_storage():
+        """Creates the nested dictionary structure for data storage."""
+        # Structure: data[block][epoch][type] = {'isi': [], 'choices': []}
+        data = {}
+        for b in ['short', 'long', 'all']:
+            data[b] = {}
+            for e in ['early', 'late']:
+                data[b][e] = {
+                    'opto': {'isi': [], 'choices': []},
+                    'control': {'isi': [], 'choices': []}
+                }
+        return data
+
     def split_block_epochs(lick_properties):
-        """Split blocks into early and late epochs, excluding opto trials and neutral blocks."""
-        blocks = []
-        # Collect all block types and corresponding trial indices
+        """Split blocks into early/late and opto/control."""
+        session_data = initialize_storage()
+        
+        # 1. Reconstruct Trial Order
         all_block_types = []
         trial_indices = []
-        for key in ['short_ISI_reward_left_correct_lick', 'short_ISI_reward_right_incorrect_lick',
-                    'short_ISI_punish_right_incorrect_lick', 'short_ISI_punish_left_correct_lick',
-                    'long_ISI_reward_right_correct_lick', 'long_ISI_reward_left_incorrect_lick',
-                    'long_ISI_punish_left_incorrect_lick', 'long_ISI_punish_right_correct_lick']:
-            block_types = lick_properties[key].get('block_type', [])
-            for i in range(len(block_types)):
-                all_block_types.append(block_types[i])
-                trial_indices.append(i)
+        keys = ['short_ISI_reward_left_correct_lick', 'short_ISI_reward_right_incorrect_lick',
+                'short_ISI_punish_right_incorrect_lick', 'short_ISI_punish_left_correct_lick',
+                'long_ISI_reward_right_correct_lick', 'long_ISI_reward_left_incorrect_lick',
+                'long_ISI_punish_left_incorrect_lick', 'long_ISI_punish_right_correct_lick']
+                
+        for key in keys:
+            if key in lick_properties:
+                block_types = lick_properties[key].get('block_type', [])
+                for i in range(len(block_types)):
+                    all_block_types.append(block_types[i])
+                    trial_indices.append(i)
         
         if not all_block_types:
-            return {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}, \
-                   {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
-        
-        # Sort by trial index to reconstruct trial order
+            return session_data
+
         sorted_indices = np.argsort(trial_indices)
         all_block_types = np.array(all_block_types)[sorted_indices]
-        trial_indices = np.array(trial_indices)[sorted_indices]
         
-        # Identify blocks
-        blocks = identify_blocks(all_block_types)
-        
-        early_data = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
-        late_data = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
+        # 2. Identify Blocks (Neutral blocks handled here)
+        # We don't strictly need block start/stop indices for the logic below because 
+        # specific keys categorize data, but we filter neutral blocks via block_type check
         
         left_keys = ['short_ISI_reward_left_correct_lick', 'long_ISI_punish_left_incorrect_lick']
         right_keys = ['short_ISI_punish_right_incorrect_lick', 'long_ISI_reward_right_correct_lick']
         
         for key in left_keys + right_keys:
+            if key not in lick_properties: continue
+            
             trial_isi = lick_properties[key].get('Trial_ISI', [])
             opto_tags = lick_properties[key].get('opto_tag', [])
             block_types = lick_properties[key].get('block_type', [])
             epochs = lick_properties[key].get('epoch', [])
             
             for i in range(len(trial_isi)):
-                if trial_isi[i] is None or opto_tags[i] == 1 or block_types[i] == 0:
+                # Skip invalid ISIs or Neutral Blocks (0)
+                if trial_isi[i] is None or block_types[i] == 0:
                     continue
+                
+                # Determine Categories
                 block_key = 'short' if block_types[i] == 1 else 'long' if block_types[i] == 2 else None
-                if block_key is None:
-                    continue
-                target = early_data if epochs[i] == 1 else late_data
-                target[block_key]['isi'].append(trial_isi[i])
-                target[block_key]['choices'].append(1 if key in right_keys else 0)
-                target['all']['isi'].append(trial_isi[i])
-                target['all']['choices'].append(1 if key in right_keys else 0)
-        
-        return early_data, late_data
+                if block_key is None: continue
+                
+                epoch_key = 'early' if epochs[i] == 1 else 'late'
+                
+                # Check Opto (Handle NaNs as Control)
+                is_opto = (opto_tags[i] == 1)
+                type_key = 'opto' if is_opto else 'control'
+                
+                choice_val = 1 if key in right_keys else 0
+                
+                # Store in Specific Block
+                session_data[block_key][epoch_key][type_key]['isi'].append(trial_isi[i])
+                session_data[block_key][epoch_key][type_key]['choices'].append(choice_val)
+                
+                # Store in 'All'
+                session_data['all'][epoch_key][type_key]['isi'].append(trial_isi[i])
+                session_data['all'][epoch_key][type_key]['choices'].append(choice_val)
+                
+        return session_data
 
     def calculate_psychometric(isi, choices, bin_width, single_isi_case):
-        """Calculate choice probabilities and SEM for psychometric curve."""
-        if len(isi) == 0:
-            return None, None, None
+        """Calculate choice probabilities and SEM."""
+        if len(isi) == 0: return None, None, None
         
         if single_isi_case:
             unique_isi = np.unique(isi)
-            if len(unique_isi) != 2:
-                return None, None, None
+            if len(unique_isi) != 2: return None, None, None
             right_prob = np.zeros(2)
             sem_values = np.zeros(2)
             counts = np.zeros(2)
-            
             for i, isi_val in enumerate(unique_isi):
                 mask = isi == isi_val
                 bin_choices = choices[mask]
@@ -124,7 +152,6 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
                     right_prob[i] = np.mean(bin_choices)
                     sem_values[i] = sem(bin_choices, nan_policy='omit')
                     counts[i] = len(bin_choices)
-            
             valid_mask = counts > 0
             return unique_isi[valid_mask], right_prob[valid_mask], sem_values[valid_mask]
         else:
@@ -135,7 +162,6 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
             right_prob = np.zeros(len(bins) - 1)
             sem_values = np.zeros(len(bins) - 1)
             counts = np.zeros(len(bins) - 1)
-            
             for i in range(len(bins) - 1):
                 mask = (isi >= bins[i]) & (isi < bins[i + 1])
                 bin_choices = choices[mask]
@@ -143,21 +169,16 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
                     right_prob[i] = np.mean(bin_choices)
                     sem_values[i] = sem(bin_choices, nan_policy='omit')
                     counts[i] = len(bin_choices)
-            
             valid_mask = counts > 0
             return bin_centers[valid_mask], right_prob[valid_mask], sem_values[valid_mask]
 
     def logistic_function(x, L, k, x0):
-        """Logistic function for fitting psychometric curves."""
         return L / (1 + np.exp(-k * (x - x0)))
 
     def plot_psychometric(ax, isi, choices, label, color, isi_divider, single_isi_case, fit_logistic):
-        """Plot psychometric curve with SEM on given axis."""
         x_data, y_data, y_sem = calculate_psychometric(isi, choices, bin_width, single_isi_case)
-        if x_data is None:
-            return False
+        if x_data is None: return False
         
-        # Add trial count to label
         n_trials = len(choices)
         label_with_count = f'{label} (n={n_trials})'
         
@@ -165,8 +186,8 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
         
         if single_isi_case and len(x_data) == 2:
             ax.plot(x_data, y_data, '-', color=color, linewidth=2, alpha=0.7)
-            x1, x2 = x_data
-            y1, y2 = y_data
+            # Add inflection line if crossing 0.5
+            x1, x2 = x_data; y1, y2 = y_data
             if y2 != y1:
                 m = (y2 - y1) / (x2 - x1)
                 b = y1 - m * x1
@@ -183,196 +204,114 @@ def plot_psychometric_epochs(sessions_data, subject, data_paths, output_pdf='psy
                 ip_index = np.argmin(np.abs(y_fit - 0.5))
                 inflection_point = x_fit[ip_index]
                 ax.axvline(x=inflection_point, color=color, linestyle='--', alpha=0.5)
-            except Exception as e:
-                print(f"Could not fit logistic function for {label}: {e}")
-        
+            except:
+                pass # Fit failed
         return True
 
-    # Colors for different conditions
-    colors = {
-        'early_short': '#1f77b4',  # Blue
-        'late_short': '#ff7f0e',   # Orange
-        'early_long': '#2ca02c',   # Green
-        'late_long': '#d62728',    # Red
-        'early_all': '#9467bd',    # Purple
-        'late_all': '#8c564b'      # Brown
-    }
+    def plot_row(ax_list, data_dict, isi_divider, single_isi, row_title_prefix=''):
+        """Plots a full row of 12 subplots given a data dictionary for that row (session or pooled)."""
+        
+        for b_idx, block in enumerate(block_order): # 0: Short, 1: Long, 2: All
+            for c_idx, (comp_title, keys) in enumerate(comparisons): # 0..3 comparisons
+                
+                # Calculate absolute column index (0 to 11)
+                col_idx = (b_idx * 4) + c_idx
+                ax = ax_list[col_idx]
+                
+                has_data = False
+                
+                # Plot the two conditions in the comparison
+                for k in keys:
+                    # Parse key (e.g., 'early_opto' -> epoch='early', type='opto')
+                    epoch, trial_type = k.split('_')
+                    
+                    isi_data = np.array(data_dict[block][epoch][trial_type]['isi'])
+                    choice_data = np.array(data_dict[block][epoch][trial_type]['choices'])
+                    
+                    # Convert key to display label (e.g. 'early_opto' -> 'Early Opto')
+                    display_label = k.replace('_', ' ').title()
+                    
+                    plotted = plot_psychometric(ax, isi_data, choice_data, display_label, colors[k], 
+                                              isi_divider, single_isi, fit_logistic)
+                    if plotted: has_data = True
 
-    # Process pooled data
-    pooled_early = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
-    pooled_late = {'short': {'isi': [], 'choices': []}, 'long': {'isi': [], 'choices': []}, 'all': {'isi': [], 'choices': []}}
+                # Styling
+                if has_data:
+                    ax.axvline(x=isi_divider, color='red', linestyle='--', alpha=0.3)
+                    ax.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
+                    ax.set_ylim(-0.05, 1.05)
+                    ax.legend(fontsize=6)
+                else:
+                    ax.text(0.5, 0.5, 'No Data', ha='center', va='center', fontsize=8)
+                
+                # Titles and Labels
+                full_title = f"{block.title()} - {comp_title}"
+                if row_title_prefix:
+                    full_title = f"{row_title_prefix}\n{full_title}"
+                ax.set_title(full_title, fontsize=8)
+                
+                ax.grid(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['top'].set_visible(False)
+                
+                # Only label left-most axes to reduce clutter
+                if col_idx == 0:
+                    ax.set_ylabel('Prob. Right')
+                else:
+                    ax.set_yticklabels([])
+
+    # --- Main Processing ---
+
+    dates = sessions_data['dates']
+    lick_properties_list = sessions_data['lick_properties']
+    n_sessions = len(dates)
+    isi_divider = lick_properties_list[0]['ISI_devider']
+
+    # 1. Process Pooled Data
+    pooled_data = initialize_storage()
+    session_datasets = []
+
+    all_isi_check = [] # For checking single ISI case globally
+
     for lick_props in lick_properties_list:
-        early_data, late_data = split_block_epochs(lick_props)
-        for block in ['short', 'long', 'all']:
-            pooled_early[block]['isi'].extend(early_data[block]['isi'])
-            pooled_early[block]['choices'].extend(early_data[block]['choices'])
-            pooled_late[block]['isi'].extend(late_data[block]['isi'])
-            pooled_late[block]['choices'].extend(late_data[block]['choices'])
-    
+        sess_data = split_block_epochs(lick_props)
+        session_datasets.append(sess_data)
+        
+        # Merge into pooled
+        for b in ['short', 'long', 'all']:
+            for e in ['early', 'late']:
+                for t in ['opto', 'control']:
+                    isi_vals = sess_data[b][e][t]['isi']
+                    choice_vals = sess_data[b][e][t]['choices']
+                    
+                    pooled_data[b][e][t]['isi'].extend(isi_vals)
+                    pooled_data[b][e][t]['choices'].extend(choice_vals)
+                    all_isi_check.extend(isi_vals)
+
     # Check for single ISI case
-    all_isi = []
-    for block in ['short', 'long', 'all']:
-        all_isi.extend(pooled_early[block]['isi'])
-        all_isi.extend(pooled_late[block]['isi'])
-    single_isi_case = len(np.unique(np.round(all_isi, 3))) == 2
+    single_isi_case = len(np.unique(np.round(all_isi_check, 3))) == 2
 
-    # Initialize PDF
+    # 2. Plotting
     with PdfPages(output_pdf) as pdf:
-        fig = plt.figure(figsize=(15, 4 * (n_sessions + 1)))
-        gs = gridspec.GridSpec(n_sessions + 1, 3, figure=fig)
+        # Create figure: Very wide to accommodate 12 columns
+        # (Width, Height)
+        fig = plt.figure(figsize=(40, 4 * (n_sessions + 1)))
+        gs = gridspec.GridSpec(n_sessions + 1, 12, figure=fig)
+        
+        # Plot Pooled (Row 0)
+        axes_pool = [fig.add_subplot(gs[0, i]) for i in range(12)]
+        plot_row(axes_pool, pooled_data, isi_divider, single_isi_case, row_title_prefix='Pooled')
 
-        # Plot pooled data (3 subplots with superimposed early/late)
-        # Short blocks
-        ax1 = fig.add_subplot(gs[0, 0])
-        has_early = plot_psychometric(ax1, np.array(pooled_early['short']['isi']), np.array(pooled_early['short']['choices']),
-                                     'Early', colors['early_short'], lick_properties_list[0]['ISI_devider'],
-                                     single_isi_case, fit_logistic)
-        has_late = plot_psychometric(ax1, np.array(pooled_late['short']['isi']), np.array(pooled_late['short']['choices']),
-                                    'Late', colors['late_short'], lick_properties_list[0]['ISI_devider'],
-                                    single_isi_case, fit_logistic)
-        
-        if has_early or has_late:
-            ax1.axvline(x=lick_properties_list[0]['ISI_devider'], color='red', linestyle='--', alpha=0.3)
-            ax1.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-            ax1.set_xlabel('Inter-Stimulus Interval (s)')
-            ax1.set_ylabel('Probability of Right Choice')
-            ax1.set_title('Pooled Short Blocks')
-            ax1.set_ylim(-0.05, 1.05)
-            ax1.grid(False)
-            ax1.spines['right'].set_visible(False)
-            ax1.spines['top'].set_visible(False)
-            ax1.legend()
-        else:
-            ax1.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax1.transAxes)
-            ax1.set_title('Pooled Short Blocks')
-        
-        # Long blocks
-        ax2 = fig.add_subplot(gs[0, 1])
-        has_early = plot_psychometric(ax2, np.array(pooled_early['long']['isi']), np.array(pooled_early['long']['choices']),
-                                     'Early', colors['early_long'], lick_properties_list[0]['ISI_devider'],
-                                     single_isi_case, fit_logistic)
-        has_late = plot_psychometric(ax2, np.array(pooled_late['long']['isi']), np.array(pooled_late['long']['choices']),
-                                    'Late', colors['late_long'], lick_properties_list[0]['ISI_devider'],
-                                    single_isi_case, fit_logistic)
-        
-        if has_early or has_late:
-            ax2.axvline(x=lick_properties_list[0]['ISI_devider'], color='red', linestyle='--', alpha=0.3)
-            ax2.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-            ax2.set_xlabel('Inter-Stimulus Interval (s)')
-            ax2.set_ylabel('Probability of Right Choice')
-            ax2.set_title('Pooled Long Blocks')
-            ax2.set_ylim(-0.05, 1.05)
-            ax2.grid(False)
-            ax2.spines['right'].set_visible(False)
-            ax2.spines['top'].set_visible(False)
-            ax2.legend()
-        else:
-            ax2.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax2.transAxes)
-            ax2.set_title('Pooled Long Blocks')
-        
-        # All blocks
-        ax3 = fig.add_subplot(gs[0, 2])
-        has_early = plot_psychometric(ax3, np.array(pooled_early['all']['isi']), np.array(pooled_early['all']['choices']),
-                                     'Early', colors['early_all'], lick_properties_list[0]['ISI_devider'],
-                                     single_isi_case, fit_logistic)
-        has_late = plot_psychometric(ax3, np.array(pooled_late['all']['isi']), np.array(pooled_late['all']['choices']),
-                                    'Late', colors['late_all'], lick_properties_list[0]['ISI_devider'],
-                                    single_isi_case, fit_logistic)
-        
-        if has_early or has_late:
-            ax3.axvline(x=lick_properties_list[0]['ISI_devider'], color='red', linestyle='--', alpha=0.3)
-            ax3.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-            ax3.set_xlabel('Inter-Stimulus Interval (s)')
-            ax3.set_ylabel('Probability of Right Choice')
-            ax3.set_title('Pooled All Blocks')
-            ax3.set_ylim(-0.05, 1.05)
-            ax3.grid(False)
-            ax3.spines['right'].set_visible(False)
-            ax3.spines['top'].set_visible(False)
-            ax3.legend()
-        else:
-            ax3.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax3.transAxes)
-            ax3.set_title('Pooled All Blocks')
+        # Plot Sessions (Rows 1..N)
+        for i, (date, sess_data) in enumerate(zip(dates, session_datasets)):
+            axes_sess = [fig.add_subplot(gs[i + 1, c]) for c in range(12)]
+            plot_row(axes_sess, sess_data, isi_divider, single_isi_case, row_title_prefix=f'{date}')
 
-        # Plot individual sessions (3 subplots per session with superimposed early/late)
-        for i, (date, lick_props) in enumerate(zip(dates, lick_properties_list)):
-            early_data, late_data = split_block_epochs(lick_props)
-            
-            # Short blocks
-            ax1 = fig.add_subplot(gs[i + 1, 0])
-            has_early = plot_psychometric(ax1, np.array(early_data['short']['isi']), np.array(early_data['short']['choices']),
-                                         'Early', colors['early_short'], lick_props['ISI_devider'],
-                                         single_isi_case, fit_logistic)
-            has_late = plot_psychometric(ax1, np.array(late_data['short']['isi']), np.array(late_data['short']['choices']),
-                                        'Late', colors['late_short'], lick_props['ISI_devider'],
-                                        single_isi_case, fit_logistic)
-            
-            if has_early or has_late:
-                ax1.axvline(x=lick_props['ISI_devider'], color='red', linestyle='--', alpha=0.3)
-                ax1.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-                ax1.set_xlabel('Inter-Stimulus Interval (s)')
-                ax1.set_ylabel('Probability of Right Choice')
-                ax1.set_title(f'Short Blocks - {date}')
-                ax1.set_ylim(-0.05, 1.05)
-                ax1.grid(False)
-                ax1.spines['right'].set_visible(False)
-                ax1.spines['top'].set_visible(False)
-                ax1.legend()
-            else:
-                ax1.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax1.transAxes)
-                ax1.set_title(f'Short Blocks - {date}')
-            
-            # Long blocks
-            ax2 = fig.add_subplot(gs[i + 1, 1])
-            has_early = plot_psychometric(ax2, np.array(early_data['long']['isi']), np.array(early_data['long']['choices']),
-                                         'Early', colors['early_long'], lick_props['ISI_devider'],
-                                         single_isi_case, fit_logistic)
-            has_late = plot_psychometric(ax2, np.array(late_data['long']['isi']), np.array(late_data['long']['choices']),
-                                        'Late', colors['late_long'], lick_props['ISI_devider'],
-                                        single_isi_case, fit_logistic)
-            
-            if has_early or has_late:
-                ax2.axvline(x=lick_props['ISI_devider'], color='red', linestyle='--', alpha=0.3)
-                ax2.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-                ax2.set_xlabel('Inter-Stimulus Interval (s)')
-                ax2.set_ylabel('Probability of Right Choice')
-                ax2.set_title(f'Long Blocks - {date}')
-                ax2.set_ylim(-0.05, 1.05)
-                ax2.grid(False)
-                ax2.spines['right'].set_visible(False)
-                ax2.spines['top'].set_visible(False)
-                ax2.legend()
-            else:
-                ax2.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax2.transAxes)
-                ax2.set_title(f'Long Blocks - {date}')
-            
-            # All blocks
-            ax3 = fig.add_subplot(gs[i + 1, 2])
-            has_early = plot_psychometric(ax3, np.array(early_data['all']['isi']), np.array(early_data['all']['choices']),
-                                         'Early', colors['early_all'], lick_props['ISI_devider'],
-                                         single_isi_case, fit_logistic)
-            has_late = plot_psychometric(ax3, np.array(late_data['all']['isi']), np.array(late_data['all']['choices']),
-                                        'Late', colors['late_all'], lick_props['ISI_devider'],
-                                        single_isi_case, fit_logistic)
-            
-            if has_early or has_late:
-                ax3.axvline(x=lick_props['ISI_devider'], color='red', linestyle='--', alpha=0.3)
-                ax3.axhline(y=0.5, color='black', linestyle='-', alpha=0.2)
-                ax3.set_xlabel('Inter-Stimulus Interval (s)')
-                ax3.set_ylabel('Probability of Right Choice')
-                ax3.set_title(f'All Blocks - {date}')
-                ax3.set_ylim(-0.05, 1.05)
-                ax3.grid(False)
-                ax3.spines['right'].set_visible(False)
-                ax3.spines['top'].set_visible(False)
-                ax3.legend()
-            else:
-                ax3.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax3.transAxes)
-                ax3.set_title(f'All Blocks - {date}')
-        
         plt.tight_layout()
-        pdf.savefig(fig, dpi=300, bbox_inches='tight')
+        
         if save_path:
-            output_path = os.path.join(save_path, f'Psychometric_epochs_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf')
+            filename = f'Psychometric_Epochs_{subject}_{data_paths[-1].split("_")[-2]}_{data_paths[0].split("_")[-2]}.pdf'
+            output_path = os.path.join(save_path, filename)
             fig.savefig(output_path, dpi=300, bbox_inches='tight')
+            
         plt.close(fig)
