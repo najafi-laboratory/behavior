@@ -13,7 +13,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
 
-ONSET_SCRIPT = "010_CR_onsetTiming_Distribution_SanityCheck.py"
+ONSET_SCRIPT = "010_CR_onsetTiming_ChemoControl.py"
 
 
 def load_onset_module():
@@ -32,13 +32,20 @@ def session_token(filepath):
     return os.path.splitext(os.path.basename(filepath))[0]
 
 
+def session_group_label(records):
+    """Return 'Chemo' or 'Control' based on the is_chemo flag in the records."""
+    if not records:
+        return "Unknown"
+    return "Chemo" if records[0].get("is_chemo", False) else "Control"
+
+
 def compute_velocity_diagnostics(
     onset_module,
     time,
     signal,
     t_led=0.0,
     baseline_window=(-0.2, 0.0),
-    velocity_smooth_window=9,
+    velocity_smooth_window=3,  # centered: 1 sample before + 1 after
     velocity_std_factor=1.5,
     velocity_floor=0.03,
 ):
@@ -90,7 +97,7 @@ def group_by_session(records):
     return dict(sorted(grouped.items(), key=lambda item: item[0]))
 
 
-def add_session_summary_page(pdf, session_name, records):
+def add_session_summary_page(pdf, session_name, records, group_label):
     fig, axs = plt.subplots(2, 1, figsize=(11, 8.5), sharex=True)
     colors = {"Good CR": "black", "Poor CR": "tab:orange", "No CR": "lightgray"}
     markers = {"short": "o", "long": "s"}
@@ -124,7 +131,9 @@ def add_session_summary_page(pdf, session_name, records):
     ax.axhline(0.400, color="seagreen", linestyle=":", linewidth=1, label="Long puff")
     ax.set_ylabel("Detected onset from LED (s)")
     ax.set_ylim(-0.02, 0.45)
-    ax.set_title(f"{session_name}\nTrial-by-trial CR onset aligned to session trial order")
+    ax.set_title(
+        f"{session_name}  [{group_label}]\nTrial-by-trial CR onset aligned to session trial order"
+    )
     ax.legend(loc="upper right", fontsize=7, ncol=2)
 
     ax = axs[1]
@@ -153,7 +162,7 @@ def add_session_summary_page(pdf, session_name, records):
     plt.close(fig)
 
 
-def plot_trial_page(pdf, onset_module, session_name, records, page_index):
+def plot_trial_page(pdf, onset_module, session_name, records, page_index, group_label):
     fig, axs = plt.subplots(3, 2, figsize=(11, 8.5), sharex=True, sharey=True)
     axs = axs.ravel()
     for ax, record in zip(axs, records):
@@ -164,17 +173,27 @@ def plot_trial_page(pdf, onset_module, session_name, records, page_index):
         diag = compute_velocity_diagnostics(onset_module, time, signal)
 
         ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.25)
-        ax.axvline(puff_time, color="tab:blue", linestyle="--", linewidth=1.1)
+        ax.axvline(puff_time, color="tab:blue", linestyle="--", linewidth=1.1, label="puff")
         ax.plot(time, signal, color="black", linewidth=1.2, label="FEC")
+
+        # Normalize velocity to [0, 0.4] and overlay on the same axis
+        vel = diag["velocity"]
+        thr = diag["threshold"]
+        valid_v = np.isfinite(vel)
+        if np.any(valid_v):
+            vmin, vmax = np.nanmin(vel[valid_v]), np.nanmax(vel[valid_v])
+            if vmax > vmin:
+                vel_norm = 0.4 * (vel - vmin) / (vmax - vmin)
+                thr_norm = 0.4 * (thr - vmin) / (vmax - vmin) if np.isfinite(thr) else np.nan
+            else:
+                vel_norm = np.zeros_like(vel)
+                thr_norm = np.nan
+            ax.plot(time, vel_norm, color="tab:purple", alpha=0.75, linewidth=0.9, label="velocity (norm)")
+            if np.isfinite(thr_norm):
+                ax.axhline(thr_norm, color="tab:purple", linestyle=":", linewidth=1.0, alpha=0.85, label="vel thr")
+
         if np.isfinite(onset_time):
             ax.axvline(onset_time, color="red", linestyle="--", linewidth=1.3, label="onset")
-
-        ax_vel = ax.twinx()
-        ax_vel.plot(diag["time"], diag["velocity"], color="tab:purple", alpha=0.45, linewidth=0.8, label="velocity")
-        if np.isfinite(diag["threshold"]):
-            ax_vel.axhline(diag["threshold"], color="tab:purple", linestyle=":", alpha=0.65, linewidth=0.8)
-        ax_vel.set_yticks([])
-        ax_vel.spines["right"].set_visible(False)
 
         onset_label = f"{onset_time:.3f}s" if np.isfinite(onset_time) else "not detected"
         ax.set_title(
@@ -191,10 +210,13 @@ def plot_trial_page(pdf, onset_module, session_name, records, page_index):
     for ax in axs[-2:]:
         ax.set_xlabel("Time from LED onset (s)")
     for ax in axs[::2]:
-        ax.set_ylabel("FEC")
+        ax.set_ylabel("FEC  |  velocity (norm 0–0.4)")
 
-    fig.suptitle(f"{session_name} | Trial traces and velocity onset QC | page {page_index}", fontsize=12)
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    fig.suptitle(
+        f"{session_name}  [{group_label}] | Trial traces and velocity onset QC | page {page_index}",
+        fontsize=12,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
     pdf.savefig(fig, bbox_inches="tight")
     plt.close(fig)
 
@@ -202,25 +224,26 @@ def plot_trial_page(pdf, onset_module, session_name, records, page_index):
 def write_session_pdf(onset_module, filepath, records):
     token = session_token(filepath)
     session_name = os.path.basename(filepath)
+    group_label = session_group_label(records)
     out_name = f"CR_onset_trial_by_trial_QC_{token}.pdf"
     with PdfPages(out_name) as pdf:
-        add_session_summary_page(pdf, session_name, records)
+        add_session_summary_page(pdf, session_name, records, group_label)
         page_index = 1
         for start in range(0, len(records), 6):
             page_index += 1
-            plot_trial_page(pdf, onset_module, session_name, records[start:start + 6], page_index)
-    print(f"Saved {out_name} ({len(records)} trials)")
+            plot_trial_page(pdf, onset_module, session_name, records[start:start + 6], page_index, group_label)
+    print(f"Saved {out_name} ({len(records)} trials)  [{group_label}] - 011_CR_onset_trial_by_trial_QC.py:235")
 
 
 def main():
     onset_module = load_onset_module()
     data_files = sorted(glob.glob("*_EBC_*.mat"))
     if not data_files:
-        print("No *_EBC_*.mat files found in current folder.")
+        print("No *_EBC_*.mat files found in current folder. - 011_CR_onset_trial_by_trial_QC.py:242")
         return
     records = onset_module.prepare_trial_records(data_files)
     if not records:
-        print("No usable trials found.")
+        print("No usable trials found. - 011_CR_onset_trial_by_trial_QC.py:246")
         return
     for filepath, records_for_session in group_by_session(records).items():
         write_session_pdf(onset_module, filepath, records_for_session)

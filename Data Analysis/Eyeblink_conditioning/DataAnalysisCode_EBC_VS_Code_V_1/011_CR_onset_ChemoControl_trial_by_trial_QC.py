@@ -45,7 +45,7 @@ def compute_velocity_diagnostics(
     signal,
     t_led=0.0,
     baseline_window=(-0.2, 0.0),
-    velocity_smooth_window=9,
+    velocity_smooth_window=3,  # centered: 1 sample before + 1 after
     velocity_std_factor=1.5,
     velocity_floor=0.03,
 ):

@@ -2,6 +2,7 @@ from __future__ import annotations
 import pathlib
 import re
 import csv
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -35,13 +36,14 @@ SAVE_DIR = pathlib.Path(
 )
 
 DATE_MIN: Optional[int] = None
+CHEMO_DATES: set = {"05/21", "05/27", "05/29", "06/02", "06/04"}  # sessions to skip — administered on these dates (MM/DD)
 
 
 # ============================================================
 # Analysis params
 # ============================================================
-FIXED_BLOCK_LEN = 50
-MIN_BLOCK_LEN = 20
+FIXED_BLOCK_LEN = 40
+MIN_BLOCK_LEN = 35
 BASELINE_THRESHOLD = 0.35
 
 REMOVE_FIRST_LONG_WARMUP = True
@@ -133,7 +135,7 @@ def parse_date_from_filename(name: str) -> Optional[int]:
 # ============================================================
 # CR onset detection (same approach as 010 / 011)
 # ============================================================
-def _cr_smooth(x: np.ndarray, w: int = 9) -> np.ndarray:
+def _cr_smooth(x: np.ndarray, w: int = 3) -> np.ndarray:
     x = np.asarray(x, dtype=float)
     return uniform_filter1d(x, size=w, mode="nearest") if w > 1 else x.copy()
 
@@ -177,7 +179,7 @@ def _cr_classify(time: np.ndarray, signal: np.ndarray, t_puff_s: float,
 def _cr_find_onset(time: np.ndarray, signal: np.ndarray, block_label: str,
                     t_puff_s: float, min_peak_height: float = 0.01,
                     short_end_s: float = 0.212, long_end_s: float = 0.412,
-                    vel_smooth: int = 9, vel_std_factor: float = 1.5,
+                    vel_smooth: int = 3, vel_std_factor: float = 1.5,  # centered: 1 before + 1 after
                     vel_floor: float = 0.03, min_sustain_s: float = 0.008,
                     backtrack_vel_floor: float = 0.006,
                     min_signal_rise: float = 0.006,
@@ -465,7 +467,7 @@ def make_block_count_lines_pdf(save_path, meta_all):
     with PdfPages(save_path) as pdf:
         pdf.savefig(fig)
     plt.close(fig)
-    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:323 - 009_trans6_8RowSummary_V_3.py:468")
+    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:323 - 009_trans6_8RowSummary_V_3.py:470")
 
 def per_trial_metrics(tr: dict, overall_max: float):
     led, t, eye = tr["LED_on"], tr["FECTimes"], tr["eye"]
@@ -503,8 +505,7 @@ def per_trial_metrics(tr: dict, overall_max: float):
             t_puff_s = delay_ms / 1000.0
             dt_s = 1.0 / 250.0
             tg_s = np.arange(-0.2, 0.65 + dt_s / 2, dt_s)
-            fec_sm = _cr_smooth(fec, 5)
-            fec_q = _cr_interp(t_s, fec_sm, tg_s)
+            fec_q = _cr_interp(t_s, fec, tg_s)  # no pre-smoothing of position
             category = _cr_classify(tg_s, fec_q, t_puff_s, bl_label)
             mph = 0.03 if category == "Good CR" else (0.02 if category == "Poor CR" else 0.005)
             onset_lat = _cr_find_onset(tg_s, fec_q, bl_label, t_puff_s, mph)
@@ -530,6 +531,44 @@ def build_blocks(blks: List[Optional[str]]) -> List[dict]:
     blocks.append({"label": cur, "start": start, "end": len(blks) - 1, "length": len(blks) - start})
     return blocks
 
+def build_labeled_blocks(blks: List[Optional[str]]) -> List[dict]:
+    """Build short/long blocks while ignoring occasional unlabeled trials.
+
+    Some sessions contain isolated trials whose AP-LED delay is outside the short/long
+    ranges. Treating those as real block boundaries fragments a single conditioning
+    block and can make L->S transitions fail the block-length filter.
+    """
+    blocks = []
+    cur_label = None
+    cur_trials: List[int] = []
+
+    def flush():
+        if cur_label is None or not cur_trials:
+            return
+        blocks.append({
+            "label": cur_label,
+            "start": cur_trials[0],
+            "end": cur_trials[-1],
+            "length": len(cur_trials),
+            "trial_indices": list(cur_trials),
+        })
+
+    for idx, label in enumerate(blks):
+        if label not in ("short", "long"):
+            continue
+        if cur_label is None:
+            cur_label = label
+            cur_trials = [idx]
+        elif label == cur_label:
+            cur_trials.append(idx)
+        else:
+            flush()
+            cur_label = label
+            cur_trials = [idx]
+
+    flush()
+    return blocks
+
 def apply_first_long_warmup_removal(blocks: List[dict]) -> List[dict]:
     out = [dict(b) for b in blocks]
     if not REMOVE_FIRST_LONG_WARMUP or not out:
@@ -537,8 +576,16 @@ def apply_first_long_warmup_removal(blocks: List[dict]) -> List[dict]:
 
     first = out[0]
     if first["label"] == "long" and first["length"] > FIRST_LONG_WARMUP_TRIALS:
-        first["start"] += FIRST_LONG_WARMUP_TRIALS
-        first["length"] -= FIRST_LONG_WARMUP_TRIALS
+        first["original_start"] = first["start"]
+        first["original_length"] = first["length"]
+        if "trial_indices" in first:
+            first["trial_indices"] = first["trial_indices"][FIRST_LONG_WARMUP_TRIALS:]
+            first["start"] = first["trial_indices"][0]
+            first["end"] = first["trial_indices"][-1]
+            first["length"] = len(first["trial_indices"])
+        else:
+            first["start"] += FIRST_LONG_WARMUP_TRIALS
+            first["length"] -= FIRST_LONG_WARMUP_TRIALS
 
     return out
 
@@ -553,7 +600,7 @@ def family_bounds(family: int):
     if family == 40:
         return 35, 45
     if family == 50:
-        return 45, 55
+        return MIN_BLOCK_LEN, 55
     return None, None
 
 
@@ -891,7 +938,7 @@ def make_block_count_lines_pdf(save_path, meta_all, zoom_only=True, zoom_window=
         pdf.savefig(fig)
     plt.close(fig)
 
-    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:732 - 009_trans6_8RowSummary_V_3.py:894")
+    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:732 - 009_trans6_8RowSummary_V_3.py:895")
 
 COLOR_ONSET = "crimson"
 
@@ -957,7 +1004,7 @@ def make_8row_pdf(path, x, s2l, l2s, tgrid, summary_text, meta_all):
     with PdfPages(path) as pdf:
         pdf.savefig(fig)
     plt.close(fig)
-    print(f"Saved: {path} - 009_trans6_8RowSummary_V_3.py:960")
+    print(f"Saved: {path} - 009_trans6_8RowSummary_V_3.py:961")
 
 def draw_valid_transition_count_panel(ax, meta_all, direction, title, count_window=60):
     rows = []
@@ -1073,7 +1120,7 @@ def make_block_length_pairs_pdf(save_path, meta_all, summary_text=None):
     with PdfPages(save_path) as pdf:
         pdf.savefig(fig)
     plt.close(fig)
-    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:905 - 009_trans6_8RowSummary_V_3.py:1076")
+    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:905 - 009_trans6_8RowSummary_V_3.py:1077")
 
 
 def draw_real_block_number_panel(ax, meta_all, direction, title):
@@ -1226,7 +1273,7 @@ def make_session_block_timeline_pdf(save_path, meta_all):
         rows.append((session_name, blocks))
 
     if not rows:
-        print(f"No session block data for {save_path}  trans6_8RowSummary_V_3.py:1058 - 009_trans6_8RowSummary_V_3.py:1229")
+        print(f"No session block data for {save_path}  trans6_8RowSummary_V_3.py:1058 - 009_trans6_8RowSummary_V_3.py:1230")
         return
 
     fig_h = max(6, 0.7 * len(rows) + 2)
@@ -1257,7 +1304,7 @@ def make_session_block_timeline_pdf(save_path, meta_all):
     with PdfPages(save_path) as pdf:
         pdf.savefig(fig)
     plt.close(fig)
-    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:1089 - 009_trans6_8RowSummary_V_3.py:1260")
+    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:1089 - 009_trans6_8RowSummary_V_3.py:1261")
 
 def make_block_vs_trial_mean_pdf(save_path, meta_all):
     all_traces = []
@@ -1278,7 +1325,7 @@ def make_block_vs_trial_mean_pdf(save_path, meta_all):
         max_len = max(max_len, len(trace))
 
     if not all_traces:
-        print(f"No data for {save_path}  trans6_8RowSummary_V_3.py:1110 - 009_trans6_8RowSummary_V_3.py:1281")
+        print(f"No data for {save_path}  trans6_8RowSummary_V_3.py:1110 - 009_trans6_8RowSummary_V_3.py:1282")
         return
 
     padded = []
@@ -1305,7 +1352,7 @@ def make_block_vs_trial_mean_pdf(save_path, meta_all):
     with PdfPages(save_path) as pdf:
         pdf.savefig(fig)
     plt.close(fig)
-    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:1137 - 009_trans6_8RowSummary_V_3.py:1308")
+    print(f"Saved: {save_path}  trans6_8RowSummary_V_3.py:1137 - 009_trans6_8RowSummary_V_3.py:1309")
 
 
 # ============================================================
@@ -1313,6 +1360,26 @@ def make_block_vs_trial_mean_pdf(save_path, meta_all):
 # ============================================================
 def collect_session(p):
     trials = load_trials_from_mat(p)
+
+    # Read Chemogenetics flag from SessionData
+    try:
+        _raw = sio.loadmat(str(p), struct_as_record=False, squeeze_me=True)
+        _SD = to_py(get_ci({k: to_py(v) for k, v in _raw.items() if not k.startswith("__")}, "SessionData"))
+        chemo_flag = int(get_ci(_SD, "Chemogenetics") or 0) if isinstance(_SD, dict) else 0
+    except Exception:
+        chemo_flag = 0
+    is_chemo = (chemo_flag == 1)
+
+    # Date-based chemo override for sessions missing the Chemogenetics flag
+    _chemo_dates = {"05/21", "05/27", "05/29", "06/02", "06/04"}
+    _dm = re.search(r"(\d{8})", p.name)
+    if _dm:
+        try:
+            if datetime.strptime(_dm.group(1), "%Y%m%d").strftime("%m/%d") in _chemo_dates:
+                is_chemo = True
+        except Exception:
+            pass
+
     overall = session_overall_max_eye(trials)
     if not (np.isfinite(overall) and overall > 0):
         return None
@@ -1349,14 +1416,14 @@ def collect_session(p):
     baselines = np.asarray(baselines, dtype=float)
     onsets = np.asarray(onsets, dtype=float)
 
-    raw_blocks = build_blocks(blks)
+    raw_blocks = build_labeled_blocks(blks)
+    family = infer_session_family(raw_blocks)
     eff_blocks = apply_first_long_warmup_removal(raw_blocks)
 
     filtered_blocks = [dict(b) for b in eff_blocks if b["label"] in ("short", "long")]
     for block_num, blk in enumerate(filtered_blocks, start=1):
         blk["block_num"] = block_num
 
-    family = infer_session_family(filtered_blocks)
     low, high = family_bounds(family)
     if low is None:
         return None
@@ -1371,6 +1438,7 @@ def collect_session(p):
 
     meta = {
         "session_name": p.name,
+        "is_chemo": is_chemo,
         "family": family,
         "s2l_lengths": [],
         "l2s_lengths": [],
@@ -1415,8 +1483,8 @@ def collect_session(p):
         else:
             continue
 
-        pre_trials = list(range(pre_blk["start"], pre_blk["end"] + 1))
-        post_trials = list(range(post_blk["start"], post_blk["end"] + 1))
+        pre_trials = list(pre_blk.get("trial_indices", range(pre_blk["start"], pre_blk["end"] + 1)))
+        post_trials = list(post_blk.get("trial_indices", range(post_blk["start"], post_blk["end"] + 1)))
 
         pre_take = pre_trials[-FIXED_BLOCK_LEN:]
         post_take = post_trials[:FIXED_BLOCK_LEN]
@@ -1554,7 +1622,7 @@ def run():
     all_meta = []
 
     for mouse, root in MOUSE_ROOTS.items():
-        print(f"Processing {mouse}...  trans6_8RowSummary_V_3.py:1376 - 009_trans6_8RowSummary_V_3.py:1557")
+        print(f"Processing {mouse}...  trans6_8RowSummary_V_3.py:1376 - 009_trans6_8RowSummary_V_3.py:1579")
 
         m_acc = {
             "s2l": {"raw": [], "bs": [], "vel": [], "base": [], "onset": [], **{k: [] for k in trace_keys}},
@@ -1567,7 +1635,7 @@ def run():
             with selected_sessions_file.open("r") as fh:
                 selected_names = {line.strip() for line in fh if line.strip()}
             files = [p for p in files if p.name in selected_names]
-            print(f"Using {len(files)} barplotselected sessions for {mouse} - 009_trans6_8RowSummary_V_3.py:1570")
+            print(f"Using {len(files)} barplotselected sessions for {mouse} - 009_trans6_8RowSummary_V_3.py:1592")
         tgrid_ref = None
         meta_all = []
 
@@ -1576,6 +1644,14 @@ def run():
                 dt = parse_date_from_filename(p.name)
                 if dt is None or dt < DATE_MIN:
                     continue
+
+            if CHEMO_DATES:
+                dt = parse_date_from_filename(p.name)
+                if dt is not None:
+                    _md = datetime.strptime(str(dt), "%Y%m%d").strftime("%m/%d")
+                    if _md in CHEMO_DATES:
+                        print(f"Skipping chemo session: {p.name} - 009_trans6_8RowSummary_V_3.py:1607")
+                        continue
 
             try:
                 out = collect_session(p)
@@ -1594,7 +1670,7 @@ def run():
                         m_acc[direction][key].extend(data[direction][key])
 
             except Exception as e:
-                print(f"Skipped {p.name}: {e}  trans6_8RowSummary_V_3.py:1410 - 009_trans6_8RowSummary_V_3.py:1597")
+                print(f"Skipped {p.name}: {e}  trans6_8RowSummary_V_3.py:1410 - 009_trans6_8RowSummary_V_3.py:1627")
 
         if tgrid_ref is None:
             continue
@@ -1637,7 +1713,7 @@ def run():
             for k in trace_keys:
                 pool[direction][k].extend(src[k])
 
-    print("Processing pooled...  trans6_8RowSummary_V_3.py:1453 - 009_trans6_8RowSummary_V_3.py:1640")
+    print("Processing pooled...  trans6_8RowSummary_V_3.py:1453 - 009_trans6_8RowSummary_V_3.py:1670")
 
     p_s2l = finalize(pool["s2l"])
     p_l2s = finalize(pool["l2s"])

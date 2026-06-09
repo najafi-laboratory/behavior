@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from scipy.interpolate import interp1d
 from scipy.ndimage import uniform_filter1d
+from scipy.signal import find_peaks
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
@@ -221,7 +222,9 @@ def classify_trial(
     ):
         return "Poor CR", cr_peak_bs, baseline_amp
 
-    return "Good CR", cr_peak_bs, baseline_amp
+    if cr_peak_bs > good_cr_threshold:
+        return "Good CR", cr_peak_bs, baseline_amp
+    return "Poor CR", cr_peak_bs, baseline_amp
 
 
 def get_onset_search_end(block_label, short_end_s=0.212, long_end_s=0.412):
@@ -242,13 +245,14 @@ def find_detected_onset_velocity_based(
     baseline_window=(-0.2, 0.0),
     short_end_s=0.212,
     long_end_s=0.412,
-    velocity_smooth_window=9,
+    velocity_smooth_window=3,  # centered: 1 sample before + 1 after
     velocity_std_factor=1.5,
     velocity_floor=0.03,
     min_sustain_s=0.008,
     backtrack_velocity_floor=0.006,
     min_signal_rise=0.006,
     min_onset_latency_s=0.050,
+    long_block_onset_fraction=0.15,
 ):
     """
     Detect CR onset from the FEC velocity trace.
@@ -282,7 +286,11 @@ def find_detected_onset_velocity_based(
     sig_search = signal_bs[search_idx]
     if len(time_search) < 2 or not np.any(np.isfinite(sig_search)):
         return np.nan, np.nan, baseline_amp, np.nan
-    peak_idx_local = int(np.nanargmax(sig_search))
+    local_peaks, _ = find_peaks(sig_search, height=min_peak_height)
+    if len(local_peaks) > 0:
+        peak_idx_local = int(local_peaks[0])
+    else:
+        peak_idx_local = int(np.nanargmax(sig_search))
     peak_val = sig_search[peak_idx_local]
     if (not np.isfinite(peak_val)) or (peak_val < min_peak_height):
         return np.nan, np.nan, baseline_amp, peak_val
@@ -306,6 +314,32 @@ def find_detected_onset_velocity_based(
     pre_peak_time = time_search[:peak_idx_local + 1]
     pre_peak_velocity = velocity[search_idx][:peak_idx_local + 1]
     pre_peak_signal = sig_smooth[search_idx][:peak_idx_local + 1]
+
+    # Long-block onset: anchor to the peak near AirPuff then walk backward.
+    # The forward velocity-run method fails for long blocks because the FEC
+    # rises monotonically over ~400 ms, producing one unbroken velocity run
+    # from LED onset to peak, driving detected onset to the LED floor.
+    if str(block_label).strip().lower() == "long":
+        threshold_signal = long_block_onset_fraction * peak_val
+        above_thresh = pre_peak_signal >= threshold_signal
+        if not np.any(above_thresh):
+            return np.nan, np.nan, baseline_amp, peak_val
+        first_above = int(np.argmax(above_thresh))
+        onset_idx_back = first_above
+        while onset_idx_back > 0:
+            v_prev = pre_peak_velocity[onset_idx_back - 1]
+            s_prev = pre_peak_signal[onset_idx_back - 1]
+            if not (np.isfinite(v_prev) and np.isfinite(s_prev)):
+                break
+            if v_prev < backtrack_velocity_floor:
+                break
+            onset_idx_back -= 1
+        onset_time = pre_peak_time[onset_idx_back]
+        onset_latency = onset_time - t_led
+        if onset_latency < min_onset_latency_s:
+            return np.nan, np.nan, baseline_amp, peak_val
+        return onset_time, onset_latency, baseline_amp, peak_val
+
     above = (
         np.isfinite(pre_peak_velocity)
         & np.isfinite(pre_peak_signal)
@@ -317,7 +351,7 @@ def find_detected_onset_velocity_based(
         dt = float(np.nanmedian(np.diff(pre_peak_time)))
     else:
         dt = np.nan
-    min_sustain_samples = max(1, int(np.ceil(min_sustain_s / dt))) if np.isfinite(dt) and dt > 0 else 1
+    min_sustain_samples = max(8, int(np.ceil(min_sustain_s / dt))) if np.isfinite(dt) and dt > 0 else 8
 
     idx_candidates = []
     run_start = None
@@ -333,18 +367,7 @@ def find_detected_onset_velocity_based(
 
     if len(idx_candidates) == 0:
         return np.nan, np.nan, baseline_amp, peak_val
-    onset_idx = int(idx_candidates[-1])
-    while onset_idx > 0:
-        prev_velocity = pre_peak_velocity[onset_idx - 1]
-        prev_signal = pre_peak_signal[onset_idx - 1]
-        curr_signal = pre_peak_signal[onset_idx]
-        if not (np.isfinite(prev_velocity) and np.isfinite(prev_signal) and np.isfinite(curr_signal)):
-            break
-        if prev_velocity < backtrack_velocity_floor:
-            break
-        if curr_signal - prev_signal < -min_signal_rise:
-            break
-        onset_idx -= 1
+    onset_idx = int(idx_candidates[0])
     onset_time = pre_peak_time[onset_idx]
     onset_latency = onset_time - t_led
     if onset_latency < min_onset_latency_s:
@@ -404,11 +427,11 @@ def style_axis(ax, title, ylabel, xlabel):
 
 
 def load_mat_trials(filepath):
-    print(f"Loading file: {os.path.basename(filepath)} - CR_onsetTiming_Distribution_SanityCheck.py:378")
+    print(f"Loading file: {os.path.basename(filepath)}  CR_onsetTiming_Distribution_SanityCheck.py:378 - 010_CR_onsetTiming_Distribution_SanityCheck.py:434")
     try:
         S = loadmat(filepath, squeeze_me=True, struct_as_record=False)
     except Exception as exc:
-        print(f"Skipping {os.path.basename(filepath)}: loadmat failed ({exc}) - CR_onsetTiming_Distribution_SanityCheck.py:382")
+        print(f"Skipping {os.path.basename(filepath)}: loadmat failed ({exc})  CR_onsetTiming_Distribution_SanityCheck.py:382 - 010_CR_onsetTiming_Distribution_SanityCheck.py:438")
         return []
     if "SessionData" not in S:
         return []
@@ -425,7 +448,7 @@ def prepare_trial_records(data_files):
     dt = 1.0 / 250.0
     t_grid = np.arange(-t_pre, t_post + dt / 2, dt)
     short_isi_max = 0.30
-    smooth_win = 5
+    smooth_win = 1  # no FEC pre-smoothing — large windows shift apparent onset timing
     good_cr_threshold = 0.05
     poor_cr_threshold = 0.02
     short_cr_pre_ms = 25
@@ -575,7 +598,7 @@ def plot_onset_distributions(records, first_date, last_date, first_tok, last_tok
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_distribution_sanity_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py:546")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py:546 - 010_CR_onsetTiming_Distribution_SanityCheck.py:605")
     return fig
 
 
@@ -623,7 +646,7 @@ def plot_good_cr_onset_distribution(records, first_date, last_date, first_tok, l
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_goodCR_distribution_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py:594")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py:594 - 010_CR_onsetTiming_Distribution_SanityCheck.py:653")
     return fig
 
 
@@ -661,7 +684,7 @@ def plot_poor_cr_onset_distribution(records, first_date, last_date, first_tok, l
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_poorCR_distribution_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py - 010_CR_onsetTiming_Distribution_SanityCheck.py:691")
     return fig
 
 
@@ -705,7 +728,59 @@ def plot_superimposed_onset_distribution(records, first_date, last_date, first_t
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_superimposed_short_long_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py - 010_CR_onsetTiming_Distribution_SanityCheck.py:735")
+    return fig
+
+
+def plot_good_cr_cumulative_comparison(records, first_date, last_date, first_tok, last_tok):
+    """Superimpose Short and Long Good CR cumulative onset distributions on one panel."""
+    onset_edges = np.arange(0.0, 0.4501, 0.005)
+    onset_centers = onset_edges[:-1] + np.diff(onset_edges) / 2
+
+    block_styles = {
+        "short": {"color": "royalblue", "puff_x": 0.200, "puff_color": "steelblue"},
+        "long":  {"color": "seagreen",  "puff_x": 0.400, "puff_color": "darkgreen"},
+    }
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    for block in ["short", "long"]:
+        values = [
+            r["onset_latency"]
+            for r in records
+            if r["block_label"] == block and r["category"] == "Good CR"
+        ]
+        n = len(values)
+        cum = hist_cumulative(values, onset_edges)
+        s = block_styles[block]
+        ax.plot(onset_centers, cum, color=s["color"], linewidth=2.5,
+                label=f"{block.title()} Good CR (n={n})")
+        ax.axvspan(s["puff_x"], s["puff_x"] + 0.020, color=s["puff_color"], alpha=0.15)
+        ax.axvline(s["puff_x"], linestyle="--", color=s["puff_color"], alpha=0.85)
+        ax.text(s["puff_x"] + 0.005, 0.96, "AirPuff", color=s["puff_color"], fontsize=9, va="top")
+
+    ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.35)
+    ax.axvline(0.0, linestyle=":", color="gray", alpha=0.7)
+    ax.text(0.002, 0.03, "LED", fontsize=9, color="gray")
+
+    ax.set_xlabel("Detected onset (s)")
+    ax.set_ylabel("Cumulative fraction")
+    ax.set_xlim(0.0, 0.45)
+    ax.set_ylim(0.0, 1.02)
+    ax.set_xticks([0.0, 0.1, 0.2, 0.3, 0.4])
+    ax.legend(loc="upper left", fontsize=9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(direction="out")
+
+    fig.suptitle(
+        f"Good CR cumulative velocity-onset comparison\nSessions: {first_date} -- {last_date}",
+        fontsize=13,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.92])
+    out_name = f"CR_onset_goodCR_cumulative_comparison_{first_tok}_to_{last_tok}.pdf"
+    fig.savefig(out_name, bbox_inches="tight")
+    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:787")
     return fig
 
 
@@ -727,7 +802,7 @@ def plot_good_cr_average_traces(records, first_tok, last_tok):
         shade_color = "blue" if block_label == "short" else "green"
         puff_x = 0.200 if block_label == "short" else 0.400
         ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.35)
-        ax.axvspan(puff_x - 0.01, puff_x + 0.01, color=shade_color, alpha=0.35)
+        ax.axvspan(puff_x, puff_x + 0.020, color=shade_color, alpha=0.35)
         ax.plot(subset[0]["t_grid"], mean_trace, color="black", linewidth=2)
         if np.isfinite(median_onset):
             ax.axvline(median_onset, color="red", linestyle="--", label=f"Median onset {median_onset:.3f}s")
@@ -745,7 +820,7 @@ def plot_good_cr_average_traces(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out_name = f"CR_onset_goodCR_average_traces_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py:634")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py:634 - 010_CR_onsetTiming_Distribution_SanityCheck.py:827")
     return fig
 
 
@@ -767,7 +842,7 @@ def plot_poor_cr_average_traces(records, first_tok, last_tok):
         shade_color = "blue" if block_label == "short" else "green"
         puff_x = 0.200 if block_label == "short" else 0.400
         ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.35)
-        ax.axvspan(puff_x - 0.01, puff_x + 0.01, color=shade_color, alpha=0.35)
+        ax.axvspan(puff_x, puff_x + 0.020, color=shade_color, alpha=0.35)
         ax.plot(subset[0]["t_grid"], mean_trace, color="dimgray", linewidth=2)
         if np.isfinite(median_onset):
             ax.axvline(median_onset, color="red", linestyle="--", label=f"Median onset {median_onset:.3f}s")
@@ -785,7 +860,7 @@ def plot_poor_cr_average_traces(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out_name = f"CR_onset_poorCR_average_traces_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name}")
+    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:867")
     return fig
 
 
@@ -830,10 +905,10 @@ def plot_latency_summary_table(records, first_date, last_date, first_tok, last_t
     )
     out_name = f"CR_onset_latency_summary_table_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py:679")
-    print("Latency summary: - CR_onsetTiming_Distribution_SanityCheck.py:680")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py:679 - 010_CR_onsetTiming_Distribution_SanityCheck.py:912")
+    print("Latency summary:  CR_onsetTiming_Distribution_SanityCheck.py:680 - 010_CR_onsetTiming_Distribution_SanityCheck.py:913")
     for row in rows:
-        print("| - CR_onsetTiming_Distribution_SanityCheck.py:682".join(map(str, row)))
+        print("|  CR_onsetTiming_Distribution_SanityCheck.py:682 - 010_CR_onsetTiming_Distribution_SanityCheck.py:915".join(map(str, row)))
     return fig
 
 
@@ -860,7 +935,7 @@ def plot_sanity_examples(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.94])
     out_name = f"CR_onset_sanity_examples_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py:709")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py:709 - 010_CR_onsetTiming_Distribution_SanityCheck.py:942")
     return fig
 
 
@@ -892,29 +967,29 @@ def plot_average_traces(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out_name = f"CR_onset_sanity_average_traces_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - CR_onsetTiming_Distribution_SanityCheck.py:741")
+    print(f"Saved {out_name}  CR_onsetTiming_Distribution_SanityCheck.py:741 - 010_CR_onsetTiming_Distribution_SanityCheck.py:974")
     return fig
 
 
 def main():
     data_files = sorted(glob.glob("*_EBC_*.mat"))
     if len(data_files) == 0:
-        print("No *_EBC_*.mat files found in current folder. - CR_onsetTiming_Distribution_SanityCheck.py:748")
+        print("No *_EBC_*.mat files found in current folder.  CR_onsetTiming_Distribution_SanityCheck.py:748 - 010_CR_onsetTiming_Distribution_SanityCheck.py:981")
         return
     first_tok, last_tok, first_date, last_date = build_session_range(data_files)
     records = prepare_trial_records(data_files)
     if len(records) == 0:
-        print("No usable trials found. - CR_onsetTiming_Distribution_SanityCheck.py:753")
+        print("No usable trials found.  CR_onsetTiming_Distribution_SanityCheck.py:753 - 010_CR_onsetTiming_Distribution_SanityCheck.py:986")
         return
     # Main published outputs:
     plot_onset_distributions(records, first_date, last_date, first_tok, last_tok)
     plot_good_cr_onset_distribution(records, first_date, last_date, first_tok, last_tok)
     plot_poor_cr_onset_distribution(records, first_date, last_date, first_tok, last_tok)
     plot_superimposed_onset_distribution(records, first_date, last_date, first_tok, last_tok)
+    plot_good_cr_cumulative_comparison(records, first_date, last_date, first_tok, last_tok)
     plot_good_cr_average_traces(records, first_tok, last_tok)
     plot_poor_cr_average_traces(records, first_tok, last_tok)
     plot_latency_summary_table(records, first_date, last_date, first_tok, last_tok)
-    # Keep figures 1-3 only; skip additional sanity plots.
     plt.close("all")
 
 

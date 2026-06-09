@@ -1320,6 +1320,18 @@ def make_block_vs_trial_mean_pdf(save_path, meta_all):
 def collect_session(p):
     trials, chemo_flag = load_trials_from_mat(p)
     is_chemo = (chemo_flag == 1)
+
+    # Date-based chemo override for sessions missing the Chemogenetics flag
+    _chemo_dates = {"05/21", "05/27", "05/29", "06/02", "06/04"}
+    _dm = re.search(r"(\d{8})", os.path.basename(p))
+    if _dm:
+        try:
+            _sd = datetime.strptime(_dm.group(1), "%Y%m%d")
+            if _sd.strftime("%m/%d") in _chemo_dates:
+                is_chemo = True
+        except Exception:
+            pass
+
     overall = session_overall_max_eye(trials)
     if not (np.isfinite(overall) and overall > 0):
         return None

@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from scipy.interpolate import interp1d
 from scipy.ndimage import uniform_filter1d
+from scipy.signal import find_peaks
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
@@ -221,7 +222,9 @@ def classify_trial(
     ):
         return "Poor CR", cr_peak_bs, baseline_amp
 
-    return "Good CR", cr_peak_bs, baseline_amp
+    if cr_peak_bs > good_cr_threshold:
+        return "Good CR", cr_peak_bs, baseline_amp
+    return "Poor CR", cr_peak_bs, baseline_amp
 
 
 def get_onset_search_end(block_label, short_end_s=0.212, long_end_s=0.412):
@@ -242,7 +245,7 @@ def find_detected_onset_velocity_based(
     baseline_window=(-0.2, 0.0),
     short_end_s=0.212,
     long_end_s=0.412,
-    velocity_smooth_window=9,
+    velocity_smooth_window=3,  # centered window: 1 sample before + 1 after
     velocity_std_factor=1.5,
     velocity_floor=0.03,
     min_sustain_s=0.008,
@@ -275,7 +278,11 @@ def find_detected_onset_velocity_based(
     sig_search = signal_bs[search_idx]
     if len(time_search) < 2 or not np.any(np.isfinite(sig_search)):
         return np.nan, np.nan, baseline_amp, np.nan
-    peak_idx_local = int(np.nanargmax(sig_search))
+    local_peaks, _ = find_peaks(sig_search, height=min_peak_height)
+    if len(local_peaks) > 0:
+        peak_idx_local = int(local_peaks[0])
+    else:
+        peak_idx_local = int(np.nanargmax(sig_search))
     peak_val = sig_search[peak_idx_local]
     if (not np.isfinite(peak_val)) or (peak_val < min_peak_height):
         return np.nan, np.nan, baseline_amp, peak_val
@@ -332,7 +339,7 @@ def find_detected_onset_velocity_based(
         dt = float(np.nanmedian(np.diff(pre_peak_time)))
     else:
         dt = np.nan
-    min_sustain_samples = max(1, int(np.ceil(min_sustain_s / dt))) if np.isfinite(dt) and dt > 0 else 1
+    min_sustain_samples = max(8, int(np.ceil(min_sustain_s / dt))) if np.isfinite(dt) and dt > 0 else 8
 
     idx_candidates = []
     run_start = None
@@ -348,18 +355,7 @@ def find_detected_onset_velocity_based(
 
     if len(idx_candidates) == 0:
         return np.nan, np.nan, baseline_amp, peak_val
-    onset_idx = int(idx_candidates[-1])
-    while onset_idx > 0:
-        prev_velocity = pre_peak_velocity[onset_idx - 1]
-        prev_signal = pre_peak_signal[onset_idx - 1]
-        curr_signal = pre_peak_signal[onset_idx]
-        if not (np.isfinite(prev_velocity) and np.isfinite(prev_signal) and np.isfinite(curr_signal)):
-            break
-        if prev_velocity < backtrack_velocity_floor:
-            break
-        if curr_signal - prev_signal < -min_signal_rise:
-            break
-        onset_idx -= 1
+    onset_idx = int(idx_candidates[0])
     onset_time = pre_peak_time[onset_idx]
     onset_latency = onset_time - t_led
     if onset_latency < min_onset_latency_s:
@@ -419,11 +415,11 @@ def style_axis(ax, title, ylabel, xlabel):
 
 
 def load_mat_trials(filepath):
-    print(f"Loading file: {os.path.basename(filepath)} - 010_CR_onsetTiming_Distribution_SanityCheck.py:422")
+    print(f"Loading file: {os.path.basename(filepath)}  010_CR_onsetTiming_Distribution_SanityCheck.py:422 - 010_CR_onsetTiming_ChemoControl.py:418")
     try:
         S = loadmat(filepath, squeeze_me=True, struct_as_record=False)
     except Exception as exc:
-        print(f"Skipping {os.path.basename(filepath)}: loadmat failed ({exc}) - 010_CR_onsetTiming_Distribution_SanityCheck.py:426")
+        print(f"Skipping {os.path.basename(filepath)}: loadmat failed ({exc})  010_CR_onsetTiming_Distribution_SanityCheck.py:426 - 010_CR_onsetTiming_ChemoControl.py:422")
         return [], 0
     if "SessionData" not in S:
         return [], 0
@@ -445,7 +441,7 @@ def prepare_trial_records(data_files):
     dt = 1.0 / 250.0
     t_grid = np.arange(-t_pre, t_post + dt / 2, dt)
     short_isi_max = 0.30
-    smooth_win = 5
+    smooth_win = 1  # no FEC pre-smoothing — large windows shift apparent onset timing
     good_cr_threshold = 0.05
     poor_cr_threshold = 0.02
     short_cr_pre_ms = 25
@@ -462,6 +458,18 @@ def prepare_trial_records(data_files):
         if len(trials) == 0:
             continue
         is_chemo = (chemo_flag == 1)
+
+        # Date-based chemo override for sessions missing the Chemogenetics flag
+        _chemo_dates = {"05/21", "05/27", "05/29", "06/02", "06/04"}
+        _dm = re.search(r"(\d{8})", os.path.basename(filepath))
+        if _dm:
+            try:
+                _sd = datetime.strptime(_dm.group(1), "%Y%m%d")
+                if _sd.strftime("%m/%d") in _chemo_dates:
+                    is_chemo = True
+            except Exception:
+                pass
+
         overall_max = collect_overall_max(trials)
         if not np.isfinite(overall_max):
             continue
@@ -618,7 +626,7 @@ def plot_onset_distributions(records, first_date, last_date, first_tok, last_tok
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_distribution_sanity_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:621")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:621 - 010_CR_onsetTiming_ChemoControl.py:629")
     return fig
 
 
@@ -687,7 +695,7 @@ def plot_good_cr_onset_distribution(records, first_date, last_date, first_tok, l
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_goodCR_distribution_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:690")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:690 - 010_CR_onsetTiming_ChemoControl.py:698")
     return fig
 
 
@@ -729,7 +737,7 @@ def plot_poor_cr_onset_distribution(records, first_date, last_date, first_tok, l
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_poorCR_distribution_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:732")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:732 - 010_CR_onsetTiming_ChemoControl.py:740")
     return fig
 
 
@@ -774,7 +782,7 @@ def plot_superimposed_onset_distribution(records, first_date, last_date, first_t
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_superimposed_short_long_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:777")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:777 - 010_CR_onsetTiming_ChemoControl.py:785")
     return fig
 
 
@@ -803,7 +811,7 @@ def plot_good_cr_cumulative_comparison(records, first_date, last_date, first_tok
             cum = hist_cumulative(vals, onset_edges)
             ax.plot(onset_centers, cum, color=col_c, linestyle=ls, linewidth=2.2,
                     label=f"{block.title()} {tag} Good CR (n={n})")
-        ax.axvspan(s["puff_x"] - 0.01, s["puff_x"] + 0.01, color=s["puff_color"], alpha=0.15)
+        ax.axvspan(s["puff_x"], s["puff_x"] + 0.020, color=s["puff_color"], alpha=0.15)
         ax.axvline(s["puff_x"], linestyle="--", color=s["puff_color"], alpha=0.85)
         ax.text(s["puff_x"] + 0.005, 0.96, "AirPuff", color=s["puff_color"], fontsize=9, va="top")
 
@@ -826,7 +834,7 @@ def plot_good_cr_cumulative_comparison(records, first_date, last_date, first_tok
     fig.tight_layout(rect=[0, 0, 1, 0.92])
     out_name = f"CR_onset_goodCR_cumulative_comparison_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:829")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:829 - 010_CR_onsetTiming_ChemoControl.py:837")
     return fig
 
 
@@ -840,7 +848,7 @@ def plot_good_cr_average_traces(records, first_tok, last_tok):
         puff_x = 0.200 if block_label == "short" else 0.400
         shade_color = "blue" if block_label == "short" else "green"
         ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.35)
-        ax.axvspan(puff_x - 0.01, puff_x + 0.01, color=shade_color, alpha=0.20)
+        ax.axvspan(puff_x, puff_x + 0.020, color=shade_color, alpha=0.20)
         ax.axvline(puff_x, linestyle="--", color="black", alpha=0.8)
 
         for recs, col_c, label in [
@@ -872,7 +880,65 @@ def plot_good_cr_average_traces(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out_name = f"CR_onset_goodCR_average_traces_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:875")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:875 - 010_CR_onsetTiming_ChemoControl.py:883")
+    return fig
+
+
+def plot_good_cr_average_traces_baselined(records, first_tok, last_tok):
+    """Same as plot_good_cr_average_traces but with per-trial baseline subtraction.
+
+    For each Good CR trial the mean FEC during [-0.2, 0.0] s is subtracted
+    before averaging across trials, so all traces start near zero regardless
+    of absolute eye-opening level.  Saved alongside the raw-FEC version.
+    """
+    ctrl_recs  = [r for r in records if not r.get("is_chemo", False)]
+    chemo_recs = [r for r in records if r.get("is_chemo", False)]
+
+    fig, axs = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+    for col, block_label in enumerate(["short", "long"]):
+        ax = axs[col]
+        puff_x = 0.200 if block_label == "short" else 0.400
+        shade_color = "blue" if block_label == "short" else "green"
+        ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.35)
+        ax.axvspan(puff_x, puff_x + 0.020, color=shade_color, alpha=0.20)
+        ax.axvline(puff_x, linestyle="--", color="black", alpha=0.8)
+
+        for recs, col_c, label in [
+            (ctrl_recs,  CTRL_COLOR,  "Control"),
+            (chemo_recs, CHEMO_COLOR, "Chemo"),
+        ]:
+            subset = [r for r in recs if r["block_label"] == block_label and r["category"] == "Good CR"]
+            if not subset:
+                continue
+            t_grid = subset[0]["t_grid"]
+            bl_idx = (t_grid >= -0.2) & (t_grid <= 0.0)
+            corrected = []
+            for r in subset:
+                bl = np.nanmean(r["Fq"][bl_idx])
+                corrected.append(r["Fq"] - (bl if np.isfinite(bl) else 0.0))
+            mean_trace = np.nanmean(np.vstack(corrected), axis=0)
+            onset_vals = [r["onset_time"] for r in subset if np.isfinite(r["onset_time"])]
+            med_onset = np.nanmedian(onset_vals) if onset_vals else np.nan
+            n = len(subset)
+            ax.plot(t_grid, mean_trace, color=col_c, linewidth=2,
+                    label=f"{label} (n={n})")
+            if np.isfinite(med_onset):
+                ax.axvline(med_onset, color=col_c, linestyle="--", linewidth=1.5,
+                           label=f"{label} onset {med_onset:.3f}s")
+
+        ax.set_title(f"{block_label.title()} block — Good CR  baseline corrected  [ctrl=black | chemo=blue]")
+        ax.set_xlim(-0.1, 0.45)
+        ax.set_xlabel("Time from LED onset (s)")
+        ax.set_ylabel("ΔFEC (baseline subtracted)")
+        ax.legend(loc="upper left", fontsize=8)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+    fig.suptitle("Average Good CR FEC traces (baseline subtracted) — Control (black) vs Chemo (blue)", fontsize=14)
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    out_name = f"CR_onset_goodCR_average_traces_baselined_{first_tok}_to_{last_tok}.pdf"
+    fig.savefig(out_name, bbox_inches="tight")
+    print(f"Saved {out_name}")
     return fig
 
 
@@ -886,7 +952,7 @@ def plot_poor_cr_average_traces(records, first_tok, last_tok):
         puff_x = 0.200 if block_label == "short" else 0.400
         shade_color = "blue" if block_label == "short" else "green"
         ax.axvspan(0.0, 0.05, color="lightgray", alpha=0.35)
-        ax.axvspan(puff_x - 0.01, puff_x + 0.01, color=shade_color, alpha=0.20)
+        ax.axvspan(puff_x, puff_x + 0.020, color=shade_color, alpha=0.20)
         ax.axvline(puff_x, linestyle="--", color="black", alpha=0.8)
 
         for recs, col_c, label in [
@@ -918,7 +984,7 @@ def plot_poor_cr_average_traces(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out_name = f"CR_onset_poorCR_average_traces_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:921")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:921 - 010_CR_onsetTiming_ChemoControl.py:929")
     return fig
 
 
@@ -967,7 +1033,7 @@ def plot_latency_summary_table(records, first_date, last_date, first_tok, last_t
     )
     out_name = f"CR_onset_latency_summary_table_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:970")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:970 - 010_CR_onsetTiming_ChemoControl.py:978")
     return fig
 
 
@@ -997,7 +1063,7 @@ def plot_sanity_examples(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.94])
     out_name = f"CR_onset_sanity_examples_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:1000")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:1000 - 010_CR_onsetTiming_ChemoControl.py:1008")
     return fig
 
 
@@ -1035,19 +1101,19 @@ def plot_average_traces(records, first_tok, last_tok):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     out_name = f"CR_onset_sanity_average_traces_{first_tok}_to_{last_tok}.pdf"
     fig.savefig(out_name, bbox_inches="tight")
-    print(f"Saved {out_name} - 010_CR_onsetTiming_Distribution_SanityCheck.py:1038")
+    print(f"Saved {out_name}  010_CR_onsetTiming_Distribution_SanityCheck.py:1038 - 010_CR_onsetTiming_ChemoControl.py:1046")
     return fig
 
 
 def main():
     data_files = sorted(glob.glob("*_EBC_*.mat"))
     if len(data_files) == 0:
-        print("No *_EBC_*.mat files found in current folder. - 010_CR_onsetTiming_Distribution_SanityCheck.py:1045")
+        print("No *_EBC_*.mat files found in current folder.  010_CR_onsetTiming_Distribution_SanityCheck.py:1045 - 010_CR_onsetTiming_ChemoControl.py:1053")
         return
     first_tok, last_tok, first_date, last_date = build_session_range(data_files)
     records = prepare_trial_records(data_files)
     if len(records) == 0:
-        print("No usable trials found. - 010_CR_onsetTiming_Distribution_SanityCheck.py:1050")
+        print("No usable trials found.  010_CR_onsetTiming_Distribution_SanityCheck.py:1050 - 010_CR_onsetTiming_ChemoControl.py:1058")
         return
     plot_onset_distributions(records, first_date, last_date, first_tok, last_tok)
     plot_good_cr_onset_distribution(records, first_date, last_date, first_tok, last_tok)
@@ -1055,6 +1121,7 @@ def main():
     plot_superimposed_onset_distribution(records, first_date, last_date, first_tok, last_tok)
     plot_good_cr_cumulative_comparison(records, first_date, last_date, first_tok, last_tok)
     plot_good_cr_average_traces(records, first_tok, last_tok)
+    plot_good_cr_average_traces_baselined(records, first_tok, last_tok)
     plot_poor_cr_average_traces(records, first_tok, last_tok)
     plot_latency_summary_table(records, first_date, last_date, first_tok, last_tok)
     plot_average_traces(records, first_tok, last_tok)
