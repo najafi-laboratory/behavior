@@ -1,6 +1,6 @@
 # Joystick Double Motor Timing Protocol
 
-This is a compact Bpod MATLAB protocol for a joystick timing task with visual cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe trial tags, and online plotting.
+This is a compact Bpod MATLAB protocol for a joystick timing task with visual cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe/chemo trial tags, and online plotting.
 
 ## Main Workflow
 
@@ -17,6 +17,12 @@ The state machine starts with `VisualCue1`, then either waits for `Press1` in do
 For press 2, timing is measured from the start of the press 2 window. The state `Press2` captures the timing and `ServoBack2` routes the trial to `Press2Early`, `RewardDelay`, or `Press2Late`. Missing presses go to `DidNotPress1` or `DidNotPress2`. Rewarded trials finish through `Reward`, `PostRewardDelay`, and `OutcomeReward`.
 
 Assist trials hold the servo until perfect timing, release it, and then use the same `Press2` outcome path.
+
+Probe type 1 omits water reward even for rewarded timing. Probe type 2 flips the timing mode for that trial: visual guided becomes self timed, and self timed becomes visual guided.
+
+Opto and probe tags are forced to zero for the first block and for the first/last trials of each block. The edge lengths are controlled separately by `OptoZeroEdgeTrials` and `ProbeZeroEdgeTrials`.
+
+`ChemoMode` stores `ChemoTrialTypes` as 1 when enabled and 0 otherwise.
 
 ## Reward Shape
 
@@ -36,7 +42,7 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `GenerateTrials.m`: short/long trial blocks plus ITI and punish ITI generation.
 - `OptoControl.m`: opto trial tags and display colors.
 - `ProbeControl.m`: probe trial tags and display colors.
-- `GenerateVisualCueVideo.m`: creates cue video frames from `image.png`.
+- `GenerateVisualCueVideo.m`: creates cue frames from `image.png` or the reference sinusoidal grating.
 - `ProtocolPlot.m`: one online canvas for trial outcomes, opto/probe tags, delay, press timing, encoder, states, and BNC/lick events.
 
 ## Plot Notes

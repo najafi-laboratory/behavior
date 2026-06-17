@@ -77,7 +77,8 @@ width = BpodSystem.PluginObjects.V.ViewPortDimensions(1);
 height = BpodSystem.PluginObjects.V.ViewPortDimensions(2);
 
 requestedCueDuration = S.GUI.VisualCueDuration_s;
-[video, actualCueDuration] = GenerateVisualCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, requestedCueDuration);
+requestedCueSource = S.GUI.UseGeneratedGrating;
+[video, actualCueDuration] = GenerateVisualCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, requestedCueDuration, requestedCueSource);
 BpodSystem.PluginObjects.V.loadVideo(1, video);
 BpodSystem.PluginObjects.V.loadVideo(2, video);
 BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
@@ -85,11 +86,13 @@ BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
 S.GUI.VisualCueDuration_s = actualCueDuration;
 validateSettings(S);
 loadedStimulus = requestedCueDuration;
+loadedStimulusSource = requestedCueSource;
 trialConfiguration = [];
 itiConfiguration = [];
 optoConfiguration = [];
 probeConfiguration = [];
 trialTypes = [];
+trialTransitions = [];
 optoTypes = [];
 probeTypes = [];
 itiValues = [];
@@ -140,8 +143,11 @@ while currentTrial <= round(S.GUI.MaxTrials)
             generatedTypes(1:completedTrials) = trialTypes(1:completedTrials);
         end
         trialTypes = generatedTypes;
+        trialTransitions = blockTransitionVector(trialTypes);
         trialConfiguration = newTrialConfiguration;
         BpodSystem.Data.PlannedTrialTypes = trialTypes;
+        BpodSystem.Data.TrialTransitions = trialTransitions;
+        BpodSystem.Data.PlannedTrialTransitions = trialTransitions;
     end
 
     % Regenerate ITI sequences only when ITI parameters change.
@@ -161,9 +167,9 @@ while currentTrial <= round(S.GUI.MaxTrials)
     end
 
     % Regenerate opto and probe schedules when their GUI controls change.
-    newOptoConfiguration = [S.GUI.MaxTrials S.GUI.OptoMode S.GUI.OptoFraction];
+    newOptoConfiguration = [S.GUI.MaxTrials S.GUI.OptoMode S.GUI.OptoFraction S.GUI.OptoZeroEdgeTrials S.GUI.OptoFrequency_Hz S.GUI.OptoPulseOn_ms trialConfiguration];
     if ~isequal(newOptoConfiguration, optoConfiguration)
-        generatedOptoTypes = OptoControl('trials', S);
+        generatedOptoTypes = OptoControl('trials', S, trialTypes);
         if currentTrial > 1 && ~isempty(optoTypes)
             completedTrials = min([currentTrial - 1 numel(generatedOptoTypes) numel(optoTypes)]);
             generatedOptoTypes(1:completedTrials) = optoTypes(1:completedTrials);
@@ -173,9 +179,9 @@ while currentTrial <= round(S.GUI.MaxTrials)
         BpodSystem.Data.PlannedOptoTrialTypes = optoTypes;
     end
 
-    newProbeConfiguration = [S.GUI.MaxTrials S.GUI.ProbeMode S.GUI.ProbeFraction];
+    newProbeConfiguration = [S.GUI.MaxTrials S.GUI.ProbeMode S.GUI.ProbeFraction S.GUI.ProbeZeroEdgeTrials trialConfiguration];
     if ~isequal(newProbeConfiguration, probeConfiguration)
-        generatedProbeTypes = ProbeControl('trials', S);
+        generatedProbeTypes = ProbeControl('trials', S, trialTypes);
         if currentTrial > 1 && ~isempty(probeTypes)
             completedTrials = min([currentTrial - 1 numel(generatedProbeTypes) numel(probeTypes)]);
             generatedProbeTypes(1:completedTrials) = probeTypes(1:completedTrials);
@@ -187,14 +193,16 @@ while currentTrial <= round(S.GUI.MaxTrials)
 
     % Rebuild visual cue frames if duration changed in the GUI.
     requestedStimulus = S.GUI.VisualCueDuration_s;
-    if ~isequal(requestedStimulus, loadedStimulus)
-        [video, actualDuration] = GenerateVisualCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, S.GUI.VisualCueDuration_s);
+    requestedStimulusSource = S.GUI.UseGeneratedGrating;
+    if ~isequal(requestedStimulus, loadedStimulus) || ~isequal(requestedStimulusSource, loadedStimulusSource)
+        [video, actualDuration] = GenerateVisualCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, S.GUI.VisualCueDuration_s, requestedStimulusSource);
         BpodSystem.PluginObjects.V.loadVideo(1, video);
         BpodSystem.PluginObjects.V.loadVideo(2, video);
         BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
         BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
         actualCueDuration = actualDuration;
         loadedStimulus = requestedStimulus;
+        loadedStimulusSource = requestedStimulusSource;
     end
     S.GUI.VisualCueDuration_s = actualCueDuration;
     validateSettings(S);
@@ -207,37 +215,42 @@ while currentTrial <= round(S.GUI.MaxTrials)
 
     iti = itiValues(currentTrial);
     punishITI = punishITIValues(currentTrial);
+    trialS = applyProbeTrialSettings(S, probeTypes(currentTrial));
+
     assistTrial = false;
-    if currentTrial > 1 && S.GUI.AssistMode && rand < S.GUI.AssistFraction
+    if currentTrial > 1 && trialS.GUI.AssistMode && rand < trialS.GUI.AssistFraction
         previousStates = BpodSystem.Data.RawEvents.Trial{currentTrial - 1}.States;
         assistTrial = isfield(previousStates, 'Press2Early') && any(isfinite(previousStates.Press2Early(:)));
     end
-    if S.GUI.RewardMode == 1
-        maximumReward = S.GUI.RewardAmount_uL;
+    if trialS.GUI.RewardMode == 1
+        maximumReward = trialS.GUI.RewardAmount_uL;
     elseif trialTypes(currentTrial) == 1
-        maximumReward = S.GUI.ShortRewardAmount_uL;
+        maximumReward = trialS.GUI.ShortRewardAmount_uL;
     else
-        maximumReward = S.GUI.LongRewardAmount_uL;
+        maximumReward = trialS.GUI.LongRewardAmount_uL;
+    end
+    if probeTypes(currentTrial) == 1
+        maximumReward = 0;
     end
 
     % Share per-trial reward context with the soft-code handler.
     ProtocolTrialContext.Delay = delay;
     ProtocolTrialContext.MaximumReward_uL = maximumReward;
-    ProtocolTrialContext.RewardWindowLeft_s = S.GUI.RewardWindowLeft_s;
-    ProtocolTrialContext.RewardMaximumWindow_s = S.GUI.RewardMaximumWindow_s;
-    ProtocolTrialContext.RewardWindowRight_s = S.GUI.RewardWindowRight_s;
+    ProtocolTrialContext.RewardWindowLeft_s = trialS.GUI.RewardWindowLeft_s;
+    ProtocolTrialContext.RewardMaximumWindow_s = trialS.GUI.RewardMaximumWindow_s;
+    ProtocolTrialContext.RewardWindowRight_s = trialS.GUI.RewardWindowRight_s;
     ProtocolTrialContext.Press2Clock = [];
     ProtocolTrialContext.Press2Time_s = NaN;
     ProtocolTrialContext.RewardAmount_uL = 0;
-    printTrialInfo(currentTrial, trialTypes(currentTrial), optoTypes(currentTrial), probeTypes(currentTrial), assistTrial, delay, iti, punishITI, S);
+    printTrialInfo(currentTrial, trialTypes(currentTrial), optoTypes(currentTrial), probeTypes(currentTrial), assistTrial, delay, iti, punishITI, trialS);
     ProtocolPlot('update', trialTypes, optoTypes, probeTypes, currentTrial - 1, S);
 
     % Configure encoder threshold and run the state machine.
     BpodSystem.PluginObjects.R.stopUSBStream;
     pause(0.05);
-    BpodSystem.PluginObjects.R.thresholds = S.GUI.PressThreshold;
+    BpodSystem.PluginObjects.R.thresholds = trialS.GUI.PressThreshold;
     BpodSystem.PluginObjects.R.startUSBStream;
-    sma = BuildStateMachine(S, delay, trialTypes(currentTrial), optoTypes(currentTrial), assistTrial, iti, punishITI);
+    sma = BuildStateMachine(trialS, delay, trialTypes(currentTrial), optoTypes(currentTrial), assistTrial, iti, punishITI);
     SendStateMachine(sma);
     rawEvents = RunStateMachine;
 
@@ -247,10 +260,15 @@ while currentTrial <= round(S.GUI.MaxTrials)
 
     % Save raw events, outcome values, and trial settings.
     BpodSystem.Data = AddTrialEvents(BpodSystem.Data, rawEvents);
-    BpodSystem.Data.TrialSettings(currentTrial) = S;
+    BpodSystem.Data.TrialSettings(currentTrial) = trialS;
     BpodSystem.Data.TrialTypes(currentTrial) = trialTypes(currentTrial);
+    BpodSystem.Data.TrialTransitions = trialTransitions;
+    BpodSystem.Data.TrialTransition(currentTrial) = trialTransitions(currentTrial);
     BpodSystem.Data.OptoTrialTypes(currentTrial) = optoTypes(currentTrial);
     BpodSystem.Data.ProbeTrialTypes(currentTrial) = probeTypes(currentTrial);
+    BpodSystem.Data.ProbeRewardOmitted(currentTrial) = probeTypes(currentTrial) == 1;
+    BpodSystem.Data.ChemoTrialTypes(currentTrial) = double(S.GUI.ChemoMode);
+    BpodSystem.Data.ChemoTrialType(currentTrial) = double(S.GUI.ChemoMode);
     BpodSystem.Data.AssistTrial(currentTrial) = assistTrial;
     press2Time = measuredPress2Time(rawEvents.States);
     if ~isfinite(press2Time)
@@ -261,7 +279,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
     BpodSystem.Data.RewardAmount(currentTrial) = ProtocolTrialContext.RewardAmount_uL;
     BpodSystem.Data.ITI(currentTrial) = iti;
     BpodSystem.Data.PunishITI(currentTrial) = punishITI;
-    outcome = trialOutcome(rawEvents.States, assistTrial, press2Time, delay, S);
+    outcome = trialOutcome(rawEvents.States, assistTrial, press2Time, delay, trialS);
     printTrialResult(outcome, press2Time, ProtocolTrialContext.RewardAmount_uL, maximumReward);
 
     % Normalize encoder trace so each plotted trial starts at zero.
@@ -310,7 +328,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
 end
 
 SoftCodeHandler_Protocol(9);
-BpodSystem.PluginObjects.V.stop;
+closeStimulusWindow;
 end
 
 function [R, encoderPort] = connectRotaryEncoder(maestroPort)
@@ -416,9 +434,17 @@ end
 
 function cleanupProtocolHardware
 global M
+global S
 
 cleanupRotaryEncoder;
+closeStimulusWindow;
 if ~isempty(M)
+    try
+        if ~isempty(S) && isfield(S, 'GUI') && isfield(S.GUI, 'ServoInPos')
+            M.setMotor(0, S.GUI.ServoInPos * 0.002 - 3, 0.5);
+        end
+    catch
+    end
     try
         delete(M);
     catch
@@ -483,6 +509,32 @@ catch
 end
 end
 
+function trialS = applyProbeTrialSettings(S, probeType)
+trialS = S;
+if probeType == 2
+    trialS.GUI.TimingMode = 3 - S.GUI.TimingMode;
+end
+end
+
+function closeStimulusWindow
+global BpodSystem
+
+try
+    if isfield(BpodSystem.PluginObjects, 'V') && ~isempty(BpodSystem.PluginObjects.V)
+        try
+            BpodSystem.PluginObjects.V.stop;
+        catch
+        end
+        try
+            delete(BpodSystem.PluginObjects.V);
+        catch
+        end
+        BpodSystem.PluginObjects.V = [];
+    end
+catch
+end
+end
+
 function validateSettings(S)
 delays = [S.GUI.ShortDelay_s S.GUI.LongDelay_s];
 rewardStarts = delays - S.GUI.RewardWindowLeft_s;
@@ -509,6 +561,12 @@ end
 if S.GUI.BlockLength < 1 || S.GUI.BlockLengthEdge < 0 || S.GUI.ServoReturnTimeout_s <= 0
     error('BlockLength and servo timeout must be positive; BlockLengthEdge cannot be negative.')
 end
+if S.GUI.OptoZeroEdgeTrials < 0 || S.GUI.OptoZeroEdgeTrials ~= round(S.GUI.OptoZeroEdgeTrials)
+    error('OptoZeroEdgeTrials must be a nonnegative integer.')
+end
+if S.GUI.ProbeZeroEdgeTrials < 0 || S.GUI.ProbeZeroEdgeTrials ~= round(S.GUI.ProbeZeroEdgeTrials)
+    error('ProbeZeroEdgeTrials must be a nonnegative integer.')
+end
 if any([S.GUI.RewardAmount_uL S.GUI.ShortRewardAmount_uL S.GUI.LongRewardAmount_uL] <= 0)
     error('Reward amounts must be positive.')
 end
@@ -517,6 +575,9 @@ if S.GUI.ManualITI_s < 0 || S.GUI.ManualPunishITI_s < 0
 end
 if S.GUI.OptoFraction < 0 || S.GUI.OptoFraction > 1
     error('OptoFraction must be between 0 and 1.')
+end
+if S.GUI.OptoFrequency_Hz <= 0 || S.GUI.OptoPulseOn_ms <= 0 || S.GUI.OptoPulseOn_ms / 1000 >= 1 / S.GUI.OptoFrequency_Hz
+    error('OptoFrequency_Hz must be positive, and OptoPulseOn_ms must be positive and shorter than one opto cycle.')
 end
 if S.GUI.ProbeFraction < 0 || S.GUI.ProbeFraction > 1
     error('ProbeFraction must be between 0 and 1.')
@@ -532,6 +593,22 @@ if any([S.GUI.ITIMin_s S.GUI.ITIMax_s S.GUI.ITIMean_s S.GUI.PunishITIMin_s S.GUI
 end
 if S.GUI.ITIMin_s > S.GUI.ITIMax_s || S.GUI.PunishITIMin_s > S.GUI.PunishITIMax_s
     error('ITI minimum values cannot exceed maximum values.')
+end
+end
+
+function transitions = blockTransitionVector(trialTypes)
+transitions = zeros(size(trialTypes));
+for trial = 2:numel(trialTypes)
+    if trialTypes(trial) ~= trialTypes(trial - 1)
+        if trialTypes(trial) == 2
+            transitions(trial) = 1;
+        elseif trialTypes(trial) == 1
+            transitions(trial) = -1;
+        end
+    end
+end
+if ~isempty(transitions)
+    transitions(1) = 0;
 end
 end
 
@@ -562,7 +639,11 @@ else
     fprintf('%-22s %s\n', 'Press 2 timing:', 'N/A');
 end
 fprintf('%-22s %.3f uL\n', 'Reward delivered:', rewardAmount);
-fprintf('%-22s %.1f%%\n', 'Reward percentage:', 100 * rewardAmount / maximumReward);
+if maximumReward > 0
+    fprintf('%-22s %.1f%%\n', 'Reward percentage:', 100 * rewardAmount / maximumReward);
+else
+    fprintf('%-22s %s\n', 'Reward percentage:', '0.0% (probe reward omitted)');
+end
 end
 
 function outcome = trialOutcome(states, assistTrial, press2Time, delay, S)

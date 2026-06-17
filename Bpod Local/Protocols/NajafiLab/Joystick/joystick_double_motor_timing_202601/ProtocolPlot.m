@@ -22,7 +22,7 @@ switch action
         BpodSystem.GUIHandles.DelayAxes = nexttile(layout, 127, [2 9]);
         BpodSystem.GUIHandles.StateAxes = nexttile(layout, 136, [5 9]);
         BpodSystem.GUIHandles.EncoderAxes = nexttile(layout, 163, [6 9]);
-        BpodSystem.GUIHandles.EventAxes = nexttile(layout, 226, [3 9]);
+        BpodSystem.GUIHandles.EventAxes = nexttile(layout, 226, [2 9]);
         axis(BpodSystem.GUIHandles.BlankAxes, 'off');
         axis(BpodSystem.GUIHandles.OutcomeLegendAxes, 'off');
 
@@ -37,7 +37,7 @@ switch action
         updateDelay(trialTypes, completedCount, S);
         showEmpty(BpodSystem.GUIHandles.EncoderAxes, 'Rotary encoder', 'No encoder data');
         showEmpty(BpodSystem.GUIHandles.StateAxes, 'State timing', 'No completed trial');
-        showNoEvents(BpodSystem.GUIHandles.EventAxes, 'BNC and lick events', 0, 1);
+        showNoEvents(BpodSystem.GUIHandles.EventAxes, 'BNC, LED, and lick events', 0, 1);
     case 'update'
         if ~isfield(BpodSystem.ProtocolFigures, 'Session') || ~isgraphics(BpodSystem.ProtocolFigures.Session)
             ProtocolPlot('init', trialTypes, optoTypes, probeTypes, completedCount, S);
@@ -55,15 +55,19 @@ switch action
         if ~trialAvailable(completedCount)
             showEmpty(BpodSystem.GUIHandles.EncoderAxes, 'Rotary encoder', 'No encoder data');
             showEmpty(BpodSystem.GUIHandles.StateAxes, 'State timing', 'No completed trial');
-            showNoEvents(BpodSystem.GUIHandles.EventAxes, 'BNC and lick events', 0, 1);
+            showNoEvents(BpodSystem.GUIHandles.EventAxes, 'BNC, LED, and lick events', 0, 1);
             drawnow
             return
         end
         rawTrial = BpodSystem.Data.RawEvents.Trial{completedCount};
+        completedSettings = S;
+        if isfield(BpodSystem.Data, 'TrialSettings') && numel(BpodSystem.Data.TrialSettings) >= completedCount
+            completedSettings = BpodSystem.Data.TrialSettings(completedCount);
+        end
         updateStateTiming(rawTrial, completedCount);
         updateCombinedEvents(rawTrial, completedCount);
         if isfield(BpodSystem.Data, 'EncoderData') && numel(BpodSystem.Data.EncoderData) >= completedCount
-            updateEncoder(BpodSystem.Data.EncoderData{completedCount}, rawTrial, completedCount, S);
+            updateEncoder(BpodSystem.Data.EncoderData{completedCount}, rawTrial, completedCount, completedSettings);
         else
             showEmpty(BpodSystem.GUIHandles.EncoderAxes, 'Rotary encoder', 'No encoder data');
         end
@@ -91,7 +95,7 @@ end
         [firstTrial, lastTrial] = visibleWindow(total, count);
         visibleTrials = firstTrial:lastTrial;
         future = visibleTrials(visibleTrials > count);
-        plot(ax, future, types(future), '.', 'Color', [0.45 0.65 0.8], 'MarkerSize', 11);
+        plot(ax, future, types(future), '.', 'Color', [0.45 0.65 0.8], 'MarkerSize', 7.2);
 
         names = {'OutcomeReward','Press2Early','Press2Late','DidNotPress2','DidNotPress1'};
         colors = [0.2 0.68 0.2; 0.15 0.4 0.8; 0.92 0.65 0.12; 0.75 0.2 0.2; 0.4 0.4 0.4];
@@ -100,7 +104,7 @@ end
             plotOutcome(ax, types, outcomes, visibleTrials, names{i}, colors(i, :), markers{i});
         end
         if count < total
-            plot(ax, count + 1, types(count + 1), 'o', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 10);
+            plot(ax, count + 1, types(count + 1), 'o', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 6.4);
         end
         limits = [firstTrial - 0.5 lastTrial + 0.5];
         xlim(ax, limits);
@@ -125,10 +129,10 @@ end
         for optoType = 0:3
             trials = visibleTrials(opto(visibleTrials) == optoType);
             color = display.Colors(optoType + 1, :);
-            plot(ax, trials, repmat(optoType, size(trials)), 's', 'Color', color, 'MarkerFaceColor', color, 'MarkerSize', 9);
+            plot(ax, trials, repmat(optoType, size(trials)), 's', 'Color', color, 'MarkerFaceColor', color, 'MarkerSize', 5.8);
         end
         if count < total
-            plot(ax, count + 1, opto(count + 1), 's', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 11);
+            plot(ax, count + 1, opto(count + 1), 's', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 7);
         end
         xlim(ax, [firstTrial - 0.5 lastTrial + 0.5]);
         xticks(ax, trialTicks(firstTrial, lastTrial));
@@ -152,10 +156,10 @@ end
         for probeType = 0:2
             trials = visibleTrials(probe(visibleTrials) == probeType);
             color = display.Colors(probeType + 1, :);
-            plot(ax, trials, repmat(probeType, size(trials)), 'd', 'Color', color, 'MarkerFaceColor', color, 'MarkerSize', 9);
+            plot(ax, trials, repmat(probeType, size(trials)), 'd', 'Color', color, 'MarkerFaceColor', color, 'MarkerSize', 5.8);
         end
         if count < total
-            plot(ax, count + 1, probe(count + 1), 'd', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 11);
+            plot(ax, count + 1, probe(count + 1), 'd', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 7);
         end
         xlim(ax, [firstTrial - 0.5 lastTrial + 0.5]);
         xticks(ax, trialTicks(firstTrial, lastTrial));
@@ -171,9 +175,9 @@ end
     function plotOutcome(ax, rows, outcomes, visibleTrials, value, color, marker)
         trials = visibleTrials(strcmp(outcomes(visibleTrials), value));
         if strcmp(marker, 'o')
-            plot(ax, trials, rows(trials), marker, 'Color', color, 'MarkerFaceColor', color, 'LineWidth', 1.1, 'MarkerSize', 9);
+            plot(ax, trials, rows(trials), marker, 'Color', color, 'MarkerFaceColor', color, 'LineWidth', 1.1, 'MarkerSize', 5.8);
         else
-            plot(ax, trials, rows(trials), marker, 'Color', color, 'LineWidth', 1.2, 'MarkerSize', 9.5);
+            plot(ax, trials, rows(trials), marker, 'Color', color, 'LineWidth', 1.2, 'MarkerSize', 6.1);
         end
     end
 
@@ -301,6 +305,7 @@ end
         cla(ax);
         hold(ax, 'on');
         times = [];
+        assistTimes = [];
         available = min([count availableTrialCount() completedTrialTypeCount()]);
         for trial = 1:available
             if BpodSystem.Data.TrialTypes(trial) ~= trialType
@@ -317,15 +322,22 @@ end
                 else
                     trialDelay = trialSettings.GUI.LongDelay_s;
                 end
-                times(end + 1) = pressTime - trialDelay;
+                timing = pressTime - trialDelay;
+                if isfield(BpodSystem.Data, 'AssistTrial') && numel(BpodSystem.Data.AssistTrial) >= trial && BpodSystem.Data.AssistTrial(trial)
+                    assistTimes(end + 1) = timing;
+                else
+                    times(end + 1) = timing;
+                end
             end
         end
         timeLimits = [-1 4];
         edges = linspace(timeLimits(1), timeLimits(2), 101);
         counts = histcounts(times, edges);
+        assistCounts = histcounts(assistTimes, edges);
         centers = edges(1:end - 1) + diff(edges) / 2;
         bar(ax, centers, counts, 1, 'FaceColor', [0.35 0.55 0.75], 'EdgeColor', 'none');
-        peak = max([1 counts]);
+        bar(ax, centers, assistCounts, 1, 'FaceColor', [0.55 0.25 0.65], 'EdgeColor', 'none', 'FaceAlpha', 0.75);
+        peak = max([1 counts assistCounts]);
         plot(ax, [-S.GUI.RewardWindowLeft_s 0 S.GUI.RewardMaximumWindow_s S.GUI.RewardMaximumWindow_s + S.GUI.RewardWindowRight_s], [0 peak peak 0], '-', 'Color', [0.2 0.68 0.2], 'LineWidth', 1.8);
         xline(ax, 0, ':', 'Perfect', 'Color', [0.15 0.15 0.15], 'LineWidth', 1.2, 'LabelVerticalAlignment', 'top', 'FontSize', 8);
         xlim(ax, timeLimits);
@@ -336,7 +348,7 @@ end
         xlabel(ax, 'Time from perfect (s)');
         ylabel(ax, 'Count');
         title(ax, plotTitle, 'FontSize', 9, 'FontWeight', 'normal');
-        if isempty(times)
+        if isempty(times) && isempty(assistTimes)
             text(ax, mean(timeLimits), peak * 0.55, 'No press 2 events', 'HorizontalAlignment', 'center', 'Color', [0.5 0.5 0.5], 'FontSize', 8);
         end
     end
@@ -397,16 +409,9 @@ end
         scatter(ax, completed(~shortTrials), delays(~shortTrials), 10, [0.85 0.35 0.1], 'filled', 'DisplayName', 'Long');
         xlim(ax, [firstTrial - 0.5 lastTrial + 0.5]);
         xticks(ax, trialTicks(firstTrial, lastTrial));
-        finiteDelays = delays(isfinite(delays));
-        if isempty(finiteDelays)
-            limits = sort([settings.GUI.ShortDelay_s settings.GUI.LongDelay_s]);
-        else
-            limits = [min(finiteDelays) max(finiteDelays)];
-        end
-        margin = max(0.05, 0.12 * max(1, diff(limits)));
-        limits = limits + [-margin margin];
-        ylim(ax, limits);
-        yticks(ax, fiveTicks(limits));
+        ylim(ax, [0 1.5]);
+        yticks(ax, [0 0.5 1 1.5]);
+        yticklabels(ax, {'0','0.5','1.0','1.5'});
         xlabel(ax, 'Trial');
         ylabel(ax, 'Delay (s)');
         title(ax, 'Trial delay', 'FontSize', 10, 'FontWeight', 'normal');
@@ -533,8 +538,8 @@ end
         hold(ax, 'on');
 
         duration = trialDuration(trial);
-        rows = {'BNC 1','BNC 2','Port 1 lick','Port 2 lick','Port 3 lick'};
-        colors = [0.1 0.42 0.72; 0.1 0.42 0.72; 0.5 0.2 0.62; 0.5 0.2 0.62; 0.5 0.2 0.62];
+        rows = {'BNC 1','LED 1','Port 1 lick'};
+        colors = [0.1 0.42 0.72; 0.93 0.55 0.12; 0.5 0.2 0.62];
 
         if isfield(rawTrial, 'Events')
             events = rawTrial.Events;
@@ -543,10 +548,8 @@ end
         end
 
         drawIntervals(ax, eventIntervals(events, 'BNC1High', 'BNC1Low', duration, 0), 1, colors(1, :));
-        drawIntervals(ax, eventIntervals(events, 'BNC2High', 'BNC2Low', duration, 0), 2, colors(2, :));
+        drawIntervals(ax, led1Intervals(rawTrial, trial, duration), 2, colors(2, :));
         drawIntervals(ax, eventIntervals(events, 'Port1In', 'Port1Out', duration, 0.02), 3, colors(3, :));
-        drawIntervals(ax, eventIntervals(events, 'Port2In', 'Port2Out', duration, 0.02), 4, colors(4, :));
-        drawIntervals(ax, eventIntervals(events, 'Port3In', 'Port3Out', duration, 0.02), 5, colors(5, :));
 
         xlim(ax, [0 duration]);
         ylim(ax, [0.5 numel(rows) + 0.5]);
@@ -556,17 +559,17 @@ end
         set(ax, 'YMinorTick', 'off');
         xlabel(ax, 'Time (s)');
         ylabel(ax, 'Event');
-        title(ax, sprintf('BNC and lick events  trial %d', trial), 'FontSize', 10, 'FontWeight', 'normal');
+        title(ax, sprintf('BNC, LED, and lick events  trial %d', trial), 'FontSize', 10, 'FontWeight', 'normal');
     end
 
     function showNoEvents(ax, plotTitle, trial, duration)
         % Keep all event rows visible before any events arrive.
         cla(ax);
         xlim(ax, [0 duration]);
-        ylim(ax, [0.5 5.5]);
+        ylim(ax, [0.5 3.5]);
         setTimeAxis(ax, [0 duration]);
-        yticks(ax, 1:5);
-        yticklabels(ax, {'BNC 1','BNC 2','Port 1 lick','Port 2 lick','Port 3 lick'});
+        yticks(ax, 1:3);
+        yticklabels(ax, {'BNC 1','LED 1','Port 1 lick'});
         set(ax, 'YMinorTick', 'off');
         xlabel(ax, 'Time (s)');
         title(ax, sprintf('%s  trial %d', plotTitle, trial), 'FontSize', 10, 'FontWeight', 'normal');
@@ -722,6 +725,58 @@ end
             if stopTime > starts(i)
                 intervals(end + 1, :) = [max(0, starts(i)) stopTime];
             end
+        end
+    end
+
+    function intervals = led1Intervals(rawTrial, trial, duration)
+        intervals = zeros(0, 2);
+        optoType = trialOptoType(trial);
+        if optoType == 0
+            return
+        end
+
+        settings = trialSettings(trial);
+        if optoType == 1
+            onset = stateStart(rawTrial.States, 'VisualCue1');
+            requestedDuration = settings.GUI.VisualCueDuration_s;
+        elseif optoType == 2
+            onset = stateStart(rawTrial.States, 'ServoBack1');
+            requestedDuration = trialDelay(trial, settings);
+        else
+            onset = stateStart(rawTrial.States, 'RewardDelay');
+            requestedDuration = 2;
+        end
+
+        if ~isfinite(onset)
+            return
+        end
+
+        relative = OptoControl('waveform', settings, requestedDuration);
+        intervals = relative + onset;
+        intervals(:, 1) = max(0, intervals(:, 1));
+        intervals(:, 2) = min(duration, intervals(:, 2));
+        intervals = intervals(intervals(:, 2) > intervals(:, 1), :);
+    end
+
+    function optoType = trialOptoType(trial)
+        optoType = 0;
+        if isfield(BpodSystem.Data, 'OptoTrialTypes') && numel(BpodSystem.Data.OptoTrialTypes) >= trial
+            optoType = BpodSystem.Data.OptoTrialTypes(trial);
+        end
+    end
+
+    function settings = trialSettings(trial)
+        settings = S;
+        if isfield(BpodSystem.Data, 'TrialSettings') && numel(BpodSystem.Data.TrialSettings) >= trial
+            settings = BpodSystem.Data.TrialSettings(trial);
+        end
+    end
+
+    function delay = trialDelay(trial, settings)
+        if isfield(BpodSystem.Data, 'TrialTypes') && numel(BpodSystem.Data.TrialTypes) >= trial && BpodSystem.Data.TrialTypes(trial) == 2
+            delay = settings.GUI.LongDelay_s;
+        else
+            delay = settings.GUI.ShortDelay_s;
         end
     end
 
