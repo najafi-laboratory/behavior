@@ -1,0 +1,8 @@
+title: Joystick Double Motor Timing 202601
+description: Documentation for the Najafi Lab Bpod joystick timing protocol.
+theme: jekyll-theme-minimal
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
