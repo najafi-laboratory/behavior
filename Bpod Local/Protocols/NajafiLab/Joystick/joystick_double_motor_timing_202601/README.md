@@ -4,7 +4,7 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with visual cu
 
 ## Update notes
 
-# 20260623
+### 20260623
 - First release.
 
 ## Main Workflow
