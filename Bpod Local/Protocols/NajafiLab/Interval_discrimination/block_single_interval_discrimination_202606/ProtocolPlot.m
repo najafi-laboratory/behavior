@@ -7,7 +7,7 @@ switch action
         width = round(screenSize(3) * 0.92);
         height = round(screenSize(4) * 0.92);
         position = [screenSize(1) + 16 screenSize(2) + screenSize(4) - height - 42 width height];
-        figureName = [subjectName ' Block Single Interval ' char(datetime('today', 'Format', 'yyyyMMdd'))];
+        figureName = [subjectName ' block single interval discrimination ' char(datetime('today', 'Format', 'yyyyMMdd')) ' If experiments go shit say I LOVE YICONG FOREVER!'];
         BpodSystem.ProtocolFigures.Session = figure('Name', figureName, 'NumberTitle', 'off', 'MenuBar', 'none', 'ToolBar', 'none', 'Color', 'w', 'Position', position);
         layout = tiledlayout(BpodSystem.ProtocolFigures.Session, 30, 18, 'TileSpacing', 'compact', 'Padding', 'compact');
         BpodSystem.GUIHandles.TrialTypeAxes = nexttile(layout, 1, [4 11]);
@@ -874,17 +874,61 @@ end
 function name = subjectName
 global BpodSystem
 name = 'UnknownSubject';
-if isfield(BpodSystem, 'Path')
+if isfield(BpodSystem, 'Path') && isstruct(BpodSystem.Path)
     candidates = {'CurrentSubject', 'SubjectName', 'Subject'};
     for i = 1:numel(candidates)
-        if isfield(BpodSystem.Path, candidates{i}) && ~isempty(BpodSystem.Path.(candidates{i}))
-            name = char(BpodSystem.Path.(candidates{i}));
+        candidate = readField(BpodSystem.Path, candidates{i});
+        if ~isempty(candidate)
+            name = candidate;
             return
         end
     end
 end
-if isfield(BpodSystem, 'Data') && isfield(BpodSystem.Data, 'SubjectName') && ~isempty(BpodSystem.Data.SubjectName)
-    name = char(BpodSystem.Data.SubjectName);
+if isfield(BpodSystem, 'Data') && isstruct(BpodSystem.Data)
+    candidate = readField(BpodSystem.Data, 'SubjectName');
+    if ~isempty(candidate)
+        name = candidate;
+    end
+end
+end
+
+function value = readField(source, fieldName)
+value = '';
+if ~isfield(source, fieldName)
+    return
+end
+value = normalizeSubjectName(source.(fieldName));
+end
+
+function value = normalizeSubjectName(rawValue)
+value = '';
+if isempty(rawValue)
+    return
+end
+if iscell(rawValue)
+    rawValue = rawValue{1};
+end
+if isstring(rawValue)
+    rawValue = char(rawValue(1));
+end
+if ~ischar(rawValue)
+    return
+end
+value = strtrim(rawValue);
+if isempty(value)
+    return
+end
+value = strrep(value, '/', filesep);
+if contains(value, filesep)
+    parts = regexp(value, ['\' filesep '+'], 'split');
+    parts = parts(~cellfun('isempty', parts));
+    if ~isempty(parts)
+        value = parts{end};
+    end
+    [~, baseName, extension] = fileparts(value);
+    if ~isempty(extension)
+        value = baseName;
+    end
 end
 end
 

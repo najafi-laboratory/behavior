@@ -12,6 +12,7 @@ positionParameterGUI;
 input('Set parameters in the GUI and press Enter to configure the session > ', 's');
 S = BpodParameterGUI('sync', S);
 validateSettings(S);
+confirmDoricOptoSettings(S);
 initializeSessionData;
 
 initializeHiFi(S);
@@ -440,6 +441,35 @@ if S.GUI.AudioStimVolume < 0 || S.GUI.AudioStimVolume > 1
 end
 if S.GUI.UseSavedImage && ~isfile(fullfile(fileparts(mfilename('fullpath')), 'image.png'))
     error('UseSavedImage is enabled, but image.png was not found in the protocol folder.')
+end
+end
+
+function confirmDoricOptoSettings(S)
+% Ask the user to verify external Doric opto settings before hardware starts.
+fprintf('\nDoric opto settings\n');
+fprintf('%-24s %s\n', 'OptoMode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.OptoMode));
+fprintf('%-24s %s\n', 'EnableOptoStimulus:', onOffText(S.GUI.EnableOptoStimulus));
+fprintf('%-24s %s\n', 'EnableOptoChoice:', onOffText(S.GUI.EnableOptoChoice));
+fprintf('%-24s %s\n', 'EnableOptoReward:', onOffText(S.GUI.EnableOptoReward));
+fprintf('%-24s %s\n', 'LED1 control mode:', 'PWM1 gated opto epoch');
+fprintf('%-24s %s\n', 'Doric pulse params:', 'set/check on Doric device');
+input('Check these match Doric, then press Enter to continue > ', 's');
+end
+
+function value = popupValue(labels, index)
+index = round(index);
+if index >= 1 && index <= numel(labels)
+    value = labels{index};
+else
+    value = 'Unknown';
+end
+end
+
+function text = onOffText(value)
+if value
+    text = 'ON';
+else
+    text = 'OFF';
 end
 end
 

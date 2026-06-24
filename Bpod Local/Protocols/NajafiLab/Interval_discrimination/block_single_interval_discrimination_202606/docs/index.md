@@ -8,4 +8,5 @@
 - `state-machine.md`: state-machine paths for naive, trained, and probe trials.
 - `plots-and-data.md`: live plots and saved Bpod fields.
 - `modules.md`: source file responsibilities.
+- `function-reference.md`: detailed explanation of each source file and helper function.
 - `troubleshooting.md`: common runtime problems.

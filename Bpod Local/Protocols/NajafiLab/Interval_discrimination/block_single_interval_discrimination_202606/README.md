@@ -25,7 +25,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - Probe trials:
   - Stimulus-only probe.
   - Servo-only probe.
-- Opto trial tags, period checkboxes, PWM hardware control, and chemo session tagging in the Manipulation GUI section. Opto settings can be changed during the session; the next trial uses the current GUI settings.
+- Opto trial tags, arbitrary stimulus/choice/reward period combinations, PWM hardware control, and chemo session tagging in the Manipulation GUI section. Opto settings can be changed during the session; the next trial uses the current GUI settings.
 - Live plots for trial types, blocks, probe/opto, ISI, outcomes, lick rates, reaction time, state timing, and events.
 
 ## GUI Parameter Quick Reference
