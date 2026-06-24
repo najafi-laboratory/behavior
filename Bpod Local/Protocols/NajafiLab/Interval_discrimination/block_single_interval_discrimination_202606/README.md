@@ -2,6 +2,11 @@
 
 This protocol runs a short/long interval discrimination task in Bpod with synchronized visual and audio stimulus presentation, moving spouts, reward delivery, probe trials, opto/chemo tagging, and live session plots.
 
+## Update note
+
+### 2025.06.24
+- First release.
+
 ## Basic Workflow
 
 1. Launch `block_single_interval_discrimination_202606`.
