@@ -141,27 +141,64 @@ end
         ax = BpodSystem.GUIHandles.OptoAxes;
         cla(ax);
         hold(ax, 'on');
-        total = numel(opto);
+        if isvector(opto)
+            opto = reshape(opto, 1, []);
+        end
+        total = size(opto, 2);
         [firstTrial, lastTrial] = visibleWindow(total, count);
         visibleTrials = firstTrial:lastTrial;
         display = OptoControl('display', S);
-        for optoType = 0:3
-            trials = visibleTrials(opto(visibleTrials) == optoType);
-            color = display.Colors(optoType + 1, :);
-            plot(ax, trials, repmat(optoType, size(trials)), 's', 'Color', color, 'MarkerFaceColor', color, 'MarkerSize', 5.8);
-        end
+        assignedThrough = assignedOptoCount(opto, count);
+        future = visibleTrials(visibleTrials > assignedThrough);
+        assigned = visibleTrials(visibleTrials <= assignedThrough);
+        plotOptoMarkers(ax, future, opto, display, true);
+        plotOptoMarkers(ax, assigned, opto, display, false);
         if count < total
-            plot(ax, count + 1, opto(count + 1), 's', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 7);
+            rows = optoRows(opto(:, count + 1));
+            plot(ax, repmat(count + 1, size(rows)), rows, 'o', 'Color', 'k', 'MarkerFaceColor', 'w', 'LineWidth', 1.2, 'MarkerSize', 7);
         end
         xlim(ax, [firstTrial - 0.5 lastTrial + 0.5]);
         xticks(ax, trialTicks(firstTrial, lastTrial));
-        ylim(ax, [-0.5 3.5]);
-        yticks(ax, 0:3);
+        ylim(ax, [0.5 4.5]);
+        yticks(ax, 1:4);
         yticklabels(ax, display.Labels);
         set(ax, 'YMinorTick', 'off');
         xlabel(ax, 'Trial');
-        ylabel(ax, 'Opto type');
-        title(ax, 'Optogenetic trial type', 'FontSize', 9, 'FontWeight', 'normal');
+        ylabel(ax, 'Opto period');
+        title(ax, 'Opto periods', 'FontSize', 9, 'FontWeight', 'normal');
+    end
+
+    function assignedThrough = assignedOptoCount(opto, count)
+        assignedThrough = count;
+        if isfield(BpodSystem.Data, 'AssignedOptoTrialCount')
+            assignedThrough = max(assignedThrough, BpodSystem.Data.AssignedOptoTrialCount);
+        end
+        assignedThrough = min(assignedThrough, size(opto, 2));
+    end
+
+    function plotOptoMarkers(ax, trials, opto, display, isFuture)
+        for trial = trials
+            rows = optoRows(opto(:, trial));
+            for i = 1:numel(rows)
+                row = rows(i);
+                color = display.Colors(row, :);
+                if isFuture
+                    plot(ax, trial, row, '.', 'Color', color * 0.45 + [0.45 0.45 0.45], 'MarkerSize', 7);
+                else
+                    plot(ax, trial, row, 's', 'Color', color, 'MarkerFaceColor', color, 'MarkerSize', 5.8);
+                end
+            end
+        end
+    end
+
+    function rows = optoRows(optoType)
+        optoType = optoType(:);
+        enabled = find(optoType ~= 0);
+        if isempty(enabled)
+            rows = 1;
+        else
+            rows = enabled + 1;
+        end
     end
 
     function updateProbe(probe, count)
@@ -890,54 +927,51 @@ end
     function intervals = led1Intervals(rawTrial, trial, duration)
         intervals = zeros(0, 2);
         optoType = trialOptoType(trial);
-        if optoType == 0
+        if isempty(optoType) || ~any(optoType)
             return
         end
 
         settings = trialSettings(trial);
-        stateStop = NaN;
-        if optoType == 1
+        if numel(optoType) >= 1 && optoType(1)
             onset = stateStart(rawTrial.States, 'VisualStimulus1');
-            requestedDuration = settings.GUI.VisualCueDuration_s;
-        elseif optoType == 2
+            stopTime = stateEnd(rawTrial.States, 'VisualStimulus1');
+            intervals = appendLedInterval(intervals, onset, stopTime, duration);
+        end
+        if numel(optoType) >= 2 && optoType(2)
             onset = stateStart(rawTrial.States, 'LeverRetract1');
-            if ~isfinite(onset)
-                return
-            end
             press2ServoBack = stateStart(rawTrial.States, 'RewardLeverRetract');
-            relative = OptoControl('waveform', settings, press2Window(trial, settings));
-            intervals = relative + onset;
-            if isfinite(press2ServoBack) && press2ServoBack > onset && press2ServoBack < intervals(1, 2)
-                intervals(1, 2) = press2ServoBack;
+            if isfinite(onset)
+                stopTime = onset + press2Window(trial, settings);
+                if isfinite(press2ServoBack)
+                    stopTime = min(stopTime, press2ServoBack);
+                end
+                intervals = appendLedInterval(intervals, onset, stopTime, duration);
             end
-            intervals(:, 1) = max(0, intervals(:, 1));
-            intervals(:, 2) = min(duration, intervals(:, 2));
-            intervals = intervals(intervals(:, 2) > intervals(:, 1), :);
-            return
-        else
+        end
+        if numel(optoType) >= 3 && optoType(3)
             onset = stateStart(rawTrial.States, 'PostRewardDelay');
-            requestedDuration = settings.GUI.PostRewardDelay_s;
-            stateStop = stateEnd(rawTrial.States, 'PostRewardDelay');
+            stopTime = stateEnd(rawTrial.States, 'PostRewardDelay');
+            intervals = appendLedInterval(intervals, onset, stopTime, duration);
         end
+    end
 
-        if ~isfinite(onset)
+    function intervals = appendLedInterval(intervals, startTime, stopTime, duration)
+        if ~isfinite(startTime) || ~isfinite(stopTime)
             return
         end
-
-        relative = OptoControl('waveform', settings, requestedDuration);
-        intervals = relative + onset;
-        if optoType == 3 && isfinite(stateStop)
-            intervals(:, 2) = min(intervals(:, 2), stateStop);
+        startTime = max(0, min(duration, startTime));
+        stopTime = max(0, min(duration, stopTime));
+        if stopTime > startTime
+            intervals(end + 1, :) = [startTime stopTime];
         end
-        intervals(:, 1) = max(0, intervals(:, 1));
-        intervals(:, 2) = min(duration, intervals(:, 2));
-        intervals = intervals(intervals(:, 2) > intervals(:, 1), :);
     end
 
     function optoType = trialOptoType(trial)
-        optoType = 0;
-        if isfield(BpodSystem.Data, 'OptoTrialTypes') && numel(BpodSystem.Data.OptoTrialTypes) >= trial
-            optoType = BpodSystem.Data.OptoTrialTypes(trial);
+        optoType = zeros(3, 1);
+        if isfield(BpodSystem.Data, 'OptoTrialTypes') && size(BpodSystem.Data.OptoTrialTypes, 2) >= trial
+            optoType = BpodSystem.Data.OptoTrialTypes(:, trial);
+        elseif isfield(BpodSystem.Data, 'PlannedOptoTrialTypes') && size(BpodSystem.Data.PlannedOptoTrialTypes, 2) >= trial
+            optoType = BpodSystem.Data.PlannedOptoTrialTypes(:, trial);
         end
     end
 

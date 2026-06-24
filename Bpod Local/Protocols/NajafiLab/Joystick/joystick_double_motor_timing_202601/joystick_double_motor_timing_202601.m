@@ -171,8 +171,8 @@ while currentTrial <= round(S.GUI.MaxTrials)
     if ~isequal(newOptoConfiguration, optoConfiguration)
         generatedOptoTypes = OptoControl('trials', S, trialTypes);
         if currentTrial > 1 && ~isempty(optoTypes)
-            completedTrials = min([currentTrial - 1 numel(generatedOptoTypes) numel(optoTypes)]);
-            generatedOptoTypes(1:completedTrials) = optoTypes(1:completedTrials);
+            completedTrials = min([currentTrial - 1 size(generatedOptoTypes, 2) size(optoTypes, 2)]);
+            generatedOptoTypes(:, 1:completedTrials) = optoTypes(:, 1:completedTrials);
         end
         optoTypes = generatedOptoTypes;
         optoConfiguration = newOptoConfiguration;
@@ -240,7 +240,11 @@ while currentTrial <= round(S.GUI.MaxTrials)
     ProtocolTrialContext.Press2Clock = [];
     ProtocolTrialContext.Press2Time_s = NaN;
     ProtocolTrialContext.RewardAmount_uL = 0;
-    printTrialInfo(currentTrial, trialTypes(currentTrial), optoTypes(currentTrial), probeTypes(currentTrial), assistTrial, delay, iti, punishITI, trialS);
+    optoType = OptoControl('trial', S, trialTypes, currentTrial);
+    optoTypes(:, currentTrial) = optoType;
+    BpodSystem.Data.PlannedOptoTrialTypes(:, currentTrial) = optoType;
+    BpodSystem.Data.AssignedOptoTrialCount = currentTrial;
+    printTrialInfo(currentTrial, trialTypes(currentTrial), optoType, probeTypes(currentTrial), assistTrial, delay, iti, punishITI, trialS);
     ProtocolPlot('update', trialTypes, optoTypes, probeTypes, currentTrial - 1, S);
 
     % Configure encoder threshold and run the state machine.
@@ -248,7 +252,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
     pause(0.05);
     BpodSystem.PluginObjects.R.thresholds = trialS.GUI.PressThreshold;
     BpodSystem.PluginObjects.R.startUSBStream;
-    sma = BuildStateMachine(trialS, delay, trialTypes(currentTrial), optoTypes(currentTrial), assistTrial, iti, punishITI);
+    sma = BuildStateMachine(trialS, delay, trialTypes(currentTrial), optoType, assistTrial, iti, punishITI);
     SendStateMachine(sma);
     rawEvents = RunStateMachine;
 
@@ -263,7 +267,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
     BpodSystem.Data.TrialTypes(currentTrial) = trialTypes(currentTrial);
     BpodSystem.Data.TrialTransitions = trialTransitions;
     BpodSystem.Data.TrialTransition(currentTrial) = trialTransitions(currentTrial);
-    BpodSystem.Data.OptoTrialTypes(currentTrial) = optoTypes(currentTrial);
+    BpodSystem.Data.OptoTrialTypes(:, currentTrial) = optoType;
     BpodSystem.Data.ProbeTrialTypes(currentTrial) = probeTypes(currentTrial);
     BpodSystem.Data.ProbeRewardOmitted(currentTrial) = probeTypes(currentTrial) == 1;
     BpodSystem.Data.ChemoTrialTypes(currentTrial) = double(S.GUI.ChemoMode);
@@ -677,7 +681,7 @@ else
     press2Window = S.GUI.LongPress2Window_s;
 end
 fprintf('%-22s %.3f s\n', 'Press 2 window:', press2Window);
-fprintf('%-22s %d / %d / %d\n', 'Opto / Probe / Assist:', optoType, probeType, assistTrial);
+fprintf('%-22s %s / %d / %d\n', 'Opto / Probe / Assist:', optoSummary(optoType), probeType, assistTrial);
 fprintf('%-22s %.3f / %.3f s\n', 'ITI / Punish ITI:', iti, punishITI);
 end
 
@@ -764,6 +768,18 @@ if value
     text = 'ON';
 else
     text = 'OFF';
+end
+end
+
+function text = optoSummary(optoType)
+% Convert one 3-row opto column to compact terminal text.
+labels = {'Cue1', 'Delay', 'PostReward'};
+optoType = optoType(:) ~= 0;
+enabled = labels(optoType);
+if isempty(enabled)
+    text = 'Off';
+else
+    text = strjoin(enabled, '+');
 end
 end
 

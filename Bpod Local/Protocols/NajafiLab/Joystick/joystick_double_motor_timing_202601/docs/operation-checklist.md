@@ -95,7 +95,7 @@ Check `image.png` if using the image cue.
 
 Check `OptoMode`.
 
-Check the enabled opto type fields.
+Check the enabled opto period checkboxes.
 
 Check Doric frequency and pulse on time.
 

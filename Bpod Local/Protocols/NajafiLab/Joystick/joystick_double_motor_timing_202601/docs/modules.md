@@ -104,7 +104,7 @@ The state matrix handles:
 - Error states.
 - ITI.
 
-It also adds opto output actions for the current opto type.
+It also adds opto output actions for the current opto period column.
 
 ## `SoftCodeHandler_Protocol.m`
 
@@ -126,35 +126,41 @@ Dynamic reward is computed here.
 
 This controls opto trial tags and opto actions.
 
-It supports four opto types:
+Opto is saved as a `3 x nTrials` matrix. Each column is one trial. The rows are:
 
-- `0`: Off.
-- `1`: Visual cue 1.
-- `2`: Delay after press 1.
-- `3`: Post reward.
+- Row 1: cue 1 period.
+- Row 2: delay / press 2 period.
+- Row 3: post reward period.
+
+A column of `[0; 0; 0]` means opto is off for that trial. A column such as `[1; 1; 0]` means the same trial gets light in cue 1 and delay, but not post reward.
 
 It also returns plot labels and neutral grayscale colors.
 
-When `OptoMode` is off, every trial receives opto type `0`.
+When `OptoMode` is off, every trial receives `[0; 0; 0]`.
 
-When `OptoMode` is on, `OptoControl('trials', S, trialTypes)` first finds eligible trials. It excludes the first block and excludes the first and last `OptoZeroEdgeTrials` trials of each later block. It then tags approximately `OptoFraction` of the eligible trials.
+When `OptoMode` is on, `OptoControl('trials', S, trialTypes)` first makes an intended schedule for the whole session. It excludes the first block and excludes the first and last `OptoZeroEdgeTrials` trials of each later block. It then tags approximately `OptoFraction` of the eligible trials.
 
-Only enabled opto epochs can be assigned:
+Only checked opto periods can be assigned:
 
-- `EnableOptoVisualCue1` allows type `1`.
-- `EnableOptoDelay` allows type `2`.
-- `EnableOptoPostReward` allows type `3`.
+- `EnableOptoVisualCue1` sets row 1.
+- `EnableOptoDelay` sets row 2.
+- `EnableOptoPostReward` sets row 3.
 
-If more than one epoch is enabled, tagged trials draw randomly from the enabled epoch types. The generated vector is saved as `BpodSystem.Data.PlannedOptoTrialTypes`, and each completed trial is saved in `BpodSystem.Data.OptoTrialTypes`.
+If more than one period is checked, a selected opto trial gets all checked periods. The protocol no longer chooses only one period.
+
+At the start of each trial, after the GUI is synced, `OptoControl('trial', S, trialTypes, currentTrial)` assigns the current trial again using the current GUI values. That current opto column overwrites the intended schedule for that trial. This means changes made between trials affect the next trial without changing completed trials.
+
+The intended schedule plus online overwrites are saved in `BpodSystem.Data.PlannedOptoTrialTypes`. Completed assigned columns are saved in `BpodSystem.Data.OptoTrialTypes`. `BpodSystem.Data.AssignedOptoTrialCount` stores the highest trial index assigned online.
 
 `OptoControl('actions', S, optoType, delay, press2Window)` returns Bpod output actions for the current trial:
 
-- Type `0` keeps LED1 off and cancels the opto timer at `Start`.
-- Type `1` turns LED1 on in `VisualStimulus1` and turns it off when cue 1 exits through the next servo or press-2 state.
-- Type `2` arms global timer 10 for the press-2 delay epoch. The timer starts from `LeverRetract1`, drives `PWM1` high, and is cancelled at `RewardLeverRetract` or when the trial leaves the press-2 path.
-- Type `3` turns LED1 on in `PostRewardDelay` and turns it off in `LeverRetractFinal`.
+- Row 1 on: LED1 turns on in `VisualStimulus1` and turns off when cue 1 exits.
+- Row 2 on: global timer 10 starts in `LeverRetract1`, drives `PWM1` high through the delay / press 2 period, and is cancelled at `RewardLeverRetract`.
+- Row 3 on: LED1 turns on in `PostRewardDelay` and turns off in `LeverRetractFinal`.
 
-The current implementation uses continuous LED1 high intervals for the selected epoch. `OptoFrequency_Hz` and `OptoPulseOn_ms` are GUI parameters reserved for pulsed stimulation, but the active state-machine action sends a sustained `PWM1` high value during the epoch.
+All enabled rows in a column can run in the same trial. For example, `[1; 0; 1]` gives light during cue 1 and post reward. `[1; 1; 1]` gives light in all three periods.
+
+The current implementation uses continuous LED1 high intervals for each selected period. `OptoFrequency_Hz` and `OptoPulseOn_ms` are GUI parameters reserved for pulsed stimulation, but the active state-machine action sends a sustained `PWM1` high value during each selected period.
 
 The event plot reconstructs the LED1 row from `OptoTrialTypes` and state timing. This keeps plotting self-contained and does not require reading a separate reference implementation.
 

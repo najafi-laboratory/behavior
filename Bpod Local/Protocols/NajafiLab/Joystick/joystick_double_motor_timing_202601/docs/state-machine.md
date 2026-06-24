@@ -12,13 +12,13 @@ Its onset delay is the target delay. In visual-guided mode, it sends soft code 2
 
 ### Timer 10
 
-Timer 10 is reserved for opto type 2. It starts in `LeverRetract1`, drives `PWM1` high during the delay/press-2 epoch, and is cancelled at `RewardLeverRetract`.
+Timer 10 is reserved for delay-period opto. It starts in `LeverRetract1`, drives `PWM1` high during the delay / press 2 epoch, and is cancelled at `RewardLeverRetract`.
 
 ## Trial Start
 
 `Start` turns BNC1 high, resets the rotary encoder, cancels any old opto timer, turns LED1 off, and moves to `VisualStimulus1`.
 
-`VisualStimulus1` plays cue 1, enables encoder threshold events, and turns LED1 on for opto type 1. Double press mode goes to `WaitForPress1`; single press mode goes directly to `PrePress2Delay`.
+`VisualStimulus1` plays cue 1, enables encoder threshold events, and turns LED1 on when the cue 1 opto row is enabled for this trial. Double press mode goes to `WaitForPress1`; single press mode goes directly to `PrePress2Delay`.
 
 ## Press 1
 
@@ -30,7 +30,7 @@ If time runs out, the trial goes to `DidNotPress1`.
 
 `Press1` waits for `ServoMoveDelay_s`, then goes to `LeverRetract1`.
 
-`LeverRetract1` retracts the servo. When the soft-code handler confirms the servo is home, the trial moves to `PrePress2Delay`. Opto type 2 starts LED1 here.
+`LeverRetract1` retracts the servo. When the soft-code handler confirms the servo is home, the trial moves to `PrePress2Delay`. Delay-period opto starts LED1 here.
 
 ## Press 2 Preparation
 
@@ -62,7 +62,7 @@ If the encoder threshold is crossed, the trial goes to `Press2`. If time runs ou
 
 If no return code arrives, the trial goes to `DidNotPress2`.
 
-Opto type 2 is turned off in `RewardLeverRetract`.
+Delay-period opto is turned off in `RewardLeverRetract`.
 
 ## Reward Path
 
@@ -70,9 +70,9 @@ Opto type 2 is turned off in `RewardLeverRetract`.
 
 `Reward` sends soft code 20. The soft-code handler delivers water through valve 2. When reward delivery is done, the handler sends soft code 3 and the trial goes to `PostRewardDelay`.
 
-`PostRewardDelay` waits for `PostRewardDelay_s`. Opto type 3 turns LED1 on here.
+`PostRewardDelay` waits for `PostRewardDelay_s`. Post-reward opto turns LED1 on here.
 
-`LeverRetractFinal` is the terminal rewarded state. Opto type 3 turns LED1 off here, then the trial goes to `ITI`.
+`LeverRetractFinal` is the terminal rewarded state. Post-reward opto turns LED1 off here, then the trial goes to `ITI`.
 
 ## Error Path
 

@@ -42,14 +42,18 @@ Marker colors show:
 
 ## Opto Raster
 
-This plot shows opto trial type.
+This plot shows opto periods.
 
 Values are:
 
-- `0`: Off.
-- `1`: Visual cue 1.
-- `2`: Delay.
-- `3`: Post reward.
+- `Off`: no opto periods are enabled for that trial.
+- `Cue 1`: LED1 is on during `VisualStimulus1`.
+- `Delay`: LED1 is on from `LeverRetract1` until `RewardLeverRetract`.
+- `Post Reward`: LED1 is on during `PostRewardDelay`.
+
+One trial can have more than one marker because opto is saved as three period rows. For example, a cue-plus-delay trial shows markers on both `Cue 1` and `Delay`.
+
+Small dots show the planned future schedule. Filled squares show trials assigned online after the GUI was synced for that trial. The open circle marks the next trial.
 
 ## Probe Raster
 
@@ -170,7 +174,7 @@ Rows are:
 - LED1.
 - Port 1 lick.
 
-LED1 is reconstructed from opto type and state timing.
+LED1 is reconstructed from `OptoTrialTypes` and state timing.
 
 ## Saved Data Fields
 
@@ -182,6 +186,7 @@ Important fields include:
 - `TrialTypes`
 - `TrialTransitions`
 - `OptoTrialTypes`
+- `AssignedOptoTrialCount`
 - `ProbeTrialTypes`
 - `ProbeRewardOmitted`
 - `ChemoTrialTypes`

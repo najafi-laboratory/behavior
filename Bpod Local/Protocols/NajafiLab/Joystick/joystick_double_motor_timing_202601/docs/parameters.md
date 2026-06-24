@@ -170,13 +170,13 @@ Presses later than this are late.
 
 Delay between a rewarded press 2 outcome and reward delivery.
 
-Opto type 3 does not change this value.
+Post-reward opto does not change this value.
 
 ### `PostRewardDelay_s`
 
 Delay after reward before the trial is marked as rewarded.
 
-Opto type 3 gives light during this period.
+Post-reward opto gives light during this period.
 
 ### `RewardMode`
 
@@ -265,21 +265,21 @@ The first block is also blocked.
 
 ### `EnableOptoVisualCue1`
 
-Enables opto type 1.
+Adds cue 1 light to selected opto trials.
 
-Type 1 gives LED1 during `VisualStimulus1`.
+This sets row 1 of the saved opto matrix.
 
 ### `EnableOptoDelay`
 
-Enables opto type 2.
+Adds delay-period light to selected opto trials.
 
-Type 2 gives LED1 from `LeverRetract1` until `RewardLeverRetract`, or until the press 2 window ends.
+This sets row 2 of the saved opto matrix. LED1 runs from `LeverRetract1` until `RewardLeverRetract`, or until the press 2 window ends.
 
 ### `EnableOptoPostReward`
 
-Enables opto type 3.
+Adds post-reward light to selected opto trials.
 
-Type 3 gives LED1 during `PostRewardDelay` and turns it off in `LeverRetractFinal`.
+This sets row 3 of the saved opto matrix. LED1 runs during `PostRewardDelay` and turns off in `LeverRetractFinal`.
 
 ### `OptoFrequency_Hz`
 

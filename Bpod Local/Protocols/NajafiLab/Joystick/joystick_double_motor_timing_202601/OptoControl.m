@@ -2,30 +2,41 @@ function output = OptoControl(action, S, varargin)
 % Generate opto trial tags and plotting metadata.
 switch action
     case 'trials'
-        % Draw opto trial types only when opto mode is enabled.
+        % Draw period-wise opto tags only when opto mode is enabled.
         trialTypes = [];
         if ~isempty(varargin)
             trialTypes = varargin{1};
         end
 
         nTrials = round(S.GUI.MaxTrials);
-        output = zeros(1, nTrials);
+        output = zeros(3, nTrials);
         if S.GUI.OptoMode
-            enabledTypes = enabledOptoTypes(S);
+            enabledPeriods = enabledOptoPeriods(S);
             eligible = eligibleTagTrials(S, nTrials, trialTypes);
             nOpto = min(numel(eligible), max(0, round(S.GUI.OptoFraction * numel(eligible))));
-            if nOpto > 0 && ~isempty(enabledTypes)
+            if nOpto > 0 && any(enabledPeriods)
                 indices = eligible(randperm(numel(eligible), nOpto));
-                output(indices) = enabledTypes(randi(numel(enabledTypes), 1, nOpto));
+                output(:, indices) = repmat(enabledPeriods, 1, nOpto);
+            end
+        end
+    case 'trial'
+        % Assign one current trial using the latest GUI values.
+        trialTypes = varargin{1};
+        trial = varargin{2};
+        output = zeros(3, 1);
+        if S.GUI.OptoMode
+            enabledPeriods = enabledOptoPeriods(S);
+            if any(enabledPeriods) && eligibleTrial(S, round(S.GUI.MaxTrials), trialTypes, trial) && rand < S.GUI.OptoFraction
+                output = enabledPeriods;
             end
         end
     case 'actions'
-        % Return state-machine timer specs and trigger actions for this opto type.
-        optoType = varargin{1};
-        if ~ismember(optoType, 0:3)
-            error('Opto trial type must be 0, 1, 2, or 3.')
+        % Return state-machine timer specs and trigger actions for this trial.
+        optoType = normalizeOptoType(varargin{1});
+        if numel(optoType) ~= 3
+            error('Opto trial type must be a 3-row vector: cue, delay, post reward.')
         end
-        output.Enabled = optoType > 0;
+        output.Enabled = any(optoType);
         output.TrialType = optoType;
         output.Timers = offSpec(0.001);
         output.StartActions = {'GlobalTimerCancel', optoTimerID, 'PWM1', 0};
@@ -37,15 +48,17 @@ switch action
         output.PostRewardDelayActions = {};
         output.LeverRetractFinalActions = {};
 
-        if optoType == 1
+        if optoType(1)
             output.VisualStimulus1Actions = {'PWM1', 255};
             output.VisualStimulus1OffActions = {'PWM1', 0};
-        elseif optoType == 2
+        end
+        if optoType(2)
             press2Window = varargin{3};
             output.Timers = gateSpec(press2Window);
             output.LeverRetract1Actions = {'GlobalTimerTrig', optoTimerID};
             output.RewardLeverRetractActions = {'GlobalTimerCancel', optoTimerID, 'PWM1', 0};
-        elseif optoType == 3
+        end
+        if optoType(3)
             output.PostRewardDelayActions = {'PWM1', 255};
             output.LeverRetractFinalActions = {'PWM1', 0};
         end
@@ -55,7 +68,7 @@ switch action
         output = waveformIntervals(S, duration);
     case 'display'
         % Keep labels and colors centralized for plotting.
-        output.Labels = {'Off', 'Visual Cue 1', 'Delay', 'Post Reward'};
+        output.Labels = {'Off', 'Cue 1', 'Delay', 'Post Reward'};
         output.Colors = [0.85 0.85 0.85; 0.58 0.58 0.58; 0.32 0.32 0.32; 0.08 0.08 0.08];
     otherwise
         error('Unknown opto action: %s', action)
@@ -98,18 +111,30 @@ function intervals = waveformIntervals(~, requestedDuration)
 intervals = [0 requestedDuration];
 end
 
-function types = enabledOptoTypes(S)
-% Convert GUI checkboxes into numeric opto trial types.
-types = [];
-if S.GUI.EnableOptoVisualCue1
-    types(end + 1) = 1;
+function periods = enabledOptoPeriods(S)
+% Convert GUI checkboxes into one opto column: cue, delay, post reward.
+periods = [S.GUI.EnableOptoVisualCue1; S.GUI.EnableOptoDelay; S.GUI.EnableOptoPostReward] ~= 0;
 end
-if S.GUI.EnableOptoDelay
-    types(end + 1) = 2;
+
+function optoType = normalizeOptoType(optoType)
+% Accept the current 3-row representation and legacy scalar values.
+if isempty(optoType)
+    optoType = zeros(3, 1);
+elseif isscalar(optoType)
+    legacy = optoType;
+    optoType = zeros(3, 1);
+    if ismember(legacy, 1:3)
+        optoType(legacy) = 1;
+    end
+else
+    optoType = optoType(:) ~= 0;
 end
-if S.GUI.EnableOptoPostReward
-    types(end + 1) = 3;
 end
+
+function eligible = eligibleTrial(S, nTrials, trialTypes, trial)
+% Test one trial against the same first-block and block-edge rules.
+eligibleTrials = eligibleTagTrials(S, nTrials, trialTypes);
+eligible = ismember(trial, eligibleTrials);
 end
 
 function eligible = eligibleTagTrials(S, nTrials, trialTypes)

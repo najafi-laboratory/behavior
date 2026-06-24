@@ -2,11 +2,6 @@
 
 This is a compact Bpod MATLAB protocol for a joystick timing task with visual cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe/chemo trial tags, and online plotting.
 
-## Update notes
-
-### 20260623
-- First release.
-
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
@@ -27,7 +22,7 @@ Probe type 1 omits water reward even for rewarded timing. Probe type 2 flips the
 
 Opto and probe tags are forced to zero for the first block and for the first/last trials of each block. The edge lengths are controlled separately by `OptoZeroEdgeTrials` and `ProbeZeroEdgeTrials`.
 
-Opto trials are tagged as off, visual cue 1, delay, or post reward. The active opto type controls LED1 through the state machine: type 1 lights during `VisualStimulus1`, type 2 lights after `LeverRetract1` until `RewardLeverRetract`, and type 3 lights during `PostRewardDelay` until `LeverRetractFinal`.
+Opto trials are saved as a `3 x nTrials` matrix, with rows for cue 1, delay, and post reward. A selected trial can enable any combination of these periods. LED1 turns on during `VisualStimulus1` for cue opto, from `LeverRetract1` to `RewardLeverRetract` for delay opto, and during `PostRewardDelay` until `LeverRetractFinal` for post-reward opto.
 
 `ChemoMode` stores `ChemoTrialTypes` as 1 when enabled and 0 otherwise.
 
@@ -104,9 +99,9 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `OptoMode`: enables opto trial tagging.
 - `OptoFraction`: fraction of eligible trials tagged as opto.
 - `OptoZeroEdgeTrials`: block-edge trials excluded from opto tagging.
-- `EnableOptoVisualCue1`: allows opto type 1 during `VisualStimulus1`.
-- `EnableOptoDelay`: allows opto type 2 from `LeverRetract1` to `RewardLeverRetract`.
-- `EnableOptoPostReward`: allows opto type 3 during `PostRewardDelay`.
+- `EnableOptoVisualCue1`: adds cue 1 light to selected opto trials.
+- `EnableOptoDelay`: adds delay-period light to selected opto trials.
+- `EnableOptoPostReward`: adds post-reward light to selected opto trials.
 - `OptoFrequency_Hz`: reserved pulse frequency setting; current output is sustained high.
 - `OptoPulseOn_ms`: reserved pulse on-time setting; current output is sustained high.
 - `ChemoMode`: marks completed trials as chemo trials in saved data.
@@ -125,6 +120,6 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 
 ## Plot Notes
 
-The online plot uses a two-column canvas: the left side shows trial type, opto type, probe type, delay, and rotary encoder plots; the right side shows outcome fractions with a legend, press timing, state timing, and events. Outcome-related plots share one color set. Opto, probe, delay, and event plots use neutral gray or black marks. The rotary encoder position trace is black, while its threshold and event markers use colored annotations.
+The online plot uses a two-column canvas: the left side shows trial type, opto period, probe type, delay, and rotary encoder plots; the right side shows outcome fractions with a legend, press timing, state timing, and events. Outcome-related plots share one color set. Opto, probe, delay, and event plots use neutral gray or black marks. The rotary encoder position trace is black, while its threshold and event markers use colored annotations.
 
 The event plot uses one row per signal: `BNC 1`, `LED 1`, and `Port 1 lick`. Filled bars mark logical 1 or detected lick pulses; blank space marks 0.
