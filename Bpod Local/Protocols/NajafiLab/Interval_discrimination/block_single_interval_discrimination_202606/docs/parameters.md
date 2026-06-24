@@ -11,7 +11,7 @@
   - `50/50 only`
   - `50/50 then left/right`
   - `50/50, left, right`
-- `WarmupBlockNum`: number of leading 50/50 warmup blocks before other block types. Set to `0` to start directly with the configured block structure.
+- `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block in block modes 2 and 3. Set to `0` to use only the required first 50/50 block before the configured block structure.
 - `BlockLength`: nominal block length.
 - `BlockMargin`: random plus/minus range around `BlockLength`.
 - `BlockEdgeTrials`: edge trials forced toward the block's majority trial type.

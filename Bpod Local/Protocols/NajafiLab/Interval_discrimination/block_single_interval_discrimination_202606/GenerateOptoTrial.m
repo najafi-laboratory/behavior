@@ -14,7 +14,7 @@ end
 if nargin < 3 || isempty(blockStarts) || isempty(blockEnds)
     [blockStarts, blockEnds] = blockEdges(blockTypes);
 end
-warmupBlocks = min(numel(blockStarts), max(0, round(S.GUI.WarmupBlockNum)));
+warmupBlocks = min(numel(blockStarts), leadingFiftyFiftyBlocks(S));
 block = find(trial >= blockStarts & trial <= blockEnds, 1);
 if isempty(block) || block <= warmupBlocks
     return
@@ -35,6 +35,14 @@ end
 
 if isOptoTrial
     optoType(enabledPeriods) = 1;
+end
+end
+
+function count = leadingFiftyFiftyBlocks(S)
+if S.GUI.BlockNum == 1
+    count = inf;
+else
+    count = 1 + max(0, round(S.GUI.WarmupBlockNum));
 end
 end
 

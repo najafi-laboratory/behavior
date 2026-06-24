@@ -23,7 +23,7 @@ Block type meanings:
 - `2`: short-majority block.
 - `3`: long-majority block.
 
-`WarmupBlockNum` controls how many leading blocks are forced to type `1` before the remaining block logic starts. It defaults to `1` and can be set to `0`.
+Block modes 2 and 3 always begin with one required 50/50 block. `WarmupBlockNum` adds extra leading 50/50 blocks before the remaining block logic starts. It defaults to `1` and can be set to `0`.
 
 When `BlockNum` is `1`, every block is type `1`.
 

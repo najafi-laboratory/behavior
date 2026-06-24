@@ -36,7 +36,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - `TrainingMode`: naive auto-reward workflow or trained choice workflow.
 - `Contingency`: maps short/long trials to left/right target sides.
 - `BlockNum`: block structure: 50/50 only, alternating short/long majority, or 50/50/short/long without repeats.
-- `WarmupBlockNum`: number of leading 50/50 warmup blocks before other block types; can be `0`.
+- `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block; can be `0`.
 - `BlockLength`: nominal trials per block.
 - `BlockMargin`: random plus/minus range around `BlockLength`.
 - `BlockEdgeTrials`: first/last trials in majority blocks forced to the majority trial type.

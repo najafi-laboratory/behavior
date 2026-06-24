@@ -7,7 +7,7 @@ switch action
         width = round(screenSize(3) * 0.92);
         height = round(screenSize(4) * 0.92);
         position = [screenSize(1) + 16 screenSize(2) + screenSize(4) - height - 42 width height];
-        figureName = [subjectName ' block single interval discrimination ' char(datetime('today', 'Format', 'yyyyMMdd')) ' If experiments go shit say I LOVE YICONG FOREVER!'];
+        figureName = ['block single interval discrimination ' char(datetime('today', 'Format', 'yyyyMMdd')) '. If experiments go shit say I LOVE YICONG FOREVER!'];
         BpodSystem.ProtocolFigures.Session = figure('Name', figureName, 'NumberTitle', 'off', 'MenuBar', 'none', 'ToolBar', 'none', 'Color', 'w', 'Position', position);
         layout = tiledlayout(BpodSystem.ProtocolFigures.Session, 30, 18, 'TileSpacing', 'compact', 'Padding', 'compact');
         BpodSystem.GUIHandles.TrialTypeAxes = nexttile(layout, 1, [4 11]);
@@ -405,18 +405,6 @@ set(ax, 'Box', 'off', 'TickDir', 'out', 'FontSize', 9, 'YMinorTick', 'off', 'XGr
 xlabel(ax, 'Time from choice (s)');
 ylabel(ax, 'Lick/s');
 title(ax, plotTitle, 'FontSize', 10, 'FontWeight', 'normal');
-end
-
-function drawLickLegend(ax)
-cla(ax);
-hold(ax, 'on');
-axis(ax, [0 1 0 1]);
-axis(ax, 'off');
-colors = choiceColors();
-plot(ax, [0.08 0.42], [0.68 0.68], '-', 'Color', colors(1, :), 'LineWidth', 1.5);
-plot(ax, [0.08 0.42], [0.48 0.48], '-', 'Color', colors(2, :), 'LineWidth', 1.5);
-text(ax, 0.55, 0.68, 'Left', 'FontSize', 8, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
-text(ax, 0.55, 0.48, 'Right', 'FontSize', 8, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
 end
 
 function updateReactionTime(completedCount)
@@ -869,67 +857,6 @@ if ticks(end) < lastTrial
     ticks = [ticks lastTrial];
 end
 ticks = unique(ticks);
-end
-
-function name = subjectName
-global BpodSystem
-name = 'UnknownSubject';
-if isfield(BpodSystem, 'Path') && isstruct(BpodSystem.Path)
-    candidates = {'CurrentSubject', 'SubjectName', 'Subject'};
-    for i = 1:numel(candidates)
-        candidate = readField(BpodSystem.Path, candidates{i});
-        if ~isempty(candidate)
-            name = candidate;
-            return
-        end
-    end
-end
-if isfield(BpodSystem, 'Data') && isstruct(BpodSystem.Data)
-    candidate = readField(BpodSystem.Data, 'SubjectName');
-    if ~isempty(candidate)
-        name = candidate;
-    end
-end
-end
-
-function value = readField(source, fieldName)
-value = '';
-if ~isfield(source, fieldName)
-    return
-end
-value = normalizeSubjectName(source.(fieldName));
-end
-
-function value = normalizeSubjectName(rawValue)
-value = '';
-if isempty(rawValue)
-    return
-end
-if iscell(rawValue)
-    rawValue = rawValue{1};
-end
-if isstring(rawValue)
-    rawValue = char(rawValue(1));
-end
-if ~ischar(rawValue)
-    return
-end
-value = strtrim(rawValue);
-if isempty(value)
-    return
-end
-value = strrep(value, '/', filesep);
-if contains(value, filesep)
-    parts = regexp(value, ['\' filesep '+'], 'split');
-    parts = parts(~cellfun('isempty', parts));
-    if ~isempty(parts)
-        value = parts{end};
-    end
-    [~, baseName, extension] = fileparts(value);
-    if ~isempty(extension)
-        value = baseName;
-    end
-end
 end
 
 function duration = trialDuration(trial)

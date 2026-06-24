@@ -24,7 +24,7 @@ opto = {'OptoMode', 1; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'OptoEarly
 probe = {'ProbeMode', 0; 'ProbeFraction', 0.1; 'ProbeZeroEdgeTrials', 5};
 choice = {'SpoutInDelay_s', 0.2; 'ChoiceWindow_s', 5; 'AllowChangeMind', 0; 'ChangeMindWindow_s', 0.5};
 reward = {'RewardDelay_s', 0.1; 'PostRewardDelay_s', 1.5; 'LeftRewardAmount_uL', 3; 'RightRewardAmount_uL', 3};
-servo = {'RightServoInPos', 1184; 'LeftServoInPos', 1706; 'ServoDeflection', 90; 'ServoVelocity', 1; 'ServoMoveDelay_s', 0.1; 'ServoReturnTimeout_s', 1};
+servo = {'CurrentSpoutPosition', 1; 'RightServoInPos', 1184; 'LeftServoInPos', 1706; 'ServoDeflection', 90; 'ServoVelocity', 1; 'ServoMoveDelay_s', 0.1; 'ServoReturnTimeout_s', 1};
 iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 3; 'ITIMax_s', 6; 'ITIMean_s', 4.5; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 3; 'PunishITIMax_s', 7; 'PunishITIMean_s', 5};
 chemo = {'ChemoMode', 0};
 
@@ -76,6 +76,8 @@ S.GUIMeta.ITIMode.Style = 'popupmenu';
 S.GUIMeta.ITIMode.String = {'Manual', 'Exponential'};
 S.GUIMeta.PunishITIMode.Style = 'popupmenu';
 S.GUIMeta.PunishITIMode.String = {'Manual', 'Exponential'};
+S.GUIMeta.CurrentSpoutPosition.Style = 'popupmenu';
+S.GUIMeta.CurrentSpoutPosition.String = {'Neutral', 'Leftwards', 'Rightwards'};
 
 S.GUIPanels.Session = [session(:, 1)' blocks(:, 1)'];
 S.GUIPanels.Stimulus = [stimulus(:, 1)' audio(:, 1)'];

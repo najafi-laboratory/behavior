@@ -177,7 +177,7 @@ Builds the GUI parameter structure. It defines default values, popup menus, chec
 
 ### `GenerateTrials(S)`
 
-Creates the planned session arrays: `trialTypes`, `blockTypes`, `isiValues`, `itiValues`, `punishITIValues`, `blockStarts`, and `blockEnds`. Trial type `1` is short and trial type `2` is long. Initial ISI/ITI arrays are placeholders; actual ISI/ITI values are sampled trial by trial during the session.
+Creates the planned session arrays: `trialTypes`, `blockTypes`, `blockStarts`, and `blockEnds`. Trial type `1` is short and trial type `2` is long. ISI, ITI, and punish ITI are sampled trial by trial in the main protocol so GUI changes can affect later trials.
 
 ### `generateBlocks(S, nTrials)`
 
@@ -185,19 +185,15 @@ Builds the block layout. Each block has a start trial, end trial, and block type
 
 ### `blockTypeForIndex(S, blockIndex, previousType)`
 
-Chooses the block type after warmup. With one block mode, all blocks are 50/50. With two block mode, the protocol starts with 50/50 and alternates short-majority and long-majority blocks. With three block mode, it uses 50/50, short-majority, and long-majority blocks without repeating the previous type, while the first block remains 50/50.
+Chooses the block type after warmup. With one block mode, all blocks are 50/50. With two block mode, the protocol starts with required and extra 50/50 warmup blocks, then alternates short-majority and long-majority blocks. With three block mode, it starts with the same warmup blocks, then uses 50/50, short-majority, and long-majority blocks without repeating the previous type.
+
+### `leadingFiftyFiftyBlocks(S)`
+
+Returns the number of leading 50/50 blocks in block modes 2 and 3. The count is one required 50/50 block plus `WarmupBlockNum` additional 50/50 blocks.
 
 ### `sampleBlockTrials(S, blockType, nTrials)`
 
 Samples short/long trial identities inside one block. In 50/50 blocks, short and long are sampled uniformly. In majority blocks, the majority trial type is chosen with probability `MostFraction`. The first and last `BlockEdgeTrials` of a majority block are forced to the majority type to make block edges clear.
-
-### `sampleValue(mode, fixedValue, minimum, maximum)`
-
-Utility sampler for fixed or uniform draws.
-
-### `generateITI(mode, manualValue, minimum, maximum, meanValue, nTrials)`
-
-Creates placeholder ITI arrays for the planned session. Runtime code resamples ITI trial by trial so GUI changes can take effect.
 
 ## `GenerateProbeTrials.m`
 
@@ -226,6 +222,10 @@ Generates the current trial's opto column from the current GUI settings. Warmup 
 ### `isRandomOptoTrial(S, blockStart, blockEnd, trial)`
 
 Implements random opto mode. It excludes the first and last `OptoZeroEdgeTrials` in a block and then tags eligible trials with probability `OptoFraction`.
+
+### `leadingFiftyFiftyBlocks(S)`
+
+Returns the block count excluded from opto scheduling: the required first 50/50 block plus any additional `WarmupBlockNum` blocks.
 
 ### `earlyTrialsInBlock(S, blockStart, blockEnd)`
 
@@ -435,10 +435,6 @@ Plots left and right lick density. The rate is smoothed counts divided by trial 
 lick_rate = smoothed_count / n_trials / bin_width
 ```
 
-### `drawLickLegend`
-
-Draws the separate lick legend so it does not overlap the lick traces.
-
 ### `updateReactionTime`
 
 Updates the reaction-time scatter and box plot. Reaction time is:
@@ -526,10 +522,6 @@ Displays a readable placeholder when no data are available yet.
 ### `visibleWindow`, `trialTicks`
 
 Choose the x-axis trial range and tick marks for schedule plots.
-
-### `subjectName`
-
-Reads the subject name from Bpod session fields. The plot canvas title uses this value plus the protocol name, eight-digit date, and the requested session phrase.
 
 ### `trialDuration`
 
