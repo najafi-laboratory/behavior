@@ -2,6 +2,11 @@
 
 This is a compact Bpod MATLAB protocol for a joystick timing task with visual cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe/chemo trial tags, and online plotting.
 
+## Update note
+
+### 2025.06.24
+- First release.
+
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
