@@ -39,6 +39,7 @@ BpodSystem.Data.PlannedPunishITI = punishITIValues;
 BpodSystem.Data.PlannedChemoTrialTypes = repmat(double(S.GUI.ChemoMode), 1, numel(trialTypes));
 currentTrial = 1;
 BpodSystem.Data.CurrentTrial = 0;
+BpodSystem.Data.AssignedOptoTrialCount = 0;
 
 ProtocolPlot('init', trialTypes, blockTypes, probeTypes, optoTypes, isiValues, 0, S);
 showGrayScreen;
@@ -55,7 +56,10 @@ while currentTrial <= round(S.GUI.MaxTrials)
     trialType = trialTypes(currentTrial);
     blockType = blockTypes(currentTrial);
     probeType = probeTypes(currentTrial);
-    optoType = optoTypes(:, currentTrial);
+    optoType = GenerateOptoTrial(S, blockTypes, blockStarts, blockEnds, currentTrial);
+    optoTypes(:, currentTrial) = optoType;
+    BpodSystem.Data.PlannedOptoTrialTypes(:, currentTrial) = optoType;
+    BpodSystem.Data.AssignedOptoTrialCount = currentTrial;
     isi = sampleTrialISI(S, trialType);
     isiValues(currentTrial) = isi;
     BpodSystem.Data.PlannedISI(currentTrial) = isi;
