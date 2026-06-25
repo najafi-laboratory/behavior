@@ -429,7 +429,7 @@ end
 if any([S.GUI.ShortISIFixed_s S.GUI.ShortISIMin_s S.GUI.ShortISIMax_s S.GUI.LongISIFixed_s S.GUI.LongISIMin_s S.GUI.LongISIMax_s S.GUI.ManualITI_s S.GUI.ITIMin_s S.GUI.ITIMax_s S.GUI.ITIMean_s S.GUI.ManualPunishITI_s S.GUI.PunishITIMin_s S.GUI.PunishITIMax_s S.GUI.PunishITIMean_s] < 0)
     error('ISI and ITI values cannot be negative.')
 end
-if any([S.GUI.SpoutInDelay_s S.GUI.ChoiceWindow_s S.GUI.ChangeMindWindow_s S.GUI.RewardDelay_s S.GUI.PostRewardDelay_s S.GUI.ServoMoveDelay_s S.GUI.ServoReturnTimeout_s] < 0)
+if any([S.GUI.SpoutInDelay_s S.GUI.ChoiceWindow_s S.GUI.ChangeMindWindow_s S.GUI.PreRewardDelay_s S.GUI.PostRewardDelay_s S.GUI.ServoMoveDelay_s S.GUI.ServoReturnTimeout_s] < 0)
     error('Choice, reward, and servo timing values cannot be negative.')
 end
 if S.GUI.LeftRewardAmount_uL < 0 || S.GUI.RightRewardAmount_uL < 0
@@ -449,7 +449,9 @@ fprintf('\nDoric opto settings\n');
 fprintf('%-24s %s\n', 'OptoMode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.OptoMode));
 fprintf('%-24s %s\n', 'EnableOptoStimulus:', onOffText(S.GUI.EnableOptoStimulus));
 fprintf('%-24s %s\n', 'EnableOptoChoice:', onOffText(S.GUI.EnableOptoChoice));
-fprintf('%-24s %s\n', 'EnableOptoReward:', onOffText(S.GUI.EnableOptoReward));
+fprintf('%-24s %s\n', 'EnableOptoPreReward:', onOffText(S.GUI.EnableOptoPreReward));
+fprintf('%-24s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
+fprintf('%-24s %s\n', 'EnableOptoPunishITI:', onOffText(S.GUI.EnableOptoPunishITI));
 fprintf('%-24s %s\n', 'LED1 control mode:', 'PWM1 gated opto epoch');
 fprintf('%-24s %s\n', 'Doric pulse params:', 'set/check on Doric device');
 input('Check these match Doric, then press Enter to continue > ', 's');
@@ -500,7 +502,7 @@ end
 end
 
 function text = optoPeriodText(optoType)
-labels = {'stimulus', 'choice', 'reward'};
+labels = {'stimulus', 'choice', 'pre-reward', 'post-reward', 'punish ITI'};
 enabled = find(optoType(:)' ~= 0);
 if isempty(enabled)
     text = 'off';
@@ -568,7 +570,7 @@ if probeType > 0
     outcome = 0;
 elseif eventInState(rawEvents, target.IncorrectLick, 'ChoiceWindow') && eventInState(rawEvents, target.CorrectLick, 'ChangeMindWindow')
     outcome = 4;
-elseif stateVisited(states, 'Reward') || stateVisited(states, 'NaiveReward') || stateVisited(states, 'RewardDelay') || stateVisited(states, 'PostRewardDelay')
+elseif stateVisited(states, 'Reward') || stateVisited(states, 'NaiveReward') || stateVisited(states, 'PreRewardDelay') || stateVisited(states, 'PostRewardDelay')
     outcome = 1;
 elseif eventInState(rawEvents, target.IncorrectLick, 'ChoiceWindow') || eventInState(rawEvents, target.IncorrectLick, 'ChangeMindWindow') || stateVisited(states, 'ChangeMindWindow')
     outcome = 2;
@@ -672,43 +674,36 @@ global BpodSystem
 
 fprintf('\n%s\n', repmat('=', 1, 70));
 fprintf('block_single_interval_discrimination_202606 complete\n');
+fprintf('%-28s %s\n', 'Date:', char(datetime('today', 'Format', 'yyyyMMdd')));
 fprintf('%-28s %d / %d\n', 'Trials completed:', completedTrials, round(S.GUI.MaxTrials));
 if isfield(BpodSystem, 'Data') && isfield(BpodSystem.Data, 'Outcomes') && ~isempty(BpodSystem.Data.Outcomes)
     outcomes = BpodSystem.Data.Outcomes(1:min(completedTrials, numel(BpodSystem.Data.Outcomes)));
     fprintf('%-28s reward %d, wrong %d, no choice %d, change mind %d\n', ...
         'Outcomes:', sum(outcomes == 1), sum(outcomes == 2), sum(outcomes == 3), sum(outcomes == 4));
 end
-fprintf('%s\n', repmat('-', 1, 70));
 fprintf('%-28s %s\n', 'Training mode:', popupValue(S.GUIMeta.TrainingMode.String, S.GUI.TrainingMode));
 fprintf('%-28s %s\n', 'Contingency:', popupValue(S.GUIMeta.Contingency.String, S.GUI.Contingency));
 fprintf('%-28s %s\n', 'Block mode:', popupValue(S.GUIMeta.BlockNum.String, S.GUI.BlockNum));
 fprintf('%-28s %d\n', 'Extra 50/50 warmups:', round(S.GUI.WarmupBlockNum));
 fprintf('%-28s %d +/- %d trials\n', 'Block length/margin:', round(S.GUI.BlockLength), round(S.GUI.BlockMargin));
 fprintf('%-28s %d edge, %.3f majority\n', 'Block edge/most:', round(S.GUI.BlockEdgeTrials), S.GUI.MostFraction);
-fprintf('%s\n', repmat('-', 1, 70));
 fprintf('%-28s %s\n', 'Stimulus mode:', popupValue(S.GUIMeta.StimulusMode.String, S.GUI.StimulusMode));
 fprintf('%-28s %s\n', 'Visual source:', sourceName(S.GUI.UseSavedImage));
 fprintf('%-28s %.3f s\n', 'Stimulus pulse:', S.GUI.GratingDuration_s);
 fprintf('%-28s %.3f Hz, %.3f vol\n', 'Audio freq/volume:', S.GUI.AudioStimFreq_Hz, S.GUI.AudioStimVolume);
 fprintf('%-28s %.0f Hz, %.3f dB\n', 'Audio sample/atten:', S.GUI.AudioSamplingRate_Hz, S.GUI.AudioAttenuation_dB);
 fprintf('%-28s %.3f ms\n', 'Audio ramp:', S.GUI.AudioRamp_ms);
-fprintf('%s\n', repmat('-', 1, 70));
 fprintf('%-28s %s, fixed %.3f, range %.3f-%.3f s\n', 'Short ISI:', popupValue(S.GUIMeta.ShortISIMode.String, S.GUI.ShortISIMode), S.GUI.ShortISIFixed_s, S.GUI.ShortISIMin_s, S.GUI.ShortISIMax_s);
 fprintf('%-28s %s, fixed %.3f, range %.3f-%.3f s\n', 'Long ISI:', popupValue(S.GUIMeta.LongISIMode.String, S.GUI.LongISIMode), S.GUI.LongISIFixed_s, S.GUI.LongISIMin_s, S.GUI.LongISIMax_s);
-fprintf('%s\n', repmat('-', 1, 70));
 fprintf('%-28s %s\n', 'Opto mode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.OptoMode));
 fprintf('%-28s %.3f, edge %d, early %d\n', 'Opto fraction/edge/early:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials), round(S.GUI.OptoEarlyTrials));
-fprintf('%-28s stim %s, choice %s, reward %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoChoice), onOffText(S.GUI.EnableOptoReward));
+fprintf('%-28s stim %s, choice %s, pre %s, post %s, punish %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoChoice), onOffText(S.GUI.EnableOptoPreReward), onOffText(S.GUI.EnableOptoPostReward), onOffText(S.GUI.EnableOptoPunishITI));
 fprintf('%-28s %s\n', 'Chemo:', onOffText(S.GUI.ChemoMode));
 fprintf('%-28s %s, %.3f, edge %d\n', 'Probe:', onOffText(S.GUI.ProbeMode), S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials));
-fprintf('%s\n', repmat('-', 1, 70));
 fprintf('%-28s %.3f s, %.3f s\n', 'Spout delay/choice:', S.GUI.SpoutInDelay_s, S.GUI.ChoiceWindow_s);
 fprintf('%-28s %s, %.3f s\n', 'Change mind:', onOffText(S.GUI.AllowChangeMind), S.GUI.ChangeMindWindow_s);
-fprintf('%-28s %.3f s, %.3f s\n', 'Reward/post reward:', S.GUI.RewardDelay_s, S.GUI.PostRewardDelay_s);
+fprintf('%-28s %.3f s, %.3f s\n', 'Pre/post reward:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s);
 fprintf('%-28s %.3f uL, %.3f uL\n', 'Left/right reward:', S.GUI.LeftRewardAmount_uL, S.GUI.RightRewardAmount_uL);
-fprintf('%-28s R %.0f, L %.0f, def %.0f\n', 'Servo in/deflection:', S.GUI.RightServoInPos, S.GUI.LeftServoInPos, S.GUI.ServoDeflection);
-fprintf('%-28s %.3f, move %.3f s, out %.3f s\n', 'Servo velocity/timing:', S.GUI.ServoVelocity, S.GUI.ServoMoveDelay_s, S.GUI.ServoReturnTimeout_s);
-fprintf('%s\n', repmat('-', 1, 70));
 fprintf('%-28s %s, manual %.3f, range %.3f-%.3f, mean %.3f s\n', 'ITI:', popupValue(S.GUIMeta.ITIMode.String, S.GUI.ITIMode), S.GUI.ManualITI_s, S.GUI.ITIMin_s, S.GUI.ITIMax_s, S.GUI.ITIMean_s);
 fprintf('%-28s %s, manual %.3f, range %.3f-%.3f, mean %.3f s\n', 'Punish ITI:', popupValue(S.GUIMeta.PunishITIMode.String, S.GUI.PunishITIMode), S.GUI.ManualPunishITI_s, S.GUI.PunishITIMin_s, S.GUI.PunishITIMax_s, S.GUI.PunishITIMean_s);
 fprintf('%s\n\n', repmat('=', 1, 70));

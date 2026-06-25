@@ -53,10 +53,12 @@ Short and long trial types each have fixed or uniform random ISI control:
 - `OptoEarlyTrials`: number of early trials per eligible block selected in the two early-trial modes. If the value exceeds the block length, the whole block can be tagged. This value is ignored in `Random` and `No opto` modes.
 - `EnableOptoStimulus`: when checked, selected opto trials drive `PWM1` high from `AudStimTrigger` onset through spout-in offset. This period can span multiple Bpod states.
 - `EnableOptoChoice`: when checked, selected opto trials drive `PWM1` high during the actual `ChoiceWindow`. If the animal licks early and exits the choice state, the choice opto timer is cancelled.
-- `EnableOptoReward`: when checked, selected opto trials drive `PWM1` high during `PostRewardDelay`.
+- `EnableOptoPreReward`: when checked, selected opto trials drive `PWM1` high from `PreRewardDelay` onset through `Reward` offset.
+- `EnableOptoPostReward`: when checked, selected opto trials drive `PWM1` high during `PostRewardDelay`.
+- `EnableOptoPunishITI`: when checked, selected opto trials drive `PWM1` high during `PunishITI`.
 - `ChemoMode`: session-level chemo flag saved to all completed trials once enabled.
 
-Selected opto trials can enable any combination of the three periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist.
+Selected opto trials can enable any combination of the five periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist.
 
 Opto settings are synced at the start of every trial. Changing `OptoMode`, `OptoFraction`, `OptoEarlyTrials`, or any period checkbox during a session affects the next trial that has not yet started. Completed trials are not rewritten.
 
@@ -77,7 +79,7 @@ Probe type `1` is stimulus only. Probe type `2` moves the spouts in for the choi
 
 ## Reward
 
-- `RewardDelay_s`: delay between correct lick and valve opening.
+- `PreRewardDelay_s`: delay between correct lick and valve opening.
 - `PostRewardDelay_s`: delay after reward before servo out.
 - `LeftRewardAmount_uL`
 - `RightRewardAmount_uL`

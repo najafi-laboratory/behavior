@@ -1,19 +1,19 @@
 function opto = OptoControl(action, S, varargin)
-% Self-contained opto timing helpers for stimulus, choice, and reward periods.
+% Self-contained opto timing helpers for selected trial periods.
 switch action
     case 'actions'
         opto = buildActions(S, varargin{:});
     case 'display'
-        opto.Labels = {'Off', 'Stimulus', 'Choice', 'Reward'};
-        opto.Colors = [0.70 0.70 0.70; 0.49 0.18 0.56; 0.93 0.69 0.13; 0.30 0.65 0.88];
+        opto.Labels = {'Off', 'Stimulus', 'Choice', 'PreReward', 'PostReward', 'PunishITI'};
+        opto.Colors = [0.70 0.70 0.70; 0.49 0.18 0.56; 0.93 0.69 0.13; 0.30 0.65 0.88; 0.18 0.60 0.42; 0.84 0.27 0.22];
     otherwise
         error('Unknown opto action: %s', action)
 end
 end
 
-function opto = buildActions(S, optoType, stimulusPeriod_s)
-enabled = false(3, 1);
-enabled(1:min(3, numel(optoType))) = optoType(1:min(3, numel(optoType))) ~= 0;
+function opto = buildActions(S, optoType, stimulusPeriod_s, rewardValve_s, punishITI_s)
+enabled = false(5, 1);
+enabled(1:min(5, numel(optoType))) = optoType(1:min(5, numel(optoType))) ~= 0;
 if S.GUI.TrainingMode == 1
     enabled(:) = false;
 end
@@ -26,6 +26,8 @@ opto.StimulusStart = {};
 opto.ChoiceOff = {'GlobalTimerCancel', timerIDs(2), 'PWM1', 0};
 opto.ChoiceStart = {};
 opto.RewardStart = {};
+opto.PostRewardStart = {};
+opto.PunishStart = {};
 opto.AllOff = opto.StartActions;
 
 if enabled(1)
@@ -37,8 +39,16 @@ if enabled(2)
     opto.ChoiceStart = {'GlobalTimerTrig', timerIDs(2)};
 end
 if enabled(3)
-    opto.Timers(3) = gateSpec(timerIDs(3), S.GUI.PostRewardDelay_s);
+    opto.Timers(3) = gateSpec(timerIDs(3), S.GUI.PreRewardDelay_s + rewardValve_s);
     opto.RewardStart = {'GlobalTimerTrig', timerIDs(3)};
+end
+if enabled(4)
+    opto.Timers(4) = gateSpec(timerIDs(4), S.GUI.PostRewardDelay_s);
+    opto.PostRewardStart = {'GlobalTimerTrig', timerIDs(4)};
+end
+if enabled(5)
+    opto.Timers(5) = gateSpec(timerIDs(5), punishITI_s);
+    opto.PunishStart = {'GlobalTimerTrig', timerIDs(5)};
 end
 end
 
@@ -64,7 +74,7 @@ spec = struct( ...
 end
 
 function timerIDs = optoTimerIDs
-timerIDs = [10 11 12];
+timerIDs = [10 11 12 13 14];
 end
 
 function mask = timerCancelMask(timerIDs)

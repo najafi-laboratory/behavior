@@ -27,19 +27,19 @@ ChoiceWindow
 
 `SpoutIn` sends the servo-in soft code at state onset. It transitions only on `Tup`, so `ChoiceWindow` begins after `ServoMoveDelay_s`, not at servo command onset.
 
-If choice opto is enabled, `ChoiceWindow` starts a global timer. `RewardDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual choice-window offset.
+If choice opto is enabled, `ChoiceWindow` starts a global timer. `PreRewardDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual choice-window offset.
 
 Correct lick:
 
 ```text
-RewardDelay
+PreRewardDelay
 Reward
 PostRewardDelay
 ServoOut
 ITI
 ```
 
-If reward opto is enabled, `PostRewardDelay` starts a global timer that keeps `PWM1` high for `PostRewardDelay_s`.
+If pre-reward opto is enabled, `PreRewardDelay` starts a global timer that keeps `PWM1` high through `Reward` offset. If post-reward opto is enabled, `PostRewardDelay` starts a separate global timer that keeps `PWM1` high for `PostRewardDelay_s`.
 
 Wrong lick without change-of-mind:
 
@@ -48,6 +48,8 @@ ServoOutPunish
 PunishITI
 ITI
 ```
+
+If punish-ITI opto is enabled, `PunishITI` starts a global timer that keeps `PWM1` high for the sampled punish ITI duration.
 
 Wrong lick with change-of-mind:
 

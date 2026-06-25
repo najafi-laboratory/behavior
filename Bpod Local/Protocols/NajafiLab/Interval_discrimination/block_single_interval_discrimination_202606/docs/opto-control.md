@@ -7,7 +7,7 @@ Opto control has two independent parts:
 - Trial selection: decide whether the current trial is an opto trial.
 - Period selection: decide which task epochs receive light on selected opto trials.
 
-The protocol saves opto as a `3 x nTrials` matrix named `OptoTrialTypes`. Rows are stimulus, choice, and reward. Columns are trials. A column of all zeros means opto off. A column can contain multiple ones, meaning several periods were enabled for that trial.
+The protocol saves opto as a `5 x nTrials` matrix named `OptoTrialTypes`. Rows are stimulus, choice, pre-reward, post-reward, and punish ITI. Columns are trials. A column of all zeros means opto off. A column can contain multiple ones, meaning several periods were enabled for that trial.
 
 Opto hardware output uses `PWM1`, labeled as `LED 1` in the event plot. The protocol gates `PWM1` high with Bpod global timers. It does not generate a pulse train; if pulsed light is needed, use downstream hardware to convert the gate.
 
@@ -49,9 +49,17 @@ Enables light during the stimulus-to-spout-in epoch on selected opto trials. The
 
 Enables light during the actual `ChoiceWindow` on selected opto trials. The timer starts at `ChoiceWindow` onset and is cancelled when the state exits. If the animal makes a choice early, light turns off early. If the animal does not choose, light lasts for `ChoiceWindow_s`.
 
-### `EnableOptoReward`
+### `EnableOptoPreReward`
+
+Enables light during the reward path on selected opto trials. The timer starts at `PreRewardDelay` onset and lasts through `Reward` offset, including both `PreRewardDelay_s` and the valve-open reward duration.
+
+### `EnableOptoPostReward`
 
 Enables light during `PostRewardDelay` on selected opto trials. The timer starts at `PostRewardDelay` onset and lasts for `PostRewardDelay_s`.
+
+### `EnableOptoPunishITI`
+
+Enables light during `PunishITI` on selected opto trials. The timer starts at `PunishITI` onset and lasts until `PunishITI` offset.
 
 ## How To Use
 
@@ -62,7 +70,9 @@ Enables light during `PostRewardDelay` on selected opto trials. The timer starts
 3. Check one or more period boxes:
    - `EnableOptoStimulus`
    - `EnableOptoChoice`
-   - `EnableOptoReward`
+   - `EnableOptoPreReward`
+   - `EnableOptoPostReward`
+   - `EnableOptoPunishITI`
 4. Start the session.
 5. Watch the opto plot:
    - small dots show the intended schedule made at session start.
@@ -79,24 +89,28 @@ This design lets the user change opto settings during a session without rebuildi
 
 ## Hardware Timing
 
-`OptoControl.m` creates three global timers:
+`OptoControl.m` creates five global timers:
 
 - timer 10: stimulus period
 - timer 11: choice period
-- timer 12: reward period
+- timer 12: pre-reward period
+- timer 13: post-reward period
+- timer 14: punish-ITI period
 
-All three timers drive `PWM1`. At trial start, the protocol cancels all opto timers and forces `PWM1` low. It also forces opto off at servo-out, punish ITI, and ITI.
+All timers drive `PWM1`. At trial start, the protocol cancels all opto timers and forces `PWM1` low. It also forces opto off at servo-out and ITI; `PunishITI` can then start its own selected opto timer.
 
 Naive sessions force opto off in the state machine. Opto tags may still be saved, but no `PWM1` light is delivered in naive mode.
 
 ## Plots
 
-The opto period plot has four rows:
+The opto period plot has six rows:
 
 - `Off`
 - `Stimulus`
 - `Choice`
-- `Reward`
+- `PreReward`
+- `PostReward`
+- `PunishITI`
 
 Small dots are the initial intended schedule. Solid squares are assigned trials. A selected trial can show more than one square if multiple periods are enabled.
 
@@ -119,7 +133,9 @@ BpodSystem.Data.OptoTrialTypes(:, trial)
 BpodSystem.Data.TrialSettings(trial).GUI.OptoMode
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoStimulus
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoChoice
-BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoReward
+BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoPreReward
+BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoPostReward
+BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoPunishITI
 ```
 
 ## Common Checks

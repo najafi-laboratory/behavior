@@ -21,11 +21,13 @@ switch action
         BpodSystem.GUIHandles.ShortLickAxes = nexttile(layout, 415, [7 3]);
         BpodSystem.GUIHandles.LongLickAxes = nexttile(layout, 418, [7 3]);
         BpodSystem.GUIHandles.ReactionTimeAxes = nexttile(layout, 421, [7 2]);
+        BpodSystem.GUIHandles.TypeChoiceLegendAxes = nexttile(layout, 424, [7 2]);
         BpodSystem.GUIHandles.StateAxes = nexttile(layout, 246, [11 7]);
         BpodSystem.GUIHandles.EventAxes = nexttile(layout, 444, [6 7]);
         closeOutcomeLegendFigure;
         initializeAxes;
         drawOutcomeLegend(BpodSystem.GUIHandles.OutcomeLegendAxes);
+        drawTypeChoiceLegend(ensureTypeChoiceLegendAxes);
         updatePlots(trialTypes, blockTypes, probeTypes, optoTypes, isiValues, completedCount, S);
     case 'update'
         if ~isfield(BpodSystem.ProtocolFigures, 'Session') || ~isgraphics(BpodSystem.ProtocolFigures.Session)
@@ -38,7 +40,7 @@ end
 
 function initializeAxes
 global BpodSystem
-handles = guiAxes({'TrialTypeAxes', 'BlockTypeAxes', 'ProbeTypeAxes', 'ISIAxes', 'OptoTypeAxes', 'OutcomeAxes', 'BlockOutcomeAxes', 'OutcomeLegendAxes', 'ShortLickAxes', 'LongLickAxes', 'ReactionTimeAxes', 'StateAxes', 'EventAxes'});
+handles = guiAxes({'TrialTypeAxes', 'BlockTypeAxes', 'ProbeTypeAxes', 'ISIAxes', 'OptoTypeAxes', 'OutcomeAxes', 'BlockOutcomeAxes', 'OutcomeLegendAxes', 'ShortLickAxes', 'LongLickAxes', 'ReactionTimeAxes', 'TypeChoiceLegendAxes', 'StateAxes', 'EventAxes'});
 handles = handles(isgraphics(handles));
 set(handles, 'Box', 'off', 'TickDir', 'out', 'FontSize', 10, 'LineWidth', 0.9, 'Color', 'none', 'XMinorTick', 'on', 'YMinorTick', 'on');
 end
@@ -77,6 +79,7 @@ updateOutcomeSummary(completedCount);
 updateBlockOutcomeSummary(completedCount);
 updateLickTraces(completedCount);
 updateReactionTime(completedCount);
+drawTypeChoiceLegend(ensureTypeChoiceLegendAxes);
 updateDetailPlots(completedCount);
 drawnow limitrate
 end
@@ -347,6 +350,56 @@ for i = 1:4
         plot(ax, 0.15, y, 'o', 'Color', colors(i, :), 'MarkerFaceColor', colors(i, :), 'MarkerSize', 6);
     end
     text(ax, 0.28, y, labels{i}, 'FontSize', 9, 'VerticalAlignment', 'middle');
+end
+end
+
+function ax = ensureTypeChoiceLegendAxes
+global BpodSystem
+ax = [];
+if isfield(BpodSystem, 'GUIHandles') && isfield(BpodSystem.GUIHandles, 'TypeChoiceLegendAxes') && isgraphics(BpodSystem.GUIHandles.TypeChoiceLegendAxes)
+    ax = BpodSystem.GUIHandles.TypeChoiceLegendAxes;
+    return
+end
+if ~isfield(BpodSystem, 'ProtocolFigures') || ~isfield(BpodSystem.ProtocolFigures, 'Session') || ~isgraphics(BpodSystem.ProtocolFigures.Session)
+    return
+end
+ax = axes('Parent', BpodSystem.ProtocolFigures.Session, 'Position', [0.655 0.065 0.13 0.18]);
+BpodSystem.GUIHandles.TypeChoiceLegendAxes = ax;
+end
+
+function drawTypeChoiceLegend(ax)
+if isempty(ax) || ~isgraphics(ax)
+    return
+end
+cla(ax);
+hold(ax, 'on');
+set(ax, ...
+    'XLim', [0 1], ...
+    'YLim', [0 1], ...
+    'Visible', 'on', ...
+    'Color', 'none', ...
+    'Box', 'off', ...
+    'XTick', [], ...
+    'YTick', [], ...
+    'XColor', 'none', ...
+    'YColor', 'none', ...
+    'XMinorTick', 'off', ...
+    'YMinorTick', 'off', ...
+    'HitTest', 'off');
+try
+    uistack(ax, 'top');
+catch
+end
+drawLegendSection(ax, 0.86, 'Trial', {'Short', 'Long'}, trialTypeColors());
+drawLegendSection(ax, 0.42, 'Lick', {'Left', 'Right'}, choiceColors());
+end
+
+function drawLegendSection(ax, yTop, heading, labels, colors)
+text(ax, 0.02, yTop, heading, 'FontSize', 8, 'FontWeight', 'bold', 'VerticalAlignment', 'middle', 'Clipping', 'off');
+for i = 1:numel(labels)
+    y = yTop - i * 0.14;
+    patch(ax, [0.04 0.20 0.20 0.04], y + [-0.035 -0.035 0.035 0.035], colors(i, :), 'EdgeColor', 'none', 'Clipping', 'off');
+    text(ax, 0.26, y, labels{i}, 'FontSize', 8, 'VerticalAlignment', 'middle', 'Clipping', 'off');
 end
 end
 
