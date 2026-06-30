@@ -13,9 +13,9 @@ switch action
 
         leftX = 0.060;
         bottom = 0.065;
-        columnGap = 0.100;
-        plotWidth = 0.855;
-        leftWidth = plotWidth * 0.6;
+        columnGap = 0.080;
+        plotWidth = 0.910;
+        leftWidth = plotWidth * 0.5;
         rightX = leftX + leftWidth + columnGap;
         rightWidth = plotWidth - leftWidth - columnGap;
         rightHalfGap = 0.030;
@@ -159,8 +159,8 @@ end
         end
         xlim(ax, [firstTrial - 0.5 lastTrial + 0.5]);
         xticks(ax, trialTicks(firstTrial, lastTrial));
-        ylim(ax, [0.5 4.5]);
-        yticks(ax, 1:4);
+        ylim(ax, [0.5 numel(display.Labels) + 0.5]);
+        yticks(ax, 1:numel(display.Labels));
         yticklabels(ax, display.Labels);
         set(ax, 'YMinorTick', 'off');
         xlabel(ax, 'Trial');
@@ -737,8 +737,8 @@ end
         hold(ax, 'on');
 
         duration = trialDuration(trial);
-        rows = {'BNC 1','LED 1','Port 1 lick'};
-        colors = [0.08 0.08 0.08; 0.42 0.42 0.42; 0.68 0.68 0.68];
+        rows = {'BNC 1','BNC 2','LED 1','Port 1 lick'};
+        colors = [0.08 0.08 0.08; 0.25 0.25 0.25; 0.42 0.42 0.42; 0.68 0.68 0.68];
 
         if isfield(rawTrial, 'Events')
             events = rawTrial.Events;
@@ -747,8 +747,9 @@ end
         end
 
         drawIntervals(ax, eventIntervals(events, 'BNC1High', 'BNC1Low', duration, 0), 1, colors(1, :));
-        drawIntervals(ax, led1Intervals(rawTrial, trial, duration), 2, colors(2, :));
-        drawIntervals(ax, eventIntervals(events, 'Port1In', 'Port1Out', duration, 0.02), 3, colors(3, :));
+        drawIntervals(ax, eventIntervals(events, 'BNC2High', 'BNC2Low', duration, 0), 2, colors(2, :));
+        drawIntervals(ax, led1Intervals(rawTrial, trial, duration), 3, colors(3, :));
+        drawIntervals(ax, eventIntervals(events, 'Port1In', 'Port1Out', duration, 0.02), 4, colors(4, :));
 
         xlim(ax, [0 duration]);
         ylim(ax, [0.5 numel(rows) + 0.5]);
@@ -765,10 +766,10 @@ end
         % Keep all event rows visible before any events arrive.
         cla(ax);
         xlim(ax, [0 duration]);
-        ylim(ax, [0.5 3.5]);
+        ylim(ax, [0.5 4.5]);
         setTimeAxis(ax, [0 duration]);
-        yticks(ax, 1:3);
-        yticklabels(ax, {'BNC 1','LED 1','Port 1 lick'});
+        yticks(ax, 1:4);
+        yticklabels(ax, {'BNC 1','BNC 2','LED 1','Port 1 lick'});
         set(ax, 'YMinorTick', 'off', 'XGrid', 'on', 'XMinorGrid', 'off', 'GridColor', [0.82 0.82 0.82], 'GridAlpha', 0.5);
         xlabel(ax, 'Time (s)');
         title(ax, sprintf('%s  trial %d', plotTitle, trial), 'FontSize', 10, 'FontWeight', 'normal');
@@ -949,6 +950,11 @@ end
             end
         end
         if numel(optoType) >= 3 && optoType(3)
+            onset = stateStart(rawTrial.States, 'PreRewardDelay');
+            stopTime = stateEnd(rawTrial.States, 'PreRewardDelay');
+            intervals = appendLedInterval(intervals, onset, stopTime, duration);
+        end
+        if numel(optoType) >= 4 && optoType(4)
             onset = stateStart(rawTrial.States, 'PostRewardDelay');
             stopTime = stateEnd(rawTrial.States, 'PostRewardDelay');
             intervals = appendLedInterval(intervals, onset, stopTime, duration);
@@ -967,11 +973,14 @@ end
     end
 
     function optoType = trialOptoType(trial)
-        optoType = zeros(3, 1);
+        optoType = zeros(4, 1);
         if isfield(BpodSystem.Data, 'OptoTrialTypes') && size(BpodSystem.Data.OptoTrialTypes, 2) >= trial
             optoType = BpodSystem.Data.OptoTrialTypes(:, trial);
         elseif isfield(BpodSystem.Data, 'PlannedOptoTrialTypes') && size(BpodSystem.Data.PlannedOptoTrialTypes, 2) >= trial
             optoType = BpodSystem.Data.PlannedOptoTrialTypes(:, trial);
+        end
+        if numel(optoType) == 3
+            optoType = [optoType(1:2); false; optoType(3)];
         end
     end
 

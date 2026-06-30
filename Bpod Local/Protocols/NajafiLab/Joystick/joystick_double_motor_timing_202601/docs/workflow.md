@@ -61,6 +61,7 @@ This checks:
 - Reward amounts are positive.
 - ITI settings are valid.
 - Opto period settings are valid.
+- Assist mode is disabled when opto mode is enabled.
 
 If a setting is unsafe, the protocol stops with an error.
 
@@ -145,13 +146,13 @@ Each trial does these steps:
 2. Validate settings.
 3. Regenerate trial types if block settings changed.
 4. Regenerate ITI values if ITI settings changed.
-5. Regenerate opto tags if opto settings changed.
-6. Regenerate probe tags if probe settings changed.
+5. Regenerate probe tags if probe settings changed.
+6. Regenerate opto tags if opto settings or probe exclusions changed.
 7. Reload cue video if cue duration or cue source changed.
 8. Choose short or long delay.
 9. Choose ITI and punish ITI.
 10. Apply probe settings.
-11. Decide if this is an assist trial.
+11. Decide if this is an assist trial. Opto sessions require assist mode off.
 12. Compute the maximum possible reward.
 13. Save per-trial reward context.
 14. Print trial settings.

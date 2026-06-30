@@ -4,8 +4,14 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with visual cu
 
 ## Update note
 
-### 2025.06.24
+### 2026.06.24
 - First release.
+
+### 2026.06.30
+- Added opto during pre reward delay.
+- Changed reward delay namings.
+- Adjusted canvas layouts.
+- Added BNC2 to event plot.
 
 ## Main Workflow
 
@@ -25,9 +31,11 @@ Assist trials hold the servo until perfect timing, release it, and then use the 
 
 Probe type 1 omits water reward even for rewarded timing. Probe type 2 flips the timing mode for that trial: visual guided becomes self timed, and self timed becomes visual guided.
 
-Opto and probe tags are forced to zero for the first block and for the first/last trials of each block. The edge lengths are controlled separately by `OptoZeroEdgeTrials` and `ProbeZeroEdgeTrials`.
+Opto and probe tags are forced to zero for the first block and for the first/last trials of each block. The edge lengths are controlled separately by `OptoZeroEdgeTrials` and `ProbeZeroEdgeTrials`. Probe trials are excluded from opto tagging.
 
-Opto trials are saved as a `3 x nTrials` matrix, with rows for cue 1, delay, and post reward. A selected trial can enable any combination of these periods. LED1 turns on during `VisualStimulus1` for cue opto, from `LeverRetract1` to `RewardLeverRetract` for delay opto, and during `PostRewardDelay` until `LeverRetractFinal` for post-reward opto.
+Opto sessions require `AssistMode` off. The protocol prints this check before the session and stops if opto and assist are both enabled.
+
+Opto trials are saved as a `4 x nTrials` matrix, with rows for cue 1, delay, pre reward delay, and post reward. A selected trial can enable any combination of these periods. LED1 turns on during `VisualStimulus1` for cue opto, from `LeverRetract1` to `RewardLeverRetract` for delay opto, during `PreRewardDelay` until `Reward` for pre-reward-delay opto, and during `PostRewardDelay` until `LeverRetractFinal` for post-reward opto.
 
 `ChemoMode` stores `ChemoTrialTypes` as 1 when enabled and 0 otherwise.
 
@@ -83,7 +91,7 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `RewardWindowLeft_s`: early side of rewarded timing window.
 - `RewardMaximumWindow_s`: plateau after perfect timing with maximum reward.
 - `RewardWindowRight_s`: late side of rewarded timing window.
-- `RewardDelay_s`: delay from rewarded classification to water delivery.
+- `PreRewardDelay_s`: delay from rewarded classification to water delivery.
 - `PostRewardDelay_s`: delay after reward before final rewarded state.
 - `RewardMode`: same reward for all trials or separate short/long reward sizes.
 - `RewardAmount_uL`: reward size when using same reward mode.
@@ -106,6 +114,7 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `OptoZeroEdgeTrials`: block-edge trials excluded from opto tagging.
 - `EnableOptoVisualCue1`: adds cue 1 light to selected opto trials.
 - `EnableOptoDelay`: adds delay-period light to selected opto trials.
+- `EnableOptoPreRewardDelay`: adds pre-reward-delay light to selected opto trials.
 - `EnableOptoPostReward`: adds post-reward light to selected opto trials.
 - `OptoFrequency_Hz`: reserved pulse frequency setting; current output is sustained high.
 - `OptoPulseOn_ms`: reserved pulse on-time setting; current output is sustained high.

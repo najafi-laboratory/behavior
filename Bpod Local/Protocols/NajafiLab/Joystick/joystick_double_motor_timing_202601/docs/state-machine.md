@@ -66,9 +66,9 @@ Delay-period opto is turned off in `RewardLeverRetract`.
 
 ## Reward Path
 
-`PreRewardDelay` waits for `RewardDelay_s`, then goes to `Reward`.
+`PreRewardDelay` waits for `PreRewardDelay_s`, then goes to `Reward`. Pre-reward-delay opto turns LED1 on here.
 
-`Reward` sends soft code 20. The soft-code handler delivers water through valve 2. When reward delivery is done, the handler sends soft code 3 and the trial goes to `PostRewardDelay`.
+`Reward` sends soft code 20 and turns pre-reward-delay opto off. The soft-code handler delivers water through valve 2. When reward delivery is done, the handler sends soft code 3 and the trial goes to `PostRewardDelay`.
 
 `PostRewardDelay` waits for `PostRewardDelay_s`. Post-reward opto turns LED1 on here.
 

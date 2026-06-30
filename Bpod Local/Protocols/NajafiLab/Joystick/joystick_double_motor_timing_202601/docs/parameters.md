@@ -142,6 +142,8 @@ Maximum time to wait for the lever to return near zero.
 
 Enables assisted trials.
 
+This must be off during opto sessions.
+
 ### `AssistFraction`
 
 Probability that an eligible trial becomes assisted.
@@ -166,11 +168,11 @@ Time after the maximum window where reward ramps down.
 
 Presses later than this are late.
 
-### `RewardDelay_s`
+### `PreRewardDelay_s`
 
 Delay between a rewarded press 2 outcome and reward delivery.
 
-Post-reward opto does not change this value.
+Pre-reward-delay and post-reward opto do not change this value.
 
 ### `PostRewardDelay_s`
 
@@ -253,6 +255,8 @@ Mean parameter for punish ITI sampling.
 
 Enables opto trial tagging.
 
+Opto sessions require `AssistMode` off. Probe trials are excluded from opto tagging.
+
 ### `OptoFraction`
 
 Fraction of eligible trials tagged as opto trials.
@@ -275,11 +279,17 @@ Adds delay-period light to selected opto trials.
 
 This sets row 2 of the saved opto matrix. LED1 runs from `LeverRetract1` until `RewardLeverRetract`, or until the press 2 window ends.
 
+### `EnableOptoPreRewardDelay`
+
+Adds pre-reward-delay light to selected opto trials.
+
+This sets row 3 of the saved opto matrix. LED1 runs during `PreRewardDelay` and turns off in `Reward`.
+
 ### `EnableOptoPostReward`
 
 Adds post-reward light to selected opto trials.
 
-This sets row 3 of the saved opto matrix. LED1 runs during `PostRewardDelay` and turns off in `LeverRetractFinal`.
+This sets row 4 of the saved opto matrix. LED1 runs during `PostRewardDelay` and turns off in `LeverRetractFinal`.
 
 ### `OptoFrequency_Hz`
 

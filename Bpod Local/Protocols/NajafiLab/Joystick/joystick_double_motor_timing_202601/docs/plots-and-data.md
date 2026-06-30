@@ -49,9 +49,10 @@ Values are:
 - `Off`: no opto periods are enabled for that trial.
 - `Cue 1`: LED1 is on during `VisualStimulus1`.
 - `Delay`: LED1 is on from `LeverRetract1` until `RewardLeverRetract`.
+- `Pre Reward Delay`: LED1 is on during `PreRewardDelay`.
 - `Post Reward`: LED1 is on during `PostRewardDelay`.
 
-One trial can have more than one marker because opto is saved as three period rows. For example, a cue-plus-delay trial shows markers on both `Cue 1` and `Delay`.
+One trial can have more than one marker because opto is saved as four period rows. For example, a cue-plus-delay trial shows markers on both `Cue 1` and `Delay`.
 
 Small dots show the planned future schedule. Filled squares show trials assigned online after the GUI was synced for that trial. The open circle marks the next trial.
 
@@ -171,6 +172,7 @@ This plot shows digital events for the last completed trial.
 Rows are:
 
 - BNC1.
+- BNC2.
 - LED1.
 - Port 1 lick.
 

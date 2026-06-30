@@ -124,7 +124,7 @@ while KbCheck
 end
 
 clear ProtocolPlot
-ProtocolPlot('init', ones(1, max(1, round(S.GUI.MaxTrials))), zeros(1, max(1, round(S.GUI.MaxTrials))), zeros(1, max(1, round(S.GUI.MaxTrials))), 0, S);
+ProtocolPlot('init', ones(1, max(1, round(S.GUI.MaxTrials))), zeros(4, max(1, round(S.GUI.MaxTrials))), zeros(1, max(1, round(S.GUI.MaxTrials))), 0, S);
 
 while currentTrial <= round(S.GUI.MaxTrials)
     % Sync GUI each trial so parameter edits affect the next trial.
@@ -166,19 +166,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
         BpodSystem.Data.PlannedPunishITI = punishITIValues;
     end
 
-    % Regenerate opto and probe schedules when their GUI controls change.
-    newOptoConfiguration = [S.GUI.MaxTrials S.GUI.OptoMode S.GUI.OptoFraction S.GUI.OptoZeroEdgeTrials S.GUI.EnableOptoVisualCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPostReward S.GUI.OptoFrequency_Hz S.GUI.OptoPulseOn_ms trialConfiguration];
-    if ~isequal(newOptoConfiguration, optoConfiguration)
-        generatedOptoTypes = OptoControl('trials', S, trialTypes);
-        if currentTrial > 1 && ~isempty(optoTypes)
-            completedTrials = min([currentTrial - 1 size(generatedOptoTypes, 2) size(optoTypes, 2)]);
-            generatedOptoTypes(:, 1:completedTrials) = optoTypes(:, 1:completedTrials);
-        end
-        optoTypes = generatedOptoTypes;
-        optoConfiguration = newOptoConfiguration;
-        BpodSystem.Data.PlannedOptoTrialTypes = optoTypes;
-    end
-
+    % Regenerate probe first so opto can exclude every probe trial.
     newProbeConfiguration = [S.GUI.MaxTrials S.GUI.ProbeMode S.GUI.ProbeFraction S.GUI.ProbeZeroEdgeTrials trialConfiguration];
     if ~isequal(newProbeConfiguration, probeConfiguration)
         generatedProbeTypes = ProbeControl('trials', S, trialTypes);
@@ -189,6 +177,21 @@ while currentTrial <= round(S.GUI.MaxTrials)
         probeTypes = generatedProbeTypes;
         probeConfiguration = newProbeConfiguration;
         BpodSystem.Data.PlannedProbeTrialTypes = probeTypes;
+    end
+
+    % Regenerate opto schedules when opto controls or probe exclusions change.
+    newOptoConfiguration = [S.GUI.MaxTrials S.GUI.OptoMode S.GUI.OptoFraction S.GUI.OptoZeroEdgeTrials S.GUI.EnableOptoVisualCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPreRewardDelay S.GUI.EnableOptoPostReward S.GUI.OptoFrequency_Hz S.GUI.OptoPulseOn_ms trialConfiguration probeConfiguration];
+    if ~isequal(newOptoConfiguration, optoConfiguration)
+        generatedOptoTypes = OptoControl('trials', S, trialTypes, probeTypes);
+        if currentTrial > 1 && ~isempty(optoTypes)
+            completedTrials = min([currentTrial - 1 size(generatedOptoTypes, 2) size(optoTypes, 2)]);
+            completedRows = min(size(generatedOptoTypes, 1), size(optoTypes, 1));
+            generatedOptoTypes(1:completedRows, 1:completedTrials) = optoTypes(1:completedRows, 1:completedTrials);
+        end
+        optoTypes = generatedOptoTypes;
+        optoConfiguration = newOptoConfiguration;
+        BpodSystem.Data.PlannedOptoTrialTypes = optoTypes;
+        assertNoProbeOptoOverlap(optoTypes, probeTypes, currentTrial);
     end
 
     % Rebuild visual cue frames if duration changed in the GUI.
@@ -240,9 +243,10 @@ while currentTrial <= round(S.GUI.MaxTrials)
     ProtocolTrialContext.Press2Clock = [];
     ProtocolTrialContext.Press2Time_s = NaN;
     ProtocolTrialContext.RewardAmount_uL = 0;
-    optoType = OptoControl('trial', S, trialTypes, currentTrial);
+    optoType = OptoControl('trial', S, trialTypes, currentTrial, probeTypes);
     optoTypes(:, currentTrial) = optoType;
     BpodSystem.Data.PlannedOptoTrialTypes(:, currentTrial) = optoType;
+    assertNoProbeOptoOverlap(optoTypes, probeTypes, currentTrial);
     BpodSystem.Data.AssignedOptoTrialCount = currentTrial;
     printTrialInfo(currentTrial, trialTypes(currentTrial), optoType, probeTypes(currentTrial), assistTrial, delay, iti, punishITI, trialS);
     ProtocolPlot('update', trialTypes, optoTypes, probeTypes, currentTrial - 1, S);
@@ -563,6 +567,24 @@ if probeType == 2
 end
 end
 
+function assertNoProbeOptoOverlap(optoTypes, probeTypes, firstTrial)
+% Probe trials are reserved and cannot also be opto trials.
+if isempty(optoTypes) || isempty(probeTypes)
+    return
+end
+firstTrial = max(1, firstTrial);
+lastTrial = min(size(optoTypes, 2), numel(probeTypes));
+if firstTrial > lastTrial
+    return
+end
+optoTrials = any(optoTypes(:, firstTrial:lastTrial) ~= 0, 1);
+probeTrials = probeTypes(firstTrial:lastTrial) ~= 0;
+overlap = find(optoTrials & probeTrials, 1);
+if ~isempty(overlap)
+    error('Probe trials must not be opto trials. Overlap detected at trial %d.', firstTrial + overlap - 1)
+end
+end
+
 function closeStimulusWindow
 % Close the PsychToolbox video object if it exists.
 global BpodSystem
@@ -598,8 +620,8 @@ end
 if any(press2Windows < rewardEnds)
     error('Each press 2 window must include its complete reward window.')
 end
-if S.GUI.RewardDelay_s < 0 || S.GUI.PostRewardDelay_s < 0 || S.GUI.ServoMoveDelay_s < 0
-    error('RewardDelay_s, PostRewardDelay_s, and ServoMoveDelay_s cannot be negative.')
+if S.GUI.PreRewardDelay_s < 0 || S.GUI.PostRewardDelay_s < 0 || S.GUI.ServoMoveDelay_s < 0
+    error('PreRewardDelay_s, PostRewardDelay_s, and ServoMoveDelay_s cannot be negative.')
 end
 if ~ismember(S.GUI.TimingMode, [1 2])
     error('TimingMode must be Visual Guided or Self Timed.')
@@ -625,8 +647,11 @@ end
 if S.GUI.OptoFraction < 0 || S.GUI.OptoFraction > 1
     error('OptoFraction must be between 0 and 1.')
 end
-if S.GUI.OptoMode && ~any([S.GUI.EnableOptoVisualCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPostReward])
+if S.GUI.OptoMode && ~any([S.GUI.EnableOptoVisualCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPreRewardDelay S.GUI.EnableOptoPostReward])
     error('At least one opto period must be enabled when OptoMode is on.')
+end
+if S.GUI.OptoMode && S.GUI.AssistMode
+    error('AssistMode must be disabled during opto sessions.')
 end
 if S.GUI.OptoFrequency_Hz <= 0 || S.GUI.OptoPulseOn_ms <= 0 || S.GUI.OptoPulseOn_ms / 1000 >= 1 / S.GUI.OptoFrequency_Hz
     error('OptoFrequency_Hz must be positive, and OptoPulseOn_ms must be positive and shorter than one Doric square-wave cycle.')
@@ -728,7 +753,7 @@ fprintf('%-28s %.3f s\n', 'Visual cue duration:', S.GUI.VisualCueDuration_s);
 fprintf('%-28s %.3f s\n', 'Press 1 window:', S.GUI.Press1Window_s);
 fprintf('%-28s %.3f / %.3f s\n', 'Short / long press 2:', S.GUI.ShortPress2Window_s, S.GUI.LongPress2Window_s);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Reward L / Max / R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s);
-fprintf('%-28s %.3f / %.3f s\n', 'Reward / post delay:', S.GUI.RewardDelay_s, S.GUI.PostRewardDelay_s);
+fprintf('%-28s %.3f / %.3f s\n', 'Pre reward / post delay:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s);
 fprintf('%-28s %s\n', 'Reward mode:', rewardModeNames{S.GUI.RewardMode});
 fprintf('%-28s %.3f / %.3f / %.3f uL\n', 'Reward amounts:', S.GUI.RewardAmount_uL, S.GUI.ShortRewardAmount_uL, S.GUI.LongRewardAmount_uL);
 fprintf('%-28s %.3f / %.3f\n', 'Press / retract threshold:', S.GUI.PressThreshold, S.GUI.RetractThreshold);
@@ -737,9 +762,11 @@ fprintf('%-28s %.3f / %.3f / %.3f s\n', 'ITI min / mean / max:', S.GUI.ITIMin_s,
 fprintf('%-28s %s, %.3f s\n', 'Punish ITI:', itiModeNames{S.GUI.PunishITIMode}, S.GUI.ManualPunishITI_s);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Punish min / mean / max:', S.GUI.PunishITIMin_s, S.GUI.PunishITIMean_s, S.GUI.PunishITIMax_s);
 fprintf('%-28s %s\n', 'Opto enabled:', onOffText(S.GUI.OptoMode));
+fprintf('%-28s %s\n', 'Assist disabled for opto:', onOffText(~S.GUI.OptoMode || ~S.GUI.AssistMode));
 fprintf('%-28s %.3f, edge %d\n', 'Opto fraction / zero edge:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials));
 fprintf('%-28s %s\n', 'EnableOptoVisualCue1:', onOffText(S.GUI.EnableOptoVisualCue1));
 fprintf('%-28s %s\n', 'EnableOptoDelay:', onOffText(S.GUI.EnableOptoDelay));
+fprintf('%-28s %s\n', 'EnableOptoPreRewardDelay:', onOffText(S.GUI.EnableOptoPreRewardDelay));
 fprintf('%-28s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
 fprintf('%-28s %.3f Hz / %.3f ms\n', 'Doric freq / on time:', S.GUI.OptoFrequency_Hz, S.GUI.OptoPulseOn_ms);
 fprintf('%-28s %s\n', 'LED1 control mode:', 'Gated opto epoch');
@@ -753,8 +780,10 @@ end
 function confirmDoricOptoSettings(S)
 % Ask the user to verify that Doric square-wave settings match the GUI.
 fprintf('\nDoric opto square-wave settings\n');
+fprintf('%-24s %s\n', 'Assist disabled for opto:', onOffText(~S.GUI.OptoMode || ~S.GUI.AssistMode));
 fprintf('%-24s %s\n', 'EnableOptoVisualCue1:', onOffText(S.GUI.EnableOptoVisualCue1));
 fprintf('%-24s %s\n', 'EnableOptoDelay:', onOffText(S.GUI.EnableOptoDelay));
+fprintf('%-24s %s\n', 'EnableOptoPreRewardDelay:', onOffText(S.GUI.EnableOptoPreRewardDelay));
 fprintf('%-24s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
 fprintf('%-24s %.3f Hz\n', 'OptoFrequency_Hz:', S.GUI.OptoFrequency_Hz);
 fprintf('%-24s %.3f ms\n', 'OptoPulseOn_ms:', S.GUI.OptoPulseOn_ms);
@@ -772,9 +801,16 @@ end
 end
 
 function text = optoSummary(optoType)
-% Convert one 3-row opto column to compact terminal text.
-labels = {'Cue1', 'Delay', 'PostReward'};
+% Convert one opto column to compact terminal text.
+labels = {'Cue1', 'Delay', 'PreRewardDelay', 'PostReward'};
 optoType = optoType(:) ~= 0;
+if numel(optoType) == 3
+    optoType = [optoType(1:2); false; optoType(3)];
+elseif numel(optoType) < numel(labels)
+    optoType = [optoType; false(numel(labels) - numel(optoType), 1)];
+elseif numel(optoType) > numel(labels)
+    optoType = optoType(1:numel(labels));
+end
 enabled = labels(optoType);
 if isempty(enabled)
     text = 'Off';
