@@ -21,6 +21,7 @@
 
 - `StimulusMode`: visual only, audio only, or audio + visual.
 - `UseSavedImage`: when checked, use `image.png` in the protocol folder as the visual stimulus image.
+- `PreStimDelay_s`: delay before visual/audio stimulus onset.
 - `GratingDuration_s`: duration of each visual stimulus pulse.
 - `AudioStimFreq_Hz`: tone frequency.
 - `AudioStimVolume`: tone amplitude, 0 to 1.
@@ -41,7 +42,7 @@ Short and long trial types each have fixed or uniform random ISI control:
 - `LongISIMin_s`
 - `LongISIMax_s`
 
-## Manipulation
+## Opto
 
 - `OptoMode`: controls which trials are selected as opto trials. It does not by itself choose the opto period; period checkboxes below decide which epochs receive light on selected opto trials.
   - `No opto`: every trial is opto off. Period checkboxes are ignored.
@@ -51,16 +52,23 @@ Short and long trial types each have fixed or uniform random ISI control:
 - `OptoFraction`: probability for an eligible trial to become opto in `Random` mode. Example: `0.35` means each eligible trial has a 35% chance when it starts. This value is ignored in early-trial modes.
 - `OptoZeroEdgeTrials`: number of trials at the start and end of each non-warmup block forced opto off in `Random` mode. This protects block transitions from opto contamination. Warmup blocks are fully forced off regardless of this value.
 - `OptoEarlyTrials`: number of early trials per eligible block selected in the two early-trial modes. If the value exceeds the block length, the whole block can be tagged. This value is ignored in `Random` and `No opto` modes.
-- `EnableOptoStimulus`: when checked, selected opto trials drive `PWM1` high from `AudStimTrigger` onset through spout-in offset. This period can span multiple Bpod states.
+- `OptoTriggerType`: Doric trigger type to check before starting the session. Options are Manual, Triggered, and Gated.
+- `OptoTriggerMode`: Doric trigger mode to check before starting the session. Options are Pause, Continue, Restart, and Uninterrupted.
+- `EnableOptoStimulus`: when checked, selected opto trials drive `PWM1` high from `PreStimDelay` onset through spout-in offset. This period can span multiple Bpod states.
+- `EnableOptoSpoutInDelay`: when checked, selected opto trials drive `PWM1` high during `SpoutInDelay`.
 - `EnableOptoChoice`: when checked, selected opto trials drive `PWM1` high during the actual `ChoiceWindow`. If the animal licks early and exits the choice state, the choice opto timer is cancelled.
-- `EnableOptoPreReward`: when checked, selected opto trials drive `PWM1` high from `PreRewardDelay` onset through `Reward` offset.
+- `EnableOptoPreOutcome`: when checked, selected opto trials drive `PWM1` high during `PreOutcomeDelay` on reward trials and `PreOutcomeDelayPunish` on punish trials.
+- `EnableOptoReward`: when checked, selected opto trials drive `PWM1` high during the `Reward` state.
 - `EnableOptoPostReward`: when checked, selected opto trials drive `PWM1` high during `PostRewardDelay`.
 - `EnableOptoPunishITI`: when checked, selected opto trials drive `PWM1` high during `PunishITI`.
-- `ChemoMode`: session-level chemo flag saved to all completed trials once enabled.
 
-Selected opto trials can enable any combination of the five periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist.
+Selected opto trials can enable any combination of the seven periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist.
 
 Opto settings are synced at the start of every trial. Changing `OptoMode`, `OptoFraction`, `OptoEarlyTrials`, or any period checkbox during a session affects the next trial that has not yet started. Completed trials are not rewritten.
+
+## Chemo
+
+- `ChemoMode`: session-level chemo flag saved to all completed trials once enabled.
 
 ## Probe
 
@@ -79,7 +87,7 @@ Probe type `1` is stimulus only. Probe type `2` moves the spouts in for the choi
 
 ## Reward
 
-- `PreRewardDelay_s`: delay between correct lick and valve opening.
+- `PreOutcomeDelay_s`: delay between choice and outcome. On reward trials it precedes valve opening; on punish trials it precedes servo out and punish ITI.
 - `PostRewardDelay_s`: delay after reward before servo out.
 - `LeftRewardAmount_uL`
 - `RightRewardAmount_uL`

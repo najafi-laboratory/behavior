@@ -8,6 +8,7 @@ All normal trials begin:
 
 ```text
 Start
+PreStimDelay
 VisStimTrigger
 AudStimTrigger
 StimulusDone
@@ -15,7 +16,7 @@ StimulusDone
 
 `StimulusDone` returns the display to grey and stops HiFi.
 
-If stimulus opto is enabled for the trial, `AudStimTrigger` starts an opto global timer. The timer duration is computed so `PWM1` stays high until the end of spout-in movement on normal trials.
+`PreStimDelay` waits for `PreStimDelay_s` before visual/audio stimulus onset. If stimulus opto is enabled for the trial, this state starts the stimulus opto global timer. The timer duration is computed so `PWM1` stays high until the end of spout-in movement on normal trials, unless the separate spout-in-delay opto period is selected.
 
 ## Normal Trained Trial
 
@@ -27,19 +28,19 @@ ChoiceWindow
 
 `SpoutIn` sends the servo-in soft code at state onset. It transitions only on `Tup`, so `ChoiceWindow` begins after `ServoMoveDelay_s`, not at servo command onset.
 
-If choice opto is enabled, `ChoiceWindow` starts a global timer. `PreRewardDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual choice-window offset.
+If spout-in-delay opto is enabled, `SpoutInDelay` starts a global timer for `SpoutInDelay_s`. If choice opto is enabled, `ChoiceWindow` starts a global timer. `PreOutcomeDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual choice-window offset.
 
 Correct lick:
 
 ```text
-PreRewardDelay
+PreOutcomeDelay
 Reward
 PostRewardDelay
 ServoOut
 ITI
 ```
 
-If pre-reward opto is enabled, `PreRewardDelay` starts a global timer that keeps `PWM1` high through `Reward` offset. If post-reward opto is enabled, `PostRewardDelay` starts a separate global timer that keeps `PWM1` high for `PostRewardDelay_s`.
+If pre-outcome opto is enabled, `PreOutcomeDelay` starts a global timer that keeps `PWM1` high for `PreOutcomeDelay_s`. If reward opto is enabled, `Reward` starts a separate global timer for the valve-open reward duration. If post-reward opto is enabled, `PostRewardDelay` starts another timer for `PostRewardDelay_s`.
 
 Wrong lick without change-of-mind:
 
@@ -48,6 +49,8 @@ ServoOutPunish
 PunishITI
 ITI
 ```
+
+Punish trials enter `PreOutcomeDelayPunish` before `ServoOutPunish`. If pre-outcome opto is enabled, this delay starts the same pre-outcome opto timer used by reward trials.
 
 If punish-ITI opto is enabled, `PunishITI` starts a global timer that keeps `PWM1` high for the sampled punish ITI duration.
 

@@ -89,7 +89,7 @@ Returns a short label for the visual source: saved image or generated grating.
 
 ### `optoPeriodText(optoType)`
 
-Converts the current trial's opto column into readable text. The five rows are stimulus, choice, pre-reward, post-reward, and punish ITI; enabled rows are joined for the trial log.
+Converts the current trial's opto column into readable text. The seven rows are stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish ITI; enabled rows are joined for the trial log.
 
 ### `trialTarget(S, trialType)`
 
@@ -171,7 +171,7 @@ Closes protocol-owned figures such as the plot canvas, outcome legend, and stimu
 
 ### `ConfigureProtocol(BpodSystem)`
 
-Builds the GUI parameter structure. It defines default values, popup menus, checkboxes, and panel organization for Session, Stimulus, ISI, Manipulation, Probe, Choice, Reward, Servo, and ITI settings. The GUI values are later synced at the start of every trial so user changes can affect future trials.
+Builds the GUI parameter structure. It defines default values, popup menus, checkboxes, and panel organization for Session, Blocks, Stimulus, Audio, ISI, Opto, Chemo, Probe, Choice, Reward, Servo, and ITI settings. The GUI values are later synced at the start of every trial so user changes can affect future trials.
 
 ## `GenerateTrials.m`
 
@@ -209,7 +209,7 @@ Returns trials that may become probes. It excludes the first and last `ProbeZero
 
 ### `GenerateOptoTrials(S, blockTypes, blockStarts, blockEnds)`
 
-Creates the initial intended opto schedule as a `5 x nTrials` matrix. Rows are stimulus, choice, pre-reward, post-reward, and punish-ITI periods. Columns are trials. A column of all zeros means opto off. A column may contain more than one `1`, which means that trial will use an arbitrary combination of enabled periods.
+Creates the initial intended opto schedule as a `7 x nTrials` matrix. Rows are stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish-ITI periods. Columns are trials. A column of all zeros means opto off. A column may contain more than one `1`, which means that trial will use an arbitrary combination of enabled periods.
 
 The schedule is used to show small intended markers in the opto plot before trials are completed. The actual current-trial column is regenerated at trial start so mid-session GUI changes are respected.
 
@@ -217,7 +217,7 @@ The schedule is used to show small intended markers in the opto plot before tria
 
 ### `GenerateOptoTrial(S, blockTypes, blockStarts, blockEnds, trial)`
 
-Generates the current trial's opto column from the current GUI settings. Warmup 50/50 blocks are never opto. If the current trial is selected for opto, the function copies the enabled period checkboxes into the five-row output column.
+Generates the current trial's opto column from the current GUI settings. Warmup 50/50 blocks are never opto. If the current trial is selected for opto, the function copies the enabled period checkboxes into the seven-row output column.
 
 ### `isRandomOptoTrial(S, blockStart, blockEnd, trial)`
 
@@ -241,13 +241,15 @@ Computes block starts and ends from a block-type vector when explicit block edge
 
 Central opto helper. With action `actions`, it returns global timer setup and output actions for the current trial. With action `display`, it returns period labels and colors used by plots.
 
-### `buildActions(S, optoType, stimulusPeriod_s, rewardValve_s, punishITI_s)`
+### `buildActions(S, optoType, stimulusPeriod_s, punishITI_s)`
 
-Builds Bpod global timer actions for selected opto periods. The five periods are:
+Builds Bpod global timer actions for selected opto periods. The seven periods are:
 
-- Stimulus: from `AudStimTrigger` onset through spout-in offset.
+- Stimulus: from `PreStimDelay` onset through spout-in offset.
+- Spout-in delay: during `SpoutInDelay`.
 - Choice: from `ChoiceWindow` onset to choice-window offset.
-- Pre-reward: from `PreRewardDelay` onset through `Reward` offset.
+- Pre-outcome: during `PreOutcomeDelay` or `PreOutcomeDelayPunish`.
+- Reward: during `Reward`.
 - Post-reward: during `PostRewardDelay`.
 - Punish ITI: during `PunishITI`.
 
@@ -263,7 +265,7 @@ Creates one timer definition for one opto gate. The timer drives `PWM1` high for
 
 ### `optoTimerIDs`
 
-Returns the fixed global timer IDs used for stimulus, choice, pre-reward, post-reward, and punish-ITI opto periods.
+Returns the fixed global timer IDs used for stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish-ITI opto periods.
 
 ### `timerCancelMask(timerIDs)`
 
@@ -379,7 +381,7 @@ Draw the short/long trial schedule, block schedule, and probe schedule. Complete
 
 ### `updateOptoTypes`
 
-Draws opto off/stimulus/choice/pre-reward/post-reward/punish-ITI rows. Future intended settings appear as small dots, and each trial is replaced with the actual trial-start setting as the session progresses.
+Draws opto off/stimulus/spout-in-delay/choice/pre-outcome/reward/post-reward/punish-ITI rows. Future intended settings appear as small dots, and each trial is replaced with the actual trial-start setting as the session progresses.
 
 ### `assignedOptoCount`
 
@@ -391,7 +393,7 @@ Draws opto markers for one group of trials. Off trials and enabled period rows a
 
 ### `optoRows`
 
-Maps a five-row opto column into y-axis rows: off, stimulus, choice, pre-reward, post-reward, and punish ITI.
+Maps a seven-row opto column into y-axis rows: off, stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish ITI.
 
 ### `drawTrialTypeOutcome`
 

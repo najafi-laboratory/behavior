@@ -11,16 +11,19 @@ The protocol builds defaults with `ConfigureProtocol`, opens `BpodParameterGUI`,
 The GUI sections are ordered as:
 
 1. Session
-2. Stimulus
-3. ISI
-4. Manipulation
-5. Probe
-6. Choice
-7. Reward
-8. Servo
-9. ITI
+2. Blocks
+3. Stimulus
+4. Audio
+5. ISI
+6. Opto
+7. Chemo
+8. Probe
+9. Choice
+10. Reward
+11. Servo
+12. ITI
 
-Blocks are part of Session. Audio is part of Stimulus. Opto and chemo are combined in Manipulation.
+Blocks, Audio, Opto, and Chemo have separate panels so the longer session setup is easier to scan.
 
 ## Hardware Setup
 
@@ -56,7 +59,7 @@ For each trial:
 8. Update plots.
 9. Return screen to grey.
 
-If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from audio-stimulus trigger onset through spout-in offset. Choice opto spans `ChoiceWindow` or `ProbeChoiceWindow`. Pre-reward opto spans from `PreRewardDelay` onset through `Reward` offset. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`.
+If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from `PreStimDelay` onset through spout-in offset, unless spout-in-delay opto is also selected. Spout-in-delay opto spans `SpoutInDelay`. Choice opto spans `ChoiceWindow` or `ProbeChoiceWindow`. Pre-outcome opto spans `PreOutcomeDelay` or `PreOutcomeDelayPunish`. Reward opto spans `Reward`. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`.
 
 Opto settings are synced at the beginning of each trial. The opto plot shows the initial intended schedule as small dots and the online assigned trial settings as solid squares.
 

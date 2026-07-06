@@ -727,21 +727,32 @@ if isempty(optoType) || any(isnan(optoType)) || ~any(optoType) || ~isfield(rawTr
 end
 states = rawTrial.States;
 if optoType(1)
-    startTime = stateStart(states, 'AudStimTrigger');
-    stopTime = firstFinite([stateEnd(states, 'SpoutIn') stateEnd(states, 'ProbeSpoutIn') stateEnd(states, 'AudStimTrigger')]);
+    startTime = stateStart(states, 'PreStimDelay');
+    if numel(optoType) >= 2 && optoType(2)
+        stopTime = firstFinite([stateStart(states, 'SpoutInDelay') stateEnd(states, 'ProbeSpoutIn') stateEnd(states, 'AudStimTrigger')]);
+    else
+        stopTime = firstFinite([stateEnd(states, 'SpoutIn') stateEnd(states, 'ProbeSpoutIn') stateEnd(states, 'AudStimTrigger')]);
+    end
     intervals = appendInterval(intervals, startTime, stopTime, duration);
 end
 if numel(optoType) >= 2 && optoType(2)
+    intervals = appendInterval(intervals, stateStart(states, 'SpoutInDelay'), stateEnd(states, 'SpoutInDelay'), duration);
+end
+if numel(optoType) >= 3 && optoType(3)
     intervals = appendInterval(intervals, stateStart(states, 'ChoiceWindow'), stateEnd(states, 'ChoiceWindow'), duration);
     intervals = appendInterval(intervals, stateStart(states, 'ProbeChoiceWindow'), stateEnd(states, 'ProbeChoiceWindow'), duration);
 end
-if numel(optoType) >= 3 && optoType(3)
-    intervals = appendInterval(intervals, stateStart(states, 'PreRewardDelay'), stateEnd(states, 'Reward'), duration);
-end
 if numel(optoType) >= 4 && optoType(4)
-    intervals = appendInterval(intervals, stateStart(states, 'PostRewardDelay'), stateEnd(states, 'PostRewardDelay'), duration);
+    intervals = appendInterval(intervals, stateStart(states, 'PreOutcomeDelay'), stateEnd(states, 'PreOutcomeDelay'), duration);
+    intervals = appendInterval(intervals, stateStart(states, 'PreOutcomeDelayPunish'), stateEnd(states, 'PreOutcomeDelayPunish'), duration);
 end
 if numel(optoType) >= 5 && optoType(5)
+    intervals = appendInterval(intervals, stateStart(states, 'Reward'), stateEnd(states, 'Reward'), duration);
+end
+if numel(optoType) >= 6 && optoType(6)
+    intervals = appendInterval(intervals, stateStart(states, 'PostRewardDelay'), stateEnd(states, 'PostRewardDelay'), duration);
+end
+if numel(optoType) >= 7 && optoType(7)
     intervals = appendInterval(intervals, stateStart(states, 'PunishITI'), stateEnd(states, 'PunishITI'), duration);
 end
 end

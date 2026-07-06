@@ -1,12 +1,12 @@
 function optoType = GenerateOptoTrial(S, blockTypes, blockStarts, blockEnds, trial)
 % Generate one opto column using current GUI settings.
-optoType = zeros(5, 1);
+optoType = zeros(7, 1);
 mode = round(S.GUI.OptoMode);
 if mode == 1
     return
 end
 
-enabledPeriods = [S.GUI.EnableOptoStimulus; S.GUI.EnableOptoChoice; S.GUI.EnableOptoPreReward; S.GUI.EnableOptoPostReward; S.GUI.EnableOptoPunishITI] ~= 0;
+enabledPeriods = [S.GUI.EnableOptoStimulus; S.GUI.EnableOptoSpoutInDelay; S.GUI.EnableOptoChoice; S.GUI.EnableOptoPreOutcome; S.GUI.EnableOptoReward; S.GUI.EnableOptoPostReward; S.GUI.EnableOptoPunishITI] ~= 0;
 if ~any(enabledPeriods)
     return
 end
