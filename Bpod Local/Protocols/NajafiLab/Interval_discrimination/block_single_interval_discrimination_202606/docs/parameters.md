@@ -44,6 +44,8 @@ Short and long trial types each have fixed or uniform random ISI control:
 
 ## Opto
 
+### Schedule
+
 - `OptoMode`: controls which trials are selected as opto trials. It does not by itself choose the opto period; period checkboxes below decide which epochs receive light on selected opto trials.
   - `No opto`: every trial is opto off. Period checkboxes are ignored.
   - `Random`: each eligible trial is independently sampled when the trial starts. The probability is `OptoFraction`. Warmup blocks and block-edge trials are excluded.
@@ -52,8 +54,17 @@ Short and long trial types each have fixed or uniform random ISI control:
 - `OptoFraction`: probability for an eligible trial to become opto in `Random` mode. Example: `0.35` means each eligible trial has a 35% chance when it starts. This value is ignored in early-trial modes.
 - `OptoZeroEdgeTrials`: number of trials at the start and end of each non-warmup block forced opto off in `Random` mode. This protects block transitions from opto contamination. Warmup blocks are fully forced off regardless of this value.
 - `OptoEarlyTrials`: number of early trials per eligible block selected in the two early-trial modes. If the value exceeds the block length, the whole block can be tagged. This value is ignored in `Random` and `No opto` modes.
+
+### Hardware
+
 - `OptoTriggerType`: Doric trigger type to check before starting the session. Options are Manual, Triggered, and Gated.
 - `OptoTriggerMode`: Doric trigger mode to check before starting the session. Options are Pause, Continue, Restart, and Uninterrupted.
+- `OptoPulseTotalDuration_s`: Doric pulse-train total duration in seconds to check before starting the session.
+- `OptoPulseFrequency_Hz`: Doric pulse-train frequency in Hz to check before starting the session.
+- `OptoPulseDutyCycle_percent`: Doric pulse-train duty cycle percentage to check before starting the session.
+
+### Periods
+
 - `EnableOptoStimulus`: when checked, selected opto trials drive `PWM1` high from `PreStimDelay` onset through spout-in offset. This period can span multiple Bpod states.
 - `EnableOptoSpoutInDelay`: when checked, selected opto trials drive `PWM1` high during `SpoutInDelay`.
 - `EnableOptoChoice`: when checked, selected opto trials drive `PWM1` high during the actual `ChoiceWindow`. If the animal licks early and exits the choice state, the choice opto timer is cancelled.
@@ -62,7 +73,7 @@ Short and long trial types each have fixed or uniform random ISI control:
 - `EnableOptoPostReward`: when checked, selected opto trials drive `PWM1` high during `PostRewardDelay`.
 - `EnableOptoPunishITI`: when checked, selected opto trials drive `PWM1` high during `PunishITI`.
 
-Selected opto trials can enable any combination of the seven periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist.
+Selected opto trials can enable any combination of the seven periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist. The pulse duration/frequency/duty fields are saved and printed for Doric hardware verification; Bpod still gates `PWM1` by task epoch.
 
 Opto settings are synced at the start of every trial. Changing `OptoMode`, `OptoFraction`, `OptoEarlyTrials`, or any period checkbox during a session affects the next trial that has not yet started. Completed trials are not rewritten.
 

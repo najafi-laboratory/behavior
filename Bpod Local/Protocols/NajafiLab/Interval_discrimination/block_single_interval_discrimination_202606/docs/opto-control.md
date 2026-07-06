@@ -2,10 +2,11 @@
 
 ## Overview
 
-Opto control has two independent parts:
+Opto control has three independent parts:
 
 - Trial selection: decide whether the current trial is an opto trial.
 - Period selection: decide which task epochs receive light on selected opto trials.
+- Hardware confirmation: store the Doric trigger and pulse-train settings the user should verify before trials start.
 
 The protocol saves opto as a `7 x nTrials` matrix named `OptoTrialTypes`. Rows are stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish ITI. Columns are trials. A column of all zeros means opto off. A column can contain multiple ones, meaning several periods were enabled for that trial.
 
@@ -45,6 +46,10 @@ Used in the two early-trial modes. It controls how many trials at the start of e
 
 These store Doric trigger settings in the opto GUI. The startup prompt prints them so the user can verify the external Doric device before trials start.
 
+### `OptoPulseTotalDuration_s`, `OptoPulseFrequency_Hz`, and `OptoPulseDutyCycle_percent`
+
+These store Doric pulse-train settings in the opto GUI. The protocol prints total duration, frequency, and duty cycle in the startup prompt so the user can check the external Doric device. Bpod still gates `PWM1` by task epoch; these pulse settings are saved for session documentation and hardware verification.
+
 ### `EnableOptoStimulus`
 
 Enables light during the pre-stimulus-to-spout-in epoch on selected opto trials. The timer starts at `PreStimDelay` onset. On normal trials it lasts until the end of `SpoutIn`, so it spans pre-stimulus delay, stimulus, grey screen, spout-in delay, and servo movement. If `EnableOptoSpoutInDelay` is also selected, stimulus opto stops at `SpoutInDelay` onset. On stimulus-only probe trials it lasts through pre-stimulus delay and stimulus. On servo-only probe trials it lasts through `ProbeSpoutIn`.
@@ -79,7 +84,13 @@ Enables light during `PunishITI` on selected opto trials. The timer starts at `P
 2. Set the trial-selection parameters for that mode:
    - `Random`: set `OptoFraction` and `OptoZeroEdgeTrials`.
    - Early-trial modes: set `OptoEarlyTrials`.
-3. Check one or more period boxes:
+3. Set/check Doric hardware parameters:
+   - `OptoTriggerType`
+   - `OptoTriggerMode`
+   - `OptoPulseTotalDuration_s`
+   - `OptoPulseFrequency_Hz`
+   - `OptoPulseDutyCycle_percent`
+4. Check one or more period boxes:
    - `EnableOptoStimulus`
    - `EnableOptoSpoutInDelay`
    - `EnableOptoChoice`
@@ -87,11 +98,11 @@ Enables light during `PunishITI` on selected opto trials. The timer starts at `P
    - `EnableOptoReward`
    - `EnableOptoPostReward`
    - `EnableOptoPunishITI`
-4. Start the session.
-5. Watch the opto plot:
+5. Start the session.
+6. Watch the opto plot:
    - small dots show the intended schedule made at session start.
    - larger solid squares show trials that have been assigned using the current GUI settings.
-6. If needed, pause or change GUI settings between trials. The next trial will use the new settings.
+7. If needed, pause or change GUI settings between trials. The next trial will use the new settings.
 
 ## Online Assignment
 
@@ -151,6 +162,9 @@ BpodSystem.Data.OptoTrialTypes(:, trial)
 BpodSystem.Data.TrialSettings(trial).GUI.OptoMode
 BpodSystem.Data.TrialSettings(trial).GUI.OptoTriggerType
 BpodSystem.Data.TrialSettings(trial).GUI.OptoTriggerMode
+BpodSystem.Data.TrialSettings(trial).GUI.OptoPulseTotalDuration_s
+BpodSystem.Data.TrialSettings(trial).GUI.OptoPulseFrequency_Hz
+BpodSystem.Data.TrialSettings(trial).GUI.OptoPulseDutyCycle_percent
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoStimulus
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoSpoutInDelay
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoChoice
@@ -167,6 +181,7 @@ If opto does not appear:
 - Confirm `TrainingMode` is `Trained`; naive mode forces opto hardware off.
 - Confirm `OptoMode` is not `No opto`.
 - Confirm at least one period checkbox is enabled.
+- Confirm Doric total duration, frequency, and duty cycle match the startup prompt.
 - In `Random` mode, confirm the trial is outside warmup blocks and outside `OptoZeroEdgeTrials`.
 - Check the opto plot for assigned solid squares.
 - Check the event plot `LED 1` row after the trial completes.

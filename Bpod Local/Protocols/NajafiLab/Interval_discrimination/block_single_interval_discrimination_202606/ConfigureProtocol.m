@@ -20,7 +20,9 @@ blocks = {'BlockNum', 1; 'WarmupBlockNum', 1; 'BlockLength', 30; 'BlockMargin', 
 stimulus = {'StimulusMode', 3; 'UseSavedImage', 0; 'PreStimDelay_s', 0.1; 'GratingDuration_s', 0.2};
 isi = {'ShortISIMode', 1; 'ShortISIFixed_s', 0.5; 'ShortISIMin_s', 0.5; 'ShortISIMax_s', 0.7; 'LongISIMode', 1; 'LongISIFixed_s', 2.5; 'LongISIMin_s', 2.3; 'LongISIMax_s', 2.5};
 audio = {'AudioStimFreq_Hz', 11025; 'AudioStimVolume', 0.1; 'AudioSamplingRate_Hz', 44100; 'AudioAttenuation_dB', -35; 'AudioRamp_ms', 1};
-opto = {'OptoMode', 1; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'OptoEarlyTrials', 5; 'OptoTriggerType', 1; 'OptoTriggerMode', 1; 'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoChoice', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
+optoSchedule = {'OptoMode', 1; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'OptoEarlyTrials', 5};
+optoHardware = {'OptoTriggerType', 2; 'OptoTriggerMode', 4; 'OptoPulseTotalDuration_s', 0.5; 'OptoPulseFrequency_Hz', 20; 'OptoPulseDutyCycle_percent', 50};
+optoPeriods = {'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoChoice', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
 probe = {'ProbeMode', 0; 'ProbeFraction', 0.1; 'ProbeZeroEdgeTrials', 5};
 choice = {'SpoutInDelay_s', 0.2; 'ChoiceWindow_s', 5; 'AllowChangeMind', 0; 'ChangeMindWindow_s', 0.5};
 reward = {'PreOutcomeDelay_s', 0.1; 'PostRewardDelay_s', 1.5; 'LeftRewardAmount_uL', 6; 'RightRewardAmount_uL', 6};
@@ -28,8 +30,8 @@ servo = {'CurrentSpoutPosition', 1; 'RightServoInPos', 1220; 'LeftServoInPos', 1
 iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 3; 'ITIMax_s', 6; 'ITIMean_s', 4.5; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 3; 'PunishITIMax_s', 7; 'PunishITIMean_s', 5};
 chemo = {'ChemoMode', 0};
 
-groups = {session, blocks, stimulus, isi, audio, opto, probe, choice, reward, servo, iti, chemo};
-parameterNames = vertcat(session(:, 1), blocks(:, 1), stimulus(:, 1), isi(:, 1), audio(:, 1), opto(:, 1), probe(:, 1), choice(:, 1), reward(:, 1), servo(:, 1), iti(:, 1), chemo(:, 1));
+groups = {session, blocks, stimulus, isi, audio, optoSchedule, optoHardware, optoPeriods, probe, choice, reward, servo, iti, chemo};
+parameterNames = vertcat(session(:, 1), blocks(:, 1), stimulus(:, 1), isi(:, 1), audio(:, 1), optoSchedule(:, 1), optoHardware(:, 1), optoPeriods(:, 1), probe(:, 1), choice(:, 1), reward(:, 1), servo(:, 1), iti(:, 1), chemo(:, 1));
 
 if isfield(S.GUI, 'RewardDelay_s') && ~isfield(S.GUI, 'PreOutcomeDelay_s')
     S.GUI.PreOutcomeDelay_s = S.GUI.RewardDelay_s;
@@ -102,12 +104,14 @@ S.GUIPanels.Blocks = blocks(:, 1)';
 S.GUIPanels.Stimulus = stimulus(:, 1)';
 S.GUIPanels.Audio = audio(:, 1)';
 S.GUIPanels.ISI = isi(:, 1)';
-S.GUIPanels.Opto = opto(:, 1)';
+S.GUIPanels.OptoSchedule = optoSchedule(:, 1)';
+S.GUIPanels.OptoHardware = optoHardware(:, 1)';
+S.GUIPanels.OptoPeriods = optoPeriods(:, 1)';
 S.GUIPanels.Chemo = chemo(:, 1)';
 S.GUIPanels.Probe = probe(:, 1)';
 S.GUIPanels.Choice = choice(:, 1)';
 S.GUIPanels.Reward = reward(:, 1)';
 S.GUIPanels.Servo = servo(:, 1)';
 S.GUIPanels.ITI = iti(:, 1)';
-S.ConfigVersion = 4;
+S.ConfigVersion = 5;
 end

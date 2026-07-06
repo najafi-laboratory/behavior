@@ -171,7 +171,7 @@ Closes protocol-owned figures such as the plot canvas, outcome legend, and stimu
 
 ### `ConfigureProtocol(BpodSystem)`
 
-Builds the GUI parameter structure. It defines default values, popup menus, checkboxes, and panel organization for Session, Blocks, Stimulus, Audio, ISI, Opto, Chemo, Probe, Choice, Reward, Servo, and ITI settings. The GUI values are later synced at the start of every trial so user changes can affect future trials.
+Builds the GUI parameter structure. It defines default values, popup menus, checkboxes, and panel organization for Session, Blocks, Stimulus, Audio, ISI, OptoSchedule, OptoHardware, OptoPeriods, Chemo, Probe, Choice, Reward, Servo, and ITI settings. The GUI values are later synced at the start of every trial so user changes can affect future trials.
 
 ## `GenerateTrials.m`
 
@@ -325,7 +325,7 @@ Adds the trained workflow: spout in, choice window, reward path for correct choi
 
 ### `stimulusOptoDuration(S, stimulusDuration, probeType)`
 
-Computes the stimulus-period opto duration. This period starts at `AudStimTrigger` and extends until spout-in offset for normal trials. For stimulus-only probe trials, it is limited to the stimulus path because the spout never moves in.
+Computes the stimulus-period opto duration. This period starts at `PreStimDelay` and extends until spout-in offset for normal trials. For stimulus-only probe trials, it is limited to the pre-stimulus and stimulus path because the spout never moves in.
 
 ## `SoftCodeHandler_BlockSingleInterval.m`
 

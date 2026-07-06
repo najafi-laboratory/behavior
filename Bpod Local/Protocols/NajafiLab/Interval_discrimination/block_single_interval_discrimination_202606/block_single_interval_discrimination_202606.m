@@ -423,6 +423,9 @@ end
 if S.GUI.OptoFraction < 0 || S.GUI.OptoFraction > 1 || S.GUI.OptoZeroEdgeTrials < 0 || S.GUI.OptoEarlyTrials < 0
     error('OptoFraction must be between 0 and 1; OptoZeroEdgeTrials and OptoEarlyTrials cannot be negative.')
 end
+if S.GUI.OptoPulseTotalDuration_s < 0 || S.GUI.OptoPulseFrequency_Hz < 0 || S.GUI.OptoPulseDutyCycle_percent < 0 || S.GUI.OptoPulseDutyCycle_percent > 100
+    error('Opto pulse total duration and frequency cannot be negative; duty cycle must be between 0 and 100 percent.')
+end
 if S.GUI.ProbeFraction < 0 || S.GUI.ProbeFraction > 1 || S.GUI.ProbeZeroEdgeTrials < 0
     error('ProbeFraction must be between 0 and 1; ProbeZeroEdgeTrials cannot be negative.')
 end
@@ -449,6 +452,9 @@ fprintf('\nDoric opto settings\n');
 fprintf('%-24s %s\n', 'OptoMode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.OptoMode));
 fprintf('%-24s %s\n', 'OptoTriggerType:', popupValue(S.GUIMeta.OptoTriggerType.String, S.GUI.OptoTriggerType));
 fprintf('%-24s %s\n', 'OptoTriggerMode:', popupValue(S.GUIMeta.OptoTriggerMode.String, S.GUI.OptoTriggerMode));
+fprintf('%-24s %.3f s\n', 'Opto total duration:', S.GUI.OptoPulseTotalDuration_s);
+fprintf('%-24s %.3f Hz\n', 'Opto frequency:', S.GUI.OptoPulseFrequency_Hz);
+fprintf('%-24s %.3f %%\n', 'Opto duty cycle:', S.GUI.OptoPulseDutyCycle_percent);
 fprintf('%-24s %s\n', 'EnableOptoStimulus:', onOffText(S.GUI.EnableOptoStimulus));
 fprintf('%-24s %s\n', 'EnableOptoSpoutInDelay:', onOffText(S.GUI.EnableOptoSpoutInDelay));
 fprintf('%-24s %s\n', 'EnableOptoChoice:', onOffText(S.GUI.EnableOptoChoice));
@@ -457,7 +463,7 @@ fprintf('%-24s %s\n', 'EnableOptoReward:', onOffText(S.GUI.EnableOptoReward));
 fprintf('%-24s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
 fprintf('%-24s %s\n', 'EnableOptoPunishITI:', onOffText(S.GUI.EnableOptoPunishITI));
 fprintf('%-24s %s\n', 'LED1 control mode:', 'PWM1 gated opto epoch');
-fprintf('%-24s %s\n', 'Doric pulse params:', 'set/check on Doric device');
+fprintf('%-24s %s\n', 'Doric pulse params:', 'check duration/frequency/duty on Doric device');
 input('Check these match Doric, then press Enter to continue > ', 's');
 end
 
@@ -702,6 +708,7 @@ fprintf('%-28s %s, fixed %.3f, range %.3f-%.3f s\n', 'Long ISI:', popupValue(S.G
 fprintf('%-28s %s\n', 'Opto mode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.OptoMode));
 fprintf('%-28s %.3f, edge %d, early %d\n', 'Opto fraction/edge/early:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials), round(S.GUI.OptoEarlyTrials));
 fprintf('%-28s type %s, mode %s\n', 'Opto trigger:', popupValue(S.GUIMeta.OptoTriggerType.String, S.GUI.OptoTriggerType), popupValue(S.GUIMeta.OptoTriggerMode.String, S.GUI.OptoTriggerMode));
+fprintf('%-28s %.3f s, %.3f Hz, %.3f %%\n', 'Opto pulse:', S.GUI.OptoPulseTotalDuration_s, S.GUI.OptoPulseFrequency_Hz, S.GUI.OptoPulseDutyCycle_percent);
 fprintf('%-28s stim %s, spout delay %s, choice %s, pre outcome %s, reward %s, post %s, punish %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoSpoutInDelay), onOffText(S.GUI.EnableOptoChoice), onOffText(S.GUI.EnableOptoPreOutcome), onOffText(S.GUI.EnableOptoReward), onOffText(S.GUI.EnableOptoPostReward), onOffText(S.GUI.EnableOptoPunishITI));
 fprintf('%-28s %s\n', 'Chemo:', onOffText(S.GUI.ChemoMode));
 fprintf('%-28s %s, %.3f, edge %d\n', 'Probe:', onOffText(S.GUI.ProbeMode), S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials));

@@ -15,15 +15,17 @@ The GUI sections are ordered as:
 3. Stimulus
 4. Audio
 5. ISI
-6. Opto
-7. Chemo
-8. Probe
-9. Choice
-10. Reward
-11. Servo
-12. ITI
+6. OptoSchedule
+7. OptoHardware
+8. OptoPeriods
+9. Chemo
+10. Probe
+11. Choice
+12. Reward
+13. Servo
+14. ITI
 
-Blocks, Audio, Opto, and Chemo have separate panels so the longer session setup is easier to scan.
+Blocks, Audio, opto schedule, opto hardware, opto periods, and Chemo have separate panels so the longer session setup is easier to scan.
 
 ## Hardware Setup
 

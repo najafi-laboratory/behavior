@@ -47,7 +47,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - Probe trials:
   - Stimulus-only probe.
   - Servo-only probe.
-- Opto trial tags, arbitrary stimulus/spout-in-delay/choice/pre-outcome/post-reward/punish-ITI period combinations, PWM hardware control, trigger settings, and chemo session tagging in the Manipulation GUI section. Opto settings can be changed during the session; the next trial uses the current GUI settings.
+- Opto trial tags, arbitrary stimulus/spout-in-delay/choice/pre-outcome/reward/post-reward/punish-ITI period combinations, PWM hardware control, Doric pulse settings, trigger settings, and chemo session tagging in separate GUI sections. Opto settings can be changed during the session; the next trial uses the current GUI settings.
 - Live plots for trial types, blocks, probe/opto, ISI, outcomes, lick rates, reaction time, state timing, and events.
 
 ## GUI Parameter Quick Reference
@@ -68,6 +68,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 
 - `StimulusMode`: visual only, audio only, or audio + visual.
 - `UseSavedImage`: use `image.png` instead of the generated grating.
+- `PreStimDelay_s`: delay before visual/audio stimulus onset.
 - `GratingDuration_s`: duration of each stimulus pulse.
 - `AudioStimFreq_Hz`: tone frequency.
 - `AudioStimVolume`: tone amplitude from 0 to 1.
@@ -81,20 +82,33 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - `ShortISIFixed_s`, `LongISIFixed_s`: fixed interval values.
 - `ShortISIMin_s`, `ShortISIMax_s`, `LongISIMin_s`, `LongISIMax_s`: random draw bounds.
 
-### Manipulation
+### Opto Schedule
 
 - `OptoMode`: no opto, random, early trials every block, or early trials in alternating block groups.
 - `OptoFraction`: random-mode fraction of eligible opto trials.
 - `OptoZeroEdgeTrials`: random-mode first/last trials per block excluded from opto.
 - `OptoEarlyTrials`: number of early trials tagged opto in early-trial modes.
+
+### Opto Hardware
+
 - `OptoTriggerType`: Doric trigger type to check before starting the session.
 - `OptoTriggerMode`: Doric trigger mode to check before starting the session.
-- `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `AudStimTrigger` onset through spout-in offset.
+- `OptoPulseTotalDuration_s`: total Doric pulse duration to verify before starting the session.
+- `OptoPulseFrequency_Hz`: Doric pulse frequency to verify before starting the session.
+- `OptoPulseDutyCycle_percent`: Doric pulse duty cycle to verify before starting the session.
+
+### Opto Periods
+
+- `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `PreStimDelay` onset through spout-in offset.
 - `EnableOptoSpoutInDelay`: if checked, selected opto trials turn on `PWM1` during `SpoutInDelay`.
 - `EnableOptoChoice`: if checked, selected opto trials turn on `PWM1` during `ChoiceWindow`.
 - `EnableOptoPreOutcome`: if checked, selected opto trials turn on `PWM1` during the pre-outcome delay before reward or punish servo-out.
+- `EnableOptoReward`: if checked, selected opto trials turn on `PWM1` during `Reward`.
 - `EnableOptoPostReward`: if checked, selected opto trials turn on `PWM1` during `PostRewardDelay`.
 - `EnableOptoPunishITI`: if checked, selected opto trials turn on `PWM1` during `PunishITI`.
+
+### Chemo
+
 - `ChemoMode`: session-level chemo tag.
 
 Opto settings are synced at the start of each trial, so mid-session changes affect later trials. See [docs/opto-control.md](docs/opto-control.md) for the full opto workflow, timing, plots, and saved fields.
@@ -139,7 +153,7 @@ See `docs/` for detailed documentation.
 
 ## State Machine Workflow
 
-Every trial starts with `Start`, `VisStimTrigger`, `AudStimTrigger`, and `StimulusDone`. `Start` resets opto timers and raises `BNC1`; `VisStimTrigger` starts the visual stimulus; `AudStimTrigger` plays the audio stimulus when audio is enabled; `StimulusDone` returns the screen and HiFi to grey/off.
+Every trial starts with `Start`, `PreStimDelay`, `VisStimTrigger`, `AudStimTrigger`, and `StimulusDone`. `Start` resets opto timers and raises `BNC1`; `PreStimDelay` waits before stimulus onset and can start stimulus opto; `VisStimTrigger` starts the visual stimulus; `AudStimTrigger` plays the audio stimulus when audio is enabled; `StimulusDone` returns the screen and HiFi to grey/off.
 
 Normal trained trials then go through `SpoutInDelay`, `SpoutIn`, and `ChoiceWindow`. A correct lick enters `PreOutcomeDelay`, then `Reward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`. A wrong lick goes to `PreOutcomeDelayPunish`, then `ServoOutPunish`, then `PunishITI`, then `ITI`. If `AllowChangeMind` is on, a wrong lick enters `ChangeMindWindow`; a correct lick there follows the reward path, and timeout follows the punish path. Timeout in `ChoiceWindow` also follows the punish path.
 
@@ -147,4 +161,4 @@ Naive trials use `SpoutInDelay`, `SpoutIn`, `NaiveReward`, and `WaitForCorrectLi
 
 Stimulus-only probes exit from `StimulusDone` directly to `ITI`. Servo-only probes go from `StimulusDone` to `ProbeSpoutIn`, then `ProbeChoiceWindow`, then `ServoOut`, then `ITI`; they do not reward or punish choices.
 
-Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `AudStimTrigger` onset and stops at the first applicable stimulus/spout-in offset: `SpoutIn` offset on normal trials, `ProbeSpoutIn` offset on servo-only probes, or `AudStimTrigger` offset on stimulus-only probes. If `EnableOptoSpoutInDelay` is also selected, stimulus opto stops at `SpoutInDelay` onset and spout-delay opto covers `SpoutInDelay`. `EnableOptoChoice` starts at `ChoiceWindow` or `ProbeChoiceWindow` onset and stops when that state exits. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.
+Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at the first applicable stimulus/spout-in offset: `SpoutIn` offset on normal trials, `ProbeSpoutIn` offset on servo-only probes, or `AudStimTrigger` offset on stimulus-only probes. If `EnableOptoSpoutInDelay` is also selected, stimulus opto stops at `SpoutInDelay` onset and spout-delay opto covers `SpoutInDelay`. `EnableOptoChoice` starts at `ChoiceWindow` or `ProbeChoiceWindow` onset and stops when that state exits. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.
