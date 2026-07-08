@@ -22,9 +22,9 @@ isi = {'ShortISIMode', 1; 'ShortISIFixed_s', 0.5; 'ShortISIMin_s', 0.5; 'ShortIS
 audio = {'AudioStimFreq_Hz', 11025; 'AudioStimVolume', 0.1; 'AudioSamplingRate_Hz', 44100; 'AudioAttenuation_dB', -35; 'AudioRamp_ms', 1};
 optoSchedule = {'OptoMode', 1; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'OptoEarlyTrials', 5};
 optoHardware = {'OptoTriggerType', 2; 'OptoTriggerMode', 4; 'OptoPulseTotalDuration_s', 0.5; 'OptoPulseFrequency_Hz', 20; 'OptoPulseDutyCycle_percent', 50};
-optoPeriods = {'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoChoice', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
+optoPeriods = {'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoSpoutIn', 0; 'EnableOptoChoice', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
 probe = {'ProbeMode', 0; 'ProbeFraction', 0.1; 'ProbeZeroEdgeTrials', 5};
-choice = {'SpoutInDelay_s', 0.2; 'ChoiceWindow_s', 5; 'AllowChangeMind', 0; 'ChangeMindWindow_s', 0.5};
+choice = {'SpoutInDelay_s', 0.2; 'ChoiceWindow_s', 5; 'PostLickDelay_s', 0.01; 'AllowChangeMind', 0; 'ChangeMindWindow_s', 0.5};
 reward = {'PreOutcomeDelay_s', 0.1; 'PostRewardDelay_s', 1.5; 'LeftRewardAmount_uL', 6; 'RightRewardAmount_uL', 6};
 servo = {'CurrentSpoutPosition', 1; 'RightServoInPos', 1220; 'LeftServoInPos', 1810; 'ServoDeflection', 90; 'ServoVelocity', 1; 'ServoMoveDelay_s', 0.1; 'ServoReturnTimeout_s', 1};
 iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 3; 'ITIMax_s', 6; 'ITIMean_s', 4.5; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 3; 'PunishITIMax_s', 7; 'PunishITIMean_s', 5};
@@ -41,6 +41,12 @@ if isfield(S.GUI, 'PreRewardDelay_s') && ~isfield(S.GUI, 'PreOutcomeDelay_s')
 end
 if isfield(S.GUI, 'EnableOptoPreReward') && ~isfield(S.GUI, 'EnableOptoPreOutcome')
     S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoPreReward;
+end
+if (~isfield(S, 'ConfigVersion') || S.ConfigVersion < 6) && isfield(S.GUI, 'EnableOptoChoice')
+    if ~isfield(S.GUI, 'EnableOptoSpoutIn')
+        S.GUI.EnableOptoSpoutIn = S.GUI.EnableOptoChoice;
+    end
+    S.GUI.EnableOptoChoice = 0;
 end
 
 for groupIndex = 1:numel(groups)
@@ -84,6 +90,7 @@ S.GUIMeta.OptoTriggerMode.Style = 'popupmenu';
 S.GUIMeta.OptoTriggerMode.String = {'Pause', 'Continue', 'Restart', 'Uninterrupted'};
 S.GUIMeta.EnableOptoStimulus.Style = 'checkbox';
 S.GUIMeta.EnableOptoSpoutInDelay.Style = 'checkbox';
+S.GUIMeta.EnableOptoSpoutIn.Style = 'checkbox';
 S.GUIMeta.EnableOptoChoice.Style = 'checkbox';
 S.GUIMeta.EnableOptoPreOutcome.Style = 'checkbox';
 S.GUIMeta.EnableOptoReward.Style = 'checkbox';
@@ -99,19 +106,20 @@ S.GUIMeta.PunishITIMode.String = {'Manual', 'Exponential'};
 S.GUIMeta.CurrentSpoutPosition.Style = 'popupmenu';
 S.GUIMeta.CurrentSpoutPosition.String = {'Neutral', 'Leftwards', 'Rightwards'};
 
+% BpodParameterGUI reverses GUIPanels before drawing; this order balances the displayed columns.
+S.GUIPanels.Servo = servo(:, 1)';
+S.GUIPanels.OptoHardware = optoHardware(:, 1)';
 S.GUIPanels.Session = session(:, 1)';
+S.GUIPanels.Probe = probe(:, 1)';
 S.GUIPanels.Blocks = blocks(:, 1)';
 S.GUIPanels.Stimulus = stimulus(:, 1)';
-S.GUIPanels.Audio = audio(:, 1)';
 S.GUIPanels.ISI = isi(:, 1)';
-S.GUIPanels.OptoSchedule = optoSchedule(:, 1)';
-S.GUIPanels.OptoHardware = optoHardware(:, 1)';
+S.GUIPanels.Audio = audio(:, 1)';
 S.GUIPanels.OptoPeriods = optoPeriods(:, 1)';
-S.GUIPanels.Chemo = chemo(:, 1)';
-S.GUIPanels.Probe = probe(:, 1)';
 S.GUIPanels.Choice = choice(:, 1)';
+S.GUIPanels.OptoSchedule = optoSchedule(:, 1)';
 S.GUIPanels.Reward = reward(:, 1)';
-S.GUIPanels.Servo = servo(:, 1)';
+S.GUIPanels.Chemo = chemo(:, 1)';
 S.GUIPanels.ITI = iti(:, 1)';
-S.ConfigVersion = 5;
+S.ConfigVersion = 6;
 end

@@ -4,6 +4,10 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 
 ## Update note
 
+### 2026.07.07
+- Changed opto choice to opto spout in.
+- Removed opto choice.
+
 ### 2026.07.06
 - Changed pre reward delay to pre outcome delay.
 - Now pre outcome delay is applied before punish.
@@ -99,9 +103,10 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 
 ### Opto Periods
 
-- `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `PreStimDelay` onset through spout-in offset.
+- `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `PreStimDelay` onset through stimulus-play offset.
 - `EnableOptoSpoutInDelay`: if checked, selected opto trials turn on `PWM1` during `SpoutInDelay`.
-- `EnableOptoChoice`: if checked, selected opto trials turn on `PWM1` during `ChoiceWindow`.
+- `EnableOptoSpoutIn`: if checked, selected opto trials turn on `PWM1` while the spouts are in and the animal can lick during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
+- `EnableOptoChoice`: if checked, selected opto trials turn on `PWM1` during `PostLickDelay` after a lick is detected.
 - `EnableOptoPreOutcome`: if checked, selected opto trials turn on `PWM1` during the pre-outcome delay before reward or punish servo-out.
 - `EnableOptoReward`: if checked, selected opto trials turn on `PWM1` during `Reward`.
 - `EnableOptoPostReward`: if checked, selected opto trials turn on `PWM1` during `PostRewardDelay`.
@@ -123,6 +128,7 @@ Opto settings are synced at the start of each trial, so mid-session changes affe
 
 - `SpoutInDelay_s`: delay after stimulus before servo-in command.
 - `ChoiceWindow_s`: time allowed for choice.
+- `PostLickDelay_s`: delay after a detected lick before the protocol enters the next outcome or change-mind state.
 - `AllowChangeMind`: allow wrong-then-correct rescue.
 - `ChangeMindWindow_s`: rescue window duration.
 - `PreOutcomeDelay_s`, `PostRewardDelay_s`: outcome and reward timing.
@@ -155,10 +161,10 @@ See `docs/` for detailed documentation.
 
 Every trial starts with `Start`, `PreStimDelay`, `VisStimTrigger`, `AudStimTrigger`, and `StimulusDone`. `Start` resets opto timers and raises `BNC1`; `PreStimDelay` waits before stimulus onset and can start stimulus opto; `VisStimTrigger` starts the visual stimulus; `AudStimTrigger` plays the audio stimulus when audio is enabled; `StimulusDone` returns the screen and HiFi to grey/off.
 
-Normal trained trials then go through `SpoutInDelay`, `SpoutIn`, and `ChoiceWindow`. A correct lick enters `PreOutcomeDelay`, then `Reward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`. A wrong lick goes to `PreOutcomeDelayPunish`, then `ServoOutPunish`, then `PunishITI`, then `ITI`. If `AllowChangeMind` is on, a wrong lick enters `ChangeMindWindow`; a correct lick there follows the reward path, and timeout follows the punish path. Timeout in `ChoiceWindow` also follows the punish path.
+Normal trained trials then go through `SpoutInDelay`, `SpoutIn`, and `ChoiceWindow`. A correct lick enters `PostLickDelayReward`, then `PreOutcomeDelay`, then `Reward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`. A wrong lick enters `PostLickDelayPunish`, then `PreOutcomeDelayPunish`, then `ServoOutPunish`, then `PunishITI`, then `ITI`. If `AllowChangeMind` is on, a wrong lick enters `PostLickDelayChangeMind`, then `ChangeMindWindow`; a correct lick there follows the reward path through `PostLickDelayReward`, and timeout follows the punish path. Timeout in `ChoiceWindow` also follows the punish path without a post-lick delay.
 
-Naive trials use `SpoutInDelay`, `SpoutIn`, `NaiveReward`, and `WaitForCorrectLick`. A correct lick during `WaitForCorrectLick` enters `PostRewardDelay`, then `ServoOut`, then `ITI`; timeout moves the spouts out and enters `ITI`.
+Naive trials use `SpoutInDelay`, `SpoutIn`, `NaiveReward`, and `WaitForCorrectLick`. A correct lick during `WaitForCorrectLick` enters `PostLickDelayPostReward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`; timeout moves the spouts out and enters `ITI`.
 
 Stimulus-only probes exit from `StimulusDone` directly to `ITI`. Servo-only probes go from `StimulusDone` to `ProbeSpoutIn`, then `ProbeChoiceWindow`, then `ServoOut`, then `ITI`; they do not reward or punish choices.
 
-Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at the first applicable stimulus/spout-in offset: `SpoutIn` offset on normal trials, `ProbeSpoutIn` offset on servo-only probes, or `AudStimTrigger` offset on stimulus-only probes. If `EnableOptoSpoutInDelay` is also selected, stimulus opto stops at `SpoutInDelay` onset and spout-delay opto covers `SpoutInDelay`. `EnableOptoChoice` starts at `ChoiceWindow` or `ProbeChoiceWindow` onset and stops when that state exits. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.
+Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at stimulus-play offset, before `StimulusDone` returns the display and audio to grey/off. `EnableOptoSpoutInDelay` starts at `SpoutInDelay` onset and stops when that state exits. `EnableOptoSpoutIn` starts during the spouts-in choice states. `EnableOptoChoice` starts during `PostLickDelay...` after a lick is detected. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.
