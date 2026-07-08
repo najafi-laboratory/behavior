@@ -89,7 +89,7 @@ Returns a short label for the visual source: saved image or generated grating.
 
 ### `optoPeriodText(optoType)`
 
-Converts the current trial's opto column into readable text. The eight rows are stimulus, spout-in delay, spout-in, choice, pre-outcome, reward, post-reward, and punish ITI; enabled rows are joined for the trial log.
+Converts the current trial's opto column into readable text. The seven rows are stimulus, spout-in delay, spout-in, pre-outcome, reward, post-reward, and punish ITI; enabled rows are joined for the trial log.
 
 ### `trialTarget(S, trialType)`
 
@@ -209,7 +209,7 @@ Returns trials that may become probes. It excludes the first and last `ProbeZero
 
 ### `GenerateOptoTrials(S, blockTypes, blockStarts, blockEnds)`
 
-Creates the initial intended opto schedule as an `8 x nTrials` matrix. Rows are stimulus, spout-in delay, spout-in, choice, pre-outcome, reward, post-reward, and punish-ITI periods. Columns are trials. A column of all zeros means opto off. A column may contain more than one `1`, which means that trial will use an arbitrary combination of enabled periods.
+Creates the initial intended opto schedule as a `7 x nTrials` matrix. Rows are stimulus, spout-in delay, spout-in, pre-outcome, reward, post-reward, and punish-ITI periods. Columns are trials. A column of all zeros means opto off. A column may contain more than one `1`, which means that trial will use an arbitrary combination of enabled periods.
 
 The schedule is used to show small intended markers in the opto plot before trials are completed. The actual current-trial column is regenerated at trial start so mid-session GUI changes are respected.
 
@@ -217,7 +217,7 @@ The schedule is used to show small intended markers in the opto plot before tria
 
 ### `GenerateOptoTrial(S, blockTypes, blockStarts, blockEnds, trial)`
 
-Generates the current trial's opto column from the current GUI settings. Warmup 50/50 blocks are never opto. If the current trial is selected for opto, the function copies the enabled period checkboxes into the eight-row output column.
+Generates the current trial's opto column from the current GUI settings. Warmup 50/50 blocks are never opto. If the current trial is selected for opto, the function copies the enabled period checkboxes into the seven-row output column.
 
 ### `isRandomOptoTrial(S, blockStart, blockEnd, trial)`
 
@@ -243,12 +243,11 @@ Central opto helper. With action `actions`, it returns global timer setup and ou
 
 ### `buildActions(S, optoType, stimulusPeriod_s, rewardValve_s, punishITI_s)`
 
-Builds Bpod global timer actions for selected opto periods. The eight periods are:
+Builds Bpod global timer actions for selected opto periods. The seven periods are:
 
 - Stimulus: from `PreStimDelay` onset through stimulus-play offset.
 - Spout-in delay: during `SpoutInDelay`.
 - Spout-in: during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
-- Choice: during `PostLickDelay...` after a lick is detected.
 - Pre-outcome: during `PreOutcomeDelay` or `PreOutcomeDelayPunish`.
 - Reward: during `Reward`.
 - Post-reward: during `PostRewardDelay`.
@@ -266,7 +265,7 @@ Creates one timer definition for one opto gate. The timer drives `PWM1` high for
 
 ### `optoTimerIDs`
 
-Returns the fixed global timer IDs used for stimulus, spout-in delay, spout-in, choice, pre-outcome, reward, post-reward, and punish-ITI opto periods.
+Returns the fixed global timer IDs used for stimulus, spout-in delay, spout-in, pre-outcome, reward, post-reward, and punish-ITI opto periods.
 
 ### `timerCancelMask(timerIDs)`
 
@@ -326,7 +325,7 @@ Adds the trained workflow: spout in, choice window, reward path for correct choi
 
 ### `addPostLickDelayStates(sma, S, opto)`
 
-Adds the short post-lick delay states used after detected licks. Correct, punish, change-mind, and naive post-reward lick paths each pass through a `PostLickDelay...` state for `PostLickDelay_s` before entering the previous next state. The new choice opto period is delivered during these states.
+Adds the short post-lick delay states used after detected licks. Correct, punish, change-mind, and naive post-reward lick paths each pass through a `PostLickDelay...` state for `PostLickDelay_s` before entering the previous next state.
 
 ### `stimulusOptoDuration(S, stimulusDuration, probeType, optoType)`
 
@@ -386,7 +385,7 @@ Draw the short/long trial schedule, block schedule, and probe schedule. Complete
 
 ### `updateOptoTypes`
 
-Draws opto off/stimulus/spout-in-delay/choice/pre-outcome/reward/post-reward/punish-ITI rows. Future intended settings appear as small dots, and each trial is replaced with the actual trial-start setting as the session progresses.
+Draws opto off/stimulus/spout-in-delay/spout-in/pre-outcome/reward/post-reward/punish-ITI rows. Future intended settings appear as small dots, and each trial is replaced with the actual trial-start setting as the session progresses.
 
 ### `assignedOptoCount`
 
@@ -398,7 +397,7 @@ Draws opto markers for one group of trials. Off trials and enabled period rows a
 
 ### `optoRows`
 
-Maps an eight-row opto column into y-axis rows: off, stimulus, spout-in delay, spout-in, choice, pre-outcome, reward, post-reward, and punish ITI.
+Maps a seven-row opto column into y-axis rows: off, stimulus, spout-in delay, spout-in, pre-outcome, reward, post-reward, and punish ITI.
 
 ### `drawTrialTypeOutcome`
 

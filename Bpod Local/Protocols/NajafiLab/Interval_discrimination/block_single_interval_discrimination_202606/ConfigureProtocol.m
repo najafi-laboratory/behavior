@@ -22,7 +22,7 @@ isi = {'ShortISIMode', 1; 'ShortISIFixed_s', 0.5; 'ShortISIMin_s', 0.5; 'ShortIS
 audio = {'AudioStimFreq_Hz', 11025; 'AudioStimVolume', 0.1; 'AudioSamplingRate_Hz', 44100; 'AudioAttenuation_dB', -35; 'AudioRamp_ms', 1};
 optoSchedule = {'OptoMode', 1; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'OptoEarlyTrials', 5};
 optoHardware = {'OptoTriggerType', 2; 'OptoTriggerMode', 4; 'OptoPulseTotalDuration_s', 0.5; 'OptoPulseFrequency_Hz', 20; 'OptoPulseDutyCycle_percent', 50};
-optoPeriods = {'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoSpoutIn', 0; 'EnableOptoChoice', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
+optoPeriods = {'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoSpoutIn', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
 probe = {'ProbeMode', 0; 'ProbeFraction', 0.1; 'ProbeZeroEdgeTrials', 5};
 choice = {'SpoutInDelay_s', 0.2; 'ChoiceWindow_s', 5; 'PostLickDelay_s', 0.01; 'AllowChangeMind', 0; 'ChangeMindWindow_s', 0.5};
 reward = {'PreOutcomeDelay_s', 0.1; 'PostRewardDelay_s', 1.5; 'LeftRewardAmount_uL', 6; 'RightRewardAmount_uL', 6};
@@ -42,11 +42,13 @@ end
 if isfield(S.GUI, 'EnableOptoPreReward') && ~isfield(S.GUI, 'EnableOptoPreOutcome')
     S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoPreReward;
 end
-if (~isfield(S, 'ConfigVersion') || S.ConfigVersion < 6) && isfield(S.GUI, 'EnableOptoChoice')
-    if ~isfield(S.GUI, 'EnableOptoSpoutIn')
-        S.GUI.EnableOptoSpoutIn = S.GUI.EnableOptoChoice;
+if isfield(S.GUI, 'EnableOptoChoice')
+    if ~isfield(S.GUI, 'EnableOptoPreOutcome')
+        S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoChoice;
+    else
+        S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoPreOutcome || S.GUI.EnableOptoChoice;
     end
-    S.GUI.EnableOptoChoice = 0;
+    S.GUI = rmfield(S.GUI, 'EnableOptoChoice');
 end
 
 for groupIndex = 1:numel(groups)
@@ -91,7 +93,6 @@ S.GUIMeta.OptoTriggerMode.String = {'Pause', 'Continue', 'Restart', 'Uninterrupt
 S.GUIMeta.EnableOptoStimulus.Style = 'checkbox';
 S.GUIMeta.EnableOptoSpoutInDelay.Style = 'checkbox';
 S.GUIMeta.EnableOptoSpoutIn.Style = 'checkbox';
-S.GUIMeta.EnableOptoChoice.Style = 'checkbox';
 S.GUIMeta.EnableOptoPreOutcome.Style = 'checkbox';
 S.GUIMeta.EnableOptoReward.Style = 'checkbox';
 S.GUIMeta.EnableOptoPostReward.Style = 'checkbox';
@@ -121,5 +122,5 @@ S.GUIPanels.OptoSchedule = optoSchedule(:, 1)';
 S.GUIPanels.Reward = reward(:, 1)';
 S.GUIPanels.Chemo = chemo(:, 1)';
 S.GUIPanels.ITI = iti(:, 1)';
-S.ConfigVersion = 6;
+S.ConfigVersion = 7;
 end

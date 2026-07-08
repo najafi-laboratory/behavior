@@ -51,7 +51,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - Probe trials:
   - Stimulus-only probe.
   - Servo-only probe.
-- Opto trial tags, arbitrary stimulus/spout-in-delay/choice/pre-outcome/reward/post-reward/punish-ITI period combinations, PWM hardware control, Doric pulse settings, trigger settings, and chemo session tagging in separate GUI sections. Opto settings can be changed during the session; the next trial uses the current GUI settings.
+- Opto trial tags, arbitrary stimulus/spout-in-delay/spout-in/pre-outcome/reward/post-reward/punish-ITI period combinations, PWM hardware control, Doric pulse settings, trigger settings, and chemo session tagging in separate GUI sections. Opto settings can be changed during the session; the next trial uses the current GUI settings.
 - Live plots for trial types, blocks, probe/opto, ISI, outcomes, lick rates, reaction time, state timing, and events.
 
 ## GUI Parameter Quick Reference
@@ -106,7 +106,6 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `PreStimDelay` onset through stimulus-play offset.
 - `EnableOptoSpoutInDelay`: if checked, selected opto trials turn on `PWM1` during `SpoutInDelay`.
 - `EnableOptoSpoutIn`: if checked, selected opto trials turn on `PWM1` while the spouts are in and the animal can lick during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
-- `EnableOptoChoice`: if checked, selected opto trials turn on `PWM1` during `PostLickDelay` after a lick is detected.
 - `EnableOptoPreOutcome`: if checked, selected opto trials turn on `PWM1` during the pre-outcome delay before reward or punish servo-out.
 - `EnableOptoReward`: if checked, selected opto trials turn on `PWM1` during `Reward`.
 - `EnableOptoPostReward`: if checked, selected opto trials turn on `PWM1` during `PostRewardDelay`.
@@ -167,4 +166,4 @@ Naive trials use `SpoutInDelay`, `SpoutIn`, `NaiveReward`, and `WaitForCorrectLi
 
 Stimulus-only probes exit from `StimulusDone` directly to `ITI`. Servo-only probes go from `StimulusDone` to `ProbeSpoutIn`, then `ProbeChoiceWindow`, then `ServoOut`, then `ITI`; they do not reward or punish choices.
 
-Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at stimulus-play offset, before `StimulusDone` returns the display and audio to grey/off. `EnableOptoSpoutInDelay` starts at `SpoutInDelay` onset and stops when that state exits. `EnableOptoSpoutIn` starts during the spouts-in choice states. `EnableOptoChoice` starts during `PostLickDelay...` after a lick is detected. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.
+Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at stimulus-play offset, before `StimulusDone` returns the display and audio to grey/off. `EnableOptoSpoutInDelay` starts at `SpoutInDelay` onset and stops when that state exits. `EnableOptoSpoutIn` starts during the spouts-in choice states. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.

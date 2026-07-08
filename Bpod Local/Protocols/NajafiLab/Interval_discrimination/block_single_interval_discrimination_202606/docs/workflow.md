@@ -53,7 +53,7 @@ For each trial:
 8. Update plots.
 9. Return screen to grey.
 
-If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from `PreStimDelay` onset through stimulus-play offset. Spout-in-delay opto spans `SpoutInDelay`. Spout-in opto spans `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`. Choice opto spans the short `PostLickDelay...` state after a lick is detected. Pre-outcome opto spans `PreOutcomeDelay` or `PreOutcomeDelayPunish`. Reward opto spans `Reward`. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`.
+If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from `PreStimDelay` onset through stimulus-play offset. Spout-in-delay opto spans `SpoutInDelay`. Spout-in opto spans `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`. Pre-outcome opto spans `PreOutcomeDelay` or `PreOutcomeDelayPunish`. Reward opto spans `Reward`. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`.
 
 Opto settings are synced at the beginning of each trial. The opto plot shows the initial intended schedule as small dots and the online assigned trial settings as solid squares.
 

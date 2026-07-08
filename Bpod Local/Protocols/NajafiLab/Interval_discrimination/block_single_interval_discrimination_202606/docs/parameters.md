@@ -68,13 +68,12 @@ Short and long trial types each have fixed or uniform random ISI control:
 - `EnableOptoStimulus`: when checked, selected opto trials drive `PWM1` high from `PreStimDelay` onset through stimulus-play offset. This covers pre-stimulus delay plus stimulus playback only.
 - `EnableOptoSpoutInDelay`: when checked, selected opto trials drive `PWM1` high during `SpoutInDelay`.
 - `EnableOptoSpoutIn`: when checked, selected opto trials drive `PWM1` high while the spouts are in and the animal can lick during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
-- `EnableOptoChoice`: when checked, selected opto trials drive `PWM1` high during the short `PostLickDelay...` state after a lick is detected. This is distinct from `EnableOptoSpoutIn`.
 - `EnableOptoPreOutcome`: when checked, selected opto trials drive `PWM1` high during `PreOutcomeDelay` on reward trials and `PreOutcomeDelayPunish` on punish trials.
 - `EnableOptoReward`: when checked, selected opto trials drive `PWM1` high during the `Reward` state.
 - `EnableOptoPostReward`: when checked, selected opto trials drive `PWM1` high during `PostRewardDelay`.
 - `EnableOptoPunishITI`: when checked, selected opto trials drive `PWM1` high during `PunishITI`.
 
-Selected opto trials can enable any combination of the eight periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist. The pulse duration/frequency/duty fields are saved and printed for Doric hardware verification; Bpod still gates `PWM1` by task epoch.
+Selected opto trials can enable any combination of the seven periods. In trained sessions, enabled periods drive `PWM1` high through global timers. In naive sessions, opto output is forced off even if tags exist. The pulse duration/frequency/duty fields are saved and printed for Doric hardware verification; Bpod still gates `PWM1` by task epoch.
 
 Opto settings are synced at the start of every trial. Changing `OptoMode`, `OptoFraction`, `OptoEarlyTrials`, or any period checkbox during a session affects the next trial that has not yet started. Completed trials are not rewritten.
 

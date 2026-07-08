@@ -1,7 +1,7 @@
 function sma = BuildStateMachine(S, stimulusDuration, iti, punishITI, target, probeType, optoType)
 % Build one AV discrimination trial with moving spouts and side choice.
 if nargin < 7 || isempty(optoType)
-    optoType = zeros(8, 1);
+    optoType = zeros(7, 1);
 end
 opto = OptoControl('actions', S, optoType, stimulusOptoDuration(S, stimulusDuration, probeType, optoType), target.ValveTime, punishITI);
 sma = NewStateMatrix();
@@ -185,7 +185,7 @@ function sma = addPostLickDelayState(sma, S, opto, stateName, nextState)
 sma = AddState(sma, 'Name', stateName, ...
     'Timer', S.GUI.PostLickDelay_s, ...
     'StateChangeConditions', {'Tup', nextState}, ...
-    'OutputActions', [opto.SpoutInOff opto.ChoiceStart]);
+    'OutputActions', opto.SpoutInOff);
 end
 
 function duration = stimulusOptoDuration(S, stimulusDuration, probeType, optoType)

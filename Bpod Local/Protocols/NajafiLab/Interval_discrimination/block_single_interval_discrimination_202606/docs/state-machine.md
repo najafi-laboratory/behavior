@@ -81,7 +81,7 @@ ITI
 
 Naive trials deliver reward after spouts move in, then wait for the correct lick.
 
-All `PostLickDelay...` states use `PostLickDelay_s`. If choice opto is enabled, these states start the post-lick choice opto timer.
+All `PostLickDelay...` states use `PostLickDelay_s`. They cancel spout-in opto before the state machine enters the next outcome or change-mind state.
 
 ## Probe Trials
 

@@ -458,7 +458,6 @@ fprintf('%-24s %.3f %%\n', 'Opto duty cycle:', S.GUI.OptoPulseDutyCycle_percent)
 fprintf('%-24s %s\n', 'EnableOptoStimulus:', onOffText(S.GUI.EnableOptoStimulus));
 fprintf('%-24s %s\n', 'EnableOptoSpoutInDelay:', onOffText(S.GUI.EnableOptoSpoutInDelay));
 fprintf('%-24s %s\n', 'EnableOptoSpoutIn:', onOffText(S.GUI.EnableOptoSpoutIn));
-fprintf('%-24s %s\n', 'EnableOptoChoice:', onOffText(S.GUI.EnableOptoChoice));
 fprintf('%-24s %s\n', 'EnableOptoPreOutcome:', onOffText(S.GUI.EnableOptoPreOutcome));
 fprintf('%-24s %s\n', 'EnableOptoReward:', onOffText(S.GUI.EnableOptoReward));
 fprintf('%-24s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
@@ -513,7 +512,7 @@ end
 end
 
 function text = optoPeriodText(optoType)
-labels = {'stimulus', 'spout-in delay', 'spout-in', 'choice', 'pre-outcome', 'reward', 'post-reward', 'punish ITI'};
+labels = {'stimulus', 'spout-in delay', 'spout-in', 'pre-outcome', 'reward', 'post-reward', 'punish ITI'};
 enabled = find(optoType(:)' ~= 0);
 if isempty(enabled)
     text = 'off';
@@ -710,7 +709,7 @@ fprintf('%-28s %s\n', 'Opto mode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.
 fprintf('%-28s %.3f, edge %d, early %d\n', 'Opto fraction/edge/early:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials), round(S.GUI.OptoEarlyTrials));
 fprintf('%-28s type %s, mode %s\n', 'Opto trigger:', popupValue(S.GUIMeta.OptoTriggerType.String, S.GUI.OptoTriggerType), popupValue(S.GUIMeta.OptoTriggerMode.String, S.GUI.OptoTriggerMode));
 fprintf('%-28s %.3f s, %.3f Hz, %.3f %%\n', 'Opto pulse:', S.GUI.OptoPulseTotalDuration_s, S.GUI.OptoPulseFrequency_Hz, S.GUI.OptoPulseDutyCycle_percent);
-fprintf('%-28s stim %s, spout delay %s, spout in %s, choice %s, pre outcome %s, reward %s, post %s, punish %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoSpoutInDelay), onOffText(S.GUI.EnableOptoSpoutIn), onOffText(S.GUI.EnableOptoChoice), onOffText(S.GUI.EnableOptoPreOutcome), onOffText(S.GUI.EnableOptoReward), onOffText(S.GUI.EnableOptoPostReward), onOffText(S.GUI.EnableOptoPunishITI));
+fprintf('%-28s stim %s, spout delay %s, spout in %s, pre outcome %s, reward %s, post %s, punish %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoSpoutInDelay), onOffText(S.GUI.EnableOptoSpoutIn), onOffText(S.GUI.EnableOptoPreOutcome), onOffText(S.GUI.EnableOptoReward), onOffText(S.GUI.EnableOptoPostReward), onOffText(S.GUI.EnableOptoPunishITI));
 fprintf('%-28s %s\n', 'Chemo:', onOffText(S.GUI.ChemoMode));
 fprintf('%-28s %s, %.3f, edge %d\n', 'Probe:', onOffText(S.GUI.ProbeMode), S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials));
 fprintf('%-28s %.3f s, %.3f s\n', 'Spout delay/choice:', S.GUI.SpoutInDelay_s, S.GUI.ChoiceWindow_s);
