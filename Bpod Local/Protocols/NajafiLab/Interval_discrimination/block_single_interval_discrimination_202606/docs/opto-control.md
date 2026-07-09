@@ -8,7 +8,7 @@ Opto control has three independent parts:
 - Period selection: decide which task epochs receive light on selected opto trials.
 - Hardware confirmation: store the Doric trigger and pulse-train settings the user should verify before trials start.
 
-The protocol saves opto as a `7 x nTrials` matrix named `OptoTrialTypes`. Rows are stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish ITI. Columns are trials. A column of all zeros means opto off. A column can contain multiple ones, meaning several periods were enabled for that trial.
+The protocol saves opto as a `7 x nTrials` matrix named `OptoTrialTypes`. Rows are stimulus, spout-in delay, spout-in, pre-outcome, reward, post-reward, and punish ITI. Columns are trials. A column of all zeros means opto off. A column can contain multiple ones, meaning several periods were enabled for that trial.
 
 Opto hardware output uses `PWM1`, labeled as `LED 1` in the event plot. The protocol gates `PWM1` high with Bpod global timers. It does not generate a pulse train; if pulsed light is needed, use downstream hardware to convert the gate.
 
@@ -52,15 +52,15 @@ These store Doric pulse-train settings in the opto GUI. The protocol prints tota
 
 ### `EnableOptoStimulus`
 
-Enables light during the pre-stimulus-to-spout-in epoch on selected opto trials. The timer starts at `PreStimDelay` onset. On normal trials it lasts until the end of `SpoutIn`, so it spans pre-stimulus delay, stimulus, grey screen, spout-in delay, and servo movement. If `EnableOptoSpoutInDelay` is also selected, stimulus opto stops at `SpoutInDelay` onset. On stimulus-only probe trials it lasts through pre-stimulus delay and stimulus. On servo-only probe trials it lasts through `ProbeSpoutIn`.
+Enables light from `PreStimDelay` onset until stimulus-play offset on selected opto trials. This spans the pre-stimulus delay and the visual/audio stimulus playback only. It stops before `StimulusDone` returns the display and audio to grey/off, and it does not extend into `SpoutInDelay`, `SpoutIn`, or probe spout movement.
 
 ### `EnableOptoSpoutInDelay`
 
 Enables light during `SpoutInDelay` on selected opto trials. The timer starts at `SpoutInDelay` onset and lasts for `SpoutInDelay_s`.
 
-### `EnableOptoChoice`
+### `EnableOptoSpoutIn`
 
-Enables light during the actual `ChoiceWindow` on selected opto trials. The timer starts at `ChoiceWindow` onset and is cancelled when the state exits. If the animal makes a choice early, light turns off early. If the animal does not choose, light lasts for `ChoiceWindow_s`.
+Enables light while the spouts are in and the animal can lick on selected opto trials. This covers `ChoiceWindow`, `ProbeChoiceWindow`, and naive `WaitForCorrectLick`.
 
 ### `EnableOptoPreOutcome`
 
@@ -93,7 +93,7 @@ Enables light during `PunishITI` on selected opto trials. The timer starts at `P
 4. Check one or more period boxes:
    - `EnableOptoStimulus`
    - `EnableOptoSpoutInDelay`
-   - `EnableOptoChoice`
+   - `EnableOptoSpoutIn`
    - `EnableOptoPreOutcome`
    - `EnableOptoReward`
    - `EnableOptoPostReward`
@@ -116,13 +116,13 @@ This design lets the user change opto settings during a session without rebuildi
 
 `OptoControl.m` creates seven global timers:
 
-- timer 10: stimulus period
-- timer 11: spout-in-delay period
-- timer 12: choice period
-- timer 13: pre-outcome period
-- timer 14: reward period
-- timer 15: post-reward period
-- timer 16: punish-ITI period
+- timer 9: stimulus period
+- timer 10: spout-in-delay period
+- timer 11: spout-in period
+- timer 12: pre-outcome period
+- timer 13: reward period
+- timer 14: post-reward period
+- timer 15: punish-ITI period
 
 All timers drive `PWM1`. At trial start, the protocol cancels all opto timers and forces `PWM1` low. It also forces opto off at servo-out and ITI; `PunishITI` can then start its own selected opto timer.
 
@@ -135,7 +135,7 @@ The opto period plot has eight rows:
 - `Off`
 - `Stimulus`
 - `SpoutInDelay`
-- `Choice`
+- `SpoutIn`
 - `PreOutcome`
 - `Reward`
 - `PostReward`
@@ -167,7 +167,7 @@ BpodSystem.Data.TrialSettings(trial).GUI.OptoPulseFrequency_Hz
 BpodSystem.Data.TrialSettings(trial).GUI.OptoPulseDutyCycle_percent
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoStimulus
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoSpoutInDelay
-BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoChoice
+BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoSpoutIn
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoPreOutcome
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoReward
 BpodSystem.Data.TrialSettings(trial).GUI.EnableOptoPostReward

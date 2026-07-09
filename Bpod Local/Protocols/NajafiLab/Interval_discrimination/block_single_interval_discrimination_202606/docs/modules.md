@@ -18,7 +18,7 @@ Generates probe trial tags.
 
 ## `GenerateOptoTrials.m`
 
-Creates the initial intended opto schedule as a `7 x nTrials` matrix for stimulus, spout-in delay, choice, pre-outcome, reward, post-reward, and punish-ITI periods.
+Creates the initial intended opto schedule as a `7 x nTrials` matrix for stimulus, spout-in delay, spout-in, pre-outcome, reward, post-reward, and punish-ITI periods.
 
 ## `GenerateOptoTrial.m`
 

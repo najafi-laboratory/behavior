@@ -4,7 +4,7 @@ switch action
     case 'actions'
         opto = buildActions(S, varargin{:});
     case 'display'
-        opto.Labels = {'Off', 'Stimulus', 'SpoutInDelay', 'Choice', 'PreOutcome', 'Reward', 'PostReward', 'PunishITI'};
+        opto.Labels = {'Off', 'Stimulus', 'SpoutInDelay', 'SpoutIn', 'PreOutcome', 'Reward', 'PostReward', 'PunishITI'};
         opto.Colors = [0.70 0.70 0.70; 0.49 0.18 0.56; 0.95 0.45 0.20; 0.93 0.69 0.13; 0.30 0.65 0.88; 0.20 0.50 0.88; 0.18 0.60 0.42; 0.84 0.27 0.22];
     otherwise
         error('Unknown opto action: %s', action)
@@ -24,8 +24,8 @@ opto.Timers = offSpecs(timerIDs);
 opto.StartActions = {'GlobalTimerCancel', cancelAll, 'PWM1', 0};
 opto.StimulusStart = {};
 opto.SpoutInDelayStart = {};
-opto.ChoiceOff = {'GlobalTimerCancel', timerIDs(3), 'PWM1', 0};
-opto.ChoiceStart = {};
+opto.SpoutInOff = {'GlobalTimerCancel', timerIDs(3), 'PWM1', 0};
+opto.SpoutInStart = {};
 opto.PreOutcomeStart = {};
 opto.RewardStart = {};
 opto.PostRewardStart = {};
@@ -42,7 +42,7 @@ if enabled(2)
 end
 if enabled(3)
     opto.Timers(3) = gateSpec(timerIDs(3), S.GUI.ChoiceWindow_s);
-    opto.ChoiceStart = {'GlobalTimerTrig', timerIDs(3)};
+    opto.SpoutInStart = {'GlobalTimerTrig', timerIDs(3)};
 end
 if enabled(4)
     opto.Timers(4) = gateSpec(timerIDs(4), S.GUI.PreOutcomeDelay_s);
@@ -84,7 +84,7 @@ spec = struct( ...
 end
 
 function timerIDs = optoTimerIDs
-timerIDs = [10 11 12 13 14 15 16];
+timerIDs = 9:15;
 end
 
 function mask = timerCancelMask(timerIDs)

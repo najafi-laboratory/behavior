@@ -8,22 +8,14 @@ Run `block_single_interval_discrimination_202606` from the protocol folder. The 
 
 The protocol builds defaults with `ConfigureProtocol`, opens `BpodParameterGUI`, and waits for the first MATLAB Enter prompt. Edit parameters before pressing Enter.
 
-The GUI sections are ordered as:
+The GUI sections are arranged into balanced columns by panel size:
 
-1. Session
-2. Blocks
-3. Stimulus
-4. Audio
-5. ISI
-6. OptoSchedule
-7. OptoHardware
-8. OptoPeriods
-9. Chemo
-10. Probe
-11. Choice
-12. Reward
-13. Servo
-14. ITI
+1. ITI, Chemo
+2. Reward, OptoSchedule, Choice
+3. OptoPeriods, Audio
+4. ISI, Stimulus
+5. Blocks, Probe, Session
+6. OptoHardware, Servo
 
 Blocks, Audio, opto schedule, opto hardware, opto periods, and Chemo have separate panels so the longer session setup is easier to scan.
 
@@ -61,7 +53,7 @@ For each trial:
 8. Update plots.
 9. Return screen to grey.
 
-If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from `PreStimDelay` onset through spout-in offset, unless spout-in-delay opto is also selected. Spout-in-delay opto spans `SpoutInDelay`. Choice opto spans `ChoiceWindow` or `ProbeChoiceWindow`. Pre-outcome opto spans `PreOutcomeDelay` or `PreOutcomeDelayPunish`. Reward opto spans `Reward`. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`.
+If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from `PreStimDelay` onset through stimulus-play offset. Spout-in-delay opto spans `SpoutInDelay`. Spout-in opto spans `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`. Pre-outcome opto spans `PreOutcomeDelay` or `PreOutcomeDelayPunish`. Reward opto spans `Reward`. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`.
 
 Opto settings are synced at the beginning of each trial. The opto plot shows the initial intended schedule as small dots and the online assigned trial settings as solid squares.
 

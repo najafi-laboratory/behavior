@@ -6,7 +6,7 @@ if mode == 1
     return
 end
 
-enabledPeriods = [S.GUI.EnableOptoStimulus; S.GUI.EnableOptoSpoutInDelay; S.GUI.EnableOptoChoice; S.GUI.EnableOptoPreOutcome; S.GUI.EnableOptoReward; S.GUI.EnableOptoPostReward; S.GUI.EnableOptoPunishITI] ~= 0;
+enabledPeriods = [S.GUI.EnableOptoStimulus; S.GUI.EnableOptoSpoutInDelay; S.GUI.EnableOptoSpoutIn; S.GUI.EnableOptoPreOutcome; S.GUI.EnableOptoReward; S.GUI.EnableOptoPostReward; S.GUI.EnableOptoPunishITI] ~= 0;
 if ~any(enabledPeriods)
     return
 end

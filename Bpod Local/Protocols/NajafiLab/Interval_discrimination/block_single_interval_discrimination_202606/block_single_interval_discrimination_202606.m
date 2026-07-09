@@ -432,7 +432,7 @@ end
 if any([S.GUI.ShortISIFixed_s S.GUI.ShortISIMin_s S.GUI.ShortISIMax_s S.GUI.LongISIFixed_s S.GUI.LongISIMin_s S.GUI.LongISIMax_s S.GUI.ManualITI_s S.GUI.ITIMin_s S.GUI.ITIMax_s S.GUI.ITIMean_s S.GUI.ManualPunishITI_s S.GUI.PunishITIMin_s S.GUI.PunishITIMax_s S.GUI.PunishITIMean_s] < 0)
     error('ISI and ITI values cannot be negative.')
 end
-if any([S.GUI.PreStimDelay_s S.GUI.SpoutInDelay_s S.GUI.ChoiceWindow_s S.GUI.ChangeMindWindow_s S.GUI.PreOutcomeDelay_s S.GUI.PostRewardDelay_s S.GUI.ServoMoveDelay_s S.GUI.ServoReturnTimeout_s] < 0)
+if any([S.GUI.PreStimDelay_s S.GUI.SpoutInDelay_s S.GUI.ChoiceWindow_s S.GUI.PostLickDelay_s S.GUI.ChangeMindWindow_s S.GUI.PreOutcomeDelay_s S.GUI.PostRewardDelay_s S.GUI.ServoMoveDelay_s S.GUI.ServoReturnTimeout_s] < 0)
     error('Stimulus, choice, outcome, reward, and servo timing values cannot be negative.')
 end
 if S.GUI.LeftRewardAmount_uL < 0 || S.GUI.RightRewardAmount_uL < 0
@@ -457,7 +457,7 @@ fprintf('%-24s %.3f Hz\n', 'Opto frequency:', S.GUI.OptoPulseFrequency_Hz);
 fprintf('%-24s %.3f %%\n', 'Opto duty cycle:', S.GUI.OptoPulseDutyCycle_percent);
 fprintf('%-24s %s\n', 'EnableOptoStimulus:', onOffText(S.GUI.EnableOptoStimulus));
 fprintf('%-24s %s\n', 'EnableOptoSpoutInDelay:', onOffText(S.GUI.EnableOptoSpoutInDelay));
-fprintf('%-24s %s\n', 'EnableOptoChoice:', onOffText(S.GUI.EnableOptoChoice));
+fprintf('%-24s %s\n', 'EnableOptoSpoutIn:', onOffText(S.GUI.EnableOptoSpoutIn));
 fprintf('%-24s %s\n', 'EnableOptoPreOutcome:', onOffText(S.GUI.EnableOptoPreOutcome));
 fprintf('%-24s %s\n', 'EnableOptoReward:', onOffText(S.GUI.EnableOptoReward));
 fprintf('%-24s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
@@ -512,7 +512,7 @@ end
 end
 
 function text = optoPeriodText(optoType)
-labels = {'stimulus', 'spout-in delay', 'choice', 'pre-outcome', 'reward', 'post-reward', 'punish ITI'};
+labels = {'stimulus', 'spout-in delay', 'spout-in', 'pre-outcome', 'reward', 'post-reward', 'punish ITI'};
 enabled = find(optoType(:)' ~= 0);
 if isempty(enabled)
     text = 'off';
@@ -709,10 +709,11 @@ fprintf('%-28s %s\n', 'Opto mode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.
 fprintf('%-28s %.3f, edge %d, early %d\n', 'Opto fraction/edge/early:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials), round(S.GUI.OptoEarlyTrials));
 fprintf('%-28s type %s, mode %s\n', 'Opto trigger:', popupValue(S.GUIMeta.OptoTriggerType.String, S.GUI.OptoTriggerType), popupValue(S.GUIMeta.OptoTriggerMode.String, S.GUI.OptoTriggerMode));
 fprintf('%-28s %.3f s, %.3f Hz, %.3f %%\n', 'Opto pulse:', S.GUI.OptoPulseTotalDuration_s, S.GUI.OptoPulseFrequency_Hz, S.GUI.OptoPulseDutyCycle_percent);
-fprintf('%-28s stim %s, spout delay %s, choice %s, pre outcome %s, reward %s, post %s, punish %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoSpoutInDelay), onOffText(S.GUI.EnableOptoChoice), onOffText(S.GUI.EnableOptoPreOutcome), onOffText(S.GUI.EnableOptoReward), onOffText(S.GUI.EnableOptoPostReward), onOffText(S.GUI.EnableOptoPunishITI));
+fprintf('%-28s stim %s, spout delay %s, spout in %s, pre outcome %s, reward %s, post %s, punish %s\n', 'Opto periods:', onOffText(S.GUI.EnableOptoStimulus), onOffText(S.GUI.EnableOptoSpoutInDelay), onOffText(S.GUI.EnableOptoSpoutIn), onOffText(S.GUI.EnableOptoPreOutcome), onOffText(S.GUI.EnableOptoReward), onOffText(S.GUI.EnableOptoPostReward), onOffText(S.GUI.EnableOptoPunishITI));
 fprintf('%-28s %s\n', 'Chemo:', onOffText(S.GUI.ChemoMode));
 fprintf('%-28s %s, %.3f, edge %d\n', 'Probe:', onOffText(S.GUI.ProbeMode), S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials));
 fprintf('%-28s %.3f s, %.3f s\n', 'Spout delay/choice:', S.GUI.SpoutInDelay_s, S.GUI.ChoiceWindow_s);
+fprintf('%-28s %.3f s\n', 'Post lick delay:', S.GUI.PostLickDelay_s);
 fprintf('%-28s %s, %.3f s\n', 'Change mind:', onOffText(S.GUI.AllowChangeMind), S.GUI.ChangeMindWindow_s);
 fprintf('%-28s %.3f s, %.3f s\n', 'Pre outcome/post reward:', S.GUI.PreOutcomeDelay_s, S.GUI.PostRewardDelay_s);
 fprintf('%-28s %.3f uL, %.3f uL\n', 'Left/right reward:', S.GUI.LeftRewardAmount_uL, S.GUI.RightRewardAmount_uL);

@@ -63,7 +63,7 @@ Rows are:
 
 - `1`: stimulus period.
 - `2`: spout-in-delay period.
-- `3`: choice period.
+- `3`: spout-in period.
 - `4`: pre-outcome period.
 - `5`: reward period.
 - `6`: post-reward period.
@@ -84,9 +84,9 @@ Each column is one trial. The session starts with an intended opto schedule. Whe
 
 `OptoControl.m` creates seven Bpod global timers, all driving `PWM1`.
 
-- Stimulus opto starts at `PreStimDelay` onset and lasts through the end of `SpoutIn` on normal trials. If spout-in-delay opto is also selected, stimulus opto stops at `SpoutInDelay` onset. On stimulus-only probes it lasts through the pre-stimulus delay and stimulus. On servo-only probes it lasts through `ProbeSpoutIn`.
+- Stimulus opto starts at `PreStimDelay` onset and lasts until stimulus-play offset. It covers pre-stimulus delay plus stimulus playback only on normal, stimulus-only probe, and servo-only probe trials.
 - Spout-in-delay opto starts at `SpoutInDelay` onset and lasts for `SpoutInDelay_s`.
-- Choice opto starts at `ChoiceWindow` onset and is cancelled when `ChoiceWindow` exits. If no lick occurs, it lasts for `ChoiceWindow_s`.
+- Spout-in opto starts during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
 - Pre-outcome opto starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and lasts for `PreOutcomeDelay_s`.
 - Reward opto starts at `Reward` onset and lasts for the valve-open reward duration.
 - Post-reward opto starts at `PostRewardDelay` onset and lasts for `PostRewardDelay_s`.

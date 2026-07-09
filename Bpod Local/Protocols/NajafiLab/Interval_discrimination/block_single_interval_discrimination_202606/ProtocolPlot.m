@@ -728,11 +728,7 @@ end
 states = rawTrial.States;
 if optoType(1)
     startTime = stateStart(states, 'PreStimDelay');
-    if numel(optoType) >= 2 && optoType(2)
-        stopTime = firstFinite([stateStart(states, 'SpoutInDelay') stateEnd(states, 'ProbeSpoutIn') stateEnd(states, 'AudStimTrigger')]);
-    else
-        stopTime = firstFinite([stateEnd(states, 'SpoutIn') stateEnd(states, 'ProbeSpoutIn') stateEnd(states, 'AudStimTrigger')]);
-    end
+    stopTime = stateEnd(states, 'AudStimTrigger');
     intervals = appendInterval(intervals, startTime, stopTime, duration);
 end
 if numel(optoType) >= 2 && optoType(2)
@@ -741,6 +737,7 @@ end
 if numel(optoType) >= 3 && optoType(3)
     intervals = appendInterval(intervals, stateStart(states, 'ChoiceWindow'), stateEnd(states, 'ChoiceWindow'), duration);
     intervals = appendInterval(intervals, stateStart(states, 'ProbeChoiceWindow'), stateEnd(states, 'ProbeChoiceWindow'), duration);
+    intervals = appendInterval(intervals, stateStart(states, 'WaitForCorrectLick'), stateEnd(states, 'WaitForCorrectLick'), duration);
 end
 if numel(optoType) >= 4 && optoType(4)
     intervals = appendInterval(intervals, stateStart(states, 'PreOutcomeDelay'), stateEnd(states, 'PreOutcomeDelay'), duration);

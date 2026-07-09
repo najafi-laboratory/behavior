@@ -10,7 +10,7 @@ Plots include:
 - ISI values, updated trial by trial.
 - Block type.
 - Probe type.
-- Opto period raster with separate off, stimulus, spout-in-delay, choice, pre-outcome, reward, post-reward, and punish-ITI rows. Future trials show the initial intended schedule as small dots; each trial is overwritten with the actual opto settings when it is assigned after GUI sync.
+- Opto period raster with separate off, stimulus, spout-in-delay, spout-in, pre-outcome, reward, post-reward, and punish-ITI rows. Future trials show the initial intended schedule as small dots; each trial is overwritten with the actual opto settings when it is assigned after GUI sync.
 - Outcome percentage by trial type.
 - Outcome percentage by block and trial type.
 - Lick density for short and long trials.
