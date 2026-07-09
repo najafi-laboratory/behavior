@@ -844,7 +844,8 @@ try
         % TimerID mapping:
         % 1 → LED (PWM3)
         % 2 → AirPuff (Valve1)
-        % 3 → Camera Trigger (BNC1)
+        % 3 → Camera Trigger (BNC1) (deprecated, now uses arduino), Is now
+        % trial Start sync signal
         % 4 → Opto (BNC2)
 
         sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', S.GUI.LED_Dur, 'OnsetDelay', S.GUI.LED_OnsetDelay,...
