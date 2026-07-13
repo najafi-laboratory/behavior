@@ -247,7 +247,7 @@ Builds Bpod global timer actions for selected opto periods. The seven periods ar
 
 - Stimulus: from `PreStimDelay` onset through stimulus-play offset.
 - Spout-in delay: during `SpoutInDelay`.
-- Spout-in: during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
+- Spout-in: during trained `ChoiceWindow` or `ProbeChoiceWindow`; naive state machines do not configure opto timers.
 - Pre-outcome: during `PreOutcomeDelay` or `PreOutcomeDelayPunish`.
 - Reward: during `Reward`.
 - Post-reward: during `PostRewardDelay`.
@@ -311,25 +311,37 @@ Creates the Bpod state machine for one trial. It defines stimulus playback, grey
 
 Chooses the state after stimulus. Stimulus-only probes go directly to ITI; normal and servo-only trials continue toward spout movement.
 
-### `nextAfterSpoutIn(S)`
+### `nextAfterSpoutIn(isNaive)`
 
-Chooses the state after the spout-in command. Naive mode proceeds to auto-reward logic; trained mode proceeds to the choice window.
+Chooses the state after the spout-in command. Naive mode proceeds to `NaiveWaterDelivery`; trained mode proceeds directly to `ChoiceWindow`.
 
-### `addNaiveStates(sma, S, target, opto)`
+### `nextAfterPunishServo(isNaive)`
 
-Adds the naive workflow: spout in, water delivery, wait for correct lick, post-reward delay, spout out, ITI. Naive mode is designed for shaping, so it does not punish wrong choices the same way trained mode does.
+Chooses the destination after `ServoOutPunish`: `NaivePunishOutcome` for naive trials or `PunishITI` for trained trials.
 
-### `addTrainedStates(sma, S, target, opto)`
+### `addChoiceStates(sma, S, target, opto, isNaive)`
 
-Adds the trained workflow: spout in, choice window, reward path for correct choices, wrong-side path for incorrect choices, optional change-of-mind rescue, punish ITI, and final ITI.
+Adds the shared `ChoiceWindow`. When `AllowChangeMind` is enabled, it also adds the shared trained `ChangeMindWindow`; otherwise those change-of-mind states are omitted.
 
-### `addPostLickDelayStates(sma, S, opto)`
+### `addPostLickDelayStates(sma, S, opto, isNaive)`
 
-Adds the short post-lick delay states used after detected licks. Correct, punish, change-mind, and naive post-reward lick paths each pass through a `PostLickDelay...` state for `PostLickDelay_s` before entering the previous next state.
+Adds the shared correct and incorrect post-lick delays and, when enabled, the shared change-of-mind delay. Their destinations are selected for the naive or trained outcome path.
 
-### `stimulusOptoDuration(S, stimulusDuration, probeType, optoType)`
+### `addNaiveOutcomeStates(sma, target)`
+
+Adds only the three naive-specific states: pre-choice `NaiveWaterDelivery`, `NaiveRewardOutcome`, and `NaivePunishOutcome`.
+
+### `addTrainedOutcomeStates(sma, S, target, opto)`
+
+Adds the trained pre-outcome, reward-delivery, and punish-delay states.
+
+### `stimulusOptoDuration(S, stimulusDuration)`
 
 Computes the stimulus-period opto duration. This period is `PreStimDelay_s + stimulusDuration`, so it starts at `PreStimDelay` onset and ends at stimulus-play offset for normal, stimulus-only probe, and servo-only probe trials.
+
+### `noOptoActions`
+
+Returns empty action fields for shared state construction without adding any opto timers or output actions to naive trials.
 
 ## `SoftCodeHandler_BlockSingleInterval.m`
 

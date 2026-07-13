@@ -60,7 +60,7 @@ Enables light during `SpoutInDelay` on selected opto trials. The timer starts at
 
 ### `EnableOptoSpoutIn`
 
-Enables light while the spouts are in and the animal can lick on selected opto trials. This covers `ChoiceWindow`, `ProbeChoiceWindow`, and naive `WaitForCorrectLick`.
+Enables light while the spouts are in and the animal can lick on selected trained opto trials. This covers `ChoiceWindow` and `ProbeChoiceWindow`; naive state machines omit opto timers/actions.
 
 ### `EnableOptoPreOutcome`
 
@@ -126,7 +126,7 @@ This design lets the user change opto settings during a session without rebuildi
 
 All timers drive `PWM1`. At trial start, the protocol cancels all opto timers and forces `PWM1` low. It also forces opto off at servo-out and ITI; `PunishITI` can then start its own selected opto timer.
 
-Naive sessions force opto off in the state machine. Opto tags may still be saved, but no `PWM1` light is delivered in naive mode.
+Naive sessions generate zero opto assignments, skip the Doric confirmation prompt, and contain no opto timers or output actions in the state machine.
 
 ## Plots
 

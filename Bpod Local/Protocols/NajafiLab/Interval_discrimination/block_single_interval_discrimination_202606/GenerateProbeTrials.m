@@ -2,7 +2,7 @@ function probeTypes = GenerateProbeTrials(S, blockTypes)
 % Generate tag-only probe trial types: 0 off, 1 stimulus only, 2 servo only.
 nTrials = round(S.GUI.MaxTrials);
 probeTypes = zeros(1, nTrials);
-if ~S.GUI.ProbeMode
+if S.GUI.TrainingMode == 1 || ~S.GUI.ProbeMode
     return
 end
 

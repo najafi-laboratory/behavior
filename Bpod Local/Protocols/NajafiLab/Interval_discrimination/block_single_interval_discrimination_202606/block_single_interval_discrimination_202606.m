@@ -58,6 +58,12 @@ while currentTrial <= round(S.GUI.MaxTrials)
     blockType = blockTypes(currentTrial);
     probeType = probeTypes(currentTrial);
     optoType = GenerateOptoTrial(S, blockTypes, blockStarts, blockEnds, currentTrial);
+    if S.GUI.TrainingMode == 1
+        probeType = 0;
+        optoType = zeros(7, 1);
+        probeTypes(currentTrial) = 0;
+        BpodSystem.Data.PlannedProbeTrialTypes(currentTrial) = 0;
+    end
     optoTypes(:, currentTrial) = optoType;
     BpodSystem.Data.PlannedOptoTrialTypes(:, currentTrial) = optoType;
     BpodSystem.Data.AssignedOptoTrialCount = currentTrial;
@@ -448,6 +454,9 @@ end
 
 function confirmDoricOptoSettings(S)
 % Ask the user to verify external Doric opto settings before hardware starts.
+if S.GUI.TrainingMode == 1
+    return
+end
 fprintf('\nDoric opto settings\n');
 fprintf('%-24s %s\n', 'OptoMode:', popupValue(S.GUIMeta.OptoMode.String, S.GUI.OptoMode));
 fprintf('%-24s %s\n', 'OptoTriggerType:', popupValue(S.GUIMeta.OptoTriggerType.String, S.GUI.OptoTriggerType));
@@ -580,9 +589,9 @@ if probeType > 0
     outcome = 0;
 elseif eventInState(rawEvents, target.IncorrectLick, 'ChoiceWindow') && eventInState(rawEvents, target.CorrectLick, 'ChangeMindWindow')
     outcome = 4;
-elseif stateVisited(states, 'Reward') || stateVisited(states, 'NaiveReward') || stateVisited(states, 'PreOutcomeDelay') || stateVisited(states, 'PostRewardDelay')
+elseif stateVisited(states, 'NaiveRewardOutcome') || stateVisited(states, 'Reward') || stateVisited(states, 'PreOutcomeDelay') || stateVisited(states, 'PostRewardDelay')
     outcome = 1;
-elseif eventInState(rawEvents, target.IncorrectLick, 'ChoiceWindow') || eventInState(rawEvents, target.IncorrectLick, 'ChangeMindWindow') || stateVisited(states, 'ChangeMindWindow')
+elseif stateVisited(states, 'NaivePunishOutcome') || eventInState(rawEvents, target.IncorrectLick, 'ChoiceWindow') || eventInState(rawEvents, target.IncorrectLick, 'ChangeMindWindow') || stateVisited(states, 'ChangeMindWindow')
     outcome = 2;
 else
     outcome = 3;
