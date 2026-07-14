@@ -1,6 +1,9 @@
 function optoType = GenerateOptoTrial(S, blockTypes, blockStarts, blockEnds, trial)
 % Generate one opto column using current GUI settings.
 optoType = zeros(7, 1);
+if S.GUI.TrainingMode == 1
+    return
+end
 mode = round(S.GUI.OptoMode);
 if mode == 1
     return

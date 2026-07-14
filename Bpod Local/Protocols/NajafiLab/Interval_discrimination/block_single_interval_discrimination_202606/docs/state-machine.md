@@ -28,7 +28,7 @@ ChoiceWindow
 
 `SpoutIn` sends the servo-in soft code at state onset. It transitions only on `Tup`, so `ChoiceWindow` begins after `ServoMoveDelay_s`, not at servo command onset.
 
-If spout-in-delay opto is enabled, `SpoutInDelay` starts a global timer for `SpoutInDelay_s`. If spout-in opto is enabled, `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick` starts a global timer for the spouts-in lick window. `PreOutcomeDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual spouts-in window offset.
+If spout-in-delay opto is enabled, `SpoutInDelay` starts a global timer for `SpoutInDelay_s`. If spout-in opto is enabled, `ChoiceWindow` or `ProbeChoiceWindow` starts a global timer for the spouts-in lick window. `PreOutcomeDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual spouts-in window offset.
 
 Correct lick:
 
@@ -68,18 +68,37 @@ If the correct side is licked during `ChangeMindWindow`, the trial enters `PostL
 
 ## Naive Trial
 
+Naive trials auto-deliver water before the shared choice window:
+
 ```text
 SpoutInDelay
 SpoutIn
-NaiveReward
-WaitForCorrectLick
-PostLickDelayPostReward
+NaiveWaterDelivery
+ChoiceWindow
+```
+
+A correct lick uses the shared post-lick delay, then records the naive reward outcome:
+
+```text
+PostLickDelayReward
+NaiveRewardOutcome
 PostRewardDelay
 ServoOut
 ITI
 ```
 
-Naive trials deliver reward after spouts move in, then wait for the correct lick.
+With `AllowChangeMind` off, an incorrect lick moves the spouts out before recording the naive punish outcome:
+
+```text
+PostLickDelayPunish
+ServoOutPunish
+NaivePunishOutcome
+ITI
+```
+
+With `AllowChangeMind` on, an incorrect lick reuses the trained `PostLickDelayChangeMind` and `ChangeMindWindow` states. A correct lick during that window follows the naive reward-outcome path; timeout follows the naive spout-out and punish-outcome path.
+
+Naive state machines force the normal path after `StimulusDone`, omit `ProbeSpoutIn` and `ProbeChoiceWindow`, and contain no opto global timers or opto output actions.
 
 All `PostLickDelay...` states use `PostLickDelay_s`. They cancel spout-in opto before the state machine enters the next outcome or change-mind state.
 

@@ -4,6 +4,10 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 
 ## Update note
 
+### 2026.07.13
+- Corrected the naive workflow: water is delivered before the shared choice window, correct and incorrect choices enter explicit naive outcome states, and optional change-of-mind reuses the trained branch.
+- Naive state machines contain no probe states or opto timers/actions.
+
 ### 2026.07.07
 - Changed opto choice to opto spout in.
 - Removed opto choice.
@@ -59,7 +63,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 ### Session
 
 - `MaxTrials`: maximum session length.
-- `TrainingMode`: naive auto-reward workflow or trained choice workflow.
+- `TrainingMode`: naive shaping delivers water before choice; trained mode delivers reward after a correct choice. Both reuse the same choice and optional change-of-mind states. Naive state machines disable probe and opto behavior.
 - `Contingency`: maps short/long trials to left/right target sides.
 - `BlockNum`: block structure: 50/50 only, alternating short/long majority, or 50/50/short/long without repeats.
 - `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block; can be `0`.
@@ -105,7 +109,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 
 - `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `PreStimDelay` onset through stimulus-play offset.
 - `EnableOptoSpoutInDelay`: if checked, selected opto trials turn on `PWM1` during `SpoutInDelay`.
-- `EnableOptoSpoutIn`: if checked, selected opto trials turn on `PWM1` while the spouts are in and the animal can lick during `ChoiceWindow`, `ProbeChoiceWindow`, or naive `WaitForCorrectLick`.
+- `EnableOptoSpoutIn`: if checked, selected trained opto trials turn on `PWM1` while the spouts are in and the animal can lick during `ChoiceWindow` or `ProbeChoiceWindow`.
 - `EnableOptoPreOutcome`: if checked, selected opto trials turn on `PWM1` during the pre-outcome delay before reward or punish servo-out.
 - `EnableOptoReward`: if checked, selected opto trials turn on `PWM1` during `Reward`.
 - `EnableOptoPostReward`: if checked, selected opto trials turn on `PWM1` during `PostRewardDelay`.
@@ -162,8 +166,8 @@ Every trial starts with `Start`, `PreStimDelay`, `VisStimTrigger`, `AudStimTrigg
 
 Normal trained trials then go through `SpoutInDelay`, `SpoutIn`, and `ChoiceWindow`. A correct lick enters `PostLickDelayReward`, then `PreOutcomeDelay`, then `Reward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`. A wrong lick enters `PostLickDelayPunish`, then `PreOutcomeDelayPunish`, then `ServoOutPunish`, then `PunishITI`, then `ITI`. If `AllowChangeMind` is on, a wrong lick enters `PostLickDelayChangeMind`, then `ChangeMindWindow`; a correct lick there follows the reward path through `PostLickDelayReward`, and timeout follows the punish path. Timeout in `ChoiceWindow` also follows the punish path without a post-lick delay.
 
-Naive trials use `SpoutInDelay`, `SpoutIn`, `NaiveReward`, and `WaitForCorrectLick`. A correct lick during `WaitForCorrectLick` enters `PostLickDelayPostReward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`; timeout moves the spouts out and enters `ITI`.
+Naive trials go through `SpoutInDelay`, `SpoutIn`, and `NaiveWaterDelivery` before entering the shared `ChoiceWindow`. A correct lick passes through `PostLickDelayReward` to `NaiveRewardOutcome`, `PostRewardDelay`, `ServoOut`, and `ITI`. With change-of-mind off, an incorrect lick passes through `PostLickDelayPunish`, `ServoOutPunish`, and `NaivePunishOutcome` to `ITI`. With `AllowChangeMind` on, the incorrect lick instead uses the trained `PostLickDelayChangeMind` and `ChangeMindWindow` branch; a correction reaches `NaiveRewardOutcome`, while timeout reaches the naive punish path. Naive state machines omit probe states and all opto timers/actions.
 
 Stimulus-only probes exit from `StimulusDone` directly to `ITI`. Servo-only probes go from `StimulusDone` to `ProbeSpoutIn`, then `ProbeChoiceWindow`, then `ServoOut`, then `ITI`; they do not reward or punish choices.
 
-Opto periods are selected independently on trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at stimulus-play offset, before `StimulusDone` returns the display and audio to grey/off. `EnableOptoSpoutInDelay` starts at `SpoutInDelay` onset and stops when that state exits. `EnableOptoSpoutIn` starts during the spouts-in choice states. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions save opto tags but force `PWM1` off.
+Opto periods are selected independently on trained trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at stimulus-play offset, before `StimulusDone` returns the display and audio to grey/off. `EnableOptoSpoutInDelay` starts at `SpoutInDelay` onset and stops when that state exits. `EnableOptoSpoutIn` starts during the spouts-in choice states. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions generate zero probe/opto assignments and omit probe states and opto timers/actions from the state machine.

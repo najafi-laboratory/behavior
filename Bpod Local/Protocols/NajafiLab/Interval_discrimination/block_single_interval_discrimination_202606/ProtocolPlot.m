@@ -737,7 +737,6 @@ end
 if numel(optoType) >= 3 && optoType(3)
     intervals = appendInterval(intervals, stateStart(states, 'ChoiceWindow'), stateEnd(states, 'ChoiceWindow'), duration);
     intervals = appendInterval(intervals, stateStart(states, 'ProbeChoiceWindow'), stateEnd(states, 'ProbeChoiceWindow'), duration);
-    intervals = appendInterval(intervals, stateStart(states, 'WaitForCorrectLick'), stateEnd(states, 'WaitForCorrectLick'), duration);
 end
 if numel(optoType) >= 4 && optoType(4)
     intervals = appendInterval(intervals, stateStart(states, 'PreOutcomeDelay'), stateEnd(states, 'PreOutcomeDelay'), duration);

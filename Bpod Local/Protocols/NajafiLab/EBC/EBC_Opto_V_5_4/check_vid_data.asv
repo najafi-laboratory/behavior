@@ -1,0 +1,22 @@
+
+
+
+
+
+SessionData.vidTime;
+
+SessionData.vidMetadata;
+
+
+
+
+numMissingFrames = SessionData.TriggerPulseCount - SessionData.FramesAcquired;
+
+time_diff = diff(SessionData.vidTime);
+
+where(time_diff == max(time_diff))
+where(time_diff == max(time_diff))
+
+
+
+[~, idx]

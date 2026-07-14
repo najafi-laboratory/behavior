@@ -1,0 +1,430 @@
+-----------------------------------------------------------------------------------------------------
+MATLAB Version: 23.2.0.2365128 (R2023b)
+MATLAB License Number: 621625
+Operating System: Microsoft Windows 11 Enterprise Version 10.0 (Build 22631)
+Java Version: Java 1.8.0_202-b08 with Oracle Corporation Java HotSpot(TM) 64-Bit Server VM mixed mode
+-----------------------------------------------------------------------------------------------------
+Image Acquisition Toolbox                             Version 23.2        (R2023b)
+
+----------SUPPORT PACKAGE DIAGNOSTICS----------
+
+                               Name                                Version       Base Product       
+------------------------------------------------------------------ ------- -------------------------
+Image Acquisition Toolbox Support Package for GenICam Interface    23.2.0  Image Acquisition Toolbox
+Image Acquisition Toolbox Support Package for GigE Vision Hardware 23.2.0  Image Acquisition Toolbox
+MATLAB Support for MinGW-w64 C/C++ Compiler                        23.2.0
+Image Acquisition Toolbox Support Package for Point Grey Hardware  23.2.0  Image Acquisition Toolbox
+
+
+
+----------DATE/TIME----------
+
+18-Dec-2025 19:31:15
+
+
+----------DIRECTX----------
+
+DirectX Version: OS Generic Video Support Package not installed
+
+
+----------STAND ALONE HARDWARE DETECTION----------
+
+Hardware detection application for the R2023b version of Image Acquisition Toolbox.
+
+Detecting hardware for the winvideo adaptor.
+
+	Found device: Point Grey Camera
+		Found format: RGB32_640x512
+		Found format: RGB24_640x512
+		Found format: YUY2_640x512
+		Found format: UYVY_640x512
+		Found format: RW08_640x512
+		Found format: RGB32_1280x960
+		Found format: RGB24_1280x960
+		Found format: YUY2_1280x960
+		Found format: UYVY_1280x960
+		Found format: RW08_1280x960
+		Found format: RGB32_1280x720
+		Found format: RGB24_1280x720
+		Found format: YUY2_1280x720
+		Found format: UYVY_1280x720
+		Found format: RGB32_1280x720
+		Found format: RGB24_1280x720
+		Found format: YUY2_1280x720
+		Found format: UYVY_1280x720
+		Found format: RGB32_1024x768
+		Found format: RGB24_1024x768
+		Found format: YUY2_1024x768
+		Found format: UYVY_1024x768
+		Found format: RW08_1024x768
+		Found format: RGB32_800x600
+		Found format: RGB24_800x600
+		Found format: YUY2_800x600
+		Found format: UYVY_800x600
+		Found format: RW08_800x600
+		Found format: RGB32_640x480
+		Found format: RGB24_640x480
+		Found format: YUY2_640x480
+		Found format: UYVY_640x480
+		Found format: RW08_640x480
+		Found format: RGB32_320x240
+		Found format: RGB24_320x240
+		Found format: YUY2_320x240
+		Found format: UYVY_320x240
+		Found format: RW08_320x240
+		Found format: RGB32_160x120
+		Found format: RGB24_160x120
+		Found format: YUY2_160x120
+		Found format: UYVY_160x120
+		Found format: RW08_160x120
+
+Unable to run the detector for the dcam.  The error was: 
+	The specified module could not be found.
+
+
+
+----------AVAILABLE HARDWARE----------
+
+    InstalledAdaptors: {'gentl'  'gige'  'pointgrey'}
+        MATLABVersion: '23.2 (R2023b)'
+          ToolboxName: 'Image Acquisition Toolbox'
+       ToolboxVersion: '23.2 (R2023b)'
+
+
+----------THIRD PARTY ADAPTORS REGISTERED WITH IMAQREGISTER----------
+
+
+ans =
+
+  0×1 empty <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+
+----------GENTL ADAPTOR----------
+
+Adaptor Name: gentl
+Adaptor DLL: C:\ProgramData\MATLAB\SupportPackages\R2023b\toolbox\imaq\supportpackages\gentl\adaptor\win64\mwgentlimaq.dll
+
+IMAQHWINFO: 
+       AdaptorDllName: 'C:\ProgramData\MATLAB\SupportPackages\R2023b\toolbox\imaq\supportpackages\gentl\adaptor\win64\mwgentlimaq.dll'
+    AdaptorDllVersion: '23.2 (R2023b)'
+          AdaptorName: 'gentl'
+            DeviceIDs: {[1]}
+           DeviceInfo: [1×1 struct]
+
+
+Available Devices: 
+
+	Device Name: Point Grey Research Chameleon3 CM3-U3-13Y3M
+	Device ID: 1
+	Device File Supported: 0
+	Default Format: Mono8
+	Supported Formats: 
+
+    {'Mono12Packed'}
+    {'Mono16'      }
+    {'Mono8'       }
+
+
+----------GIGE ADAPTOR----------
+
+Adaptor Name: gige
+Adaptor DLL: C:\ProgramData\MATLAB\SupportPackages\R2023b\toolbox\imaq\supportpackages\gige\adaptor\win64\mwgigeimaq.dll
+
+IMAQHWINFO: 
+[Warning: No devices were detected for the 'gige' adaptor. For troubleshooting configuration issues, see <a href="matlab: helpview('imaq','ts_gigeQuickStart');">Quick Start
+Guide</a>. For troubleshooting device detection issues, click <a href="matlab: helpview('imaq','ts_gige');">here</a>.] 
+       AdaptorDllName: 'C:\ProgramData\MATLAB\SupportPackages\R2023b\toolbox\imaq\supportpackages\gige\adaptor\win64\mwgigeimaq.dll'
+    AdaptorDllVersion: '23.2 (R2023b)'
+          AdaptorName: 'gige'
+            DeviceIDs: {1×0 cell}
+           DeviceInfo: [1×0 struct]
+
+
+Available Devices: 
+
+----------POINTGREY ADAPTOR----------
+
+Adaptor Name: pointgrey
+Adaptor DLL: C:\ProgramData\MATLAB\SupportPackages\R2023b\toolbox\imaq\supportpackages\pointgrey\adaptor\win64\mwpointgreyimaq.dll
+
+IMAQHWINFO: 
+       AdaptorDllName: 'C:\ProgramData\MATLAB\SupportPackages\R2023b\toolbox\imaq\supportpackages\pointgrey\adaptor\win64\mwpointgreyimaq.dll'
+    AdaptorDllVersion: '23.2 (R2023b)'
+          AdaptorName: 'pointgrey'
+            DeviceIDs: {[1]}
+           DeviceInfo: [1×1 struct]
+
+
+Available Devices: 
+
+	Device Name: Chameleon3 CM3-U3-13Y3M
+	Device ID: 1
+	Device File Supported: 0
+	Default Format: F7_Mono16_640x512_Mode1
+	Supported Formats: 
+
+    {'F7_Mono12_1280x1024_Mode0'}
+    {'F7_Mono12_640x512_Mode1'  }
+    {'F7_Mono16_1280x1024_Mode0'}
+    {'F7_Mono16_640x512_Mode1'  }
+    {'F7_Mono8_1280x1024_Mode0' }
+    {'F7_Mono8_640x512_Mode1'   }
+    {'F7_Raw8_1280x1024_Mode0'  }
+    {'F7_Raw8_640x512_Mode1'    }
+
+
+
+----------EXISTING VIDEOINPUT OBJECT DISPLAY----------
+
+
+----------VIDEOINPUT OBJECT CREATION - GENTL----------
+
+videoinput('gentl', 1, 'Mono12Packed')--SUCCEEDED
+	Adaptor Name: gentl
+	Device Name: Point Grey Research Chameleon3 CM3-U3-13Y3M
+	Device ID: 1
+	VideoFormat: Mono12Packed
+	Max Height: 512
+	Max Width: 640
+	Native Data Type: uint16
+	Total Sources: 1
+	Vendor Driver Description: Image Acquisition Toolbox GenTL Adaptor with FLIR Mixed GenTL Producer
+	Vendor Driver Version: 1.0.LIBRARY_BUILD_DATE_STRING with FLIR Systems, Inc. 2.4.0.144
+
+Trigger information (using TRIGGERINFO): 
+
+   Valid Trigger Configurations:
+
+      TriggerType:   TriggerCondition:   TriggerSource:   
+      'immediate'    'none'              'none'           
+      'manual'       'none'              'none'           
+      'hardware'     'DeviceSpecific'    'DeviceSpecific' 
+
+Current device specific property settings (using GET)
+      General Settings:
+        Parent = [1x1 videoinput]
+        Selected = on
+        SourceName = 0
+        Tag = [0x0 string]
+        Type = videosource
+
+      Device Specific Properties:
+        AccessPrivilegeAvailable = False
+        AcquisitionFrameCount = (Currently not accessible)
+        AcquisitionFrameRate = 93.0627
+        AcquisitionFrameRateAuto = Off
+        AcquisitionFrameRateEnabled = True
+        AcquisitionStatusSelector = FrameTriggerWait
+        ActivePageNumber = 0
+        ActivePageOffset = 0
+        ActivePageValue = 1346519873
+        AutoExposureTimeLowerLimit = 7.8082
+        AutoExposureTimeUpperLimit = 10680.3179
+        AutoFunctionAOIHeight = (Currently not accessible)
+        AutoFunctionAOIOffsetX = (Currently not accessible)
+        AutoFunctionAOIOffsetY = (Currently not accessible)
+        AutoFunctionAOIWidth = (Currently not accessible)
+        AutoFunctionAOIsControl = Off
+        AutoGainLowerLimit = 0
+        AutoGainUpperLimit = 18.0622
+        BalanceRatio = (Currently not accessible)
+        BalanceRatioSelector = (Currently not accessible)
+        BalanceWhiteAuto = (Currently not accessible)
+        BinningControl = (Currently not accessible)
+        BinningHorizontal = 2
+        BinningVertical = 2
+        BlackLevel = 1.9531
+        BlackLevelAuto = (Currently not accessible)
+        BlackLevelClampingEnable = False
+        ChunkBlackLevel = (Currently not accessible)
+        ChunkCRC = (Currently not accessible)
+        ChunkEnable = False
+        ChunkExposureTime = (Currently not accessible)
+        ChunkFrameCounter = (Currently not accessible)
+        ChunkGain = (Currently not accessible)
+        ChunkHeight = (Currently not accessible)
+        ChunkImage = (Currently not accessible)
+        ChunkModeActive = False
+        ChunkOffsetX = (Currently not accessible)
+        ChunkOffsetY = (Currently not accessible)
+        ChunkPixelDynamicRangeMax = (Currently not accessible)
+        ChunkPixelDynamicRangeMin = (Currently not accessible)
+        ChunkPixelFormat = (Currently not accessible)
+        ChunkSelector = FrameCounter
+        ChunkTimestamp = (Currently not accessible)
+        ChunkTransmitFrameCount = (Currently not accessible)
+        ChunkWidth = (Currently not accessible)
+        DataFlashPageCount = 4096
+        DataFlashPageSize = 256
+        DecimationHorizontal = (Currently not accessible)
+        DecimationVertical = (Currently not accessible)
+        DeviceFamilyName = GEN2-USB
+        DeviceFirmwareVersion = 1.13.3.00
+        DeviceGenCPVersionMinor = 0
+        DeviceGenCpVersionMajor = 1
+        DeviceLinkThroughputLimit = 115712000
+        DeviceMaxThroughput = 115712000
+        DeviceModelName = Chameleon3 CM3-U3-13Y3M
+        DeviceSVNVersion = FW:305353 FPGA:292410
+        DeviceScanType = Areascan
+        DeviceSerialNumber = 22619479
+        DeviceTemperature = 45.65
+        DeviceUserID = [0x0 string]
+        DeviceVendorName = Point Grey Research
+        DeviceVersion = FW:v1.13.3.00 FPGA:v2.02
+        EndianessRegistersSupported = True
+        ExposureActiveMode = (Currently not accessible)
+        ExposureAuto = Off
+        ExposureMode = Timed
+        ExposureTime = 2999.9018
+        FamilyRegisterAvailable = True
+        Gain = 10.0227
+        GainAuto = Off
+        GainSelector = All
+        Gamma = 1
+        GammaEnabled = True
+        Hue = (Currently not accessible)
+        HueAuto = (Currently not accessible)
+        HueEnabled = False
+        LineDebouncerTimeRaw = 0
+        LineInverter = False
+        LineMode = Input
+        LineSelector = Line0
+        LineSource = (Currently not accessible)
+        LineStatus = False
+        LineStatusAll = 10
+        MessageChannelSupported = True
+        OnBoardColorProcessEnabled = True
+        ParameterSelector = Gain
+        PixelColorFilter = None
+        PixelDynamicRangeMax = 0
+        PixelDynamicRangeMin = 0
+        RemoveLimits = False
+        ReverseX = False
+        ReverseY = False
+        SBRMSupported = False
+        Saturation = (Currently not accessible)
+        SaturationAuto = (Currently not accessible)
+        SaturationEnabled = False
+        SensorShutterMode = (Currently not accessible)
+        Sharpness = 1024
+        SharpnessAuto = Off
+        SharpnessEnabled = True
+        SingleFrameAcquisitionMode = FreeRunning
+        StringEncoding = 0
+        StrobeDelay = (Currently not accessible)
+        StrobeDuration = (Currently not accessible)
+        TestPattern = Off
+        Timestamp = 0
+        TimestampIncrement = 125000
+        TimestampSupported = True
+        TransmitFailureCount = 0
+        TransmitFrameCount = (Currently not accessible)
+        TriggerActivation = FallingEdge
+        TriggerDelay = 4.7088
+        TriggerDelayEnabled = True
+        TriggerMode = Off
+        TriggerOverlap = (Currently not accessible)
+        TriggerSelector = FrameStart
+        TriggerSource = Line0
+        U3VCPCapability = 0
+        U3VCPEIRMAvailable = True
+        U3VCPIIDC2Available = False
+        U3VCPSIRMAvailable = True
+        U3VCurrentSpeed = SuperSpeed
+        U3VMaxAcknowledgeTransferLength = 1024
+        U3VMaxCommandTransferLength = 1024
+        U3VMessageChannelID = 0
+        U3VNumberOfStreamChannels = 1
+        U3VVersionMajor = 1
+        U3VVersionMinor = 0
+        USB3LinkRecoveryCount = 5
+        UserDefinedValue = 0
+        UserDefinedValueSelector = Value1
+        UserNameAvailable = True
+        UserOutputSelector = UserOutputValue1
+        UserOutputValue = False
+        V3_3Enable = False
+        VideoMode = Mode1
+        WrittenLengthFieldSupported = True
+        pgrAutoExposureCompensationLowerLimit = 0.41504
+        pgrAutoExposureCompensationUpperLimit = 2
+        pgrCurrentCorrectedPixelCount = (Currently not accessible)
+        pgrCurrentCorrectedPixelIndex = (Currently not accessible)
+        pgrCurrentCorrectedPixelOffsetX = (Currently not accessible)
+        pgrCurrentCorrectedPixelOffsetY = (Currently not accessible)
+        pgrDefectPixelCorrectionEnable = False
+        pgrDefectPixelCorrectionTestMode = (Currently not accessible)
+        pgrDefectPixelCorrectionType = FPGACorrection
+        pgrDevicePowerSupplySelector = (Currently not accessible)
+        pgrDeviceUptime = 110033
+        pgrExposureCompensation = -3.585
+        pgrExposureCompensationAuto = Off
+        pgrHDRImageSelector = (Currently not accessible)
+        pgrHDRModeEnabled = False
+        pgrHDR_ExposureTimeAbs = (Currently not accessible)
+        pgrHDR_GainAbs = (Currently not accessible)
+        pgrPowerSourcePresent = (Currently not accessible)
+        pgrPowerSupplyCurrent = (Currently not accessible)
+        pgrPowerSupplyEnable = (Currently not accessible)
+        pgrPowerSupplyVoltage = (Currently not accessible)
+        pgrSensorDescription = OnSemi PYTHON1300 (1/2" Mono CMOS)
+
+Available device specific property settings (using SET)
+   General Settings:
+    Tag
+
+  Device Specific Properties:
+    AcquisitionFrameRate
+    AcquisitionFrameRateAuto:[ {Off} | Continuous ]
+    AcquisitionFrameRateEnabled:[ {True} | False ]
+    AcquisitionStatusSelector:[ {FrameTriggerWait} ]
+    ActivePageNumber
+    ActivePageOffset
+    ActivePageValue
+    AutoFunctionAOIsControl:[ {Off} | On ]
+    BinningVertical
+    BlackLevel
+    ChunkEnable:[ {False} | True ]
+    ChunkModeActive:[ {False} | True ]
+    ChunkSelector:[ {FrameCounter} | CRC | OffsetX | OffsetY | Width | Height | ExposureTime | Gain | BlackLevel | PixelFormat | DynamicPixelRangeMin | DynamicPixelRangeMax | Timestamp ]
+    DeviceLinkThroughputLimit
+    DeviceUserID
+    ExposureAuto:[ {Off} | Once | Continuous ]
+    ExposureMode:[ {Timed} | TriggerWidth ]
+    ExposureTime
+    Gain
+    GainAuto:[ {Off} | Once | Continuous ]
+    Gamma
+    GammaEnabled:[ {True} | False ]
+    LineDebouncerTimeRaw
+    LineMode:[ {Input} ]
+    LineSelector:[ {Line0} | Line1 | Line2 | Line3 ]
+    ParameterSelector:[ {Gain} ]
+    pgrExposureCompensation
+    pgrExposureCompensationAuto:[ {Off} | Once | Continuous ]
+    RemoveLimits:[ {False} | True ]
+    ReverseX:[ {False} | True ]
+    ReverseY:[ {False} | True ]
+    Sharpness
+    SharpnessAuto:[ {Off} | Continuous ]
+    SharpnessEnabled:[ {True} | False ]
+    SingleFrameAcquisitionMode:[ {FreeRunning} | Triggered ]
+    TestPattern:[ {Off} | TestImage1 | TestImage2 ]
+    TriggerActivation:[ {FallingEdge} | RisingEdge ]
+    TriggerDelay
+    TriggerDelayEnabled:[ {True} | False ]
+    TriggerMode:[ {Off} | On ]
+    TriggerSelector:[ {FrameStart} | ExposureActive ]
+    TriggerSource:[ {Line0} | Software ]
+    U3VMessageChannelID
+    UserDefinedValue
+    UserDefinedValueSelector:[ {Value1} | Value2 | Value3 | Value4 | Value5 ]
+    UserOutputSelector:[ {UserOutputValue1} | UserOutputValue2 | UserOutputValue3 ]
+    VideoMode:[ {Mode1} | Mode0 ]
+
+
+videoinput('gentl', 1, 'Mono16')--FAILED
+The image acquisition device did not provide any video sources.  Video sources are required.
+
+videoinput('gentl', 1, 'Mono8')
