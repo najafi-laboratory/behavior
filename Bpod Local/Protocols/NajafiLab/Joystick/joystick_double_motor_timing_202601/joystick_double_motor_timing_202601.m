@@ -61,7 +61,7 @@ BpodSystem.Data.HardwarePorts.Maestro = maestroPort;
 BpodSystem.Data.HardwarePorts.RotaryEncoder = encoderPort;
 BpodSystem.PluginObjects.R.sendThresholdEvents = 'on';
 BpodSystem.PluginObjects.R.startUSBStream;
-initializeHiFi(S);
+BpodSystem.Data.AudioAvailable = initializeHiFi(S);
 BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol';
 
 % Prepare the display and sensory cue media.
@@ -419,10 +419,11 @@ error('Rotary encoder not found. Available ports: %s. Busy ports: %s. Attempts: 
     strjoin(availablePorts, ', '), strjoin(busyPorts, ', '), strjoin(attemptErrors(~cellfun('isempty', attemptErrors)), ' | '))
 end
 
-function initializeHiFi(S)
-% Open the HiFi module and apply auditory cue settings.
+function audioAvailable = initializeHiFi(S)
+% Open the HiFi module when available and apply auditory cue settings.
 global BpodSystem
 
+audioAvailable = false;
 if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H)
     try
         BpodSystem.PluginObjects.H.stop;
@@ -434,12 +435,20 @@ if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H
     end
     BpodSystem.PluginObjects.H = [];
 end
-BpodSystem.assertModule('HiFi', 1);
-releaseSerialPort(BpodSystem.ModuleUSB.HiFi1);
-pause(0.2);
-BpodSystem.PluginObjects.H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1);
-BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
-BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
+try
+    BpodSystem.assertModule('HiFi', 1);
+    releaseSerialPort(BpodSystem.ModuleUSB.HiFi1);
+    pause(0.2);
+    BpodSystem.PluginObjects.H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1);
+    BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
+    BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
+    audioAvailable = true;
+catch exception
+    BpodSystem.PluginObjects.H = [];
+    BpodSystem.Data.AudioUnavailableNotified = true;
+    fprintf(2, '\nAudio cues are not available: HiFi module could not be initialized (%s).\n', exception.message);
+    fprintf(2, 'Continuing without auditory cue output. Visual cue timing and all task logic remain active.\n\n');
+end
 end
 
 function configuration = sensoryCueConfiguration(S)
@@ -466,9 +475,42 @@ BpodSystem.PluginObjects.V.loadVideo(2, video);
 BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
 BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
 
-BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
-BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
-BpodSystem.PluginObjects.H.load(5, sensoryCueAudio(S, actualDuration, BpodSystem.PluginObjects.H.SamplingRate));
+if hifiAvailable()
+    BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
+    BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
+    BpodSystem.PluginObjects.H.load(5, sensoryCueAudio(S, actualDuration, BpodSystem.PluginObjects.H.SamplingRate));
+    BpodSystem.Data.AudioAvailable = true;
+else
+    BpodSystem.Data.AudioAvailable = false;
+    notifyAudioUnavailable(S);
+end
+end
+
+function yes = hifiAvailable
+% True when the HiFi object is ready for loading or playback.
+global BpodSystem
+
+yes = isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H);
+end
+
+function notifyAudioUnavailable(S)
+% Warn once per MATLAB function lifetime if the selected cue needs missing audio.
+global BpodSystem
+
+persistent warned
+if isempty(warned)
+    warned = false;
+end
+if isfield(BpodSystem, 'Data') && isfield(BpodSystem.Data, 'AudioUnavailableNotified') && BpodSystem.Data.AudioUnavailableNotified
+    warned = true;
+end
+if warned || S.GUI.SensoryCueMode == 1
+    return
+end
+fprintf(2, '\nAudio cues are not available because no HiFi module is connected.\n');
+fprintf(2, 'Continuing without auditory cue output.\n\n');
+warned = true;
+BpodSystem.Data.AudioUnavailableNotified = true;
 end
 
 function audio = sensoryCueAudio(S, duration, sampleRate)

@@ -42,7 +42,7 @@ The protocol uses these hardware parts:
 - Bpod state machine.
 - Rotary encoder module.
 - Pololu Maestro servo controller.
-- HiFi module for auditory cues.
+- Optional HiFi module for auditory cues.
 - PsychToolbox visual display.
 - Valve 2 for water reward.
 - LED1 / PWM1 for optogenetic gating.

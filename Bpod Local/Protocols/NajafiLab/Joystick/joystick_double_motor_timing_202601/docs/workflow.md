@@ -87,7 +87,7 @@ The protocol opens:
 
 - Pololu Maestro servo controller.
 - Rotary encoder module.
-- HiFi module.
+- Optional HiFi module.
 - PsychToolbox video player.
 
 The protocol releases stale serial objects before opening new ones.
@@ -102,7 +102,7 @@ BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol'
 
 ## 8. Build Sensory Cue
 
-The protocol calls `GenerateSensoryCueVideo` for the visual cue component and loads a ramped sine tone into the HiFi module.
+The protocol calls `GenerateSensoryCueVideo` for the visual cue component and loads a ramped sine tone into the HiFi module when it is available.
 
 The visual component either:
 
@@ -110,6 +110,8 @@ The visual component either:
 - Or creates a generated grating.
 
 Audio-only cues use a neutral gray frame.
+
+If the HiFi module is missing, the protocol prints a warning and continues without auditory cue output.
 
 The cue duration is snapped to a whole number of display frames.
 

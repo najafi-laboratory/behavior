@@ -102,6 +102,8 @@ This is ignored for audio-only cues.
 
 Tone frequency for audio-only and audio+visual sensory cues.
 
+If the HiFi module is missing, the protocol prints a warning and continues without auditory cue output.
+
 ### `AudioStimVolume`
 
 Tone amplitude from 0 to 1.

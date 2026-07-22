@@ -23,7 +23,7 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with configura
 
 1. Run `joystick_double_motor_timing_202601`.
 2. The GUI opens first. Set parameters and press Enter in MATLAB.
-3. Hardware is configured: Pololu Maestro servo, rotary encoder, HiFi module, and PsychToolbox video display.
+3. Hardware is configured: Pololu Maestro servo, rotary encoder, optional HiFi module, and PsychToolbox video display.
 4. The screen is set to gray and the servo returns home. Press Enter again to start trials.
 5. Each trial syncs GUI parameters, builds the next state machine, runs Bpod, saves trial data, and updates the plot canvas.
 
@@ -81,6 +81,8 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `AudioSamplingRate_Hz`: HiFi module sampling rate.
 - `AudioAttenuation_dB`: HiFi digital attenuation.
 - `AudioRamp_ms`: onset and offset ramp for the tone.
+
+If the HiFi module is missing, the protocol prints a warning and continues without auditory cue output.
 
 ### Timing
 
