@@ -827,10 +827,8 @@ trialModeNames = {'All short', 'All long', 'Blocks short first', 'Blocks long fi
 rewardModeNames = {'Same reward', 'Different reward'};
 itiModeNames = {'Manual', 'Exponential'};
 
-fprintf('\n%-28s %s\n', 'Date:', char(datetime('today', 'Format', 'yyyyMMdd')));
 fprintf('%s\n', repmat('=', 1, 58));
-fprintf('%s\n', 'Session parameters');
-fprintf('%s\n', repmat('-', 1, 58));
+fprintf('\n%-28s %s\n', 'Date:', char(datetime('today', 'Format', 'yyyyMMdd')));
 fprintf('%-28s %d / %d\n', 'Total trials completed:', completedTrials, round(S.GUI.MaxTrials));
 fprintf('%-28s %s\n', 'Press mode:', pressModeNames{S.GUI.PressMode});
 fprintf('%-28s %s\n', 'Trial mode:', trialModeNames{S.GUI.TrialMode});
