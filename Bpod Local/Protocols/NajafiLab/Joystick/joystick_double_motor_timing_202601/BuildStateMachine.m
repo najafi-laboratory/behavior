@@ -20,20 +20,20 @@ if assistTrial
     % Assisted trials start timing while the lever is still available.
     prePress2DelayTimer = delay;
     prePress2DelayConditions = {'RotaryEncoder1_1', 'Press2', 'Tup', 'Assist'};
-    prePress2DelayActions = [{'SoftCode', 19, 'GlobalTimerTrig', '1', 'RotaryEncoder1', 'E'} opto.VisualStimulus1OffActions];
+    prePress2DelayActions = [{'SoftCode', 19, 'GlobalTimerTrig', '1', 'RotaryEncoder1', 'E'} opto.SensoryCue1OffActions];
     waitForPress2Timer = max(0, press2Window - delay);
     waitForPress2Actions = {'RotaryEncoder1', 'E'};
 else
     prePress2DelayTimer = 0;
     prePress2DelayConditions = {'Tup', 'WaitForPress2'};
-    prePress2DelayActions = [{'SoftCode', 12, 'RotaryEncoder1', 'E'} opto.VisualStimulus1OffActions];
+    prePress2DelayActions = [{'SoftCode', 12, 'RotaryEncoder1', 'E'} opto.SensoryCue1OffActions];
     waitForPress2Timer = press2Window;
     waitForPress2Actions = {'SoftCode', 19, 'GlobalTimerTrig', '1'};
 end
 
 % Start cue 2 timing from press 2 window onset.
 sma = NewStateMatrix();
-sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', S.GUI.VisualCueDuration_s, 'OnsetDelay', delay, 'Channel', 'SoftCode', 'OnMessage', cue2OnMessage, 'OffMessage', 0);
+sma = SetGlobalTimer(sma, 'TimerID', 1, 'Duration', S.GUI.SensoryCueDuration_s, 'OnsetDelay', delay, 'Channel', 'SoftCode', 'OnMessage', cue2OnMessage, 'OffMessage', 0);
 for i = 1:numel(opto.Timers)
     timer = opto.Timers(i);
     sma = SetGlobalTimer(sma, ...
@@ -53,7 +53,7 @@ end
 % Reset encoder, mark BNC, and play cue 1.
 sma = AddState(sma, 'Name', 'Start', ...
     'Timer', 0.01, ...
-    'StateChangeConditions', {'Tup', 'VisualStimulus1'}, ...
+    'StateChangeConditions', {'Tup', 'SensoryCue1'}, ...
     'OutputActions', [{'BNC1', 1, 'RotaryEncoder1', ['E#' 0]} opto.StartActions]);
 
 if S.GUI.PressMode == 2
@@ -63,15 +63,15 @@ else
 end
 
 % Cue 1 ends into either press 1 or directly into press 2.
-sma = AddState(sma, 'Name', 'VisualStimulus1', ...
-    'Timer', S.GUI.VisualCueDuration_s, ...
+sma = AddState(sma, 'Name', 'SensoryCue1', ...
+    'Timer', S.GUI.SensoryCueDuration_s, ...
     'StateChangeConditions', {'Tup', cue1NextState}, ...
-    'OutputActions', [{'SoftCode', 1, 'RotaryEncoder1', 'E'} opto.VisualStimulus1Actions]);
+    'OutputActions', [{'SoftCode', 1, 'RotaryEncoder1', 'E'} opto.SensoryCue1Actions]);
 
 sma = AddState(sma, 'Name', 'WaitForPress1', ...
     'Timer', S.GUI.Press1Window_s, ...
     'StateChangeConditions', {'RotaryEncoder1_1', 'Press1', 'Tup', 'DidNotPress1'}, ...
-    'OutputActions', [{'SoftCode', 12} opto.VisualStimulus1OffActions]);
+    'OutputActions', [{'SoftCode', 12} opto.SensoryCue1OffActions]);
 
 sma = AddState(sma, 'Name', 'Press1', ...
     'Timer', S.GUI.ServoMoveDelay_s, ...

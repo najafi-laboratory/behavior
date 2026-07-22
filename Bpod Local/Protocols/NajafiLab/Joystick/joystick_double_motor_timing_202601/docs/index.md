@@ -2,7 +2,7 @@
 
 This site documents the Bpod protocol `joystick_double_motor_timing_202601`.
 
-The protocol trains a mouse to press a joystick at a target time. It supports short and long timing trials. It supports visual-guided and self-timed modes. It also supports optogenetic trials, probe trials, assist trials, dynamic reward, rotary encoder logging, and online plots.
+The protocol trains a mouse to press a joystick at a target time. It supports short and long timing trials, visual-guided and self-timed modes, and visual-only, audio-only, or audio+visual sensory cues. It also supports optogenetic trials, probe trials, assist trials, dynamic reward, rotary encoder logging, and online plots.
 
 ## Start Here
 
@@ -42,6 +42,7 @@ The protocol uses these hardware parts:
 - Bpod state machine.
 - Rotary encoder module.
 - Pololu Maestro servo controller.
+- HiFi module for auditory cues.
 - PsychToolbox visual display.
 - Valve 2 for water reward.
 - LED1 / PWM1 for optogenetic gating.
@@ -52,7 +53,7 @@ The protocol uses these hardware parts:
 - `joystick_double_motor_timing_202601.m`
 - `ConfigureProtocol.m`
 - `GenerateTrials.m`
-- `GenerateVisualCueVideo.m`
+- `GenerateSensoryCueVideo.m`
 - `BuildStateMachine.m`
 - `SoftCodeHandler_Protocol.m`
 - `OptoControl.m`

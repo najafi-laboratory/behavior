@@ -73,18 +73,50 @@ In visual-guided mode, cue 2 appears at the target time.
 
 In self-timed mode, cue 2 is not shown.
 
-### `VisualCueDuration_s`
+### `SensoryCueMode`
 
-Requested visual cue duration.
+Controls the sensory cue modality.
+
+- `1`: Visual only.
+- `2`: Audio only.
+- `3`: Audio + visual.
+
+### `SensoryCueDuration_s`
+
+Requested sensory cue duration.
 
 The actual duration is rounded to a whole number of video frames.
 
 ### `UseGeneratedGrating`
 
-Controls the cue source.
+Controls the visual cue source.
 
 - `1`: Use generated grating.
 - `0`: Use `image.png`.
+
+This is ignored for audio-only cues.
+
+## Audio
+
+### `AudioStimFreq_Hz`
+
+Tone frequency for audio-only and audio+visual sensory cues.
+
+### `AudioStimVolume`
+
+Tone amplitude from 0 to 1.
+
+### `AudioSamplingRate_Hz`
+
+HiFi module sampling rate.
+
+### `AudioAttenuation_dB`
+
+HiFi digital attenuation.
+
+### `AudioRamp_ms`
+
+Tone onset and offset ramp duration in milliseconds.
 
 ## Timing
 
@@ -267,7 +299,7 @@ Number of trials blocked at each block edge.
 
 The first block is also blocked.
 
-### `EnableOptoVisualCue1`
+### `EnableOptoSensoryCue1`
 
 Adds cue 1 light to selected opto trials.
 

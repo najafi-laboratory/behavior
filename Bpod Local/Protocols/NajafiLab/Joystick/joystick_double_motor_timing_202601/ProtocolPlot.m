@@ -617,7 +617,7 @@ end
         zeroLine = line(ax, [0 duration], [0 0], 'Color', [0.3 0.3 0.3], 'LineStyle', ':', 'LineWidth', 1.2, 'DisplayName', 'Zero');
         thresholdLine = line(ax, [0 duration], [settings.GUI.PressThreshold settings.GUI.PressThreshold], 'Color', [0.85 0.15 0.15], 'LineStyle', ':', 'LineWidth', 1.3, 'DisplayName', 'Press threshold');
         retractLine = line(ax, [0 duration], [settings.GUI.RetractThreshold settings.GUI.RetractThreshold], 'Color', [0.45 0.2 0.65], 'LineStyle', ':', 'LineWidth', 1.2, 'DisplayName', 'Retract threshold');
-        eventStates = {'VisualStimulus1','WaitForPress1','Press1','LeverRetract1','PrePress2Delay','Assist','WaitForPress2','Press2','RewardLeverRetract','EarlyPress2','Press2Late','PreRewardDelay','Reward','PostRewardDelay','LeverRetractFinal','DidNotPress1','DidNotPress2','Punish_ITI','ITI'};
+        eventStates = {'SensoryCue1','WaitForPress1','Press1','LeverRetract1','PrePress2Delay','Assist','WaitForPress2','Press2','RewardLeverRetract','EarlyPress2','Press2Late','PreRewardDelay','Reward','PostRewardDelay','LeverRetractFinal','DidNotPress1','DidNotPress2','Punish_ITI','ITI'};
         eventLabels = {'Cue 1','Press 1 window','Press 1','Lever retract 1','Pre press 2 delay','Assist','Press 2 window','Press 2','Reward lever retract','Press 2 early','Press 2 late','Pre reward delay','Reward','Post reward delay','Reward final','No press 1','No press 2','Punish ITI','ITI'};
         eventColors = lines(numel(eventStates));
         labelTop = false;
@@ -641,7 +641,7 @@ end
         if isfinite(cue2Onset)
             if settings.GUI.TimingMode == 1
                 addEncoderEvent(ax, cue2Onset, 'Cue 2 on / perfect', [0.2 0.55 0.85], true);
-                addEncoderEvent(ax, cue2Onset + settings.GUI.VisualCueDuration_s, 'Cue 2 off', [0.2 0.55 0.85], false);
+                addEncoderEvent(ax, cue2Onset + settings.GUI.SensoryCueDuration_s, 'Cue 2 off', [0.2 0.55 0.85], false);
             else
                 addEncoderEvent(ax, cue2Onset, 'Perfect timing', [0.2 0.55 0.85], true);
             end
@@ -737,7 +737,7 @@ end
         hold(ax, 'on');
 
         duration = trialDuration(trial);
-        rows = {'BNC 1','BNC 2','LED 1','Port 1 lick'};
+        rows = {'BNC 1','BNC 2','LED 1','Port 2 lick'};
         colors = [0.08 0.08 0.08; 0.25 0.25 0.25; 0.42 0.42 0.42; 0.68 0.68 0.68];
 
         if isfield(rawTrial, 'Events')
@@ -749,7 +749,7 @@ end
         drawIntervals(ax, eventIntervals(events, 'BNC1High', 'BNC1Low', duration, 0), 1, colors(1, :));
         drawIntervals(ax, eventIntervals(events, 'BNC2High', 'BNC2Low', duration, 0), 2, colors(2, :));
         drawIntervals(ax, led1Intervals(rawTrial, trial, duration), 3, colors(3, :));
-        drawIntervals(ax, eventIntervals(events, 'Port1In', 'Port1Out', duration, 0.02), 4, colors(4, :));
+        drawIntervals(ax, eventIntervals(events, 'Port2In', 'Port2Out', duration, 0.02), 4, colors(4, :));
 
         xlim(ax, [0 duration]);
         ylim(ax, [0.5 numel(rows) + 0.5]);
@@ -769,7 +769,7 @@ end
         ylim(ax, [0.5 4.5]);
         setTimeAxis(ax, [0 duration]);
         yticks(ax, 1:4);
-        yticklabels(ax, {'BNC 1','BNC 2','LED 1','Port 1 lick'});
+        yticklabels(ax, {'BNC 1','BNC 2','LED 1','Port 2 lick'});
         set(ax, 'YMinorTick', 'off', 'XGrid', 'on', 'XMinorGrid', 'off', 'GridColor', [0.82 0.82 0.82], 'GridAlpha', 0.5);
         xlabel(ax, 'Time (s)');
         title(ax, sprintf('%s  trial %d', plotTitle, trial), 'FontSize', 10, 'FontWeight', 'normal');
@@ -934,8 +934,12 @@ end
 
         settings = trialSettings(trial);
         if numel(optoType) >= 1 && optoType(1)
-            onset = stateStart(rawTrial.States, 'VisualStimulus1');
-            stopTime = stateEnd(rawTrial.States, 'VisualStimulus1');
+            onset = stateStart(rawTrial.States, 'SensoryCue1');
+            stopTime = stateEnd(rawTrial.States, 'SensoryCue1');
+            if ~isfinite(onset)
+                onset = stateStart(rawTrial.States, 'VisualStimulus1');
+                stopTime = stateEnd(rawTrial.States, 'VisualStimulus1');
+            end
             intervals = appendLedInterval(intervals, onset, stopTime, duration);
         end
         if numel(optoType) >= 2 && optoType(2)

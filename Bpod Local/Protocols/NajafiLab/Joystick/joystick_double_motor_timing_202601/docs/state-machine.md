@@ -16,9 +16,9 @@ Timer 10 is reserved for delay-period opto. It starts in `LeverRetract1`, drives
 
 ## Trial Start
 
-`Start` turns BNC1 high, resets the rotary encoder, cancels any old opto timer, turns LED1 off, and moves to `VisualStimulus1`.
+`Start` turns BNC1 high, resets the rotary encoder, cancels any old opto timer, turns LED1 off, and moves to `SensoryCue1`.
 
-`VisualStimulus1` plays cue 1, enables encoder threshold events, and turns LED1 on when the cue 1 opto row is enabled for this trial. Double press mode goes to `WaitForPress1`; single press mode goes directly to `PrePress2Delay`.
+`SensoryCue1` plays cue 1, enables encoder threshold events, and turns LED1 on when the cue 1 opto row is enabled for this trial. Depending on `SensoryCueMode`, the cue is visual only, audio only, or audio + visual. Double press mode goes to `WaitForPress1`; single press mode goes directly to `PrePress2Delay`.
 
 ## Press 1
 

@@ -47,7 +47,7 @@ This plot shows opto periods.
 Values are:
 
 - `Off`: no opto periods are enabled for that trial.
-- `Cue 1`: LED1 is on during `VisualStimulus1`.
+- `Sensory Cue 1`: LED1 is on during `SensoryCue1`.
 - `Delay`: LED1 is on from `LeverRetract1` until `RewardLeverRetract`.
 - `Pre Reward Delay`: LED1 is on during `PreRewardDelay`.
 - `Post Reward`: LED1 is on during `PostRewardDelay`.
@@ -174,7 +174,7 @@ Rows are:
 - BNC1.
 - BNC2.
 - LED1.
-- Port 1 lick.
+- Port 2 lick.
 
 LED1 is reconstructed from `OptoTrialTypes` and state timing.
 
@@ -195,6 +195,8 @@ Important fields include:
 - `AssistTrial`
 - `Press2Time`
 - `RewardAmount`
+- `SensoryCueMode`
+- `SensoryCueDuration`
 - `ITI`
 - `PunishITI`
 - `EncoderData`

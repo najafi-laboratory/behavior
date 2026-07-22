@@ -87,6 +87,7 @@ The protocol opens:
 
 - Pololu Maestro servo controller.
 - Rotary encoder module.
+- HiFi module.
 - PsychToolbox video player.
 
 The protocol releases stale serial objects before opening new ones.
@@ -99,18 +100,20 @@ The protocol sets the soft-code handler:
 BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol'
 ```
 
-## 8. Build Visual Cue
+## 8. Build Sensory Cue
 
-The protocol calls `GenerateVisualCueVideo`.
+The protocol calls `GenerateSensoryCueVideo` for the visual cue component and loads a ramped sine tone into the HiFi module.
 
-It either:
+The visual component either:
 
 - Loads and resizes `image.png`.
 - Or creates a generated grating.
 
+Audio-only cues use a neutral gray frame.
+
 The cue duration is snapped to a whole number of display frames.
 
-The actual duration replaces `VisualCueDuration_s`.
+The actual duration replaces `SensoryCueDuration_s`.
 
 ## 9. Prepare Hardware
 
@@ -148,7 +151,7 @@ Each trial does these steps:
 4. Regenerate ITI values if ITI settings changed.
 5. Regenerate probe tags if probe settings changed.
 6. Regenerate opto tags if opto settings or probe exclusions changed.
-7. Reload cue video if cue duration or cue source changed.
+7. Reload sensory cue media if cue duration, cue mode, cue source, or audio settings changed.
 8. Choose short or long delay.
 9. Choose ITI and punish ITI.
 10. Apply probe settings.
@@ -176,7 +179,7 @@ Each trial does these steps:
 At the end, the protocol:
 
 - Moves the servo home.
-- Stops the visual display.
+- Stops the sensory cue media and visual display.
 - Prints a session summary.
 - Runs cleanup.
 

@@ -42,20 +42,38 @@ switch code
 end
 
     function playCue(index)
-        % Present one visual cue while keeping the sync patch light.
-        stopVideo;
+        % Present one sensory cue while keeping the sync patch light.
+        stopCueMedia;
         BpodSystem.PluginObjects.V.play(index);
+        if cueUsesAudio
+            BpodSystem.PluginObjects.H.play(5);
+        end
     end
 
     function stopCue
         % Return display to gray and make the sync patch dark.
-        stopVideo;
+        stopCueMedia;
         BpodSystem.PluginObjects.V.setSyncPatch(0);
     end
 
     function showGray
-        stopVideo;
+        stopCueMedia;
         BpodSystem.PluginObjects.V.setSyncPatch(0);
+    end
+
+    function yes = cueUsesAudio
+        yes = isfield(S.GUI, 'SensoryCueMode') && ismember(S.GUI.SensoryCueMode, [2 3]) && ...
+            isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H);
+    end
+
+    function stopCueMedia
+        stopVideo;
+        if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H)
+            try
+                BpodSystem.PluginObjects.H.stop;
+            catch
+            end
+        end
     end
 
     function stopVideo

@@ -1,6 +1,6 @@
 # Joystick Double Motor Timing Protocol
 
-This is a compact Bpod MATLAB protocol for a joystick timing task with visual cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe/chemo trial tags, and online plotting.
+This is a compact Bpod MATLAB protocol for a joystick timing task with configurable sensory cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe/chemo trial tags, and online plotting.
 
 ## Update note
 
@@ -13,17 +13,23 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with visual cu
 - Adjusted canvas layouts.
 - Added BNC2 to event plot.
 
+### 2026.07.22
+- Added sensory cue mode: visual only, audio only, or audio + visual.
+- Renamed cue-facing GUI fields from visual cue wording to sensory cue wording.
+- Changed event plot lick row from port 1 to port 2.
+- Added 8 digit session date to the first summary line.
+
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
 2. The GUI opens first. Set parameters and press Enter in MATLAB.
-3. Hardware is configured: Pololu Maestro servo, rotary encoder, and PsychToolbox video display.
+3. Hardware is configured: Pololu Maestro servo, rotary encoder, HiFi module, and PsychToolbox video display.
 4. The screen is set to gray and the servo returns home. Press Enter again to start trials.
 5. Each trial syncs GUI parameters, builds the next state machine, runs Bpod, saves trial data, and updates the plot canvas.
 
 ## Trial Logic
 
-The state machine starts with `VisualStimulus1`, then either waits for `Press1` in double-press mode or goes directly to press 2 in single-press mode.
+The state machine starts with `SensoryCue1`, then either waits for `Press1` in double-press mode or goes directly to press 2 in single-press mode.
 
 For press 2, timing is measured from the start of the press 2 window. The state `Press2` captures the timing and `RewardLeverRetract` routes the trial to `EarlyPress2`, `PreRewardDelay`, or `Press2Late`. Missing presses go to `DidNotPress1` or `DidNotPress2`. Rewarded trials finish through `Reward`, `PostRewardDelay`, and `LeverRetractFinal`.
 
@@ -35,7 +41,7 @@ Opto and probe tags are forced to zero for the first block and for the first/las
 
 Opto sessions require `AssistMode` off. The protocol prints this check before the session and stops if opto and assist are both enabled.
 
-Opto trials are saved as a `4 x nTrials` matrix, with rows for cue 1, delay, pre reward delay, and post reward. A selected trial can enable any combination of these periods. LED1 turns on during `VisualStimulus1` for cue opto, from `LeverRetract1` to `RewardLeverRetract` for delay opto, during `PreRewardDelay` until `Reward` for pre-reward-delay opto, and during `PostRewardDelay` until `LeverRetractFinal` for post-reward opto.
+Opto trials are saved as a `4 x nTrials` matrix, with rows for sensory cue 1, delay, pre reward delay, and post reward. A selected trial can enable any combination of these periods. LED1 turns on during `SensoryCue1` for cue opto, from `LeverRetract1` to `RewardLeverRetract` for delay opto, during `PreRewardDelay` until `Reward` for pre-reward-delay opto, and during `PostRewardDelay` until `LeverRetractFinal` for post-reward opto.
 
 `ChemoMode` stores `ChemoTrialTypes` as 1 when enabled and 0 otherwise.
 
@@ -64,8 +70,17 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 ### Stimulus
 
 - `TimingMode`: visual guided or self timed.
-- `VisualCueDuration_s`: duration of visual cue 1 and cue 2.
+- `SensoryCueMode`: visual only, audio only, or audio + visual.
+- `SensoryCueDuration_s`: duration of sensory cue 1 and cue 2.
 - `UseGeneratedGrating`: use generated grating instead of `image.png`.
+
+### Audio
+
+- `AudioStimFreq_Hz`: sensory cue tone frequency.
+- `AudioStimVolume`: sensory cue tone amplitude from 0 to 1.
+- `AudioSamplingRate_Hz`: HiFi module sampling rate.
+- `AudioAttenuation_dB`: HiFi digital attenuation.
+- `AudioRamp_ms`: onset and offset ramp for the tone.
 
 ### Timing
 
@@ -112,7 +127,7 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `OptoMode`: enables opto trial tagging.
 - `OptoFraction`: fraction of eligible trials tagged as opto.
 - `OptoZeroEdgeTrials`: block-edge trials excluded from opto tagging.
-- `EnableOptoVisualCue1`: adds cue 1 light to selected opto trials.
+- `EnableOptoSensoryCue1`: adds cue 1 light to selected opto trials.
 - `EnableOptoDelay`: adds delay-period light to selected opto trials.
 - `EnableOptoPreRewardDelay`: adds pre-reward-delay light to selected opto trials.
 - `EnableOptoPostReward`: adds post-reward light to selected opto trials.
@@ -125,15 +140,15 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - `joystick_double_motor_timing_202601.m`: main protocol, GUI sync, hardware setup, trial loop, data saving.
 - `ConfigureProtocol.m`: GUI defaults, metadata, and parameter panels.
 - `BuildStateMachine.m`: Bpod state machine for each trial.
-- `SoftCodeHandler_Protocol.m`: servo, visual cue, press timing, and reward delivery soft-code operations.
+- `SoftCodeHandler_Protocol.m`: servo, sensory cue, press timing, and reward delivery soft-code operations.
 - `GenerateTrials.m`: short/long trial blocks plus ITI and punish ITI generation.
 - `OptoControl.m`: opto trial tags and neutral display colors.
 - `ProbeControl.m`: probe trial tags and neutral display colors.
-- `GenerateVisualCueVideo.m`: creates cue frames from `image.png` or the generated sinusoidal grating.
+- `GenerateSensoryCueVideo.m`: creates the visual part of cue frames from `image.png` or the generated sinusoidal grating.
 - `ProtocolPlot.m`: one online canvas for trial outcomes, opto/probe tags, delay, press timing, encoder, states, and BNC/lick events.
 
 ## Plot Notes
 
 The online plot uses a two-column canvas: the left side shows trial type, opto period, probe type, delay, and rotary encoder plots; the right side shows outcome fractions with a legend, press timing, state timing, and events. Outcome-related plots share one color set. Opto, probe, delay, and event plots use neutral gray or black marks. The rotary encoder position trace is black, while its threshold and event markers use colored annotations.
 
-The event plot uses one row per signal: `BNC 1`, `LED 1`, and `Port 1 lick`. Filled bars mark logical 1 or detected lick pulses; blank space marks 0.
+The event plot uses one row per signal: `BNC 1`, `BNC 2`, `LED 1`, and `Port 2 lick`. Filled bars mark logical 1 or detected lick pulses; blank space marks 0.

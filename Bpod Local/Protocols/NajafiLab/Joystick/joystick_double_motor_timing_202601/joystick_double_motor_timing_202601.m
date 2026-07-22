@@ -61,9 +61,10 @@ BpodSystem.Data.HardwarePorts.Maestro = maestroPort;
 BpodSystem.Data.HardwarePorts.RotaryEncoder = encoderPort;
 BpodSystem.PluginObjects.R.sendThresholdEvents = 'on';
 BpodSystem.PluginObjects.R.startUSBStream;
+initializeHiFi(S);
 BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol';
 
-% Prepare the visual display and cue video from image.png.
+% Prepare the display and sensory cue media.
 if isfield(BpodSystem.PluginObjects, 'V')
     BpodSystem.PluginObjects.V = [];
 end
@@ -80,13 +81,11 @@ fps = BpodSystem.PluginObjects.V.DetectedFrameRate;
 width = BpodSystem.PluginObjects.V.ViewPortDimensions(1);
 height = BpodSystem.PluginObjects.V.ViewPortDimensions(2);
 
-requestedCueDuration = S.GUI.VisualCueDuration_s;
-requestedCueSource = S.GUI.UseGeneratedGrating;
-actualCueDuration = loadVisualCueVideo(protocolPath, width, height, fps, requestedCueDuration, requestedCueSource);
-S.GUI.VisualCueDuration_s = actualCueDuration;
+requestedCueConfiguration = sensoryCueConfiguration(S);
+actualCueDuration = loadSensoryCue(protocolPath, width, height, fps, S);
+S.GUI.SensoryCueDuration_s = actualCueDuration;
 validateSettings(S);
-loadedStimulus = requestedCueDuration;
-loadedStimulusSource = requestedCueSource;
+loadedCueConfiguration = requestedCueConfiguration;
 trialConfiguration = [];
 itiConfiguration = [];
 optoConfiguration = [];
@@ -180,7 +179,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
     end
 
     % Regenerate opto schedules when opto controls or probe exclusions change.
-    newOptoConfiguration = [S.GUI.MaxTrials S.GUI.OptoMode S.GUI.OptoFraction S.GUI.OptoZeroEdgeTrials S.GUI.EnableOptoVisualCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPreRewardDelay S.GUI.EnableOptoPostReward S.GUI.OptoFrequency_Hz S.GUI.OptoPulseOn_ms trialConfiguration probeConfiguration];
+    newOptoConfiguration = [S.GUI.MaxTrials S.GUI.OptoMode S.GUI.OptoFraction S.GUI.OptoZeroEdgeTrials S.GUI.EnableOptoSensoryCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPreRewardDelay S.GUI.EnableOptoPostReward S.GUI.OptoFrequency_Hz S.GUI.OptoPulseOn_ms trialConfiguration probeConfiguration];
     if ~isequal(newOptoConfiguration, optoConfiguration)
         generatedOptoTypes = OptoControl('trials', S, trialTypes, probeTypes);
         if currentTrial > 1 && ~isempty(optoTypes)
@@ -194,15 +193,13 @@ while currentTrial <= round(S.GUI.MaxTrials)
         assertNoProbeOptoOverlap(optoTypes, probeTypes, currentTrial);
     end
 
-    % Rebuild visual cue frames if duration changed in the GUI.
-    requestedStimulus = S.GUI.VisualCueDuration_s;
-    requestedStimulusSource = S.GUI.UseGeneratedGrating;
-    if ~isequal(requestedStimulus, loadedStimulus) || ~isequal(requestedStimulusSource, loadedStimulusSource)
-        actualCueDuration = loadVisualCueVideo(protocolPath, width, height, fps, requestedStimulus, requestedStimulusSource);
-        loadedStimulus = requestedStimulus;
-        loadedStimulusSource = requestedStimulusSource;
+    % Rebuild sensory cue media if GUI stimulus settings changed.
+    requestedCueConfiguration = sensoryCueConfiguration(S);
+    if ~isequal(requestedCueConfiguration, loadedCueConfiguration)
+        actualCueDuration = loadSensoryCue(protocolPath, width, height, fps, S);
+        loadedCueConfiguration = requestedCueConfiguration;
     end
-    S.GUI.VisualCueDuration_s = actualCueDuration;
+    S.GUI.SensoryCueDuration_s = actualCueDuration;
     validateSettings(S);
 
     if trialTypes(currentTrial) == 1
@@ -288,6 +285,8 @@ while currentTrial <= round(S.GUI.MaxTrials)
     ProtocolTrialContext.Press2Time_s = press2Time;
     BpodSystem.Data.Press2Time(currentTrial) = press2Time;
     BpodSystem.Data.RewardAmount(currentTrial) = ProtocolTrialContext.RewardAmount_uL;
+    BpodSystem.Data.SensoryCueMode(currentTrial) = trialS.GUI.SensoryCueMode;
+    BpodSystem.Data.SensoryCueDuration(currentTrial) = trialS.GUI.SensoryCueDuration_s;
     BpodSystem.Data.ITI(currentTrial) = iti;
     BpodSystem.Data.PunishITI(currentTrial) = punishITI;
     outcome = trialOutcome(rawEvents.States, assistTrial, press2Time, delay, trialS);
@@ -420,15 +419,73 @@ error('Rotary encoder not found. Available ports: %s. Busy ports: %s. Attempts: 
     strjoin(availablePorts, ', '), strjoin(busyPorts, ', '), strjoin(attemptErrors(~cellfun('isempty', attemptErrors)), ' | '))
 end
 
-function actualDuration = loadVisualCueVideo(protocolPath, width, height, fps, requestedDuration, useGeneratedGrating)
-% Load the same visual cue into both Bpod video slots.
+function initializeHiFi(S)
+% Open the HiFi module and apply auditory cue settings.
 global BpodSystem
 
-[video, actualDuration] = GenerateVisualCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, requestedDuration, useGeneratedGrating);
+if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H)
+    try
+        BpodSystem.PluginObjects.H.stop;
+    catch
+    end
+    try
+        delete(BpodSystem.PluginObjects.H);
+    catch
+    end
+    BpodSystem.PluginObjects.H = [];
+end
+BpodSystem.assertModule('HiFi', 1);
+releaseSerialPort(BpodSystem.ModuleUSB.HiFi1);
+pause(0.2);
+BpodSystem.PluginObjects.H = BpodHiFi(BpodSystem.ModuleUSB.HiFi1);
+BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
+BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
+end
+
+function configuration = sensoryCueConfiguration(S)
+% Track cue settings that require media to be rebuilt.
+configuration = [S.GUI.SensoryCueMode S.GUI.SensoryCueDuration_s S.GUI.UseGeneratedGrating ...
+    S.GUI.AudioStimFreq_Hz S.GUI.AudioStimVolume S.GUI.AudioSamplingRate_Hz S.GUI.AudioAttenuation_dB S.GUI.AudioRamp_ms];
+end
+
+function actualDuration = loadSensoryCue(protocolPath, width, height, fps, S)
+% Load the same sensory cue into both Bpod video slots and one HiFi slot.
+global BpodSystem
+
+if S.GUI.SensoryCueMode == 2
+    frameCount = max(1, round(fps * S.GUI.SensoryCueDuration_s));
+    actualDuration = frameCount / fps;
+    grayVideo = uint8(127 * ones(height, width, 3));
+    video = grayVideo;
+else
+    [cueVideo, grayVideo, actualDuration] = GenerateSensoryCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, S.GUI.SensoryCueDuration_s, S.GUI.UseGeneratedGrating);
+    video = cueVideo;
+end
 BpodSystem.PluginObjects.V.loadVideo(1, video);
 BpodSystem.PluginObjects.V.loadVideo(2, video);
 BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
 BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
+
+BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
+BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
+BpodSystem.PluginObjects.H.load(5, sensoryCueAudio(S, actualDuration, BpodSystem.PluginObjects.H.SamplingRate));
+end
+
+function audio = sensoryCueAudio(S, duration, sampleRate)
+% Generate a ramped sine cue, using silence for visual-only mode.
+sampleCount = max(1, round(duration * sampleRate));
+if S.GUI.SensoryCueMode == 1 || S.GUI.AudioStimVolume == 0
+    audio = zeros(1, sampleCount);
+    return
+end
+t = (0:sampleCount - 1) / sampleRate;
+audio = sin(2 * pi * S.GUI.AudioStimFreq_Hz * t) * S.GUI.AudioStimVolume;
+rampSamples = min(floor(sampleCount / 2), max(1, round(S.GUI.AudioRamp_ms / 1000 * sampleRate)));
+ramp = linspace(0, 1, rampSamples);
+envelope = ones(1, sampleCount);
+envelope(1:rampSamples) = ramp;
+envelope(end - rampSamples + 1:end) = fliplr(ramp);
+audio = audio .* envelope;
 end
 
 function maestroPort = findMaestroPort
@@ -586,9 +643,23 @@ end
 end
 
 function closeStimulusWindow
-% Close the PsychToolbox video object if it exists.
+% Close the PsychToolbox video and HiFi objects if they exist.
 global BpodSystem
 
+try
+    if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H)
+        try
+            BpodSystem.PluginObjects.H.stop;
+        catch
+        end
+        try
+            delete(BpodSystem.PluginObjects.H);
+        catch
+        end
+        BpodSystem.PluginObjects.H = [];
+    end
+catch
+end
 try
     if isfield(BpodSystem.PluginObjects, 'V') && ~isempty(BpodSystem.PluginObjects.V)
         try
@@ -611,7 +682,7 @@ delays = [S.GUI.ShortDelay_s S.GUI.LongDelay_s];
 rewardStarts = delays - S.GUI.RewardWindowLeft_s;
 rewardEnds = delays + S.GUI.RewardMaximumWindow_s + S.GUI.RewardWindowRight_s;
 press2Windows = [S.GUI.ShortPress2Window_s S.GUI.LongPress2Window_s];
-if S.GUI.MaxTrials < 1 || S.GUI.VisualCueDuration_s <= 0 || any(delays <= 0) || S.GUI.Press1Window_s <= 0 || any(press2Windows <= 0)
+if S.GUI.MaxTrials < 1 || S.GUI.SensoryCueDuration_s <= 0 || any(delays <= 0) || S.GUI.Press1Window_s <= 0 || any(press2Windows <= 0)
     error('Trial count, cue duration, delays, and press window must be positive.')
 end
 if S.GUI.RewardWindowLeft_s <= 0 || S.GUI.RewardMaximumWindow_s < 0 || S.GUI.RewardWindowRight_s <= 0 || any(rewardStarts <= 0)
@@ -625,6 +696,18 @@ if S.GUI.PreRewardDelay_s < 0 || S.GUI.PostRewardDelay_s < 0 || S.GUI.ServoMoveD
 end
 if ~ismember(S.GUI.TimingMode, [1 2])
     error('TimingMode must be Visual Guided or Self Timed.')
+end
+if ~ismember(S.GUI.SensoryCueMode, [1 2 3])
+    error('SensoryCueMode must be Visual only, Audio only, or Audio + visual.')
+end
+if S.GUI.AudioStimVolume < 0 || S.GUI.AudioStimVolume > 1
+    error('AudioStimVolume must be between 0 and 1.')
+end
+if S.GUI.AudioStimFreq_Hz <= 0 || S.GUI.AudioSamplingRate_Hz <= 0 || S.GUI.AudioRamp_ms < 0
+    error('Audio frequency and sampling rate must be positive, and AudioRamp_ms cannot be negative.')
+end
+if S.GUI.SensoryCueMode ~= 2 && ~S.GUI.UseGeneratedGrating && ~isfile(fullfile(fileparts(mfilename('fullpath')), 'image.png'))
+    error('UseGeneratedGrating is off, but image.png was not found in the protocol folder.')
 end
 if S.GUI.PressThreshold <= S.GUI.RetractThreshold
     error('PressThreshold must be greater than RetractThreshold.')
@@ -647,7 +730,7 @@ end
 if S.GUI.OptoFraction < 0 || S.GUI.OptoFraction > 1
     error('OptoFraction must be between 0 and 1.')
 end
-if S.GUI.OptoMode && ~any([S.GUI.EnableOptoVisualCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPreRewardDelay S.GUI.EnableOptoPostReward])
+if S.GUI.OptoMode && ~any([S.GUI.EnableOptoSensoryCue1 S.GUI.EnableOptoDelay S.GUI.EnableOptoPreRewardDelay S.GUI.EnableOptoPostReward])
     error('At least one opto period must be enabled when OptoMode is on.')
 end
 if S.GUI.OptoMode && S.GUI.AssistMode
@@ -694,9 +777,11 @@ function printTrialInfo(trial, trialType, optoType, probeType, assistTrial, dela
 % Print the settings used by the next trial.
 trialNames = {'Short', 'Long'};
 timingNames = {'Visual guided', 'Self timed'};
+cueModeNames = {'Visual only', 'Audio only', 'Audio + visual'};
 fprintf('\nTrial %d\n', trial);
 fprintf('%-22s %s\n', 'Trial type:', trialNames{trialType});
 fprintf('%-22s %s\n', 'Timing mode:', timingNames{S.GUI.TimingMode});
+fprintf('%-22s %s\n', 'Sensory cue mode:', cueModeNames{S.GUI.SensoryCueMode});
 fprintf('%-22s %.3f s\n', 'Perfect timing:', delay);
 fprintf('%-22s %.3f / %.3f / %.3f s\n', 'Reward L/Max/R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s);
 fprintf('%-22s %.3f s\n', 'Press 1 window:', S.GUI.Press1Window_s);
@@ -736,20 +821,26 @@ elseif isfield(data, 'TrialTypes')
 end
 
 timingNames = {'Visual guided', 'Self timed'};
+cueModeNames = {'Visual only', 'Audio only', 'Audio + visual'};
 pressModeNames = {'Single press', 'Double press'};
 trialModeNames = {'All short', 'All long', 'Blocks short first', 'Blocks long first'};
 rewardModeNames = {'Same reward', 'Different reward'};
 itiModeNames = {'Manual', 'Exponential'};
 
-fprintf('\n%s\n', repmat('=', 1, 58));
+fprintf('\n%-28s %s\n', 'Date:', char(datetime('today', 'Format', 'yyyyMMdd')));
+fprintf('%s\n', repmat('=', 1, 58));
 fprintf('%s\n', 'Session parameters');
 fprintf('%s\n', repmat('-', 1, 58));
 fprintf('%-28s %d / %d\n', 'Total trials completed:', completedTrials, round(S.GUI.MaxTrials));
 fprintf('%-28s %s\n', 'Press mode:', pressModeNames{S.GUI.PressMode});
 fprintf('%-28s %s\n', 'Trial mode:', trialModeNames{S.GUI.TrialMode});
 fprintf('%-28s %s\n', 'Timing mode:', timingNames{S.GUI.TimingMode});
+fprintf('%-28s %s\n', 'Sensory cue mode:', cueModeNames{S.GUI.SensoryCueMode});
 fprintf('%-28s %.3f / %.3f s\n', 'Short / long delay:', S.GUI.ShortDelay_s, S.GUI.LongDelay_s);
-fprintf('%-28s %.3f s\n', 'Visual cue duration:', S.GUI.VisualCueDuration_s);
+fprintf('%-28s %.3f s\n', 'Sensory cue duration:', S.GUI.SensoryCueDuration_s);
+fprintf('%-28s %.3f Hz, %.3f vol\n', 'Audio freq/volume:', S.GUI.AudioStimFreq_Hz, S.GUI.AudioStimVolume);
+fprintf('%-28s %.0f Hz, %.3f dB\n', 'Audio sample/atten:', S.GUI.AudioSamplingRate_Hz, S.GUI.AudioAttenuation_dB);
+fprintf('%-28s %.3f ms\n', 'Audio ramp:', S.GUI.AudioRamp_ms);
 fprintf('%-28s %.3f s\n', 'Press 1 window:', S.GUI.Press1Window_s);
 fprintf('%-28s %.3f / %.3f s\n', 'Short / long press 2:', S.GUI.ShortPress2Window_s, S.GUI.LongPress2Window_s);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Reward L / Max / R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s);
@@ -764,7 +855,7 @@ fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Punish min / mean / max:', S.GUI.Punish
 fprintf('%-28s %s\n', 'Opto enabled:', onOffText(S.GUI.OptoMode));
 fprintf('%-28s %s\n', 'Assist disabled for opto:', onOffText(~S.GUI.OptoMode || ~S.GUI.AssistMode));
 fprintf('%-28s %.3f, edge %d\n', 'Opto fraction / zero edge:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials));
-fprintf('%-28s %s\n', 'EnableOptoVisualCue1:', onOffText(S.GUI.EnableOptoVisualCue1));
+fprintf('%-28s %s\n', 'EnableOptoSensoryCue1:', onOffText(S.GUI.EnableOptoSensoryCue1));
 fprintf('%-28s %s\n', 'EnableOptoDelay:', onOffText(S.GUI.EnableOptoDelay));
 fprintf('%-28s %s\n', 'EnableOptoPreRewardDelay:', onOffText(S.GUI.EnableOptoPreRewardDelay));
 fprintf('%-28s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
@@ -781,7 +872,7 @@ function confirmDoricOptoSettings(S)
 % Ask the user to verify that Doric square-wave settings match the GUI.
 fprintf('\nDoric opto square-wave settings\n');
 fprintf('%-24s %s\n', 'Assist disabled for opto:', onOffText(~S.GUI.OptoMode || ~S.GUI.AssistMode));
-fprintf('%-24s %s\n', 'EnableOptoVisualCue1:', onOffText(S.GUI.EnableOptoVisualCue1));
+fprintf('%-24s %s\n', 'EnableOptoSensoryCue1:', onOffText(S.GUI.EnableOptoSensoryCue1));
 fprintf('%-24s %s\n', 'EnableOptoDelay:', onOffText(S.GUI.EnableOptoDelay));
 fprintf('%-24s %s\n', 'EnableOptoPreRewardDelay:', onOffText(S.GUI.EnableOptoPreRewardDelay));
 fprintf('%-24s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));

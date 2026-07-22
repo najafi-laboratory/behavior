@@ -42,14 +42,14 @@ switch action
         % Return state-machine timer specs and trigger actions for this trial.
         optoType = normalizeOptoType(varargin{1});
         if numel(optoType) ~= 4
-            error('Opto trial type must be a 4-row vector: cue, delay, pre reward delay, post reward.')
+            error('Opto trial type must be a 4-row vector: sensory cue, delay, pre reward delay, post reward.')
         end
         output.Enabled = any(optoType);
         output.TrialType = optoType;
         output.Timers = offSpec(0.001);
         output.StartActions = {'GlobalTimerCancel', optoTimerID, 'PWM1', 0};
-        output.VisualStimulus1Actions = {};
-        output.VisualStimulus1OffActions = {};
+        output.SensoryCue1Actions = {};
+        output.SensoryCue1OffActions = {};
         output.LeverRetract1Actions = {};
         output.RewardLeverRetractActions = {};
         output.PreRewardDelayActions = {};
@@ -58,8 +58,8 @@ switch action
         output.LeverRetractFinalActions = {};
 
         if optoType(1)
-            output.VisualStimulus1Actions = {'PWM1', 255};
-            output.VisualStimulus1OffActions = {'PWM1', 0};
+            output.SensoryCue1Actions = {'PWM1', 255};
+            output.SensoryCue1OffActions = {'PWM1', 0};
         end
         if optoType(2)
             press2Window = varargin{3};
@@ -81,7 +81,7 @@ switch action
         output = waveformIntervals(S, duration);
     case 'display'
         % Keep labels and colors centralized for plotting.
-        output.Labels = {'Off', 'Cue 1', 'Delay', 'Pre Reward Delay', 'Post Reward'};
+        output.Labels = {'Off', 'Sensory Cue 1', 'Delay', 'Pre Reward Delay', 'Post Reward'};
         output.Colors = [0.85 0.85 0.85; 0.64 0.64 0.64; 0.46 0.46 0.46; 0.28 0.28 0.28; 0.08 0.08 0.08];
     otherwise
         error('Unknown opto action: %s', action)
@@ -125,8 +125,8 @@ intervals = [0 requestedDuration];
 end
 
 function periods = enabledOptoPeriods(S)
-% Convert GUI checkboxes into one opto column: cue, delay, pre reward, post reward.
-periods = [S.GUI.EnableOptoVisualCue1; S.GUI.EnableOptoDelay; S.GUI.EnableOptoPreRewardDelay; S.GUI.EnableOptoPostReward] ~= 0;
+% Convert GUI checkboxes into one opto column: sensory cue, delay, pre reward, post reward.
+periods = [S.GUI.EnableOptoSensoryCue1; S.GUI.EnableOptoDelay; S.GUI.EnableOptoPreRewardDelay; S.GUI.EnableOptoPostReward] ~= 0;
 end
 
 function optoType = normalizeOptoType(optoType)

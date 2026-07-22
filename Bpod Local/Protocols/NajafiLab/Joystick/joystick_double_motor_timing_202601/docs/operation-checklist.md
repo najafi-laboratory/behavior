@@ -10,8 +10,9 @@ Use this checklist before and during a session.
 4. Confirm the Maestro is connected.
 5. Confirm the rotary encoder is connected.
 6. Confirm the display is connected.
-7. Confirm the water line is ready.
-8. Confirm Doric opto hardware is ready if opto is enabled.
+7. Confirm the HiFi module is connected if using audio cues.
+8. Confirm the water line is ready.
+9. Confirm Doric opto hardware is ready if opto is enabled.
 
 ## Start The Protocol
 
@@ -81,15 +82,19 @@ Check rig mapping.
 
 Check `ServoInPos` and `ServoOutPos`.
 
-### No visual cue appears
+### No sensory cue appears
 
 Check monitor selection.
 
 Check PsychToolbox display.
 
-Check `UseGeneratedGrating`.
+Check `SensoryCueMode`.
 
-Check `image.png` if using the image cue.
+For visual cues, check `UseGeneratedGrating`.
+
+For image-based visual cues, check `image.png`.
+
+For audio cues, check the HiFi module, `AudioStimVolume`, and `AudioAttenuation_dB`.
 
 ### Opto timing looks wrong
 
