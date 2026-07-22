@@ -1,5 +1,5 @@
 function S = ConfigureProtocol(BpodSystem)
-% Prepare GUI defaults for the short/long AV interval protocol.
+% Prepare GUI defaults, metadata, and panels.
 S = BpodSystem.ProtocolSettings;
 
 if isempty(S) || ~isstruct(S)
@@ -14,43 +14,67 @@ end
 if ~isfield(S, 'GUIPanels') || ~isstruct(S.GUIPanels)
     S.GUIPanels = struct;
 end
+if isfield(S, 'ConfigVersion')
+    previousVersion = S.ConfigVersion;
+else
+    previousVersion = 0;
+end
 
-session = {'MaxTrials', 1000; 'TrainingMode', 2; 'Contingency', 1};
-blocks = {'BlockNum', 1; 'WarmupBlockNum', 1; 'BlockLength', 30; 'BlockMargin', 3; 'BlockEdgeTrials', 4; 'MostFraction', 0.8};
-stimulus = {'StimulusMode', 3; 'UseSavedImage', 0; 'PreStimDelay_s', 0.1; 'GratingDuration_s', 0.2};
-isi = {'ShortISIMode', 1; 'ShortISIFixed_s', 0.5; 'ShortISIMin_s', 0.5; 'ShortISIMax_s', 0.7; 'LongISIMode', 1; 'LongISIFixed_s', 2.5; 'LongISIMin_s', 2.3; 'LongISIMax_s', 2.5};
+% Keep parameter groups compact so GUI panels match task structure.
+session = {'MaxTrials', 1000; 'PressMode', 2; 'TrialMode', 4; 'BlockLength', 30; 'BlockLengthEdge', 5; 'ProbeMode', 0; 'ProbeFraction', 0.2; 'ProbeZeroEdgeTrials', 5};
+stimulus = {'TimingMode', 1; 'SensoryCueMode', 3; 'SensoryCueDuration_s', 0.1; 'UseGeneratedGrating', 1};
 audio = {'AudioStimFreq_Hz', 11025; 'AudioStimVolume', 0.1; 'AudioSamplingRate_Hz', 44100; 'AudioAttenuation_dB', -35; 'AudioRamp_ms', 1};
-optoSchedule = {'OptoMode', 1; 'OptoFraction', 0.25; 'OptoZeroEdgeTrials', 5; 'OptoEarlyTrials', 5};
-optoHardware = {'OptoTriggerType', 2; 'OptoTriggerMode', 4; 'OptoPulseTotalDuration_s', 0.5; 'OptoPulseFrequency_Hz', 20; 'OptoPulseDutyCycle_percent', 50};
-optoPeriods = {'EnableOptoStimulus', 1; 'EnableOptoSpoutInDelay', 0; 'EnableOptoSpoutIn', 0; 'EnableOptoPreOutcome', 0; 'EnableOptoReward', 0; 'EnableOptoPostReward', 0; 'EnableOptoPunishITI', 0};
-probe = {'ProbeMode', 0; 'ProbeFraction', 0.1; 'ProbeZeroEdgeTrials', 5};
-choice = {'SpoutInDelay_s', 0.2; 'ChoiceWindow_s', 5; 'PostLickDelay_s', 0.01; 'AllowChangeMind', 0; 'ChangeMindWindow_s', 0.5};
-reward = {'PreOutcomeDelay_s', 0.5; 'PostRewardDelay_s', 0.2; 'LeftRewardAmount_uL', 6; 'RightRewardAmount_uL', 6};
-servo = {'CurrentSpoutPosition', 1; 'RightServoInPos', 1220; 'LeftServoInPos', 1810; 'ServoDeflection', 90; 'ServoVelocity', 1; 'ServoMoveDelay_s', 0.1; 'ServoReturnTimeout_s', 1};
-iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 3; 'ITIMax_s', 6; 'ITIMean_s', 4.5; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 3; 'PunishITIMax_s', 7; 'PunishITIMean_s', 5};
-chemo = {'ChemoMode', 0};
+timing = {'ShortDelay_s', 0.5; 'LongDelay_s', 1; 'Press1Window_s', 2; 'ShortPress2Window_s', 3; 'LongPress2Window_s', 3};
+joystick = {'PressThreshold', 0.7; 'RetractThreshold', 0.3; 'ServoInPos', 1638; 'ServoOutPos', 50; 'ServoMoveDelay_s', 0.05; 'ServoReturnTimeout_s', 1; 'AssistMode', 1; 'AssistFraction', 0.3};
+reward = {'RewardWindowLeft_s', 0.2; 'RewardMaximumWindow_s', 0.5; 'RewardWindowRight_s', 1.5; 'PreRewardDelay_s', 0.5; 'PostRewardDelay_s', 1; 'RewardMode', 1; 'RewardAmount_uL', 3; 'ShortRewardAmount_uL', 3; 'LongRewardAmount_uL', 3};
+iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 3; 'ITIMax_s', 5; 'ITIMean_s', 4; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 3; 'PunishITIMax_s', 7; 'PunishITIMean_s', 5};
+manipulation = {'OptoMode', 0; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'EnableOptoSensoryCue1', 1; 'EnableOptoDelay', 1; 'EnableOptoPreRewardDelay', 1; 'EnableOptoPostReward', 1; 'OptoFrequency_Hz', 50; 'OptoPulseOn_ms', 10; 'ChemoMode', 0};
 
-groups = {session, blocks, stimulus, isi, audio, optoSchedule, optoHardware, optoPeriods, probe, choice, reward, servo, iti, chemo};
-parameterNames = vertcat(session(:, 1), blocks(:, 1), stimulus(:, 1), isi(:, 1), audio(:, 1), optoSchedule(:, 1), optoHardware(:, 1), optoPeriods(:, 1), probe(:, 1), choice(:, 1), reward(:, 1), servo(:, 1), iti(:, 1), chemo(:, 1));
+% Migrate older saved settings into the current field names.
+if isfield(S.GUI, 'RewardBefore_s') && ~isfield(S.GUI, 'RewardWindowLeft_s')
+    S.GUI.RewardWindowLeft_s = S.GUI.RewardBefore_s;
+end
+if isfield(S.GUI, 'RewardAfter_s') && ~isfield(S.GUI, 'RewardWindowRight_s')
+    S.GUI.RewardWindowRight_s = S.GUI.RewardAfter_s;
+end
+if isfield(S.GUI, 'RewardDelay_s') && ~isfield(S.GUI, 'PreRewardDelay_s')
+    S.GUI.PreRewardDelay_s = S.GUI.RewardDelay_s;
+end
+if isfield(S.GUI, 'OptoVisualCue1Period') && ~isfield(S.GUI, 'enableoptovisualcue1')
+    S.GUI.enableoptovisualcue1 = S.GUI.OptoVisualCue1Period;
+end
+if isfield(S.GUI, 'VisualCueDuration_s') && ~isfield(S.GUI, 'SensoryCueDuration_s')
+    S.GUI.SensoryCueDuration_s = S.GUI.VisualCueDuration_s;
+end
+if isfield(S.GUI, 'EnableOptoVisualCue1') && ~isfield(S.GUI, 'EnableOptoSensoryCue1')
+    S.GUI.EnableOptoSensoryCue1 = S.GUI.EnableOptoVisualCue1;
+end
+if isfield(S.GUI, 'OptoPostPress1Period') && ~isfield(S.GUI, 'enableoptodelay')
+    S.GUI.enableoptodelay = S.GUI.OptoPostPress1Period;
+end
+if isfield(S.GUI, 'OptoRewardDelayPeriod') && ~isfield(S.GUI, 'enableoptopostreward')
+    S.GUI.enableoptopostreward = S.GUI.OptoRewardDelayPeriod;
+end
+if isfield(S.GUI, 'OptoPreRewardDelayPeriod') && ~isfield(S.GUI, 'enableoptoprewarddelay')
+    S.GUI.enableoptoprewarddelay = S.GUI.OptoPreRewardDelayPeriod;
+end
+if isfield(S.GUI, 'enableoptovisualcue1') && ~isfield(S.GUI, 'EnableOptoSensoryCue1')
+    S.GUI.EnableOptoSensoryCue1 = S.GUI.enableoptovisualcue1;
+end
+if isfield(S.GUI, 'enableoptodelay') && ~isfield(S.GUI, 'EnableOptoDelay')
+    S.GUI.EnableOptoDelay = S.GUI.enableoptodelay;
+end
+if isfield(S.GUI, 'enableoptopostreward') && ~isfield(S.GUI, 'EnableOptoPostReward')
+    S.GUI.EnableOptoPostReward = S.GUI.enableoptopostreward;
+end
+if isfield(S.GUI, 'enableoptoprewarddelay') && ~isfield(S.GUI, 'EnableOptoPreRewardDelay')
+    S.GUI.EnableOptoPreRewardDelay = S.GUI.enableoptoprewarddelay;
+end
 
-if isfield(S.GUI, 'RewardDelay_s') && ~isfield(S.GUI, 'PreOutcomeDelay_s')
-    S.GUI.PreOutcomeDelay_s = S.GUI.RewardDelay_s;
-end
-if isfield(S.GUI, 'PreRewardDelay_s') && ~isfield(S.GUI, 'PreOutcomeDelay_s')
-    S.GUI.PreOutcomeDelay_s = S.GUI.PreRewardDelay_s;
-end
-if isfield(S.GUI, 'EnableOptoPreReward') && ~isfield(S.GUI, 'EnableOptoPreOutcome')
-    S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoPreReward;
-end
-if isfield(S.GUI, 'EnableOptoChoice')
-    if ~isfield(S.GUI, 'EnableOptoPreOutcome')
-        S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoChoice;
-    else
-        S.GUI.EnableOptoPreOutcome = S.GUI.EnableOptoPreOutcome || S.GUI.EnableOptoChoice;
-    end
-    S.GUI = rmfield(S.GUI, 'EnableOptoChoice');
-end
+groups = {session, stimulus, audio, timing, joystick, reward, iti, manipulation};
+parameterNames = vertcat(session(:, 1), stimulus(:, 1), audio(:, 1), timing(:, 1), joystick(:, 1), reward(:, 1), iti(:, 1), manipulation(:, 1));
 
+% Fill missing fields and drop stale settings from older versions.
 for groupIndex = 1:numel(groups)
     group = groups{groupIndex};
     for parameterIndex = 1:size(group, 1)
@@ -60,67 +84,86 @@ for groupIndex = 1:numel(groups)
         end
     end
 end
-if S.GUI.OptoMode < 1
-    S.GUI.OptoMode = 1;
-end
-
 unusedParameters = setdiff(fieldnames(S.GUI), parameterNames);
 if ~isempty(unusedParameters)
     S.GUI = rmfield(S.GUI, unusedParameters);
 end
 
+% Reset parameters that changed meaning across config versions.
+if previousVersion < 4
+    S.GUI.SensoryCueDuration_s = 0.1;
+    S.GUI.ShortDelay_s = 0.5;
+    S.GUI.LongDelay_s = 1;
+    S.GUI.Press1Window_s = 2;
+    S.GUI.ShortPress2Window_s = 3;
+    S.GUI.LongPress2Window_s = 3;
+    S.GUI.RewardWindowLeft_s = 0.2;
+    S.GUI.RewardWindowRight_s = 1.5;
+    S.GUI.PreRewardDelay_s = 0.5;
+    S.GUI.TimingMode = 2;
+end
+if previousVersion < 9
+    S.GUI.PostRewardDelay_s = 1;
+end
+if previousVersion < 12
+    S.GUI.RewardMaximumWindow_s = 0.5;
+end
+if previousVersion < 14
+    S.GUI.OptoZeroEdgeTrials = 5;
+    S.GUI.ProbeZeroEdgeTrials = 5;
+end
+if previousVersion < 15
+    S.GUI.OptoFrequency_Hz = 50;
+    S.GUI.OptoPulseOn_ms = 10;
+end
+if previousVersion < 18
+    S.GUI.EnableOptoSensoryCue1 = 1;
+    S.GUI.EnableOptoDelay = 1;
+    S.GUI.EnableOptoPostReward = 1;
+end
+if previousVersion < 23
+    S.GUI.PreRewardDelay_s = 0.5;
+    S.GUI.EnableOptoPreRewardDelay = 1;
+end
+
+% Configure GUI widget types and menu labels.
 S.GUIMeta = struct;
 S.GUIPanels = struct;
-S.GUIMeta.TrainingMode.Style = 'popupmenu';
-S.GUIMeta.TrainingMode.String = {'Naive', 'Trained'};
-S.GUIMeta.Contingency.Style = 'popupmenu';
-S.GUIMeta.Contingency.String = {'Short-left, long-right', 'Short-right, long-left'};
-S.GUIMeta.StimulusMode.Style = 'popupmenu';
-S.GUIMeta.StimulusMode.String = {'Visual only', 'Audio only', 'Audio + visual'};
-S.GUIMeta.UseSavedImage.Style = 'checkbox';
-S.GUIMeta.BlockNum.Style = 'popupmenu';
-S.GUIMeta.BlockNum.String = {'50/50 only', '50/50 then left/right', '50/50, left, right'};
-S.GUIMeta.ShortISIMode.Style = 'popupmenu';
-S.GUIMeta.ShortISIMode.String = {'Fixed', 'Uniform random'};
-S.GUIMeta.LongISIMode.Style = 'popupmenu';
-S.GUIMeta.LongISIMode.String = {'Fixed', 'Uniform random'};
-S.GUIMeta.OptoMode.Style = 'popupmenu';
-S.GUIMeta.OptoMode.String = {'No opto', 'Random', 'Early trials in every block', 'Early trials in alternating block groups'};
-S.GUIMeta.OptoTriggerType.Style = 'popupmenu';
-S.GUIMeta.OptoTriggerType.String = {'Manual', 'Triggered', 'Gated'};
-S.GUIMeta.OptoTriggerMode.Style = 'popupmenu';
-S.GUIMeta.OptoTriggerMode.String = {'Pause', 'Continue', 'Restart', 'Uninterrupted'};
-S.GUIMeta.EnableOptoStimulus.Style = 'checkbox';
-S.GUIMeta.EnableOptoSpoutInDelay.Style = 'checkbox';
-S.GUIMeta.EnableOptoSpoutIn.Style = 'checkbox';
-S.GUIMeta.EnableOptoPreOutcome.Style = 'checkbox';
-S.GUIMeta.EnableOptoReward.Style = 'checkbox';
-S.GUIMeta.EnableOptoPostReward.Style = 'checkbox';
-S.GUIMeta.EnableOptoPunishITI.Style = 'checkbox';
+S.GUIMeta.PressMode.Style = 'popupmenu';
+S.GUIMeta.PressMode.String = {'Single Press', 'Double Press'};
+S.GUIMeta.TrialMode.Style = 'popupmenu';
+S.GUIMeta.TrialMode.String = {'All Short', 'All Long', 'Blocks Short First', 'Blocks Long First'};
+S.GUIMeta.TimingMode.Style = 'popupmenu';
+S.GUIMeta.TimingMode.String = {'Visual Guided', 'Self Timed'};
+S.GUIMeta.SensoryCueMode.Style = 'popupmenu';
+S.GUIMeta.SensoryCueMode.String = {'Visual only', 'Audio only', 'Audio + visual'};
 S.GUIMeta.ChemoMode.Style = 'checkbox';
-S.GUIMeta.ProbeMode.Style = 'checkbox';
-S.GUIMeta.AllowChangeMind.Style = 'checkbox';
+S.GUIMeta.UseGeneratedGrating.Style = 'checkbox';
+S.GUIMeta.RewardMode.Style = 'popupmenu';
+S.GUIMeta.RewardMode.String = {'Same Reward', 'Different Reward'};
 S.GUIMeta.ITIMode.Style = 'popupmenu';
 S.GUIMeta.ITIMode.String = {'Manual', 'Exponential'};
 S.GUIMeta.PunishITIMode.Style = 'popupmenu';
 S.GUIMeta.PunishITIMode.String = {'Manual', 'Exponential'};
-S.GUIMeta.CurrentSpoutPosition.Style = 'popupmenu';
-S.GUIMeta.CurrentSpoutPosition.String = {'Neutral', 'Leftwards', 'Rightwards'};
+S.GUIMeta.OptoMode.Style = 'checkbox';
+S.GUIMeta.EnableOptoSensoryCue1.Style = 'checkbox';
+S.GUIMeta.EnableOptoDelay.Style = 'checkbox';
+S.GUIMeta.EnableOptoPreRewardDelay.Style = 'checkbox';
+S.GUIMeta.EnableOptoPostReward.Style = 'checkbox';
+S.GUIMeta.ProbeMode.Style = 'checkbox';
+S.GUIMeta.AssistMode.Style = 'checkbox';
 
-% BpodParameterGUI reverses GUIPanels before drawing; this order balances the displayed columns.
-S.GUIPanels.Servo = servo(:, 1)';
-S.GUIPanels.OptoHardware = optoHardware(:, 1)';
-S.GUIPanels.Session = session(:, 1)';
-S.GUIPanels.Probe = probe(:, 1)';
-S.GUIPanels.Blocks = blocks(:, 1)';
-S.GUIPanels.Stimulus = stimulus(:, 1)';
-S.GUIPanels.ISI = isi(:, 1)';
-S.GUIPanels.Audio = audio(:, 1)';
-S.GUIPanels.OptoPeriods = optoPeriods(:, 1)';
-S.GUIPanels.Choice = choice(:, 1)';
-S.GUIPanels.OptoSchedule = optoSchedule(:, 1)';
+% Panel counts: Session 8, Stimulus 4, Audio 5, Timing 5, Joystick 8,
+% Reward 9, ITI 10, Manipulation 10.
+% This order gives balanced stock Bpod GUI columns after panel reversal.
+S.GUIPanels.Joystick = joystick(:, 1)';
+S.GUIPanels.Timing = timing(:, 1)';
 S.GUIPanels.Reward = reward(:, 1)';
-S.GUIPanels.Chemo = chemo(:, 1)';
+S.GUIPanels.Stimulus = stimulus(:, 1)';
+S.GUIPanels.Audio = audio(:, 1)';
 S.GUIPanels.ITI = iti(:, 1)';
-S.ConfigVersion = 7;
+S.GUIPanels.Session = session(:, 1)';
+S.GUIPanels.Manipulation = manipulation(:, 1)';
+
+S.ConfigVersion = 24;
 end

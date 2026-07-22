@@ -1,124 +1,92 @@
 # State Machine
 
-The state machine is built in `BuildStateMachine.m`.
+This page explains the one-trial Bpod state machine built by `BuildStateMachine.m`.
 
-## Shared Start
+## Global Timers
 
-All normal trials begin:
+### Timer 1
 
-```text
-Start
-PreStimDelay
-VisStimTrigger
-AudStimTrigger
-StimulusDone
-```
+Timer 1 controls cue 2 timing. It starts at the press 2 timing origin, which is `PrePress2Delay`.
 
-`StimulusDone` returns the display to grey and stops HiFi.
+Its onset delay is the target delay. In visual-guided mode, it sends soft code 2 when cue 2 should appear. In self-timed mode, it sends no cue message.
 
-`PreStimDelay` waits for `PreStimDelay_s` before visual/audio stimulus onset. If stimulus opto is enabled for the trial, this state starts the stimulus opto global timer. The timer duration is `PreStimDelay_s + stimulusDuration`, so `PWM1` stays high from pre-stimulus-delay onset until stimulus-play offset.
+### Timer 10
 
-## Normal Trained Trial
+Timer 10 is reserved for delay-period opto. It starts in `LeverRetract1`, drives `PWM1` high during the delay / press 2 epoch, and is cancelled at `RewardLeverRetract`.
 
-```text
-SpoutInDelay
-SpoutIn
-ChoiceWindow
-```
+## Trial Start
 
-`SpoutIn` sends the servo-in soft code at state onset. It transitions only on `Tup`, so `ChoiceWindow` begins after `ServoMoveDelay_s`, not at servo command onset.
+`Start` turns BNC1 high, resets the rotary encoder, cancels any old opto timer, turns LED1 off, and moves to `SensoryCue1`.
 
-If spout-in-delay opto is enabled, `SpoutInDelay` starts a global timer for `SpoutInDelay_s`. If spout-in opto is enabled, `ChoiceWindow` or `ProbeChoiceWindow` starts a global timer for the spouts-in lick window. `PreOutcomeDelay`, `ChangeMindWindow`, and servo-out paths cancel that timer so `PWM1` follows the actual spouts-in window offset.
+`SensoryCue1` plays cue 1, enables encoder threshold events, and turns LED1 on when the cue 1 opto row is enabled for this trial. Depending on `SensoryCueMode`, the cue is visual only, audio only, or audio + visual. Double press mode goes to `WaitForPress1`; single press mode goes directly to `PrePress2Delay`.
 
-Correct lick:
+## Press 1
 
-```text
-PostLickDelayReward
-PreOutcomeDelay
-Reward
-PostRewardDelay
-ServoOut
-ITI
-```
+`WaitForPress1` releases the servo for press 1, turns off opto type 1 when needed, and waits for the first joystick press.
 
-If pre-outcome opto is enabled, `PreOutcomeDelay` starts a global timer that keeps `PWM1` high for `PreOutcomeDelay_s`. If reward opto is enabled, `Reward` starts a separate global timer for the valve-open reward duration. If post-reward opto is enabled, `PostRewardDelay` starts another timer for `PostRewardDelay_s`.
+If the encoder threshold is crossed, the trial goes to `Press1`.
 
-Wrong lick without change-of-mind:
+If time runs out, the trial goes to `DidNotPress1`.
 
-```text
-PostLickDelayPunish
-PreOutcomeDelayPunish
-ServoOutPunish
-PunishITI
-ITI
-```
+`Press1` waits for `ServoMoveDelay_s`, then goes to `LeverRetract1`.
 
-Punish trials enter `PreOutcomeDelayPunish` before `ServoOutPunish`. If pre-outcome opto is enabled, this delay starts the same pre-outcome opto timer used by reward trials.
+`LeverRetract1` retracts the servo. When the soft-code handler confirms the servo is home, the trial moves to `PrePress2Delay`. Delay-period opto starts LED1 here.
 
-If punish-ITI opto is enabled, `PunishITI` starts a global timer that keeps `PWM1` high for the sampled punish ITI duration.
+## Press 2 Preparation
 
-Wrong lick with change-of-mind:
+`PrePress2Delay` is the timing origin for press 2.
+
+On normal trials it has zero duration, releases the servo for press 2, enables encoder events, turns off opto type 1 when needed, and moves to `WaitForPress2`.
+
+On assist trials it holds the lever available for the target delay. The mouse can still press during this period. If no press happens by the target delay, the trial goes to `Assist`.
+
+`Assist` releases the servo and moves to `WaitForPress2`.
+
+`WaitForPress2` waits for the press 2 joystick event. On normal trials it uses the full press 2 window. On assist trials it uses the remaining window:
 
 ```text
-PostLickDelayChangeMind
-ChangeMindWindow
+press2Window - delay
 ```
 
-If the correct side is licked during `ChangeMindWindow`, the trial enters `PostLickDelayReward` and then follows the reward path. Otherwise it follows the punish path without a post-lick delay.
+If the encoder threshold is crossed, the trial goes to `Press2`. If time runs out, it goes to `DidNotPress2`.
 
-## Naive Trial
+## Press 2 Outcome
 
-Naive trials auto-deliver water before the shared choice window:
+`Press2` sends soft code 21. The soft-code handler measures press 2 time, stops cue output, and computes reward amount. The state also cancels cue 2 timer 1.
 
-```text
-SpoutInDelay
-SpoutIn
-NaiveWaterDelivery
-ChoiceWindow
-```
+`RewardLeverRetract` retracts the servo after press 2 and sends soft code 22. The soft-code handler returns one of three soft codes:
 
-A correct lick uses the shared post-lick delay, then records the naive reward outcome:
+- `SoftCode1`: early, route to `EarlyPress2`.
+- `SoftCode2`: rewarded, route to `PreRewardDelay`.
+- `SoftCode3`: late, route to `Press2Late`.
 
-```text
-PostLickDelayReward
-NaiveRewardOutcome
-PostRewardDelay
-ServoOut
-ITI
-```
+If no return code arrives, the trial goes to `DidNotPress2`.
 
-With `AllowChangeMind` off, an incorrect lick moves the spouts out before recording the naive punish outcome:
+Delay-period opto is turned off in `RewardLeverRetract`.
 
-```text
-PostLickDelayPunish
-ServoOutPunish
-NaivePunishOutcome
-ITI
-```
+## Reward Path
 
-With `AllowChangeMind` on, an incorrect lick reuses the trained `PostLickDelayChangeMind` and `ChangeMindWindow` states. A correct lick during that window follows the naive reward-outcome path; timeout follows the naive spout-out and punish-outcome path.
+`PreRewardDelay` waits for `PreRewardDelay_s`, then goes to `Reward`. Pre-reward-delay opto turns LED1 on here.
 
-Naive state machines force the normal path after `StimulusDone`, omit `ProbeSpoutIn` and `ProbeChoiceWindow`, and contain no opto global timers or opto output actions.
+`Reward` sends soft code 20 and turns pre-reward-delay opto off. The soft-code handler delivers water through valve 2. When reward delivery is done, the handler sends soft code 3 and the trial goes to `PostRewardDelay`.
 
-All `PostLickDelay...` states use `PostLickDelay_s`. They cancel spout-in opto before the state machine enters the next outcome or change-mind state.
+`PostRewardDelay` waits for `PostRewardDelay_s`. Post-reward opto turns LED1 on here.
 
-## Probe Trials
+`LeverRetractFinal` is the terminal rewarded state. Post-reward opto turns LED1 off here, then the trial goes to `ITI`.
 
-Stimulus-only probe:
+## Error Path
 
-```text
-StimulusDone
-ITI
-```
+The error outcome states are:
 
-Servo-only probe:
+- `EarlyPress2`
+- `Press2Late`
+- `DidNotPress1`
+- `DidNotPress2`
 
-```text
-StimulusDone
-ProbeSpoutIn
-ProbeChoiceWindow
-ServoOut
-ITI
-```
+`DidNotPress1` and `DidNotPress2` also retract the servo before the punish period. All error states go to `Punish_ITI`.
 
-Probe trials can carry opto tags. Stimulus opto uses the same pre-stimulus-delay plus stimulus-playback duration for normal, stimulus-only probe, and servo-only probe trials.
+`Punish_ITI` waits for the punish ITI, then goes to `ITI`.
+
+## ITI
+
+`ITI` waits for the normal ITI, turns BNC1 low, and exits the state machine.

@@ -1,173 +1,154 @@
-# Block Single Interval Discrimination 202606
+# Joystick Double Motor Timing Protocol
 
-This protocol runs a short/long interval discrimination task in Bpod with synchronized visual and audio stimulus presentation, moving spouts, reward delivery, probe trials, opto/chemo tagging, and live session plots.
+This is a compact Bpod MATLAB protocol for a joystick timing task with configurable sensory cues, servo control, rotary encoder thresholds, optional assist trials, opto/probe/chemo trial tags, and online plotting.
 
 ## Update note
-
-### 2026.07.13
-- Corrected the naive workflow: water is delivered before the shared choice window, correct and incorrect choices enter explicit naive outcome states, and optional change-of-mind reuses the trained branch.
-- Naive state machines contain no probe states or opto timers/actions.
-
-### 2026.07.07
-- Changed opto choice to opto spout in.
-- Removed opto choice.
-
-### 2026.07.06
-- Changed pre reward delay to pre outcome delay.
-- Now pre outcome delay is applied before punish.
-- Added opto during SpoutInDelay.
-- Added more doric params into gui and ask for check.
-- Added pre stim delay.
-- Now opto stim also cover pre stim delay.
-- Adjust gui layouts.
-- Isolated water delivery into reward state.
-- Separated opto reward and opto post reward.
-
-### 2026.06.25
-- Added opto options to spout-in delay and pre-outcome delay.
-- Added opto option to punish ITI.
-- Adjusted canvas layouts.
-- Adjusted printing info after session ends.
 
 ### 2026.06.24
 - First release.
 
-## Basic Workflow
+### 2026.06.30
+- Added opto during pre reward delay.
+- Changed reward delay namings.
+- Adjusted canvas layouts.
+- Added BNC2 to event plot.
 
-1. Launch `block_single_interval_discrimination_202606`.
-2. Edit the Bpod GUI parameters.
-3. Press Enter in MATLAB to configure hardware and generate the session plan.
-4. Wait for the stimulus screen to show the grey ready screen.
-5. Press Enter again to start trials.
-6. End the session from Bpod when finished. The protocol returns the display to grey, closes session windows, stops hardware objects, and saves Bpod data.
+### 2026.07.22
+- Added sensory cue mode: visual only, audio only, or audio + visual.
+- Renamed cue-facing GUI fields from visual cue wording to sensory cue wording.
+- Changed event plot lick row from port 1 to port 2.
+- Added 8 digit session date to the first summary line.
 
-## Main Features
+## Main Workflow
 
-- Two trial types: short and long.
-- Configurable contingency: short-left/long-right or short-right/long-left.
-- Session-level block control with 50/50, short-majority, and long-majority blocks.
-- Per-trial ISI sampling from fixed or uniform ranges.
-- ITI and punish ITI sampling from manual or bounded exponential distributions.
-- Visual-only, audio-only, or audio+visual stimulus modes.
-- Optional `image.png` visual stimulus instead of the generated grating.
-- Audio and visual stimulus modes use the same total duration and sync-patch timing.
-- Moving-spout trained and naive task modes.
-- Probe trials:
-  - Stimulus-only probe.
-  - Servo-only probe.
-- Opto trial tags, arbitrary stimulus/spout-in-delay/spout-in/pre-outcome/reward/post-reward/punish-ITI period combinations, PWM hardware control, Doric pulse settings, trigger settings, and chemo session tagging in separate GUI sections. Opto settings can be changed during the session; the next trial uses the current GUI settings.
-- Live plots for trial types, blocks, probe/opto, ISI, outcomes, lick rates, reaction time, state timing, and events.
+1. Run `joystick_double_motor_timing_202601`.
+2. The GUI opens first. Set parameters and press Enter in MATLAB.
+3. Hardware is configured: Pololu Maestro servo, rotary encoder, HiFi module, and PsychToolbox video display.
+4. The screen is set to gray and the servo returns home. Press Enter again to start trials.
+5. Each trial syncs GUI parameters, builds the next state machine, runs Bpod, saves trial data, and updates the plot canvas.
 
-## GUI Parameter Quick Reference
+## Trial Logic
+
+The state machine starts with `SensoryCue1`, then either waits for `Press1` in double-press mode or goes directly to press 2 in single-press mode.
+
+For press 2, timing is measured from the start of the press 2 window. The state `Press2` captures the timing and `RewardLeverRetract` routes the trial to `EarlyPress2`, `PreRewardDelay`, or `Press2Late`. Missing presses go to `DidNotPress1` or `DidNotPress2`. Rewarded trials finish through `Reward`, `PostRewardDelay`, and `LeverRetractFinal`.
+
+Assist trials hold the servo until perfect timing, release it, and then use the same `Press2` outcome path.
+
+Probe type 1 omits water reward even for rewarded timing. Probe type 2 flips the timing mode for that trial: visual guided becomes self timed, and self timed becomes visual guided.
+
+Opto and probe tags are forced to zero for the first block and for the first/last trials of each block. The edge lengths are controlled separately by `OptoZeroEdgeTrials` and `ProbeZeroEdgeTrials`. Probe trials are excluded from opto tagging.
+
+Opto sessions require `AssistMode` off. The protocol prints this check before the session and stops if opto and assist are both enabled.
+
+Opto trials are saved as a `4 x nTrials` matrix, with rows for sensory cue 1, delay, pre reward delay, and post reward. A selected trial can enable any combination of these periods. LED1 turns on during `SensoryCue1` for cue opto, from `LeverRetract1` to `RewardLeverRetract` for delay opto, during `PreRewardDelay` until `Reward` for pre-reward-delay opto, and during `PostRewardDelay` until `LeverRetractFinal` for post-reward opto.
+
+`ChemoMode` stores `ChemoTrialTypes` as 1 when enabled and 0 otherwise.
+
+## Reward Shape
+
+Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
+
+- zero at `perfect timing - RewardWindowLeft_s`
+- maximum at perfect timing
+- maximum through `RewardMaximumWindow_s`
+- linearly decreases to zero over `RewardWindowRight_s`
+
+## GUI Parameters
 
 ### Session
 
-- `MaxTrials`: maximum session length.
-- `TrainingMode`: naive shaping delivers water before choice; trained mode delivers reward after a correct choice. Both reuse the same choice and optional change-of-mind states. Naive state machines disable probe and opto behavior.
-- `Contingency`: maps short/long trials to left/right target sides.
-- `BlockNum`: block structure: 50/50 only, alternating short/long majority, or 50/50/short/long without repeats.
-- `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block; can be `0`.
-- `BlockLength`: nominal trials per block.
-- `BlockMargin`: random plus/minus range around `BlockLength`.
-- `BlockEdgeTrials`: first/last trials in majority blocks forced to the majority trial type.
-- `MostFraction`: majority trial fraction in short-majority or long-majority blocks.
+- `MaxTrials`: maximum trials before the protocol stops.
+- `PressMode`: single press or double press task.
+- `TrialMode`: all short, all long, short-first blocks, or long-first blocks.
+- `BlockLength`: nominal number of trials per short/long block.
+- `BlockLengthEdge`: random block-edge jitter added to block length.
+- `ProbeMode`: enables probe trial tagging.
+- `ProbeFraction`: fraction of eligible trials tagged as probes.
+- `ProbeZeroEdgeTrials`: block-edge trials excluded from probe tagging.
 
 ### Stimulus
 
-- `StimulusMode`: visual only, audio only, or audio + visual.
-- `UseSavedImage`: use `image.png` instead of the generated grating.
-- `PreStimDelay_s`: delay before visual/audio stimulus onset.
-- `GratingDuration_s`: duration of each stimulus pulse.
-- `AudioStimFreq_Hz`: tone frequency.
-- `AudioStimVolume`: tone amplitude from 0 to 1.
-- `AudioSamplingRate_Hz`: HiFi sample rate.
-- `AudioAttenuation_dB`: HiFi attenuation.
-- `AudioRamp_ms`: tone onset/offset ramp.
+- `TimingMode`: visual guided or self timed.
+- `SensoryCueMode`: visual only, audio only, or audio + visual.
+- `SensoryCueDuration_s`: duration of sensory cue 1 and cue 2.
+- `UseGeneratedGrating`: use generated grating instead of `image.png`.
 
-### ISI
+### Audio
 
-- `ShortISIMode`, `LongISIMode`: fixed or uniform random draw.
-- `ShortISIFixed_s`, `LongISIFixed_s`: fixed interval values.
-- `ShortISIMin_s`, `ShortISIMax_s`, `LongISIMin_s`, `LongISIMax_s`: random draw bounds.
+- `AudioStimFreq_Hz`: sensory cue tone frequency.
+- `AudioStimVolume`: sensory cue tone amplitude from 0 to 1.
+- `AudioSamplingRate_Hz`: HiFi module sampling rate.
+- `AudioAttenuation_dB`: HiFi digital attenuation.
+- `AudioRamp_ms`: onset and offset ramp for the tone.
 
-### Opto Schedule
+### Timing
 
-- `OptoMode`: no opto, random, early trials every block, or early trials in alternating block groups.
-- `OptoFraction`: random-mode fraction of eligible opto trials.
-- `OptoZeroEdgeTrials`: random-mode first/last trials per block excluded from opto.
-- `OptoEarlyTrials`: number of early trials tagged opto in early-trial modes.
+- `ShortDelay_s`: target press 2 delay for short trials.
+- `LongDelay_s`: target press 2 delay for long trials.
+- `Press1Window_s`: time allowed for press 1.
+- `ShortPress2Window_s`: press 2 response window on short trials.
+- `LongPress2Window_s`: press 2 response window on long trials.
 
-### Opto Hardware
+### Joystick
 
-- `OptoTriggerType`: Doric trigger type to check before starting the session.
-- `OptoTriggerMode`: Doric trigger mode to check before starting the session.
-- `OptoPulseTotalDuration_s`: total Doric pulse duration to verify before starting the session.
-- `OptoPulseFrequency_Hz`: Doric pulse frequency to verify before starting the session.
-- `OptoPulseDutyCycle_percent`: Doric pulse duty cycle to verify before starting the session.
+- `PressThreshold`: encoder threshold for a joystick press.
+- `RetractThreshold`: encoder threshold used for retract/home logic.
+- `ServoInPos`: servo home position.
+- `ServoOutPos`: servo released position.
+- `ServoMoveDelay_s`: wait after detected press before retract routing.
+- `ServoReturnTimeout_s`: maximum wait for servo return soft-code confirmation.
+- `AssistMode`: enables assist trials after early press 2.
+- `AssistFraction`: probability of assist after an eligible early trial.
 
-### Opto Periods
+### Reward
 
-- `EnableOptoStimulus`: if checked, selected opto trials turn on `PWM1` from `PreStimDelay` onset through stimulus-play offset.
-- `EnableOptoSpoutInDelay`: if checked, selected opto trials turn on `PWM1` during `SpoutInDelay`.
-- `EnableOptoSpoutIn`: if checked, selected trained opto trials turn on `PWM1` while the spouts are in and the animal can lick during `ChoiceWindow` or `ProbeChoiceWindow`.
-- `EnableOptoPreOutcome`: if checked, selected opto trials turn on `PWM1` during the pre-outcome delay before reward or punish servo-out.
-- `EnableOptoReward`: if checked, selected opto trials turn on `PWM1` during `Reward`.
-- `EnableOptoPostReward`: if checked, selected opto trials turn on `PWM1` during `PostRewardDelay`.
-- `EnableOptoPunishITI`: if checked, selected opto trials turn on `PWM1` during `PunishITI`.
+- `RewardWindowLeft_s`: early side of rewarded timing window.
+- `RewardMaximumWindow_s`: plateau after perfect timing with maximum reward.
+- `RewardWindowRight_s`: late side of rewarded timing window.
+- `PreRewardDelay_s`: delay from rewarded classification to water delivery.
+- `PostRewardDelay_s`: delay after reward before final rewarded state.
+- `RewardMode`: same reward for all trials or separate short/long reward sizes.
+- `RewardAmount_uL`: reward size when using same reward mode.
+- `ShortRewardAmount_uL`: short-trial reward size in different reward mode.
+- `LongRewardAmount_uL`: long-trial reward size in different reward mode.
 
-### Chemo
+### ITI
 
-- `ChemoMode`: session-level chemo tag.
+- `ITIMode`: manual or truncated exponential normal ITI.
+- `ManualITI_s`: normal ITI when manual mode is selected.
+- `ITIMin_s`, `ITIMax_s`, `ITIMean_s`: exponential normal ITI bounds and mean.
+- `PunishITIMode`: manual or truncated exponential punish ITI.
+- `ManualPunishITI_s`: punish ITI when manual mode is selected.
+- `PunishITIMin_s`, `PunishITIMax_s`, `PunishITIMean_s`: exponential punish ITI bounds and mean.
 
-Opto settings are synced at the start of each trial, so mid-session changes affect later trials. See [docs/opto-control.md](docs/opto-control.md) for the full opto workflow, timing, plots, and saved fields.
+### Manipulation
 
-### Probe
+- `OptoMode`: enables opto trial tagging.
+- `OptoFraction`: fraction of eligible trials tagged as opto.
+- `OptoZeroEdgeTrials`: block-edge trials excluded from opto tagging.
+- `EnableOptoSensoryCue1`: adds cue 1 light to selected opto trials.
+- `EnableOptoDelay`: adds delay-period light to selected opto trials.
+- `EnableOptoPreRewardDelay`: adds pre-reward-delay light to selected opto trials.
+- `EnableOptoPostReward`: adds post-reward light to selected opto trials.
+- `OptoFrequency_Hz`: reserved pulse frequency setting; current output is sustained high.
+- `OptoPulseOn_ms`: reserved pulse on-time setting; current output is sustained high.
+- `ChemoMode`: marks completed trials as chemo trials in saved data.
 
-- `ProbeMode`: enable probe trial tags.
-- `ProbeFraction`: fraction of eligible probe trials.
-- `ProbeZeroEdgeTrials`: first/last trials per block excluded from probes.
+## Main Files
 
-### Choice, Reward, Servo, ITI
+- `joystick_double_motor_timing_202601.m`: main protocol, GUI sync, hardware setup, trial loop, data saving.
+- `ConfigureProtocol.m`: GUI defaults, metadata, and parameter panels.
+- `BuildStateMachine.m`: Bpod state machine for each trial.
+- `SoftCodeHandler_Protocol.m`: servo, sensory cue, press timing, and reward delivery soft-code operations.
+- `GenerateTrials.m`: short/long trial blocks plus ITI and punish ITI generation.
+- `OptoControl.m`: opto trial tags and neutral display colors.
+- `ProbeControl.m`: probe trial tags and neutral display colors.
+- `GenerateSensoryCueVideo.m`: creates the visual part of cue frames from `image.png` or the generated sinusoidal grating.
+- `ProtocolPlot.m`: one online canvas for trial outcomes, opto/probe tags, delay, press timing, encoder, states, and BNC/lick events.
 
-- `SpoutInDelay_s`: delay after stimulus before servo-in command.
-- `ChoiceWindow_s`: time allowed for choice.
-- `PostLickDelay_s`: delay after a detected lick before the protocol enters the next outcome or change-mind state.
-- `AllowChangeMind`: allow wrong-then-correct rescue.
-- `ChangeMindWindow_s`: rescue window duration.
-- `PreOutcomeDelay_s`, `PostRewardDelay_s`: outcome and reward timing.
-- `LeftRewardAmount_uL`, `RightRewardAmount_uL`: reward sizes.
-- `RightServoInPos`, `LeftServoInPos`, `ServoDeflection`, `ServoVelocity`: servo calibration.
-- `ServoMoveDelay_s`: time between servo-in command and choice start.
-- `ServoReturnTimeout_s`: servo-out timeout.
-- `ITIMode`, `PunishITIMode`: manual or bounded exponential.
-- `ManualITI_s`, `ManualPunishITI_s`: manual values.
-- `ITIMin_s`, `ITIMax_s`, `ITIMean_s`, `PunishITIMin_s`, `PunishITIMax_s`, `PunishITIMean_s`: exponential draw controls.
+## Plot Notes
 
-## Files
+The online plot uses a two-column canvas: the left side shows trial type, opto period, probe type, delay, and rotary encoder plots; the right side shows outcome fractions with a legend, press timing, state timing, and events. Outcome-related plots share one color set. Opto, probe, delay, and event plots use neutral gray or black marks. The rotary encoder position trace is black, while its threshold and event markers use colored annotations.
 
-- `block_single_interval_discrimination_202606.m`: main protocol.
-- `ConfigureProtocol.m`: GUI defaults, metadata, and panel layout.
-- `GenerateTrials.m`: trial and block generation.
-- `GenerateProbeTrials.m`: probe trial tags.
-- `GenerateOptoTrials.m`: opto trial tag allocation.
-- `GenerateOptoTrial.m`: current-trial opto assignment from the current GUI settings.
-- `OptoControl.m`: opto global timers and plot display metadata.
-- `BuildStimulus.m`: visual/audio stimulus generation.
-- `BuildStateMachine.m`: Bpod state machine.
-- `SoftCodeHandler_BlockSingleInterval.m`: video and servo soft-code actions.
-- `ProtocolPlot.m`: live session canvas. The opto plot is filled trial by trial, and the LED1 event row is reconstructed from saved opto periods and state timing.
-- `PololuMaestro.m`: servo controller wrapper.
-
-See `docs/` for detailed documentation.
-
-## State Machine Workflow
-
-Every trial starts with `Start`, `PreStimDelay`, `VisStimTrigger`, `AudStimTrigger`, and `StimulusDone`. `Start` resets opto timers and raises `BNC1`; `PreStimDelay` waits before stimulus onset and can start stimulus opto; `VisStimTrigger` starts the visual stimulus; `AudStimTrigger` plays the audio stimulus when audio is enabled; `StimulusDone` returns the screen and HiFi to grey/off.
-
-Normal trained trials then go through `SpoutInDelay`, `SpoutIn`, and `ChoiceWindow`. A correct lick enters `PostLickDelayReward`, then `PreOutcomeDelay`, then `Reward`, then `PostRewardDelay`, then `ServoOut`, then `ITI`. A wrong lick enters `PostLickDelayPunish`, then `PreOutcomeDelayPunish`, then `ServoOutPunish`, then `PunishITI`, then `ITI`. If `AllowChangeMind` is on, a wrong lick enters `PostLickDelayChangeMind`, then `ChangeMindWindow`; a correct lick there follows the reward path through `PostLickDelayReward`, and timeout follows the punish path. Timeout in `ChoiceWindow` also follows the punish path without a post-lick delay.
-
-Naive trials go through `SpoutInDelay`, `SpoutIn`, and `NaiveWaterDelivery` before entering the shared `ChoiceWindow`. A correct lick passes through `PostLickDelayReward` to `NaiveRewardOutcome`, `PostRewardDelay`, `ServoOut`, and `ITI`. With change-of-mind off, an incorrect lick passes through `PostLickDelayPunish`, `ServoOutPunish`, and `NaivePunishOutcome` to `ITI`. With `AllowChangeMind` on, the incorrect lick instead uses the trained `PostLickDelayChangeMind` and `ChangeMindWindow` branch; a correction reaches `NaiveRewardOutcome`, while timeout reaches the naive punish path. Naive state machines omit probe states and all opto timers/actions.
-
-Stimulus-only probes exit from `StimulusDone` directly to `ITI`. Servo-only probes go from `StimulusDone` to `ProbeSpoutIn`, then `ProbeChoiceWindow`, then `ServoOut`, then `ITI`; they do not reward or punish choices.
-
-Opto periods are selected independently on trained trials chosen by `OptoMode`. `EnableOptoStimulus` starts at `PreStimDelay` onset and stops at stimulus-play offset, before `StimulusDone` returns the display and audio to grey/off. `EnableOptoSpoutInDelay` starts at `SpoutInDelay` onset and stops when that state exits. `EnableOptoSpoutIn` starts during the spouts-in choice states. `EnableOptoPreOutcome` starts at `PreOutcomeDelay` or `PreOutcomeDelayPunish` onset and stops when that state exits. `EnableOptoReward` starts at `Reward` onset and stops at `Reward` offset. `EnableOptoPostReward` starts at `PostRewardDelay` onset and stops at `PostRewardDelay` offset. `EnableOptoPunishITI` starts at `PunishITI` onset and stops at `PunishITI` offset. Naive sessions generate zero probe/opto assignments and omit probe states and opto timers/actions from the state machine.
+The event plot uses one row per signal: `BNC 1`, `BNC 2`, `LED 1`, and `Port 2 lick`. Filled bars mark logical 1 or detected lick pulses; blank space marks 0.

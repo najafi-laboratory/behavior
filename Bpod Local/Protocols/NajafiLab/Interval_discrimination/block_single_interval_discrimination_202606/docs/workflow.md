@@ -1,62 +1,186 @@
-# Workflow
+# Main Workflow
 
-## Launch
+This page describes the full protocol flow.
 
-Run `block_single_interval_discrimination_202606` from the protocol folder. The protocol removes subfolders from the MATLAB path so the rewritten protocol does not import code from `ref1` or `ref2`.
+## 1. Start The Protocol
 
-## GUI Edit Pass
+Run:
 
-The protocol builds defaults with `ConfigureProtocol`, opens `BpodParameterGUI`, and waits for the first MATLAB Enter prompt. Edit parameters before pressing Enter.
+```matlab
+joystick_double_motor_timing_202601
+```
 
-The GUI sections are arranged into balanced columns by panel size:
+The protocol creates a cleanup object first. This makes sure hardware is reset if the protocol exits.
 
-1. ITI, Chemo
-2. Reward, OptoSchedule, Choice
-3. OptoPeriods, Audio
-4. ISI, Stimulus
-5. Blocks, Probe, Session
-6. OptoHardware, Servo
+## 2. Load Settings
 
-Blocks, Audio, opto schedule, opto hardware, opto periods, and Chemo have separate panels so the longer session setup is easier to scan.
+The protocol calls `ConfigureProtocol`.
 
-## Hardware Setup
+This function:
 
-After the first Enter:
+- Loads saved Bpod protocol settings.
+- Creates missing settings.
+- Migrates old setting names.
+- Removes unused setting names.
+- Builds GUI metadata.
+- Builds GUI panels.
 
-1. Settings are synced and validated.
-2. HiFi is opened and configured.
-3. The PsychToolbox video player is opened.
-4. A grey ready video is loaded.
-5. Maestro servo is opened and spouts move out.
+## 3. Show Parameter GUI
 
-## Second Enter
+The protocol calls:
 
-Before trial start, the display uses the same grey handling pattern as the reference protocol:
+```matlab
+BpodParameterGUI('init', S)
+```
 
-1. Stop active video.
-2. Set sync patch dark.
-3. Repeatedly call `V.play(0)` while waiting for Return.
+Then it moves the GUI to the top-left of the screen.
 
-No cursor movement or keyboard capture is used.
+The user edits parameters.
 
-## Trial Loop
+The user presses Enter in MATLAB.
 
-For each trial:
+The protocol syncs the GUI:
 
-1. Sync GUI parameters.
-2. Sample ISI, ITI, and punish ITI.
-3. Select target side from trial type and contingency.
-4. Build and load stimulus videos and audio.
-5. Build and send state machine.
-6. Run state machine.
-7. Save raw events and derived trial fields.
-8. Update plots.
-9. Return screen to grey.
+```matlab
+S = BpodParameterGUI('sync', S)
+```
 
-If the trial is tagged for opto and the session is trained, the state machine arms the selected period timers. Stimulus opto spans from `PreStimDelay` onset through stimulus-play offset. Spout-in-delay opto spans `SpoutInDelay`. Spout-in opto spans `ChoiceWindow` or `ProbeChoiceWindow`. Pre-outcome opto spans `PreOutcomeDelay` or `PreOutcomeDelayPunish`. Reward opto spans `Reward`. Post-reward opto spans `PostRewardDelay`. Punish-ITI opto spans `PunishITI`. Naive state machines do not add probe states or opto timers/actions.
+## 4. Validate Settings
 
-Opto settings are synced at the beginning of each trial. The opto plot shows the initial intended schedule as small dots and the online assigned trial settings as solid squares.
+The protocol calls `validateSettings`.
 
-## Cleanup
+This checks:
 
-When the protocol ends, cleanup stops HiFi/video objects, moves the spouts out when possible, closes session figures, and returns control to Bpod.
+- Trial count is valid.
+- Delay values are positive.
+- Press windows are positive.
+- Reward windows fit inside press 2 windows.
+- Servo timeout is positive.
+- Opto and probe fractions are between 0 and 1.
+- Block edge settings are nonnegative integers.
+- Reward amounts are positive.
+- ITI settings are valid.
+- Opto period settings are valid.
+- Assist mode is disabled when opto mode is enabled.
+
+If a setting is unsafe, the protocol stops with an error.
+
+## 5. Confirm Doric Opto Settings
+
+The protocol prints opto settings.
+
+The user confirms that the Doric square-wave generator matches the GUI.
+
+The protocol does not generate pulse trains itself. It gates LED1 / PWM1. The Doric device controls pulse frequency and pulse width.
+
+## 6. Detect Rig
+
+The protocol reads the computer hostname.
+
+It maps the hostname to a rig name.
+
+This decides display monitor selection and hardware assumptions.
+
+## 7. Open Hardware
+
+The protocol opens:
+
+- Pololu Maestro servo controller.
+- Rotary encoder module.
+- HiFi module.
+- PsychToolbox video player.
+
+The protocol releases stale serial objects before opening new ones.
+
+The encoder starts USB streaming.
+
+The protocol sets the soft-code handler:
+
+```matlab
+BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol'
+```
+
+## 8. Build Sensory Cue
+
+The protocol calls `GenerateSensoryCueVideo` for the visual cue component and loads a ramped sine tone into the HiFi module.
+
+The visual component either:
+
+- Loads and resizes `image.png`.
+- Or creates a generated grating.
+
+Audio-only cues use a neutral gray frame.
+
+The cue duration is snapped to a whole number of display frames.
+
+The actual duration replaces `SensoryCueDuration_s`.
+
+## 9. Prepare Hardware
+
+The protocol moves the servo home.
+
+It shows a gray screen.
+
+It waits for the user to press Enter again.
+
+This second Enter starts the session.
+
+## 10. Initialize Online Plot
+
+The protocol calls `ProtocolPlot('init', ...)`.
+
+The plot window shows:
+
+- Trial type raster, opto period raster, probe type raster, delay values, and encoder trace in the left column.
+- Press 2 timing histograms.
+- Completed outcome fractions, all outcome fractions, and outcome legend across the top of the right column.
+- State timing.
+- BNC, LED, and lick events.
+
+Outcome plots share one outcome color set. Opto, probe, delay, and event plots use neutral gray or black marks. State timing and encoder annotations use colored markers, while the encoder position trace is black.
+
+## 11. Trial Loop
+
+The trial loop runs until `MaxTrials` is reached or the user stops Bpod.
+
+Each trial does these steps:
+
+1. Sync GUI values.
+2. Validate settings.
+3. Regenerate trial types if block settings changed.
+4. Regenerate ITI values if ITI settings changed.
+5. Regenerate probe tags if probe settings changed.
+6. Regenerate opto tags if opto settings or probe exclusions changed.
+7. Reload sensory cue media if cue duration, cue mode, cue source, or audio settings changed.
+8. Choose short or long delay.
+9. Choose ITI and punish ITI.
+10. Apply probe settings.
+11. Decide if this is an assist trial. Opto sessions require assist mode off.
+12. Compute the maximum possible reward.
+13. Save per-trial reward context.
+14. Print trial settings.
+15. Update online plots.
+16. Configure encoder threshold.
+17. Build the state machine.
+18. Send the state machine.
+19. Run the state machine.
+20. Save raw events.
+21. Save trial settings and trial tags.
+22. Save press 2 time.
+23. Save reward amount.
+24. Read encoder data.
+25. Normalize encoder data.
+26. Save session data.
+27. Update online plots.
+28. Handle pause.
+
+## 12. End Session
+
+At the end, the protocol:
+
+- Moves the servo home.
+- Stops the sensory cue media and visual display.
+- Prints a session summary.
+- Runs cleanup.
+
+Cleanup also runs if MATLAB exits the function unexpectedly.

@@ -1,80 +1,98 @@
-function opto = OptoControl(action, S, varargin)
-% Self-contained opto timing helpers for selected trial periods.
+function output = OptoControl(action, S, varargin)
+% Generate opto trial tags and plotting metadata.
 switch action
+    case 'trials'
+        % Draw period-wise opto tags only when opto mode is enabled.
+        trialTypes = [];
+        if ~isempty(varargin)
+            trialTypes = varargin{1};
+        end
+        probeTypes = [];
+        if numel(varargin) >= 2
+            probeTypes = varargin{2};
+        end
+
+        nTrials = round(S.GUI.MaxTrials);
+        output = zeros(4, nTrials);
+        if S.GUI.OptoMode
+            enabledPeriods = enabledOptoPeriods(S);
+            eligible = eligibleTagTrials(S, nTrials, trialTypes, probeTypes);
+            nOpto = min(numel(eligible), max(0, round(S.GUI.OptoFraction * numel(eligible))));
+            if nOpto > 0 && any(enabledPeriods)
+                indices = eligible(randperm(numel(eligible), nOpto));
+                output(:, indices) = repmat(enabledPeriods, 1, nOpto);
+            end
+        end
+    case 'trial'
+        % Assign one current trial using the latest GUI values.
+        trialTypes = varargin{1};
+        trial = varargin{2};
+        probeTypes = [];
+        if numel(varargin) >= 3
+            probeTypes = varargin{3};
+        end
+        output = zeros(4, 1);
+        if S.GUI.OptoMode
+            enabledPeriods = enabledOptoPeriods(S);
+            if any(enabledPeriods) && eligibleTrial(S, round(S.GUI.MaxTrials), trialTypes, probeTypes, trial) && rand < S.GUI.OptoFraction
+                output = enabledPeriods;
+            end
+        end
     case 'actions'
-        opto = buildActions(S, varargin{:});
+        % Return state-machine timer specs and trigger actions for this trial.
+        optoType = normalizeOptoType(varargin{1});
+        if numel(optoType) ~= 4
+            error('Opto trial type must be a 4-row vector: sensory cue, delay, pre reward delay, post reward.')
+        end
+        output.Enabled = any(optoType);
+        output.TrialType = optoType;
+        output.Timers = offSpec(0.001);
+        output.StartActions = {'GlobalTimerCancel', optoTimerID, 'PWM1', 0};
+        output.SensoryCue1Actions = {};
+        output.SensoryCue1OffActions = {};
+        output.LeverRetract1Actions = {};
+        output.RewardLeverRetractActions = {};
+        output.PreRewardDelayActions = {};
+        output.RewardActions = {};
+        output.PostRewardDelayActions = {};
+        output.LeverRetractFinalActions = {};
+
+        if optoType(1)
+            output.SensoryCue1Actions = {'PWM1', 255};
+            output.SensoryCue1OffActions = {'PWM1', 0};
+        end
+        if optoType(2)
+            press2Window = varargin{3};
+            output.Timers = gateSpec(press2Window);
+            output.LeverRetract1Actions = {'GlobalTimerTrig', optoTimerID};
+            output.RewardLeverRetractActions = {'GlobalTimerCancel', optoTimerID, 'PWM1', 0};
+        end
+        if optoType(3)
+            output.PreRewardDelayActions = {'PWM1', 255};
+            output.RewardActions = {'PWM1', 0};
+        end
+        if optoType(4)
+            output.PostRewardDelayActions = {'PWM1', 255};
+            output.LeverRetractFinalActions = {'PWM1', 0};
+        end
+    case 'waveform'
+        % Provide high intervals for plotting the LED 1 waveform.
+        duration = varargin{1};
+        output = waveformIntervals(S, duration);
     case 'display'
-        opto.Labels = {'Off', 'Stimulus', 'SpoutInDelay', 'SpoutIn', 'PreOutcome', 'Reward', 'PostReward', 'PunishITI'};
-        opto.Colors = [0.70 0.70 0.70; 0.49 0.18 0.56; 0.95 0.45 0.20; 0.93 0.69 0.13; 0.30 0.65 0.88; 0.20 0.50 0.88; 0.18 0.60 0.42; 0.84 0.27 0.22];
+        % Keep labels and colors centralized for plotting.
+        output.Labels = {'Off', 'Sensory Cue 1', 'Delay', 'Pre Reward Delay', 'Post Reward'};
+        output.Colors = [0.85 0.85 0.85; 0.64 0.64 0.64; 0.46 0.46 0.46; 0.28 0.28 0.28; 0.08 0.08 0.08];
     otherwise
         error('Unknown opto action: %s', action)
 end
 end
 
-function opto = buildActions(S, optoType, stimulusPeriod_s, rewardValve_s, punishITI_s)
-enabled = false(7, 1);
-enabled(1:min(7, numel(optoType))) = optoType(1:min(7, numel(optoType))) ~= 0;
-if S.GUI.TrainingMode == 1
-    enabled(:) = false;
-end
-
-timerIDs = optoTimerIDs();
-cancelAll = timerCancelMask(timerIDs);
-opto.Timers = offSpecs(timerIDs);
-opto.StartActions = {'GlobalTimerCancel', cancelAll, 'PWM1', 0};
-opto.StimulusStart = {};
-opto.SpoutInDelayStart = {};
-opto.SpoutInOff = {'GlobalTimerCancel', timerIDs(3), 'PWM1', 0};
-opto.SpoutInStart = {};
-opto.PreOutcomeStart = {};
-opto.RewardStart = {};
-opto.PostRewardStart = {};
-opto.PunishStart = {};
-opto.AllOff = opto.StartActions;
-
-if enabled(1)
-    opto.Timers(1) = gateSpec(timerIDs(1), stimulusPeriod_s);
-    opto.StimulusStart = {'GlobalTimerTrig', timerIDs(1)};
-end
-if enabled(2)
-    opto.Timers(2) = gateSpec(timerIDs(2), S.GUI.SpoutInDelay_s);
-    opto.SpoutInDelayStart = {'GlobalTimerTrig', timerIDs(2)};
-end
-if enabled(3)
-    opto.Timers(3) = gateSpec(timerIDs(3), S.GUI.ChoiceWindow_s);
-    opto.SpoutInStart = {'GlobalTimerTrig', timerIDs(3)};
-end
-if enabled(4)
-    opto.Timers(4) = gateSpec(timerIDs(4), S.GUI.PreOutcomeDelay_s);
-    opto.PreOutcomeStart = {'GlobalTimerTrig', timerIDs(4)};
-end
-if enabled(5)
-    opto.Timers(5) = gateSpec(timerIDs(5), rewardValve_s);
-    opto.RewardStart = {'GlobalTimerTrig', timerIDs(5)};
-end
-if enabled(6)
-    opto.Timers(6) = gateSpec(timerIDs(6), S.GUI.PostRewardDelay_s);
-    opto.PostRewardStart = {'GlobalTimerTrig', timerIDs(6)};
-end
-if enabled(7)
-    opto.Timers(7) = gateSpec(timerIDs(7), punishITI_s);
-    opto.PunishStart = {'GlobalTimerTrig', timerIDs(7)};
-end
-end
-
-function specs = offSpecs(timerIDs)
-specs = repmat(gateSpec(timerIDs(1), 0.001), 1, numel(timerIDs));
-for i = 1:numel(timerIDs)
-    specs(i) = gateSpec(timerIDs(i), 0.001);
-    specs(i).OnLevel = 0;
-    specs(i).OffLevel = 0;
-end
-end
-
-function spec = gateSpec(timerID, duration)
-spec = struct( ...
-    'TimerID', timerID, ...
-    'Duration', max(0.001, duration), ...
+function timerSpec = gateSpec(duration)
+% Keep LED1 high until the timer duration elapses or it is cancelled.
+timerSpec = struct( ...
+    'TimerID', optoTimerID, ...
+    'Duration', duration, ...
     'OnsetDelay', 0, ...
     'Channel', 'PWM1', ...
     'OnLevel', 255, ...
@@ -83,12 +101,82 @@ spec = struct( ...
     'LoopInterval', 0);
 end
 
-function timerIDs = optoTimerIDs
-timerIDs = 9:15;
+function timerSpec = offSpec(onsetDelay)
+% Use a silent timer to switch LED1 off after a delay.
+timerSpec = struct( ...
+    'TimerID', optoTimerID, ...
+    'Duration', 0.001, ...
+    'OnsetDelay', onsetDelay, ...
+    'Channel', 'PWM1', ...
+    'OnLevel', 0, ...
+    'OffLevel', 0, ...
+    'Loop', 0, ...
+    'LoopInterval', 0);
 end
 
-function mask = timerCancelMask(timerIDs)
-maskLength = max(timerIDs);
-mask = repmat('0', 1, maskLength);
-mask(maskLength - timerIDs + 1) = '1';
+function timerID = optoTimerID
+% Reserve one global timer for opto gating.
+timerID = 10;
+end
+
+function intervals = waveformIntervals(~, requestedDuration)
+% Plotting uses one continuous high interval for each opto epoch.
+intervals = [0 requestedDuration];
+end
+
+function periods = enabledOptoPeriods(S)
+% Convert GUI checkboxes into one opto column: sensory cue, delay, pre reward, post reward.
+periods = [S.GUI.EnableOptoSensoryCue1; S.GUI.EnableOptoDelay; S.GUI.EnableOptoPreRewardDelay; S.GUI.EnableOptoPostReward] ~= 0;
+end
+
+function optoType = normalizeOptoType(optoType)
+% Accept the current 4-row representation plus legacy 3-row/scalar values.
+if isempty(optoType)
+    optoType = zeros(4, 1);
+elseif isscalar(optoType)
+    legacy = optoType;
+    optoType = zeros(4, 1);
+    if ismember(legacy, 1:3)
+        optoType(legacy) = 1;
+    end
+else
+    optoType = optoType(:) ~= 0;
+    if numel(optoType) == 3
+        optoType = [optoType(1:2); false; optoType(3)];
+    end
+end
+end
+
+function eligible = eligibleTrial(S, nTrials, trialTypes, probeTypes, trial)
+% Test one trial against the same first-block and block-edge rules.
+eligibleTrials = eligibleTagTrials(S, nTrials, trialTypes, probeTypes);
+eligible = ismember(trial, eligibleTrials);
+end
+
+function eligible = eligibleTagTrials(S, nTrials, trialTypes, probeTypes)
+% Exclude block edges, the first block, and probe trials from opto tagging.
+edge = max(0, round(S.GUI.OptoZeroEdgeTrials));
+blocked = false(1, nTrials);
+
+if ~isempty(trialTypes)
+    blockStarts = [1 find(diff(trialTypes) ~= 0) + 1];
+    blockEnds = [blockStarts(2:end) - 1 nTrials];
+    for i = 1:numel(blockStarts)
+        firstEdge = blockStarts(i):min(blockEnds(i), blockStarts(i) + edge - 1);
+        lastEdge = max(blockStarts(i), blockEnds(i) - edge + 1):blockEnds(i);
+        blocked(firstEdge) = true;
+        blocked(lastEdge) = true;
+    end
+    blocked(blockStarts(1):blockEnds(1)) = true;
+else
+    firstBlockEnd = min(nTrials, round(S.GUI.BlockLength + S.GUI.BlockLengthEdge));
+    blocked(1:firstBlockEnd) = true;
+end
+
+if ~isempty(probeTypes)
+    probeLimit = min(nTrials, numel(probeTypes));
+    blocked(1:probeLimit) = blocked(1:probeLimit) | probeTypes(1:probeLimit) ~= 0;
+end
+
+eligible = find(~blocked);
 end

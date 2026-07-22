@@ -1,85 +1,61 @@
-function [trialTypes, blockTypes, blockStarts, blockEnds] = GenerateTrials(S)
-% Generate probability blocks and short/long trial types.
+function [trialTypes, itiValues, punishITIValues] = GenerateTrials(S)
+% Generate trial types and ITI values from current GUI parameters.
 nTrials = round(S.GUI.MaxTrials);
+itiValues = generateITI(S, nTrials, false);
+punishITIValues = generateITI(S, nTrials, true);
 
-[blockTypes, blockStarts, blockEnds] = generateBlocks(S, nTrials);
+% Trial modes 1 and 2 use one fixed trial type.
+if S.GUI.TrialMode == 1
+    trialTypes = ones(1, nTrials);
+    return
+end
+
+if S.GUI.TrialMode == 2
+    trialTypes = 2 * ones(1, nTrials);
+    return
+end
+
 trialTypes = zeros(1, nTrials);
-for block = 1:numel(blockStarts)
-    trials = blockStarts(block):blockEnds(block);
-    trialTypes(trials) = sampleBlockTrials(S, blockTypes(trials(1)), numel(trials));
-end
-
-end
-
-function [blockTypes, blockStarts, blockEnds] = generateBlocks(S, nTrials)
-blockTypes = zeros(1, nTrials);
-minimumLength = max(1, round(S.GUI.BlockLength - S.GUI.BlockMargin));
-maximumLength = max(minimumLength, round(S.GUI.BlockLength + S.GUI.BlockMargin));
-maxBlocks = ceil(nTrials / minimumLength);
-blockStarts = zeros(1, maxBlocks);
-blockEnds = zeros(1, maxBlocks);
-
-blockIndex = 1;
-blockType = blockTypeForIndex(S, blockIndex, []);
+trialType = S.GUI.TrialMode - 2;
 firstTrial = 1;
+minimumLength = max(1, round(S.GUI.BlockLength - S.GUI.BlockLengthEdge));
+maximumLength = max(minimumLength, round(S.GUI.BlockLength + S.GUI.BlockLengthEdge));
+
+% Blocks alternate short and long with randomized block length.
 while firstTrial <= nTrials
     blockLength = randi([minimumLength maximumLength]);
     lastTrial = min(nTrials, firstTrial + blockLength - 1);
-    blockTypes(firstTrial:lastTrial) = blockType;
-    blockStarts(blockIndex) = firstTrial;
-    blockEnds(blockIndex) = lastTrial;
-    blockIndex = blockIndex + 1;
-    blockType = blockTypeForIndex(S, blockIndex, blockType);
+    trialTypes(firstTrial:lastTrial) = trialType;
+    trialType = 3 - trialType;
     firstTrial = lastTrial + 1;
 end
-blockStarts = blockStarts(1:blockIndex - 1);
-blockEnds = blockEnds(1:blockIndex - 1);
 end
 
-function blockType = blockTypeForIndex(S, blockIndex, previousType)
-if S.GUI.BlockNum == 1 || blockIndex <= leadingFiftyFiftyBlocks(S)
-    blockType = 1;
-    return
-end
-if S.GUI.BlockNum == 2
-    if isempty(previousType) || previousType == 1
-        blockType = randi([2 3]);
-    else
-        blockType = 5 - previousType;
-    end
+function values = generateITI(S, nTrials, punish)
+% Draw manual or truncated exponential ITI for each trial.
+if punish
+    mode = S.GUI.PunishITIMode;
+    manualValue = S.GUI.ManualPunishITI_s;
+    minimum = S.GUI.PunishITIMin_s;
+    maximum = S.GUI.PunishITIMax_s;
+    meanValue = S.GUI.PunishITIMean_s;
 else
-    if isempty(previousType)
-        candidates = 1:3;
-    else
-        candidates = setdiff(1:3, previousType);
-    end
-    blockType = candidates(randi(numel(candidates)));
+    mode = S.GUI.ITIMode;
+    manualValue = S.GUI.ManualITI_s;
+    minimum = S.GUI.ITIMin_s;
+    maximum = S.GUI.ITIMax_s;
+    meanValue = S.GUI.ITIMean_s;
 end
-end
-
-function count = leadingFiftyFiftyBlocks(S)
-count = 1 + max(0, round(S.GUI.WarmupBlockNum));
-end
-
-function trialTypes = sampleBlockTrials(S, blockType, nTrials)
-switch blockType
-    case 1
-        pLeft = 0.5;
-    case 2
-        pLeft = S.GUI.MostFraction;
-    case 3
-        pLeft = 1 - S.GUI.MostFraction;
-end
-
-trialTypes = 1 + (rand(1, nTrials) >= pLeft);
-if blockType == 1
+if mode == 1
+    values = repmat(manualValue, 1, nTrials);
     return
 end
-
-edgeTrials = min(round(S.GUI.BlockEdgeTrials), floor(nTrials / 2));
-majorityType = blockType - 1;
-if edgeTrials > 0
-    trialTypes(1:edgeTrials) = majorityType;
-    trialTypes(end - edgeTrials + 1:end) = majorityType;
+if minimum == maximum
+    values = repmat(minimum, 1, nTrials);
+    return
 end
+upperProbability = exp(-minimum / meanValue);
+lowerProbability = exp(-maximum / meanValue);
+% Invert a bounded exponential CDF to sample within the min/max range.
+values = -meanValue * log(upperProbability - rand(1, nTrials) * (upperProbability - lowerProbability));
 end

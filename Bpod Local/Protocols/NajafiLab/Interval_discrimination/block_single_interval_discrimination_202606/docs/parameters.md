@@ -1,127 +1,342 @@
 # Parameters
 
+This page lists the GUI parameters.
+
+All parameters live in `S.GUI`.
+
 ## Session
 
-- `MaxTrials`: maximum trials in the session.
-- `TrainingMode`: `Naive` or `Trained`.
-- `Contingency`: target-side mapping.
-  - `Short-left, long-right`
-  - `Short-right, long-left`
-- `BlockNum`: block construction mode.
-  - `50/50 only`
-  - `50/50 then left/right`
-  - `50/50, left, right`
-- `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block in block modes 2 and 3. Set to `0` to use only the required first 50/50 block before the configured block structure.
-- `BlockLength`: nominal block length.
-- `BlockMargin`: random plus/minus range around `BlockLength`.
-- `BlockEdgeTrials`: edge trials forced toward the block's majority trial type.
-- `MostFraction`: majority fraction in short-majority or long-majority blocks.
+### `MaxTrials`
+
+Total planned trials.
+
+The trial loop stops when this number is reached.
+
+### `PressMode`
+
+Selects the task structure.
+
+- `1`: Single press.
+- `2`: Double press.
+
+In double press mode, cue 1 leads to press 1 first.
+
+In single press mode, cue 1 leads directly to press 2 timing.
+
+### `TrialMode`
+
+Controls short and long trial order.
+
+- `1`: All short.
+- `2`: All long.
+- `3`: Blocks, short first.
+- `4`: Blocks, long first.
+
+### `BlockLength`
+
+Mean block length for block modes.
+
+### `BlockLengthEdge`
+
+Random range around `BlockLength`.
+
+If `BlockLength` is 30 and `BlockLengthEdge` is 5, block lengths range from 25 to 35.
+
+### `ProbeMode`
+
+Enables probe trial tagging.
+
+### `ProbeFraction`
+
+Fraction of eligible trials tagged as probe trials.
+
+### `ProbeZeroEdgeTrials`
+
+Number of trials blocked at each block edge.
+
+The first block is also blocked.
+
+Probe type 1 omits reward.
+
+Probe type 2 flips timing mode for that trial.
 
 ## Stimulus
 
-- `StimulusMode`: visual only, audio only, or audio + visual.
-- `UseSavedImage`: when checked, use `image.png` in the protocol folder as the visual stimulus image.
-- `PreStimDelay_s`: delay before visual/audio stimulus onset.
-- `GratingDuration_s`: duration of each visual stimulus pulse.
-- `AudioStimFreq_Hz`: tone frequency.
-- `AudioStimVolume`: tone amplitude, 0 to 1.
-- `AudioSamplingRate_Hz`: HiFi sample rate.
-- `AudioAttenuation_dB`: HiFi attenuation.
-- `AudioRamp_ms`: tone onset/offset ramp.
+### `TimingMode`
 
-## ISI
+Controls cue 2.
 
-Short and long trial types each have fixed or uniform random ISI control:
+- `1`: Visual guided.
+- `2`: Self timed.
 
-- `ShortISIMode`
-- `ShortISIFixed_s`
-- `ShortISIMin_s`
-- `ShortISIMax_s`
-- `LongISIMode`
-- `LongISIFixed_s`
-- `LongISIMin_s`
-- `LongISIMax_s`
+In visual-guided mode, cue 2 appears at the target time.
 
-## Opto
+In self-timed mode, cue 2 is not shown.
 
-### Schedule
+### `SensoryCueMode`
 
-- `OptoMode`: controls which trials are selected as opto trials. It does not by itself choose the opto period; period checkboxes below decide which epochs receive light on selected opto trials.
-  - `No opto`: every trial is opto off. Period checkboxes are ignored.
-  - `Random`: each eligible trial is independently sampled when the trial starts. The probability is `OptoFraction`. Warmup blocks and block-edge trials are excluded.
-  - `Early trials in every block`: after warmup blocks, the first `OptoEarlyTrials` trials of every block are opto trials.
-  - `Early trials in alternating block groups`: after warmup blocks, the first `BlockNum` blocks are no-opto, the next `BlockNum` blocks have early opto trials, and this no-opto/opto group pattern repeats.
-- `OptoFraction`: probability for an eligible trial to become opto in `Random` mode. Example: `0.35` means each eligible trial has a 35% chance when it starts. This value is ignored in early-trial modes.
-- `OptoZeroEdgeTrials`: number of trials at the start and end of each non-warmup block forced opto off in `Random` mode. This protects block transitions from opto contamination. Warmup blocks are fully forced off regardless of this value.
-- `OptoEarlyTrials`: number of early trials per eligible block selected in the two early-trial modes. If the value exceeds the block length, the whole block can be tagged. This value is ignored in `Random` and `No opto` modes.
+Controls the sensory cue modality.
 
-### Hardware
+- `1`: Visual only.
+- `2`: Audio only.
+- `3`: Audio + visual.
 
-- `OptoTriggerType`: Doric trigger type to check before starting the session. Options are Manual, Triggered, and Gated.
-- `OptoTriggerMode`: Doric trigger mode to check before starting the session. Options are Pause, Continue, Restart, and Uninterrupted.
-- `OptoPulseTotalDuration_s`: Doric pulse-train total duration in seconds to check before starting the session.
-- `OptoPulseFrequency_Hz`: Doric pulse-train frequency in Hz to check before starting the session.
-- `OptoPulseDutyCycle_percent`: Doric pulse-train duty cycle percentage to check before starting the session.
+### `SensoryCueDuration_s`
 
-### Periods
+Requested sensory cue duration.
 
-- `EnableOptoStimulus`: when checked, selected opto trials drive `PWM1` high from `PreStimDelay` onset through stimulus-play offset. This covers pre-stimulus delay plus stimulus playback only.
-- `EnableOptoSpoutInDelay`: when checked, selected opto trials drive `PWM1` high during `SpoutInDelay`.
-- `EnableOptoSpoutIn`: when checked, selected trained opto trials drive `PWM1` high while the spouts are in and the animal can lick during `ChoiceWindow` or `ProbeChoiceWindow`. Naive state machines omit opto timers/actions.
-- `EnableOptoPreOutcome`: when checked, selected opto trials drive `PWM1` high during `PreOutcomeDelay` on reward trials and `PreOutcomeDelayPunish` on punish trials.
-- `EnableOptoReward`: when checked, selected opto trials drive `PWM1` high during the `Reward` state.
-- `EnableOptoPostReward`: when checked, selected opto trials drive `PWM1` high during `PostRewardDelay`.
-- `EnableOptoPunishITI`: when checked, selected opto trials drive `PWM1` high during `PunishITI`.
+The actual duration is rounded to a whole number of video frames.
 
-Selected trained opto trials can enable any combination of the seven periods. Enabled periods drive `PWM1` high through global timers. Naive sessions generate zero probe/opto assignments and do not add opto timers or actions. The pulse duration/frequency/duty fields are saved and printed for Doric hardware verification in trained sessions; Bpod still gates `PWM1` by task epoch.
+### `UseGeneratedGrating`
 
-Opto settings are synced at the start of every trial. Changing `OptoMode`, `OptoFraction`, `OptoEarlyTrials`, or any period checkbox during a session affects the next trial that has not yet started. Completed trials are not rewritten.
+Controls the visual cue source.
 
-## Chemo
+- `1`: Use generated grating.
+- `0`: Use `image.png`.
 
-- `ChemoMode`: session-level chemo flag saved to all completed trials once enabled.
+This is ignored for audio-only cues.
 
-## Probe
+## Audio
 
-- `ProbeMode`: enables probe trial tagging.
-- `ProbeFraction`: fraction of eligible trials tagged probe.
-- `ProbeZeroEdgeTrials`: trials near block edges forced probe-off.
+### `AudioStimFreq_Hz`
 
-Probe type `1` is stimulus only. Probe type `2` moves the spouts in for the choice-window duration and then moves them out.
+Tone frequency for audio-only and audio+visual sensory cues.
 
-## Choice
+### `AudioStimVolume`
 
-- `SpoutInDelay_s`: delay after stimulus before servo-in command.
-- `ChoiceWindow_s`: choice window duration.
-- `PostLickDelay_s`: delay after a detected lick before the next outcome or change-mind state.
-- `AllowChangeMind`: enables correction after first wrong lick.
-- `ChangeMindWindow_s`: duration of the correction window.
+Tone amplitude from 0 to 1.
+
+### `AudioSamplingRate_Hz`
+
+HiFi module sampling rate.
+
+### `AudioAttenuation_dB`
+
+HiFi digital attenuation.
+
+### `AudioRamp_ms`
+
+Tone onset and offset ramp duration in milliseconds.
+
+## Timing
+
+### `ShortDelay_s`
+
+Target press 2 time for short trials.
+
+### `LongDelay_s`
+
+Target press 2 time for long trials.
+
+### `Press1Window_s`
+
+Time allowed for press 1.
+
+Only used when `PressMode` is double press.
+
+### `ShortPress2Window_s`
+
+Time allowed for press 2 on short trials.
+
+### `LongPress2Window_s`
+
+Time allowed for press 2 on long trials.
+
+Each press 2 window must contain the full reward window.
+
+## Joystick
+
+### `PressThreshold`
+
+Encoder position needed to count as a press.
+
+### `RetractThreshold`
+
+Encoder position used to decide when the lever has returned home.
+
+### `ServoInPos`
+
+Servo position for the home state.
+
+### `ServoOutPos`
+
+Servo offset used to place the lever out.
+
+### `ServoMoveDelay_s`
+
+Delay after a detected press before moving the servo back.
+
+### `ServoReturnTimeout_s`
+
+Maximum time to wait for the lever to return near zero.
+
+### `AssistMode`
+
+Enables assisted trials.
+
+This must be off during opto sessions.
+
+### `AssistFraction`
+
+Probability that an eligible trial becomes assisted.
+
+A trial is eligible only if the previous trial had an early press 2.
 
 ## Reward
 
-- `PreOutcomeDelay_s`: delay between choice and outcome. On reward trials it precedes valve opening; on punish trials it precedes servo out and punish ITI.
-- `PostRewardDelay_s`: delay after reward before servo out.
-- `LeftRewardAmount_uL`
-- `RightRewardAmount_uL`
+### `RewardWindowLeft_s`
 
-## Servo
+Time before the target where reward ramps up.
 
-- `RightServoInPos`
-- `LeftServoInPos`
-- `ServoDeflection`
-- `ServoVelocity`
-- `ServoMoveDelay_s`: duration reserved for servo movement before choice starts.
-- `ServoReturnTimeout_s`: timeout for servo-out acknowledgement.
+Presses earlier than this are early.
+
+### `RewardMaximumWindow_s`
+
+Flat maximum reward window after the target.
+
+### `RewardWindowRight_s`
+
+Time after the maximum window where reward ramps down.
+
+Presses later than this are late.
+
+### `PreRewardDelay_s`
+
+Delay between a rewarded press 2 outcome and reward delivery.
+
+Pre-reward-delay and post-reward opto do not change this value.
+
+### `PostRewardDelay_s`
+
+Delay after reward before the trial is marked as rewarded.
+
+Post-reward opto gives light during this period.
+
+### `RewardMode`
+
+Controls reward amount.
+
+- `1`: Same reward for short and long.
+- `2`: Separate rewards for short and long.
+
+### `RewardAmount_uL`
+
+Maximum reward when `RewardMode` is same reward.
+
+### `ShortRewardAmount_uL`
+
+Maximum reward for short trials when `RewardMode` is different reward.
+
+### `LongRewardAmount_uL`
+
+Maximum reward for long trials when `RewardMode` is different reward.
 
 ## ITI
 
-- `ITIMode`: manual or exponential.
-- `ManualITI_s`
-- `ITIMin_s`
-- `ITIMax_s`
-- `ITIMean_s`
-- `PunishITIMode`: manual or exponential.
-- `ManualPunishITI_s`
-- `PunishITIMin_s`
-- `PunishITIMax_s`
-- `PunishITIMean_s`
+### `ITIMode`
+
+Controls normal ITI.
+
+- `1`: Manual.
+- `2`: Exponential.
+
+### `ManualITI_s`
+
+Fixed normal ITI when `ITIMode` is manual.
+
+### `ITIMin_s`
+
+Minimum normal ITI for exponential mode.
+
+### `ITIMax_s`
+
+Maximum normal ITI for exponential mode.
+
+### `ITIMean_s`
+
+Mean parameter for exponential ITI sampling.
+
+The remaining ITI fields control the delay after an error.
+
+### `PunishITIMode`
+
+Controls ITI after an error.
+
+- `1`: Manual.
+- `2`: Exponential.
+
+### `ManualPunishITI_s`
+
+Fixed punish ITI when manual mode is used.
+
+### `PunishITIMin_s`
+
+Minimum punish ITI for exponential mode.
+
+### `PunishITIMax_s`
+
+Maximum punish ITI for exponential mode.
+
+### `PunishITIMean_s`
+
+Mean parameter for punish ITI sampling.
+
+## Manipulation
+
+### `OptoMode`
+
+Enables opto trial tagging.
+
+Opto sessions require `AssistMode` off. Probe trials are excluded from opto tagging.
+
+### `OptoFraction`
+
+Fraction of eligible trials tagged as opto trials.
+
+### `OptoZeroEdgeTrials`
+
+Number of trials blocked at each block edge.
+
+The first block is also blocked.
+
+### `EnableOptoSensoryCue1`
+
+Adds cue 1 light to selected opto trials.
+
+This sets row 1 of the saved opto matrix.
+
+### `EnableOptoDelay`
+
+Adds delay-period light to selected opto trials.
+
+This sets row 2 of the saved opto matrix. LED1 runs from `LeverRetract1` until `RewardLeverRetract`, or until the press 2 window ends.
+
+### `EnableOptoPreRewardDelay`
+
+Adds pre-reward-delay light to selected opto trials.
+
+This sets row 3 of the saved opto matrix. LED1 runs during `PreRewardDelay` and turns off in `Reward`.
+
+### `EnableOptoPostReward`
+
+Adds post-reward light to selected opto trials.
+
+This sets row 4 of the saved opto matrix. LED1 runs during `PostRewardDelay` and turns off in `LeverRetractFinal`.
+
+### `OptoFrequency_Hz`
+
+Doric square-wave frequency reserved for pulsed stimulation.
+
+The current state machine keeps LED1 continuously high during the selected opto epoch.
+
+### `OptoPulseOn_ms`
+
+Doric pulse on time reserved for pulsed stimulation.
+
+The current state machine keeps LED1 continuously high during the selected opto epoch.
+
+### `ChemoMode`
+
+Marks chemo status in saved data.
+
+If any completed trial is chemo, all completed chemo tags are set to 1.
