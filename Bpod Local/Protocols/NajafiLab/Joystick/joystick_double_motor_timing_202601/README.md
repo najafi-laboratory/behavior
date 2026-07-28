@@ -19,12 +19,18 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with configura
 - Changed event plot lick row from port 1 to port 2.
 - Added 8 digit session date to the first summary line.
 
+### 2026.07.27
+- Turn off the Bpod console status LED when the protocol starts.
+- Prefer HiFi audio and fall back to the current system speaker.
+- Preload synchronized audio and dedicated audio-only black display frames.
+- Modularize audio and idle-display handling.
+
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
-2. The GUI opens first. Set parameters and press Enter in MATLAB.
-3. Hardware is configured: Pololu Maestro servo, rotary encoder, optional HiFi module, and PsychToolbox video display.
-4. The screen is set to gray and the servo returns home. Press Enter again to start trials.
+2. The Bpod console status LED turns off, then the GUI opens. Set parameters and press Enter in MATLAB.
+3. Hardware is configured: Pololu Maestro servo, rotary encoder, HiFi or system-speaker audio, and PsychToolbox video display.
+4. The servo returns home and the mode-appropriate ready screen is shown. Press Enter again to start trials.
 5. Each trial syncs GUI parameters, builds the next state machine, runs Bpod, saves trial data, and updates the plot canvas.
 
 ## Trial Logic
@@ -78,11 +84,13 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 
 - `AudioStimFreq_Hz`: sensory cue tone frequency.
 - `AudioStimVolume`: sensory cue tone amplitude from 0 to 1.
-- `AudioSamplingRate_Hz`: HiFi module sampling rate.
+- `AudioSamplingRate_Hz`: Sampling rate used by HiFi and system-speaker audio.
 - `AudioAttenuation_dB`: HiFi digital attenuation.
 - `AudioRamp_ms`: onset and offset ramp for the tone.
 
-If the HiFi module is missing, the protocol prints a warning and continues without auditory cue output.
+The protocol tries HiFi first, then the current system speaker through a pre-opened PsychPortAudio stream. Audio is buffered before each trial and triggered immediately after the display flip that turns the sync patch light. If neither output is available, the protocol prints a reminder and continues without auditory cue output.
+
+In audio-only mode, the ready screen before the session-start Enter is black with the sync patch light. After the session starts, the idle screen is completely black with the patch dark; cue playback uses the preloaded black frame with the patch light. Changing `SensoryCueMode` during a session updates these display states before the incoming trial.
 
 ### Timing
 

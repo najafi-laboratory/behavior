@@ -8,18 +8,19 @@ This is the main protocol file.
 
 It does the session workflow:
 
-1. Load settings.
-2. Open GUI.
-3. Validate settings.
-4. Confirm opto settings.
-5. Open hardware.
-6. Build sensory cues.
-7. Wait for the start key.
-8. Generate trial schedules.
-9. Run each Bpod trial.
-10. Save data.
-11. Update plots.
-12. Clean up hardware.
+1. Turn off the Bpod console status LED.
+2. Load settings.
+3. Open GUI.
+4. Validate settings.
+5. Confirm opto settings.
+6. Open hardware.
+7. Build sensory cues.
+8. Wait for the start key.
+9. Generate trial schedules.
+10. Run each Bpod trial.
+11. Save data.
+12. Update plots.
+13. Clean up hardware.
 
 It also contains helper functions for:
 
@@ -33,6 +34,7 @@ It also contains helper functions for:
 - Trial result printing.
 - Session summary printing.
 - Outcome classification.
+- Modular audio initialization, cue buffering, and audio-only display-frame loading.
 
 ## `ConfigureProtocol.m`
 
@@ -76,7 +78,7 @@ It either:
 
 The frame is resized to the display viewport.
 
-The cue duration is rounded to a whole number of display frames. Audio-only cues use a neutral gray visual frame.
+The cue duration is rounded to a whole number of display frames. Audio-only mode preloads separate all-black video textures for the dark-patch and light-patch states, avoiding the video player's gray default blank texture. The light-patch frame is shown before the session-start Enter and during cue playback.
 
 ## `BuildStateMachine.m`
 
@@ -106,6 +108,9 @@ The state matrix handles:
 
 It also adds opto output actions for the current opto period column.
 
+## `SystemAudioPlayer.m`
+
+This owns one persistent PsychPortAudio stream for the current system output. It preloads, starts, stops, and closes the fallback audio buffer without reopening the device at cue onset.
 ## `SoftCodeHandler_Protocol.m`
 
 This handles soft codes from the state machine.

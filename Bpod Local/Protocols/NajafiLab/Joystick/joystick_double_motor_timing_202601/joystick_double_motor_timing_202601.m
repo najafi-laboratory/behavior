@@ -4,6 +4,9 @@ global S
 global M
 global ProtocolTrialContext
 
+% Keep the Bpod console status LED dark for the full protocol.
+BpodSystem.setStatusLED(0);
+
 hardwareCleanup = onCleanup(@cleanupProtocolHardware);
 
 protocolPath = fileparts(mfilename('fullpath'));
@@ -61,7 +64,7 @@ BpodSystem.Data.HardwarePorts.Maestro = maestroPort;
 BpodSystem.Data.HardwarePorts.RotaryEncoder = encoderPort;
 BpodSystem.PluginObjects.R.sendThresholdEvents = 'on';
 BpodSystem.PluginObjects.R.startUSBStream;
-BpodSystem.Data.AudioAvailable = initializeHiFi(S);
+BpodSystem.Data.AudioAvailable = initializeAudio(S);
 BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol';
 
 % Prepare the display and sensory cue media.
@@ -101,17 +104,28 @@ currentTrial = 1;
 % Put hardware in a quiet ready state before the second Enter.
 SoftCodeHandler_Protocol(9);
 pause(1);
-BpodSystem.PluginObjects.V.play(0);
-SoftCodeHandler_Protocol(3);
+if S.GUI.SensoryCueMode == 2
+    BpodSystem.PluginObjects.V.play(1);
+else
+    SoftCodeHandler_Protocol(3);
+end
 pause(0.2);
-disp('Screen is gray and hardware is ready. Press Enter to start the session.')
+if S.GUI.SensoryCueMode == 2
+    disp('Screen is black with the sync patch light. Press Enter to start the session.')
+else
+    disp('Screen is gray and hardware is ready. Press Enter to start the session.')
+end
 KbName('UnifyKeyNames');
 enterKey = KbName('Return');
 while KbCheck
     pause(0.02)
 end
 while true
-    BpodSystem.PluginObjects.V.play(0);
+    if S.GUI.SensoryCueMode == 2
+        BpodSystem.PluginObjects.V.play(1);
+    else
+        BpodSystem.PluginObjects.V.play(0);
+    end
     [keyDown, ~, keyCode] = KbCheck;
     if keyDown && keyCode(enterKey)
         break
@@ -121,6 +135,7 @@ end
 while KbCheck
     pause(0.02)
 end
+SoftCodeHandler_Protocol(3);
 
 clear ProtocolPlot
 ProtocolPlot('init', ones(1, max(1, round(S.GUI.MaxTrials))), zeros(4, max(1, round(S.GUI.MaxTrials))), zeros(1, max(1, round(S.GUI.MaxTrials))), 0, S);
@@ -198,6 +213,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
     if ~isequal(requestedCueConfiguration, loadedCueConfiguration)
         actualCueDuration = loadSensoryCue(protocolPath, width, height, fps, S);
         loadedCueConfiguration = requestedCueConfiguration;
+        SoftCodeHandler_Protocol(3);
     end
     S.GUI.SensoryCueDuration_s = actualCueDuration;
     validateSettings(S);
@@ -419,8 +435,8 @@ error('Rotary encoder not found. Available ports: %s. Busy ports: %s. Attempts: 
     strjoin(availablePorts, ', '), strjoin(busyPorts, ', '), strjoin(attemptErrors(~cellfun('isempty', attemptErrors)), ' | '))
 end
 
-function audioAvailable = initializeHiFi(S)
-% Open the HiFi module when available and apply auditory cue settings.
+function audioAvailable = initializeAudio(S)
+% Prefer the HiFi module, then fall back to the current system speaker.
 global BpodSystem
 
 audioAvailable = false;
@@ -435,6 +451,13 @@ if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H
     end
     BpodSystem.PluginObjects.H = [];
 end
+if isfield(BpodSystem.PluginObjects, 'Sound') && ~isempty(BpodSystem.PluginObjects.Sound)
+    try
+        delete(BpodSystem.PluginObjects.Sound);
+    catch
+    end
+    BpodSystem.PluginObjects.Sound = [];
+end
 try
     BpodSystem.assertModule('HiFi', 1);
     releaseSerialPort(BpodSystem.ModuleUSB.HiFi1);
@@ -443,11 +466,21 @@ try
     BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
     BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
     audioAvailable = true;
-catch exception
+    BpodSystem.Data.AudioBackend = 'HiFi';
+catch hifiException
     BpodSystem.PluginObjects.H = [];
-    BpodSystem.Data.AudioUnavailableNotified = true;
-    fprintf(2, '\nAudio cues are not available: HiFi module could not be initialized (%s).\n', exception.message);
-    fprintf(2, 'Continuing without auditory cue output. Visual cue timing and all task logic remain active.\n\n');
+    try
+        BpodSystem.PluginObjects.Sound = SystemAudioPlayer(S.GUI.AudioSamplingRate_Hz);
+        audioAvailable = true;
+        BpodSystem.Data.AudioBackend = 'SoundCard';
+    catch soundException
+        BpodSystem.PluginObjects.Sound = [];
+        BpodSystem.Data.AudioBackend = 'None';
+        BpodSystem.Data.AudioUnavailableNotified = true;
+        fprintf(2, '\nAudio cues are not available: neither HiFi nor sound-card audio could be initialized.\n');
+        fprintf(2, 'HiFi: %s\nSound card: %s\n', hifiException.message, soundException.message);
+        fprintf(2, 'Please connect a HiFi module or enable the current system speaker, then restart the protocol.\n\n');
+    end
 end
 end
 
@@ -458,27 +491,33 @@ configuration = [S.GUI.SensoryCueMode S.GUI.SensoryCueDuration_s S.GUI.UseGenera
 end
 
 function actualDuration = loadSensoryCue(protocolPath, width, height, fps, S)
-% Load the same sensory cue into both Bpod video slots and one HiFi slot.
+% Load the same sensory cue into both video slots and the selected audio backend.
 global BpodSystem
 
 if S.GUI.SensoryCueMode == 2
     frameCount = max(1, round(fps * S.GUI.SensoryCueDuration_s));
     actualDuration = frameCount / fps;
-    grayVideo = uint8(127 * ones(height, width, 3));
-    video = grayVideo;
+    video = zeros(height, width, 3, 'uint8');
 else
-    [cueVideo, grayVideo, actualDuration] = GenerateSensoryCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, S.GUI.SensoryCueDuration_s, S.GUI.UseGeneratedGrating);
+    [cueVideo, ~, actualDuration] = GenerateSensoryCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, S.GUI.SensoryCueDuration_s, S.GUI.UseGeneratedGrating);
     video = cueVideo;
 end
 BpodSystem.PluginObjects.V.loadVideo(1, video);
 BpodSystem.PluginObjects.V.loadVideo(2, video);
 BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
 BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
+if S.GUI.SensoryCueMode == 2
+    loadAudioOnlyIdleFrame(BpodSystem.PluginObjects.V, video);
+end
 
 if hifiAvailable()
     BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
     BpodSystem.PluginObjects.H.DigitalAttenuation_dB = S.GUI.AudioAttenuation_dB;
     BpodSystem.PluginObjects.H.load(5, sensoryCueAudio(S, actualDuration, BpodSystem.PluginObjects.H.SamplingRate));
+    BpodSystem.Data.AudioAvailable = true;
+elseif soundCardAvailable()
+    BpodSystem.PluginObjects.Sound.load( ...
+        sensoryCueAudio(S, actualDuration, BpodSystem.PluginObjects.Sound.SamplingRate));
     BpodSystem.Data.AudioAvailable = true;
 else
     BpodSystem.Data.AudioAvailable = false;
@@ -486,11 +525,27 @@ else
 end
 end
 
+function loadAudioOnlyIdleFrame(videoPlayer, blackFrame)
+% Build a black frame whose sync patch is dark for audio-only idle periods.
+audioOnlyIdleSlot = 3;
+videoPlayer.loadVideo(audioOnlyIdleSlot, cat(4, blackFrame, blackFrame));
+videoPlayer.Videos{audioOnlyIdleSlot}.Data([1 2]) = ...
+    videoPlayer.Videos{audioOnlyIdleSlot}.Data([2 1]);
+videoPlayer.Videos{audioOnlyIdleSlot}.nFrames = 1;
+end
+
 function yes = hifiAvailable
 % True when the HiFi object is ready for loading or playback.
 global BpodSystem
 
 yes = isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H);
+end
+
+function yes = soundCardAvailable
+% True when the default-system-output audio player is ready.
+global BpodSystem
+
+yes = isfield(BpodSystem.PluginObjects, 'Sound') && ~isempty(BpodSystem.PluginObjects.Sound);
 end
 
 function notifyAudioUnavailable(S)
@@ -507,8 +562,8 @@ end
 if warned || S.GUI.SensoryCueMode == 1
     return
 end
-fprintf(2, '\nAudio cues are not available because no HiFi module is connected.\n');
-fprintf(2, 'Continuing without auditory cue output.\n\n');
+fprintf(2, '\nAudio cues are not available because neither HiFi nor sound-card audio is connected.\n');
+fprintf(2, 'Please connect a HiFi module or enable the current system speaker, then restart the protocol.\n\n');
 warned = true;
 BpodSystem.Data.AudioUnavailableNotified = true;
 end
@@ -685,7 +740,7 @@ end
 end
 
 function closeStimulusWindow
-% Close the PsychToolbox video and HiFi objects if they exist.
+% Close the PsychToolbox video and audio objects if they exist.
 global BpodSystem
 
 try
@@ -699,6 +754,20 @@ try
         catch
         end
         BpodSystem.PluginObjects.H = [];
+    end
+catch
+end
+try
+    if isfield(BpodSystem.PluginObjects, 'Sound') && ~isempty(BpodSystem.PluginObjects.Sound)
+        try
+            stop(BpodSystem.PluginObjects.Sound);
+        catch
+        end
+        try
+            delete(BpodSystem.PluginObjects.Sound);
+        catch
+        end
+        BpodSystem.PluginObjects.Sound = [];
     end
 catch
 end

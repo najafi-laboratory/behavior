@@ -11,7 +11,7 @@ switch code
     case {1, 2}
         playCue(code);
     case 3
-        showGray;
+        showIdleScreen;
     case 7
         M.setMotor(0, maestroPosition(S.GUI.ServoInPos - S.GUI.ServoOutPos));
         SendBpodSoftCode(1);
@@ -42,38 +42,72 @@ switch code
 end
 
     function playCue(index)
-        % Present one sensory cue while keeping the sync patch light.
-        stopCueMedia;
+        % Flip the sync patch light, then trigger the preloaded audio.
+        showIdleScreen;
         BpodSystem.PluginObjects.V.play(index);
-        if cueUsesAudio
-            BpodSystem.PluginObjects.H.play(5);
+        if cueUsesAudio()
+            if hifiAvailable()
+                BpodSystem.PluginObjects.H.play(5);
+            else
+                play(BpodSystem.PluginObjects.Sound);
+            end
         end
     end
 
     function stopCue
-        % Return display to gray and make the sync patch dark.
-        stopCueMedia;
-        BpodSystem.PluginObjects.V.setSyncPatch(0);
+        showIdleScreen;
     end
 
-    function showGray
-        stopCueMedia;
-        BpodSystem.PluginObjects.V.setSyncPatch(0);
+
+    function showIdleScreen
+        % Audio-only uses its dedicated black/dark-patch frame, never gray.
+        stopAudio;
+        if audioOnlyIdleAvailable()
+            BpodSystem.PluginObjects.V.play(audioOnlyIdleSlot());
+        else
+            stopVideo;
+        end
     end
 
-    function yes = cueUsesAudio
-        yes = isfield(S.GUI, 'SensoryCueMode') && ismember(S.GUI.SensoryCueMode, [2 3]) && ...
-            isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H);
-    end
-
-    function stopCueMedia
-        stopVideo;
-        if isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H)
+    function stopAudio
+        if hifiAvailable()
             try
                 BpodSystem.PluginObjects.H.stop;
             catch
             end
         end
+        if soundCardAvailable()
+            try
+                stop(BpodSystem.PluginObjects.Sound);
+            catch
+            end
+        end
+    end
+
+    function yes = cueUsesAudio
+        yes = isfield(S.GUI, 'SensoryCueMode') && ismember(S.GUI.SensoryCueMode, [2 3]) && ...
+            (hifiAvailable() || soundCardAvailable());
+    end
+
+    function yes = audioOnlyIdleAvailable
+        yes = isAudioOnly() && numel(BpodSystem.PluginObjects.V.Videos) >= audioOnlyIdleSlot() && ...
+            ~isempty(BpodSystem.PluginObjects.V.Videos{audioOnlyIdleSlot()});
+    end
+
+    function yes = isAudioOnly
+        yes = isfield(S.GUI, 'SensoryCueMode') && S.GUI.SensoryCueMode == 2;
+    end
+
+    function yes = hifiAvailable
+        yes = isfield(BpodSystem.PluginObjects, 'H') && ~isempty(BpodSystem.PluginObjects.H);
+    end
+
+    function yes = soundCardAvailable
+        yes = isfield(BpodSystem.PluginObjects, 'Sound') && ~isempty(BpodSystem.PluginObjects.Sound);
+    end
+
+    function slot = audioOnlyIdleSlot
+        slot = 3;
     end
 
     function stopVideo

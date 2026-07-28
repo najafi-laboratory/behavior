@@ -83,12 +83,14 @@ This decides display monitor selection and hardware assumptions.
 
 ## 7. Open Hardware
 
-The protocol opens:
+The protocol first turns off the Bpod console status LED, then opens:
 
 - Pololu Maestro servo controller.
 - Rotary encoder module.
-- Optional HiFi module.
+- HiFi module or the current system speaker for auditory cues.
 - PsychToolbox video player.
+
+The status LED remains off while the protocol runs.
 
 The protocol releases stale serial objects before opening new ones.
 
@@ -102,16 +104,16 @@ BpodSystem.SoftCodeHandlerFunction = 'SoftCodeHandler_Protocol'
 
 ## 8. Build Sensory Cue
 
-The protocol calls `GenerateSensoryCueVideo` for the visual cue component and loads a ramped sine tone into the HiFi module when it is available.
+The protocol calls `GenerateSensoryCueVideo` for the visual cue component and preloads a ramped sine tone into HiFi when available, otherwise into a persistent PsychPortAudio buffer for the current system speaker.
 
 The visual component either:
 
 - Loads and resizes `image.png`.
 - Or creates a generated grating.
 
-Audio-only cues use a neutral gray frame.
+Audio-only mode uses two display states: black with the sync patch dark, and black with the sync patch light. The light-patch state is shown while waiting for the session-start Enter. After Enter, the dark-patch state is used between cues and the light-patch state is used during cue playback. A mode change in the GUI is applied when the incoming trial is prepared.
 
-If the HiFi module is missing, the protocol prints a warning and continues without auditory cue output.
+The protocol tries HiFi first, then the current system speaker. Cue playback is triggered immediately after the blocking display flip that changes the sync patch from dark to light. If neither is available, it prints a reminder and continues without auditory cue output.
 
 The cue duration is snapped to a whole number of display frames.
 

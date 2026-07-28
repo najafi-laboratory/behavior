@@ -81,6 +81,8 @@ Controls the sensory cue modality.
 - `2`: Audio only.
 - `3`: Audio + visual.
 
+Audio-only mode uses a black/dark-patch idle frame and a black/light-patch cue frame. The light-patch frame is also shown while waiting for the session-start Enter. Mode changes made during a session take effect on the incoming trial.
+
 ### `SensoryCueDuration_s`
 
 Requested sensory cue duration.
@@ -102,7 +104,7 @@ This is ignored for audio-only cues.
 
 Tone frequency for audio-only and audio+visual sensory cues.
 
-If the HiFi module is missing, the protocol prints a warning and continues without auditory cue output.
+The protocol tries HiFi first, then the current system speaker through a persistent PsychPortAudio stream. The cue is preloaded and triggered immediately after the sync patch changes from dark to light. If neither is available, it prints a reminder and continues without auditory cue output.
 
 ### `AudioStimVolume`
 
@@ -110,7 +112,7 @@ Tone amplitude from 0 to 1.
 
 ### `AudioSamplingRate_Hz`
 
-HiFi module sampling rate.
+Sampling rate used by HiFi and system-speaker audio.
 
 ### `AudioAttenuation_dB`
 
