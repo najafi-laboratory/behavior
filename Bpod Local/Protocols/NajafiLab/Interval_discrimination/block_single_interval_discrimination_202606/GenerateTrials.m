@@ -76,10 +76,9 @@ if blockType == 1
     return
 end
 
-edgeTrials = min(round(S.GUI.BlockEdgeTrials), floor(nTrials / 2));
+edgeTrials = min(round(S.GUI.BlockEdgeTrials), nTrials);
 majorityType = blockType - 1;
 if edgeTrials > 0
     trialTypes(1:edgeTrials) = majorityType;
-    trialTypes(end - edgeTrials + 1:end) = majorityType;
 end
 end

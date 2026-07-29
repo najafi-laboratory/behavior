@@ -4,6 +4,9 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 
 ## Update note
 
+### 2026.07.29
+- Changed `BlockEdgeTrials` so only the first trials of each majority block are forced to the majority type. Trials at the end of a block are sampled normally and may be rare trials.
+
 ### 2026.07.13
 - Corrected the naive workflow: water is delivered before the shared choice window, correct and incorrect choices enter explicit naive outcome states, and optional change-of-mind reuses the trained branch.
 - Naive state machines contain no probe states or opto timers/actions.
@@ -69,7 +72,7 @@ This protocol runs a short/long interval discrimination task in Bpod with synchr
 - `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block; can be `0`.
 - `BlockLength`: nominal trials per block.
 - `BlockMargin`: random plus/minus range around `BlockLength`.
-- `BlockEdgeTrials`: first/last trials in majority blocks forced to the majority trial type.
+- `BlockEdgeTrials`: first trials in majority blocks forced to the majority trial type; the last trials are sampled normally and may be rare.
 - `MostFraction`: majority trial fraction in short-majority or long-majority blocks.
 
 ### Stimulus

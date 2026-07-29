@@ -31,7 +31,7 @@ When `BlockNum` is `2`, after warmup blocks, block types `2` and `3` alternate w
 
 When `BlockNum` is `3`, after warmup blocks, subsequent blocks are generated without immediate repeats.
 
-`MostFraction` controls the majority fraction in type `2` and type `3` blocks. `BlockEdgeTrials` applies majority-biased edge trials at the start and end of each block.
+`MostFraction` controls the majority fraction in type `2` and type `3` blocks. In majority blocks, the first `BlockEdgeTrials` are forced to the majority trial type. Later trials, including the last `BlockEdgeTrials`, are sampled normally and may be rare trials.
 
 ## ISI
 

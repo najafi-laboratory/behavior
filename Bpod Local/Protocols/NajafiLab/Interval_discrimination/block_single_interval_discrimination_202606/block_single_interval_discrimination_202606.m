@@ -198,7 +198,7 @@ try
     Screen('Preference', 'SuppressAllWarnings', 1);
 catch
 end
-BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(2, 0, [0 0], [180 180], 0);
+BpodSystem.PluginObjects.V = PsychToolboxVideoPlayer(1, 0, [0 0], [180 180], 0);
 BpodSystem.PluginObjects.V.SyncPatchIntensity = 255;
 BpodSystem.PluginObjects.V.TimerMode = 2;
 BpodSystem.Data.VideoFrameRate = BpodSystem.PluginObjects.V.DetectedFrameRate;
@@ -692,7 +692,6 @@ function printSessionSummary(completedTrials, S)
 global BpodSystem
 
 fprintf('\n%s\n', repmat('=', 1, 70));
-fprintf('block_single_interval_discrimination_202606 complete\n');
 fprintf('%-28s %s\n', 'Date:', char(datetime('today', 'Format', 'yyyyMMdd')));
 fprintf('%-28s %d / %d\n', 'Trials completed:', completedTrials, round(S.GUI.MaxTrials));
 if isfield(BpodSystem, 'Data') && isfield(BpodSystem.Data, 'Outcomes') && ~isempty(BpodSystem.Data.Outcomes)
@@ -728,7 +727,6 @@ fprintf('%-28s %.3f s, %.3f s\n', 'Pre outcome/post reward:', S.GUI.PreOutcomeDe
 fprintf('%-28s %.3f uL, %.3f uL\n', 'Left/right reward:', S.GUI.LeftRewardAmount_uL, S.GUI.RightRewardAmount_uL);
 fprintf('%-28s %s, manual %.3f, range %.3f-%.3f, mean %.3f s\n', 'ITI:', popupValue(S.GUIMeta.ITIMode.String, S.GUI.ITIMode), S.GUI.ManualITI_s, S.GUI.ITIMin_s, S.GUI.ITIMax_s, S.GUI.ITIMean_s);
 fprintf('%-28s %s, manual %.3f, range %.3f-%.3f, mean %.3f s\n', 'Punish ITI:', popupValue(S.GUIMeta.PunishITIMode.String, S.GUI.PunishITIMode), S.GUI.ManualPunishITI_s, S.GUI.PunishITIMin_s, S.GUI.PunishITIMax_s, S.GUI.PunishITIMean_s);
-fprintf('%s\n\n', repmat('=', 1, 70));
 end
 
 function cleanupProtocol

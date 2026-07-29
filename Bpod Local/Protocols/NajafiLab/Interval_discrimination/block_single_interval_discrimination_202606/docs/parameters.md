@@ -14,7 +14,7 @@
 - `WarmupBlockNum`: additional 50/50 warmup blocks after the required first 50/50 block in block modes 2 and 3. Set to `0` to use only the required first 50/50 block before the configured block structure.
 - `BlockLength`: nominal block length.
 - `BlockMargin`: random plus/minus range around `BlockLength`.
-- `BlockEdgeTrials`: edge trials forced toward the block's majority trial type.
+- `BlockEdgeTrials`: number of trials at the start of each majority block forced to the majority trial type. It does not constrain trials at the end of the block.
 - `MostFraction`: majority fraction in short-majority or long-majority blocks.
 
 ## Stimulus

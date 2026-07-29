@@ -193,7 +193,7 @@ Returns the number of leading 50/50 blocks in block modes 2 and 3. The count is 
 
 ### `sampleBlockTrials(S, blockType, nTrials)`
 
-Samples short/long trial identities inside one block. In 50/50 blocks, short and long are sampled uniformly. In majority blocks, the majority trial type is chosen with probability `MostFraction`. The first and last `BlockEdgeTrials` of a majority block are forced to the majority type to make block edges clear.
+Samples short/long trial identities inside one block. In 50/50 blocks, short and long are sampled uniformly. In majority blocks, the majority trial type is chosen with probability `MostFraction`. Only the first `BlockEdgeTrials` of a majority block are forced to the majority type. Trials at the end of the block are sampled normally and may be rare trials.
 
 ## `GenerateProbeTrials.m`
 
