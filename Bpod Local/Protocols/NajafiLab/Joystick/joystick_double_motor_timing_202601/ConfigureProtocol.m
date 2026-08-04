@@ -30,47 +30,6 @@ reward = {'RewardWindowLeft_s', 0.1; 'RewardMaximumWindow_s', 0.5; 'RewardWindow
 iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 5; 'ITIMax_s', 7; 'ITIMean_s', 6; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 5; 'PunishITIMax_s', 7; 'PunishITIMean_s', 6};
 manipulation = {'OptoMode', 0; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'EnableOptoSensoryCue1', 1; 'EnableOptoDelay', 1; 'EnableOptoPreRewardDelay', 1; 'EnableOptoPostReward', 1; 'OptoFrequency_Hz', 50; 'OptoPulseOn_ms', 10; 'ChemoMode', 0};
 
-% Migrate older saved settings into the current field names.
-if isfield(S.GUI, 'RewardBefore_s') && ~isfield(S.GUI, 'RewardWindowLeft_s')
-    S.GUI.RewardWindowLeft_s = S.GUI.RewardBefore_s;
-end
-if isfield(S.GUI, 'RewardAfter_s') && ~isfield(S.GUI, 'RewardWindowRight_s')
-    S.GUI.RewardWindowRight_s = S.GUI.RewardAfter_s;
-end
-if isfield(S.GUI, 'RewardDelay_s') && ~isfield(S.GUI, 'PreRewardDelay_s')
-    S.GUI.PreRewardDelay_s = S.GUI.RewardDelay_s;
-end
-if isfield(S.GUI, 'OptoVisualCue1Period') && ~isfield(S.GUI, 'enableoptovisualcue1')
-    S.GUI.enableoptovisualcue1 = S.GUI.OptoVisualCue1Period;
-end
-if isfield(S.GUI, 'VisualCueDuration_s') && ~isfield(S.GUI, 'SensoryCueDuration_s')
-    S.GUI.SensoryCueDuration_s = S.GUI.VisualCueDuration_s;
-end
-if isfield(S.GUI, 'EnableOptoVisualCue1') && ~isfield(S.GUI, 'EnableOptoSensoryCue1')
-    S.GUI.EnableOptoSensoryCue1 = S.GUI.EnableOptoVisualCue1;
-end
-if isfield(S.GUI, 'OptoPostPress1Period') && ~isfield(S.GUI, 'enableoptodelay')
-    S.GUI.enableoptodelay = S.GUI.OptoPostPress1Period;
-end
-if isfield(S.GUI, 'OptoRewardDelayPeriod') && ~isfield(S.GUI, 'enableoptopostreward')
-    S.GUI.enableoptopostreward = S.GUI.OptoRewardDelayPeriod;
-end
-if isfield(S.GUI, 'OptoPreRewardDelayPeriod') && ~isfield(S.GUI, 'enableoptoprewarddelay')
-    S.GUI.enableoptoprewarddelay = S.GUI.OptoPreRewardDelayPeriod;
-end
-if isfield(S.GUI, 'enableoptovisualcue1') && ~isfield(S.GUI, 'EnableOptoSensoryCue1')
-    S.GUI.EnableOptoSensoryCue1 = S.GUI.enableoptovisualcue1;
-end
-if isfield(S.GUI, 'enableoptodelay') && ~isfield(S.GUI, 'EnableOptoDelay')
-    S.GUI.EnableOptoDelay = S.GUI.enableoptodelay;
-end
-if isfield(S.GUI, 'enableoptopostreward') && ~isfield(S.GUI, 'EnableOptoPostReward')
-    S.GUI.EnableOptoPostReward = S.GUI.enableoptopostreward;
-end
-if isfield(S.GUI, 'enableoptoprewarddelay') && ~isfield(S.GUI, 'EnableOptoPreRewardDelay')
-    S.GUI.EnableOptoPreRewardDelay = S.GUI.enableoptoprewarddelay;
-end
-
 groups = {session, stimulus, audio, timing, joystick, reward, iti, manipulation};
 parameterNames = vertcat(session(:, 1), stimulus(:, 1), audio(:, 1), timing(:, 1), joystick(:, 1), reward(:, 1), iti(:, 1), manipulation(:, 1));
 
@@ -87,43 +46,6 @@ end
 unusedParameters = setdiff(fieldnames(S.GUI), parameterNames);
 if ~isempty(unusedParameters)
     S.GUI = rmfield(S.GUI, unusedParameters);
-end
-
-% Reset parameters that changed meaning across config versions.
-if previousVersion < 4
-    S.GUI.SensoryCueDuration_s = 0.1;
-    S.GUI.ShortDelay_s = 0.5;
-    S.GUI.LongDelay_s = 1;
-    S.GUI.Press1Window_s = 2;
-    S.GUI.ShortPress2Window_s = 3;
-    S.GUI.LongPress2Window_s = 3;
-    S.GUI.RewardWindowLeft_s = 0.2;
-    S.GUI.RewardWindowRight_s = 1.5;
-    S.GUI.PreRewardDelay_s = 0.5;
-    S.GUI.TimingMode = 2;
-end
-if previousVersion < 9
-    S.GUI.PostRewardDelay_s = 1;
-end
-if previousVersion < 12
-    S.GUI.RewardMaximumWindow_s = 0.5;
-end
-if previousVersion < 14
-    S.GUI.OptoZeroEdgeTrials = 5;
-    S.GUI.ProbeZeroEdgeTrials = 5;
-end
-if previousVersion < 15
-    S.GUI.OptoFrequency_Hz = 50;
-    S.GUI.OptoPulseOn_ms = 10;
-end
-if previousVersion < 18
-    S.GUI.EnableOptoSensoryCue1 = 1;
-    S.GUI.EnableOptoDelay = 1;
-    S.GUI.EnableOptoPostReward = 1;
-end
-if previousVersion < 23
-    S.GUI.PreRewardDelay_s = 0.5;
-    S.GUI.EnableOptoPreRewardDelay = 1;
 end
 
 % Configure GUI widget types and menu labels.
