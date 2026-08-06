@@ -59,6 +59,7 @@ This checks:
 - Opto and probe fractions are between 0 and 1.
 - Block edge settings are nonnegative integers.
 - Reward amounts are positive.
+- Total reward duration is positive.
 - ITI settings are valid.
 - Opto period settings are valid.
 - Assist mode is disabled when opto mode is enabled.
@@ -161,7 +162,7 @@ Each trial does these steps:
 10. Apply probe settings.
 11. Decide if this is an assist trial. Opto sessions require assist mode off.
 12. Compute the maximum possible reward.
-13. Save per-trial reward context.
+13. Save per-trial reward context, including total reward duration.
 14. Print trial settings.
 15. Update online plots.
 16. Configure encoder threshold.

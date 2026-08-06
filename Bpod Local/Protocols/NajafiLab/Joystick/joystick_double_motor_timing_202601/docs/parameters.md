@@ -216,6 +216,16 @@ Delay after reward before the trial is marked as rewarded.
 
 Post-reward opto gives light during this period.
 
+### `TotalRewardDuration_s`
+
+Total window for water delivery. The protocol converts reward volume to
+calibrated valve-on time, computes duty cycle as valve time divided by this
+duration, and distributes equal valve impulses uniformly across equal cycles.
+Cycle count is approximately total duration divided by valve time and is capped
+to keep each valve-on impulse at least 1 ms. The default is 1 second. A duration
+no longer than the calibrated valve time produces one continuous impulse, so
+delivered valve-on time is never truncated.
+
 ### `RewardMode`
 
 Controls reward amount.

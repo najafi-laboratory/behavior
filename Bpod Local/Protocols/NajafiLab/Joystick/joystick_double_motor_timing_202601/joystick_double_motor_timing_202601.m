@@ -253,6 +253,7 @@ while currentTrial <= round(S.GUI.MaxTrials)
     ProtocolTrialContext.RewardWindowLeft_s = trialS.GUI.RewardWindowLeft_s;
     ProtocolTrialContext.RewardMaximumWindow_s = trialS.GUI.RewardMaximumWindow_s;
     ProtocolTrialContext.RewardWindowRight_s = trialS.GUI.RewardWindowRight_s;
+    ProtocolTrialContext.TotalRewardDuration_s = trialS.GUI.TotalRewardDuration_s;
     ProtocolTrialContext.Press2Clock = [];
     ProtocolTrialContext.Press2Time_s = NaN;
     ProtocolTrialContext.RewardAmount_uL = 0;
@@ -805,6 +806,9 @@ end
 if S.GUI.PreRewardDelay_s < 0 || S.GUI.PostRewardDelay_s < 0 || S.GUI.ServoMoveDelay_s < 0
     error('PreRewardDelay_s, PostRewardDelay_s, and ServoMoveDelay_s cannot be negative.')
 end
+if S.GUI.TotalRewardDuration_s <= 0
+    error('TotalRewardDuration_s must be positive.')
+end
 if ~ismember(S.GUI.TimingMode, [1 2])
     error('TimingMode must be Visual Guided or Self Timed.')
 end
@@ -949,6 +953,7 @@ fprintf('%-28s %.3f s\n', 'Press 1 window:', S.GUI.Press1Window_s);
 fprintf('%-28s %.3f / %.3f s\n', 'Press 2 window:', S.GUI.ShortPress2Window_s, S.GUI.LongPress2Window_s);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Reward L / Max / R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s);
 fprintf('%-28s %.3f / %.3f s\n', 'Pre reward / post delay:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s);
+fprintf('%-28s %.3f s\n', 'Total reward duration:', S.GUI.TotalRewardDuration_s);
 fprintf('%-28s %s\n', 'Reward mode:', rewardModeNames{S.GUI.RewardMode});
 fprintf('%-28s %.3f / %.3f / %.3f uL\n', 'Reward amounts:', S.GUI.RewardAmount_uL, S.GUI.ShortRewardAmount_uL, S.GUI.LongRewardAmount_uL);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'ITI min / mean / max:', S.GUI.ITIMin_s, S.GUI.ITIMean_s, S.GUI.ITIMax_s);

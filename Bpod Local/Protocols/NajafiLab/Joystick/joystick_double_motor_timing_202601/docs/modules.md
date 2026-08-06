@@ -123,9 +123,11 @@ It controls:
 - Press 2 timing.
 - Reward calculation.
 - Valve opening.
+- Square-wave reward scheduling across the configured total duration.
 - Outcome soft-code return.
 
-Dynamic reward is computed here.
+Dynamic reward is computed here. Its calibrated valve-on time is preserved while
+equal impulses are distributed across `TotalRewardDuration_s`.
 
 ## `OptoControl.m`
 

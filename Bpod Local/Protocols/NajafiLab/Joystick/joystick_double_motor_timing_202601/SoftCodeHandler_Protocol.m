@@ -162,15 +162,45 @@ end
     end
 
     function deliverDynamicReward
-        % Deliver the dynamically computed reward through valve 2.
+        % Spread calibrated valve-on time evenly across the reward window.
         amount = ProtocolTrialContext.RewardAmount_uL;
         if amount <= 0
             return
         end
         valveTime = GetValveTimes(amount, 2);
+        totalDuration = ProtocolTrialContext.TotalRewardDuration_s;
+        if totalDuration <= valveTime
+            deliverValvePulse(valveTime);
+            return
+        end
+
+        % Use approximately one calibrated valve-time per cycle. Limit the
+        % count so no valve-on command is shorter than MATLAB's useful 1 ms
+        % scheduling resolution. Every cycle has the same duty cycle.
+        minimumPulse_s = 0.001;
+        cycleCount = max(1, round(totalDuration / valveTime));
+        cycleCount = min(cycleCount, max(1, floor(valveTime / minimumPulse_s)));
+        cycleDuration = totalDuration / cycleCount;
+        pulseDuration = valveTime / cycleCount;
+        offDuration = cycleDuration - pulseDuration;
+
+        rewardClock = tic;
+        for cycle = 1:cycleCount
+            deliverValvePulse(pulseDuration);
+            % Pause to the absolute cycle boundary so valve-command overhead
+            % does not accumulate and stretch the configured total window.
+            remainingCycleTime = cycle * cycleDuration - toc(rewardClock);
+            if offDuration > 0 && remainingCycleTime > 0
+                pause(remainingCycleTime);
+            end
+        end
+    end
+
+    function deliverValvePulse(duration)
+        % Toggle valve 2 and guarantee closure if pause is interrupted.
         ManualOverride('OV', 2);
         valveCleanup = onCleanup(@() ManualOverride('OV', 2));
-        pause(valveTime);
+        pause(duration);
         clear valveCleanup
     end
 
