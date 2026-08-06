@@ -25,6 +25,10 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with configura
 - Preload synchronized audio and dedicated audio-only black display frames.
 - Modularize audio and idle-display handling.
 
+### 2026.08.06
+- Added reward impulse.
+- Changed default parameters.
+
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
