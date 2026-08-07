@@ -127,7 +127,7 @@ It controls:
 - Outcome soft-code return.
 
 Dynamic reward is computed here. Its calibrated valve-on time is preserved while
-equal impulses are distributed across `TotalRewardDuration_s`.
+10 identical on/off cycles are distributed across `TotalRewardDuration_s`.
 
 ## `OptoControl.m`
 

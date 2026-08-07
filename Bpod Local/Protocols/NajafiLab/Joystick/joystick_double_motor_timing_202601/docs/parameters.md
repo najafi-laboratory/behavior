@@ -219,12 +219,12 @@ Post-reward opto gives light during this period.
 ### `TotalRewardDuration_s`
 
 Total window for water delivery. The protocol converts reward volume to
-calibrated valve-on time, computes duty cycle as valve time divided by this
-duration, and distributes equal valve impulses uniformly across equal cycles.
-Cycle count is approximately total duration divided by valve time and is capped
-to keep each valve-on impulse at least 1 ms. The default is 1 second. A duration
-no longer than the calibrated valve time produces one continuous impulse, so
-delivered valve-on time is never truncated.
+calibrated valve-on time and divides this duration into exactly 10 hard-coded,
+identical square-wave cycles. Each cycle has a valve-on period equal to one
+tenth of the calibrated valve time, followed by a valve-off period equal to one
+tenth of the remaining duration. The duty cycle is valve time divided by total
+reward duration. The default is 2 seconds, and the configured duration must be
+longer than the calibrated valve time so every cycle has both periods.
 
 ### `RewardMode`
 

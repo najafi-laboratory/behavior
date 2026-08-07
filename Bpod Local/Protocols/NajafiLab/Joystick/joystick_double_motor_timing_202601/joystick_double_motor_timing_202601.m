@@ -944,7 +944,7 @@ itiModeNames = {'Manual', 'Exponential'};
 
 fprintf('%s\n', repmat('=', 1, 58));
 fprintf('%s\n', char(datetime('today', 'Format', 'yyyyMMdd')));
-fprintf('%-28s %d / %d\n', 'Total trials completed:', completedTrials, round(S.GUI.MaxTrials));
+fprintf('%-28s %d\n', 'Total trials:', completedTrials);
 fprintf('%-28s %s\n', 'Press mode:', pressModeNames{S.GUI.PressMode});
 fprintf('%-28s %s\n', 'Timing mode:', timingNames{S.GUI.TimingMode});
 fprintf('%-28s %s\n', 'Sensory cue mode:', cueModeNames{S.GUI.SensoryCueMode});
@@ -952,9 +952,8 @@ fprintf('%-28s %.3f / %.3f s\n', 'Short / long delay:', S.GUI.ShortDelay_s, S.GU
 fprintf('%-28s %.3f s\n', 'Press 1 window:', S.GUI.Press1Window_s);
 fprintf('%-28s %.3f / %.3f s\n', 'Press 2 window:', S.GUI.ShortPress2Window_s, S.GUI.LongPress2Window_s);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Reward L / Max / R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s);
-fprintf('%-28s %.3f / %.3f s\n', 'Pre reward / post delay:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s);
+fprintf('%-28s %.3f / %.3f s\n', 'Pre / post reward delay:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s);
 fprintf('%-28s %.3f s\n', 'Total reward duration:', S.GUI.TotalRewardDuration_s);
-fprintf('%-28s %s\n', 'Reward mode:', rewardModeNames{S.GUI.RewardMode});
 fprintf('%-28s %.3f / %.3f / %.3f uL\n', 'Reward amounts:', S.GUI.RewardAmount_uL, S.GUI.ShortRewardAmount_uL, S.GUI.LongRewardAmount_uL);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'ITI min / mean / max:', S.GUI.ITIMin_s, S.GUI.ITIMean_s, S.GUI.ITIMax_s);
 fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Punish min / mean / max:', S.GUI.PunishITIMin_s, S.GUI.PunishITIMean_s, S.GUI.PunishITIMax_s);

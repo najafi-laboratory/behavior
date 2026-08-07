@@ -68,7 +68,7 @@ Delay-period opto is turned off in `RewardLeverRetract`.
 
 `PreRewardDelay` waits for `PreRewardDelay_s`, then goes to `Reward`. Pre-reward-delay opto turns LED1 on here.
 
-`Reward` sends soft code 20 and turns pre-reward-delay opto off. The soft-code handler converts reward amount to calibrated valve-on time and distributes equal valve 2 impulses across `TotalRewardDuration_s`. When reward delivery is done, the handler sends soft code 3 and the trial goes to `PostRewardDelay`.
+`Reward` sends soft code 20 and turns pre-reward-delay opto off. The soft-code handler converts reward amount to calibrated valve-on time and distributes it across exactly 10 identical valve 2 cycles within `TotalRewardDuration_s`. Each cycle has one valve-on period followed by one valve-off period. When reward delivery is done, the handler sends soft code 3 and the trial goes to `PostRewardDelay`.
 
 `PostRewardDelay` waits for `PostRewardDelay_s`. Post-reward opto turns LED1 on here.
 

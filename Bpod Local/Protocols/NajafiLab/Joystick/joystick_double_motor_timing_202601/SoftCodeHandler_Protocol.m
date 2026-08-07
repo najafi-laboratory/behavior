@@ -169,30 +169,20 @@ end
         end
         valveTime = GetValveTimes(amount, 2);
         totalDuration = ProtocolTrialContext.TotalRewardDuration_s;
-        if totalDuration <= valveTime
-            deliverValvePulse(valveTime);
-            return
+        if valveTime >= totalDuration
+            error('TotalRewardDuration_s must be longer than the calibrated valve time (%.6f s).', valveTime)
         end
 
-        % Use approximately one calibrated valve-time per cycle. Limit the
-        % count so no valve-on command is shorter than MATLAB's useful 1 ms
-        % scheduling resolution. Every cycle has the same duty cycle.
-        minimumPulse_s = 0.001;
-        cycleCount = max(1, round(totalDuration / valveTime));
-        cycleCount = min(cycleCount, max(1, floor(valveTime / minimumPulse_s)));
+        % Divide the window into exactly 10 identical on/off cycles while
+        % preserving the calibrated total valve-on time.
+        cycleCount = 10;
         cycleDuration = totalDuration / cycleCount;
         pulseDuration = valveTime / cycleCount;
         offDuration = cycleDuration - pulseDuration;
 
-        rewardClock = tic;
         for cycle = 1:cycleCount
             deliverValvePulse(pulseDuration);
-            % Pause to the absolute cycle boundary so valve-command overhead
-            % does not accumulate and stretch the configured total window.
-            remainingCycleTime = cycle * cycleDuration - toc(rewardClock);
-            if offDuration > 0 && remainingCycleTime > 0
-                pause(remainingCycleTime);
-            end
+            pause(offDuration);
         end
     end
 

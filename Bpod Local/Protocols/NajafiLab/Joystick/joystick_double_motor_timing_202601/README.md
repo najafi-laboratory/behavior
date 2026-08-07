@@ -64,13 +64,13 @@ Reward amount is computed in `SoftCodeHandler_Protocol` from the press 2 time:
 - maximum through `RewardMaximumWindow_s`
 - linearly decreases to zero over `RewardWindowRight_s`
 
-The resulting amount is converted to calibrated valve-on time for valve 2. That
-on-time is distributed as equal impulses across `TotalRewardDuration_s`. The
-duty cycle is `valve time / total reward duration`, and equal-length cycles
-space the impulses uniformly. The cycle count is approximately total duration
-divided by valve time, capped so valve-on impulses remain at least 1 ms. If the
-configured duration is no longer than the valve time, delivery is one continuous
-impulse lasting the valve time.
+The resulting amount is converted to calibrated valve-on time for valve 2. The
+protocol divides `TotalRewardDuration_s` into exactly 10 hard-coded, identical
+square-wave cycles. Each cycle contains a valve-on period of `valve time / 10`
+followed by a valve-off period of `(total reward duration - valve time) / 10`.
+Thus the duty cycle is `valve time / total reward duration`, the full calibrated
+valve-on time is preserved, and the impulses are uniformly distributed. The
+configured duration must be longer than the calibrated valve time.
 
 ## GUI Parameters
 
@@ -130,7 +130,7 @@ In audio-only mode, the ready screen before the session-start Enter is black wit
 - `RewardWindowRight_s`: late side of rewarded timing window.
 - `PreRewardDelay_s`: delay from rewarded classification to water delivery.
 - `PostRewardDelay_s`: delay after reward before final rewarded state.
-- `TotalRewardDuration_s`: window over which calibrated valve-on time is evenly distributed as a square-wave pulse train.
+- `TotalRewardDuration_s`: window containing 10 identical reward cycles; defaults to 2 seconds.
 - `RewardMode`: same reward for all trials or separate short/long reward sizes.
 - `RewardAmount_uL`: reward size when using same reward mode.
 - `ShortRewardAmount_uL`: short-trial reward size in different reward mode.
