@@ -120,12 +120,10 @@ enterKey = KbName('Return');
 while KbCheck
     pause(0.02)
 end
+% The ready frame is already visible. Do not replay it while polling the
+% keyboard: each play call performs a synchronous Psychtoolbox Screen flip,
+% and repeated unchanged flips can stall MATLAB in the display driver.
 while true
-    if S.GUI.SensoryCueMode == 2
-        BpodSystem.PluginObjects.V.play(1);
-    else
-        BpodSystem.PluginObjects.V.play(0);
-    end
     [keyDown, ~, keyCode] = KbCheck;
     if keyDown && keyCode(enterKey)
         break

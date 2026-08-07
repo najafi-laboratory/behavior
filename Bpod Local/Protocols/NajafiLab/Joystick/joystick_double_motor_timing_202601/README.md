@@ -104,6 +104,14 @@ The protocol tries HiFi first, then the current system speaker through a pre-ope
 
 In audio-only mode, the ready screen before the session-start Enter is black with the sync patch light. After the session starts, the idle screen is completely black with the patch dark; cue playback uses the preloaded black frame with the patch light. Changing `SensoryCueMode` during a session updates these display states before the incoming trial.
 
+The ready frame is drawn once while the protocol polls for Enter, rather than
+being replayed on every keyboard-poll iteration. Cue playback also transitions
+directly from the current frame to the cue. Avoiding redundant synchronous
+Psychtoolbox screen flips prevents intermittent MATLAB stalls in the display
+driver without changing cue timing or sync-patch transitions. During trials,
+duplicate soft-code requests for a visual state that is already displayed are
+also ignored.
+
 ### Timing
 
 - `ShortDelay_s`: target press 2 delay for short trials.

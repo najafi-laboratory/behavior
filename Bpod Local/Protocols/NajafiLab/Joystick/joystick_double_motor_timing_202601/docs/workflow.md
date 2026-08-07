@@ -114,6 +114,12 @@ The visual component either:
 
 Audio-only mode uses two display states: black with the sync patch dark, and black with the sync patch light. The light-patch state is shown while waiting for the session-start Enter. After Enter, the dark-patch state is used between cues and the light-patch state is used during cue playback. A mode change in the GUI is applied when the incoming trial is prepared.
 
+The session-start frame is presented once before keyboard polling. The polling
+loop does not replay an unchanged frame, and cue onset does not insert an extra
+idle-frame flip. This limits synchronous Psychtoolbox flips to real visual-state
+changes and avoids intermittent display-driver stalls. The soft-code handler
+also tracks the displayed cue/idle state and ignores duplicate display requests.
+
 The protocol tries HiFi first, then the current system speaker. Cue playback is triggered immediately after the blocking display flip that changes the sync patch from dark to light. If neither is available, it prints a reminder and continues without auditory cue output.
 
 The cue duration is snapped to a whole number of display frames.

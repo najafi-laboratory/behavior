@@ -3,6 +3,7 @@ global BpodSystem
 global S
 global M
 global ProtocolTrialContext
+persistent displayedVideoState displayedVideoPlayer
 
 % Dispatch hardware actions requested by state-machine soft codes.
 switch code
@@ -19,6 +20,7 @@ switch code
         moveServoHome;
         SendBpodSoftCode(2);
     case 9
+        resetVideoState;
         moveServoHome;
     case 12
         stopCue;
@@ -42,9 +44,10 @@ switch code
 end
 
     function playCue(index)
-        % Flip the sync patch light, then trigger the preloaded audio.
-        showIdleScreen;
-        BpodSystem.PluginObjects.V.play(index);
+        % Present the cue directly. An intermediate idle-screen flip is
+        % unnecessary and can block in Psychtoolbox display synchronization.
+        stopAudio;
+        presentVideo(index);
         if cueUsesAudio()
             if hifiAvailable()
                 BpodSystem.PluginObjects.H.play(5);
@@ -63,7 +66,7 @@ end
         % Audio-only uses its dedicated black/dark-patch frame, never gray.
         stopAudio;
         if audioOnlyIdleAvailable()
-            BpodSystem.PluginObjects.V.play(audioOnlyIdleSlot());
+            presentVideo(audioOnlyIdleSlot());
         else
             stopVideo;
         end
@@ -111,13 +114,43 @@ end
     end
 
     function stopVideo
+        synchronizeVideoState;
+        if isequal(displayedVideoState, 0)
+            return
+        end
         try
             BpodSystem.PluginObjects.V.stop;
+            displayedVideoState = 0;
         catch exception
+            displayedVideoState = NaN;
             if ~contains(exception.message, 'not running')
                 rethrow(exception)
             end
         end
+    end
+
+    function presentVideo(index)
+        % Avoid synchronous Screen flips when the requested frame is
+        % already visible (for example, overlapping timer/state soft codes).
+        synchronizeVideoState;
+        if isequal(displayedVideoState, index)
+            return
+        end
+        BpodSystem.PluginObjects.V.play(index);
+        displayedVideoState = index;
+    end
+
+    function synchronizeVideoState
+        player = BpodSystem.PluginObjects.V;
+        if isempty(displayedVideoPlayer) || ~isequal(displayedVideoPlayer, player)
+            displayedVideoPlayer = player;
+            displayedVideoState = NaN;
+        end
+    end
+
+    function resetVideoState
+        displayedVideoState = NaN;
+        displayedVideoPlayer = [];
     end
 
     function moveServoHome
