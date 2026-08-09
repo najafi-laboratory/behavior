@@ -822,8 +822,8 @@ end
 if S.GUI.SensoryCueMode ~= 2 && ~S.GUI.UseGeneratedGrating && ~isfile(fullfile(fileparts(mfilename('fullpath')), 'image.png'))
     error('UseGeneratedGrating is off, but image.png was not found in the protocol folder.')
 end
-if S.GUI.PressThreshold <= S.GUI.RetractThreshold
-    error('PressThreshold must be greater than RetractThreshold.')
+if S.GUI.PressThreshold <= 0 || S.GUI.PressThreshold <= S.GUI.RetractThreshold
+    error('PressThreshold must be positive and greater than RetractThreshold.')
 end
 if S.GUI.BlockLength < 1 || S.GUI.BlockLengthEdge < 0 || S.GUI.ServoReturnTimeout_s <= 0
     error('BlockLength and servo timeout must be positive; BlockLengthEdge cannot be negative.')
