@@ -934,6 +934,7 @@ trialModeNames = {'All short', 'All long', 'Blocks short first', 'Blocks long fi
 rewardModeNames = {'Same reward', 'Different reward'};
 itiModeNames = {'Manual', 'Exponential'};
 
+fprintf('\n\n');
 fprintf('%s\n', repmat('=', 1, 58));
 fprintf('%s\n', char(datetime('today', 'Format', 'yyyyMMdd')));
 fprintf('%-28s %d\n', 'Total trials:', completedTrials);
@@ -961,7 +962,7 @@ fprintf('%-28s %s\n', 'Probe enabled:', onOffText(S.GUI.ProbeMode));
 fprintf('%-28s %.3f, edge %d\n', 'Probe fraction / zero edge:', S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials));
 fprintf('%-28s %s, fraction %.3f\n', 'Assist enabled:', onOffText(S.GUI.AssistMode), S.GUI.AssistFraction);
 fprintf('%-28s %s\n', 'Chemo enabled:', onOffText(S.GUI.ChemoMode));
-fprintf('%s\n\n', repmat('=', 1, 58));
+fprintf('\n\n');
 end
 
 function confirmDoricOptoSettings(S)
