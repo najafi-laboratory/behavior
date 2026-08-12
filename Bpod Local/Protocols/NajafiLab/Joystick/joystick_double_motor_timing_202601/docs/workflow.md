@@ -112,13 +112,7 @@ The visual component either:
 - Loads and resizes `image.png`.
 - Or creates a generated grating.
 
-Audio-only mode uses two display states: black with the sync patch dark, and black with the sync patch light. The light-patch state is shown while waiting for the session-start Enter. After Enter, the dark-patch state is used between cues and the light-patch state is used during cue playback. A mode change in the GUI is applied when the incoming trial is prepared.
-
-The session-start frame is presented once before keyboard polling. The polling
-loop does not replay an unchanged frame, and cue onset does not insert an extra
-idle-frame flip. This limits synchronous Psychtoolbox flips to real visual-state
-changes and avoids intermittent display-driver stalls. The soft-code handler
-also tracks the displayed cue/idle state and ignores duplicate display requests.
+Audio-only trials use two display states: black with the sync patch dark between cues, and black with the sync patch light during cue playback. A mode change in the GUI is applied when the incoming trial is prepared. The soft-code handler tracks the displayed cue/idle state and ignores duplicate display requests.
 
 The protocol tries HiFi first, then the current system speaker. Cue playback is triggered immediately after the blocking display flip that changes the sync patch from dark to light. If neither is available, it prints a reminder and continues without auditory cue output.
 
@@ -130,9 +124,7 @@ The actual duration replaces `SensoryCueDuration_s`.
 
 The protocol moves the servo home.
 
-It shows a gray screen.
-
-It waits for the user to press Enter again.
+It displays the ready prompt and waits for the user to press Enter again.
 
 This second Enter starts the session.
 

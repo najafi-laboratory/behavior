@@ -81,7 +81,7 @@ Controls the sensory cue modality.
 - `2`: Audio only.
 - `3`: Audio + visual.
 
-Audio-only mode uses a black/dark-patch idle frame and a black/light-patch cue frame. The light-patch frame is also shown while waiting for the session-start Enter. Mode changes made during a session take effect on the incoming trial.
+Audio-only mode uses a black/dark-patch idle frame and a black/light-patch cue frame during actual trials. Mode changes made during a session take effect on the incoming trial.
 
 ### `SensoryCueDuration_s`
 

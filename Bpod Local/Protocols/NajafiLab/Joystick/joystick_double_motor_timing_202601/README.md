@@ -29,12 +29,16 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with configura
 - Added reward impulse.
 - Changed default parameters.
 
+### 2026.08.12
+- Show the Psychtoolbox gray screen with the sync patch dark while waiting for the session-start Enter.
+- Document that Alt+Tab may be needed to switch from the Psychtoolbox window back to the first MATLAB window when the prompt is issued.
+
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
 2. The Bpod console status LED turns off, then the GUI opens. Set parameters and press Enter in MATLAB.
 3. Hardware is configured: Pololu Maestro servo, rotary encoder, HiFi or system-speaker audio, and PsychToolbox video display.
-4. The servo returns home and the mode-appropriate ready screen is shown. Press Enter again to start trials.
+4. The servo returns home and the Psychtoolbox window becomes gray with the sync patch dark. When the ready prompt is issued, use Alt+Tab to switch back to the first MATLAB window if Psychtoolbox has focus, then press Enter to start trials.
 5. Each trial syncs GUI parameters, builds the next state machine, runs Bpod, saves trial data, and updates the plot canvas.
 
 ## Trial Logic
@@ -102,15 +106,7 @@ configured duration must be longer than the calibrated valve time.
 
 The protocol tries HiFi first, then the current system speaker through a pre-opened PsychPortAudio stream. Audio is buffered before each trial and triggered immediately after the display flip that turns the sync patch light. If neither output is available, the protocol prints a reminder and continues without auditory cue output.
 
-In audio-only mode, the ready screen before the session-start Enter is black with the sync patch light. After the session starts, the idle screen is completely black with the patch dark; cue playback uses the preloaded black frame with the patch light. Changing `SensoryCueMode` during a session updates these display states before the incoming trial.
-
-The ready frame is drawn once while the protocol polls for Enter, rather than
-being replayed on every keyboard-poll iteration. Cue playback also transitions
-directly from the current frame to the cue. Avoiding redundant synchronous
-Psychtoolbox screen flips prevents intermittent MATLAB stalls in the display
-driver without changing cue timing or sync-patch transitions. During trials,
-duplicate soft-code requests for a visual state that is already displayed are
-also ignored.
+During trials, audio-only idle periods are completely black with the patch dark, while cue playback uses the preloaded black frame with the patch light. Changing `SensoryCueMode` during a session updates the trial display states before the incoming trial. Duplicate soft-code requests for a visual state that is already displayed are ignored.
 
 ### Timing
 

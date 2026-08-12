@@ -24,8 +24,7 @@ Use this checklist before and during a session.
 6. Read the Doric opto settings printed in MATLAB.
 7. Match Doric frequency and pulse on time.
 8. Press Enter to confirm.
-9. Wait for the mode-appropriate ready screen.
-10. Press Enter again to start trials.
+9. At the ready prompt, press Enter again to start trials.
 
 ## During The Session
 

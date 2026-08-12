@@ -1,3 +1,4 @@
+
 function joystick_double_motor_timing_202601
 global BpodSystem
 global S
@@ -101,28 +102,21 @@ itiValues = [];
 punishITIValues = [];
 currentTrial = 1;
 
-% Put hardware in a quiet ready state before the second Enter.
+% Put hardware home before the session-start prompt.
 SoftCodeHandler_Protocol(9);
 pause(1);
-if S.GUI.SensoryCueMode == 2
-    BpodSystem.PluginObjects.V.play(1);
-else
-    SoftCodeHandler_Protocol(3);
+try
+    % Explicitly flip the player's gray calibration frame with patch off.
+    BpodSystem.PluginObjects.V.setSyncPatch(0);
+catch exception
+    error('Could not present the gray session-ready screen: %s', exception.message)
 end
-pause(0.2);
-if S.GUI.SensoryCueMode == 2
-    disp('Screen is black with the sync patch light. Press Enter to start the session.')
-else
-    disp('Screen is gray and hardware is ready. Press Enter to start the session.')
-end
+disp('Gray screen is ready. Press Enter to start the session.')
 KbName('UnifyKeyNames');
 enterKey = KbName('Return');
 while KbCheck
     pause(0.02)
 end
-% The ready frame is already visible. Do not replay it while polling the
-% keyboard: each play call performs a synchronous Psychtoolbox Screen flip,
-% and repeated unchanged flips can stall MATLAB in the display driver.
 while true
     [keyDown, ~, keyCode] = KbCheck;
     if keyDown && keyCode(enterKey)
