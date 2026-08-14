@@ -63,12 +63,12 @@ end
 
 
     function showIdleScreen
-        % Audio-only uses its dedicated black/dark-patch frame, never gray.
+        % Use the preloaded black/dark-patch frame for every cue mode.
         stopAudio;
-        if audioOnlyIdleAvailable()
-            presentVideo(audioOnlyIdleSlot());
+        if idleVideoAvailable()
+            presentVideo(idleVideoSlot());
         else
-            stopVideo;
+            presentBlackScreen;
         end
     end
 
@@ -92,13 +92,9 @@ end
             (hifiAvailable() || soundCardAvailable());
     end
 
-    function yes = audioOnlyIdleAvailable
-        yes = isAudioOnly() && numel(BpodSystem.PluginObjects.V.Videos) >= audioOnlyIdleSlot() && ...
-            ~isempty(BpodSystem.PluginObjects.V.Videos{audioOnlyIdleSlot()});
-    end
-
-    function yes = isAudioOnly
-        yes = isfield(S.GUI, 'SensoryCueMode') && S.GUI.SensoryCueMode == 2;
+    function yes = idleVideoAvailable
+        yes = numel(BpodSystem.PluginObjects.V.Videos) >= idleVideoSlot() && ...
+            ~isempty(BpodSystem.PluginObjects.V.Videos{idleVideoSlot()});
     end
 
     function yes = hifiAvailable
@@ -109,34 +105,32 @@ end
         yes = isfield(BpodSystem.PluginObjects, 'Sound') && ~isempty(BpodSystem.PluginObjects.Sound);
     end
 
-    function slot = audioOnlyIdleSlot
+    function slot = idleVideoSlot
         slot = 3;
     end
 
-    function stopVideo
+    function presentBlackScreen
         synchronizeVideoState;
         if isequal(displayedVideoState, 0)
             return
         end
-        try
-            BpodSystem.PluginObjects.V.stop;
-            displayedVideoState = 0;
-        catch exception
-            displayedVideoState = NaN;
-            if ~contains(exception.message, 'not running')
-                rethrow(exception)
-            end
-        end
+        player = BpodSystem.PluginObjects.V;
+        Screen('FillRect', player.Window, 0);
+        Screen('Flip', player.Window, 0, 0, 2);
+        displayedVideoState = 0;
     end
 
     function presentVideo(index)
-        % Avoid synchronous Screen flips when the requested frame is
-        % already visible (for example, overlapping timer/state soft codes).
+        % These slots contain one static texture. Draw it directly and use
+        % dontsync=2 so a lost/stalled vertical blank cannot block Bpod's
+        % state-machine event loop in SensoryCue1.
         synchronizeVideoState;
         if isequal(displayedVideoState, index)
             return
         end
-        BpodSystem.PluginObjects.V.play(index);
+        player = BpodSystem.PluginObjects.V;
+        Screen('DrawTexture', player.Window, player.Videos{index}.Data(1));
+        Screen('Flip', player.Window, 0, 0, 2);
         displayedVideoState = index;
     end
 

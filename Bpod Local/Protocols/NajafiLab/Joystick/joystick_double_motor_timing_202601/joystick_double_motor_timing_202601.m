@@ -105,13 +105,8 @@ currentTrial = 1;
 % Put hardware home before the session-start prompt.
 SoftCodeHandler_Protocol(9);
 pause(1);
-try
-    % Explicitly flip the player's gray calibration frame with patch off.
-    BpodSystem.PluginObjects.V.setSyncPatch(0);
-catch exception
-    error('Could not present the gray session-ready screen: %s', exception.message)
-end
-disp('Gray screen is ready. Press Enter to start the session.')
+SoftCodeHandler_Protocol(3);
+disp('Idle screen is ready. Press Enter to start the session.')
 KbName('UnifyKeyNames');
 enterKey = KbName('Return');
 while KbCheck
@@ -499,9 +494,7 @@ BpodSystem.PluginObjects.V.loadVideo(1, video);
 BpodSystem.PluginObjects.V.loadVideo(2, video);
 BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
 BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
-if S.GUI.SensoryCueMode == 2
-    loadAudioOnlyIdleFrame(BpodSystem.PluginObjects.V, video);
-end
+loadIdleFrame(BpodSystem.PluginObjects.V, zeros(height, width, 3, 'uint8'));
 
 if hifiAvailable()
     BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
@@ -518,13 +511,13 @@ else
 end
 end
 
-function loadAudioOnlyIdleFrame(videoPlayer, blackFrame)
-% Build a black frame whose sync patch is dark for audio-only idle periods.
-audioOnlyIdleSlot = 3;
-videoPlayer.loadVideo(audioOnlyIdleSlot, cat(4, blackFrame, blackFrame));
-videoPlayer.Videos{audioOnlyIdleSlot}.Data([1 2]) = ...
-    videoPlayer.Videos{audioOnlyIdleSlot}.Data([2 1]);
-videoPlayer.Videos{audioOnlyIdleSlot}.nFrames = 1;
+function loadIdleFrame(videoPlayer, blackFrame)
+% Build a black frame whose sync patch is dark between cues.
+idleVideoSlot = 3;
+videoPlayer.loadVideo(idleVideoSlot, cat(4, blackFrame, blackFrame));
+videoPlayer.Videos{idleVideoSlot}.Data([1 2]) = ...
+    videoPlayer.Videos{idleVideoSlot}.Data([2 1]);
+videoPlayer.Videos{idleVideoSlot}.nFrames = 1;
 end
 
 function yes = hifiAvailable
