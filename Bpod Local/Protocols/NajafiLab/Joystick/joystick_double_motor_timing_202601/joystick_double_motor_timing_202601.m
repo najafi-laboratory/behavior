@@ -105,13 +105,8 @@ currentTrial = 1;
 % Put hardware home before the session-start prompt.
 SoftCodeHandler_Protocol(9);
 pause(1);
-try
-    % Explicitly flip the player's gray calibration frame with patch off.
-    BpodSystem.PluginObjects.V.setSyncPatch(0);
-catch exception
-    error('Could not present the gray session-ready screen: %s', exception.message)
-end
-disp('Gray screen is ready. Press Enter to start the session.')
+SoftCodeHandler_Protocol(3);
+disp('Idle screen is ready. Press Enter to start the session.')
 KbName('UnifyKeyNames');
 enterKey = KbName('Return');
 while KbCheck
@@ -930,39 +925,57 @@ end
 timingNames = {'Visual guided', 'Self timed'};
 cueModeNames = {'Visual only', 'Audio only', 'Audio + visual'};
 pressModeNames = {'Single press', 'Double press'};
-trialModeNames = {'All short', 'All long', 'Blocks short first', 'Blocks long first'};
-rewardModeNames = {'Same reward', 'Different reward'};
 itiModeNames = {'Manual', 'Exponential'};
+
+defaultBpodSystem.ProtocolSettings = struct;
+defaultS = ConfigureProtocol(defaultBpodSystem);
+items = {
+    S.GUI.PressMode ~= defaultS.GUI.PressMode, '%-28s %s\n', {'Press mode:', pressModeNames{S.GUI.PressMode}};
+    S.GUI.TimingMode ~= defaultS.GUI.TimingMode, '%-28s %s\n', {'Timing mode:', timingNames{S.GUI.TimingMode}};
+    S.GUI.SensoryCueMode ~= defaultS.GUI.SensoryCueMode, '%-28s %s\n', {'Sensory cue mode:', cueModeNames{S.GUI.SensoryCueMode}};
+    any([S.GUI.ShortDelay_s S.GUI.LongDelay_s] ~= [defaultS.GUI.ShortDelay_s defaultS.GUI.LongDelay_s]), '%-28s %.3f / %.3f s\n', {'Short / long delay:', S.GUI.ShortDelay_s, S.GUI.LongDelay_s};
+    S.GUI.Press1Window_s ~= defaultS.GUI.Press1Window_s, '%-28s %.3f s\n', {'Press 1 window:', S.GUI.Press1Window_s};
+    any([S.GUI.ShortPress2Window_s S.GUI.LongPress2Window_s] ~= [defaultS.GUI.ShortPress2Window_s defaultS.GUI.LongPress2Window_s]), '%-28s %.3f / %.3f s\n', {'Press 2 window:', S.GUI.ShortPress2Window_s, S.GUI.LongPress2Window_s};
+    any([S.GUI.RewardWindowLeft_s S.GUI.RewardMaximumWindow_s S.GUI.RewardWindowRight_s] ~= [defaultS.GUI.RewardWindowLeft_s defaultS.GUI.RewardMaximumWindow_s defaultS.GUI.RewardWindowRight_s]), '%-28s %.3f / %.3f / %.3f s\n', {'Reward L / Max / R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s};
+    any([S.GUI.PreRewardDelay_s S.GUI.PostRewardDelay_s] ~= [defaultS.GUI.PreRewardDelay_s defaultS.GUI.PostRewardDelay_s]), '%-28s %.3f / %.3f s\n', {'Pre / post reward delay:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s};
+    S.GUI.TotalRewardDuration_s ~= defaultS.GUI.TotalRewardDuration_s, '%-28s %.3f s\n', {'Total reward duration:', S.GUI.TotalRewardDuration_s};
+    any([S.GUI.RewardAmount_uL S.GUI.ShortRewardAmount_uL S.GUI.LongRewardAmount_uL] ~= [defaultS.GUI.RewardAmount_uL defaultS.GUI.ShortRewardAmount_uL defaultS.GUI.LongRewardAmount_uL]), '%-28s %.3f / %.3f / %.3f uL\n', {'Reward amounts:', S.GUI.RewardAmount_uL, S.GUI.ShortRewardAmount_uL, S.GUI.LongRewardAmount_uL};
+    S.GUI.ITIMode ~= defaultS.GUI.ITIMode, '%-28s %s\n', {'ITI mode:', itiModeNames{S.GUI.ITIMode}};
+    any([S.GUI.ITIMin_s S.GUI.ITIMean_s S.GUI.ITIMax_s] ~= [defaultS.GUI.ITIMin_s defaultS.GUI.ITIMean_s defaultS.GUI.ITIMax_s]), '%-28s %.3f / %.3f / %.3f s\n', {'ITI min / mean / max:', S.GUI.ITIMin_s, S.GUI.ITIMean_s, S.GUI.ITIMax_s};
+    S.GUI.PunishITIMode ~= defaultS.GUI.PunishITIMode, '%-28s %s\n', {'Punish ITI mode:', itiModeNames{S.GUI.PunishITIMode}};
+    any([S.GUI.PunishITIMin_s S.GUI.PunishITIMean_s S.GUI.PunishITIMax_s] ~= [defaultS.GUI.PunishITIMin_s defaultS.GUI.PunishITIMean_s defaultS.GUI.PunishITIMax_s]), '%-28s %.3f / %.3f / %.3f s\n', {'Punish min / mean / max:', S.GUI.PunishITIMin_s, S.GUI.PunishITIMean_s, S.GUI.PunishITIMax_s};
+    S.GUI.OptoMode ~= defaultS.GUI.OptoMode, '%-28s %s\n', {'Opto enabled:', onOffText(S.GUI.OptoMode)};
+    any([S.GUI.OptoFraction S.GUI.OptoZeroEdgeTrials] ~= [defaultS.GUI.OptoFraction defaultS.GUI.OptoZeroEdgeTrials]), '%-28s %.3f, edge %d\n', {'Opto fraction / zero edge:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials)};
+    S.GUI.EnableOptoSensoryCue1 ~= defaultS.GUI.EnableOptoSensoryCue1, '%-28s %s\n', {'EnableOptoSensoryCue1:', onOffText(S.GUI.EnableOptoSensoryCue1)};
+    S.GUI.EnableOptoDelay ~= defaultS.GUI.EnableOptoDelay, '%-28s %s\n', {'EnableOptoDelay:', onOffText(S.GUI.EnableOptoDelay)};
+    S.GUI.EnableOptoPreRewardDelay ~= defaultS.GUI.EnableOptoPreRewardDelay, '%-28s %s\n', {'EnableOptoPreRewardDelay:', onOffText(S.GUI.EnableOptoPreRewardDelay)};
+    S.GUI.EnableOptoPostReward ~= defaultS.GUI.EnableOptoPostReward, '%-28s %s\n', {'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward)};
+    any([S.GUI.OptoFrequency_Hz S.GUI.OptoPulseOn_ms] ~= [defaultS.GUI.OptoFrequency_Hz defaultS.GUI.OptoPulseOn_ms]), '%-28s %.3f Hz / %.3f ms\n', {'Doric freq / on time:', S.GUI.OptoFrequency_Hz, S.GUI.OptoPulseOn_ms};
+    false, '%-28s %s\n', {'LED1 control mode:', 'Gated opto epoch'};
+    S.GUI.ProbeMode ~= defaultS.GUI.ProbeMode, '%-28s %s\n', {'Probe enabled:', onOffText(S.GUI.ProbeMode)};
+    any([S.GUI.ProbeFraction S.GUI.ProbeZeroEdgeTrials] ~= [defaultS.GUI.ProbeFraction defaultS.GUI.ProbeZeroEdgeTrials]), '%-28s %.3f, edge %d\n', {'Probe fraction / zero edge:', S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials)};
+    any([S.GUI.AssistMode S.GUI.AssistFraction] ~= [defaultS.GUI.AssistMode defaultS.GUI.AssistFraction]), '%-28s %s, fraction %.3f\n', {'Assist enabled:', onOffText(S.GUI.AssistMode), S.GUI.AssistFraction};
+    S.GUI.ChemoMode ~= defaultS.GUI.ChemoMode, '%-28s %s\n', {'Chemo enabled:', onOffText(S.GUI.ChemoMode)};
+    };
 
 fprintf('\n\n');
 fprintf('%s\n', repmat('=', 1, 58));
 fprintf('%s\n', char(datetime('today', 'Format', 'yyyyMMdd')));
-fprintf('%-28s %d\n', 'Total trials:', completedTrials);
-fprintf('%-28s %s\n', 'Press mode:', pressModeNames{S.GUI.PressMode});
-fprintf('%-28s %s\n', 'Timing mode:', timingNames{S.GUI.TimingMode});
-fprintf('%-28s %s\n', 'Sensory cue mode:', cueModeNames{S.GUI.SensoryCueMode});
-fprintf('%-28s %.3f / %.3f s\n', 'Short / long delay:', S.GUI.ShortDelay_s, S.GUI.LongDelay_s);
-fprintf('%-28s %.3f s\n', 'Press 1 window:', S.GUI.Press1Window_s);
-fprintf('%-28s %.3f / %.3f s\n', 'Press 2 window:', S.GUI.ShortPress2Window_s, S.GUI.LongPress2Window_s);
-fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Reward L / Max / R:', S.GUI.RewardWindowLeft_s, S.GUI.RewardMaximumWindow_s, S.GUI.RewardWindowRight_s);
-fprintf('%-28s %.3f / %.3f s\n', 'Pre / post reward delay:', S.GUI.PreRewardDelay_s, S.GUI.PostRewardDelay_s);
-fprintf('%-28s %.3f s\n', 'Total reward duration:', S.GUI.TotalRewardDuration_s);
-fprintf('%-28s %.3f / %.3f / %.3f uL\n', 'Reward amounts:', S.GUI.RewardAmount_uL, S.GUI.ShortRewardAmount_uL, S.GUI.LongRewardAmount_uL);
-fprintf('%-28s %.3f / %.3f / %.3f s\n', 'ITI min / mean / max:', S.GUI.ITIMin_s, S.GUI.ITIMean_s, S.GUI.ITIMax_s);
-fprintf('%-28s %.3f / %.3f / %.3f s\n', 'Punish min / mean / max:', S.GUI.PunishITIMin_s, S.GUI.PunishITIMean_s, S.GUI.PunishITIMax_s);
-fprintf('%-28s %s\n', 'Opto enabled:', onOffText(S.GUI.OptoMode));
-fprintf('%-28s %.3f, edge %d\n', 'Opto fraction / zero edge:', S.GUI.OptoFraction, round(S.GUI.OptoZeroEdgeTrials));
-fprintf('%-28s %s\n', 'EnableOptoSensoryCue1:', onOffText(S.GUI.EnableOptoSensoryCue1));
-fprintf('%-28s %s\n', 'EnableOptoDelay:', onOffText(S.GUI.EnableOptoDelay));
-fprintf('%-28s %s\n', 'EnableOptoPreRewardDelay:', onOffText(S.GUI.EnableOptoPreRewardDelay));
-fprintf('%-28s %s\n', 'EnableOptoPostReward:', onOffText(S.GUI.EnableOptoPostReward));
-fprintf('%-28s %.3f Hz / %.3f ms\n', 'Doric freq / on time:', S.GUI.OptoFrequency_Hz, S.GUI.OptoPulseOn_ms);
-fprintf('%-28s %s\n', 'LED1 control mode:', 'Gated opto epoch');
-fprintf('%-28s %s\n', 'Probe enabled:', onOffText(S.GUI.ProbeMode));
-fprintf('%-28s %.3f, edge %d\n', 'Probe fraction / zero edge:', S.GUI.ProbeFraction, round(S.GUI.ProbeZeroEdgeTrials));
-fprintf('%-28s %s, fraction %.3f\n', 'Assist enabled:', onOffText(S.GUI.AssistMode), S.GUI.AssistFraction);
-fprintf('%-28s %s\n', 'Chemo enabled:', onOffText(S.GUI.ChemoMode));
+fprintf('%-32s %d\n', 'Total trials:', completedTrials);
+fprintf('params changed:\n');
+printItems(true);
+fprintf('params same as default:\n');
+printItems(false);
 fprintf('\n\n');
+
+    function printItems(changed)
+        for itemIndex = 1:size(items, 1)
+            if items{itemIndex, 1} == changed
+                fprintf('    ');
+                fprintf(items{itemIndex, 2}, items{itemIndex, 3}{:});
+            end
+        end
+    end
 end
 
 function confirmDoricOptoSettings(S)

@@ -118,7 +118,7 @@ This handles soft codes from the state machine.
 It controls:
 
 - Sensory cues.
-- Gray screen.
+- Inter-trial and session-ready screen states.
 - Servo movement.
 - Press 2 timing.
 - Reward calculation.
