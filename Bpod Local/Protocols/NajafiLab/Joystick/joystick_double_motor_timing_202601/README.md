@@ -30,17 +30,15 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with configura
 - Changed default parameters.
 
 ### 2026.08.12
-- Apply the normal inter-trial idle-screen configuration while waiting for the session-start Enter, matching the screen setup immediately before the first real trial.
-
-### 2026.08.14
-- Route the pre-session idle screen through `SoftCodeHandler_Protocol(3)`, matching the pre-trial setup and keeping the configured display visible when another window is clicked.
+- Show the Psychtoolbox gray screen with the sync patch dark while waiting for the session-start Enter.
+- Document that Alt+Tab may be needed to switch from the Psychtoolbox window back to the first MATLAB window when the prompt is issued.
 
 ## Main Workflow
 
 1. Run `joystick_double_motor_timing_202601`.
 2. The Bpod console status LED turns off, then the GUI opens. Set parameters and press Enter in MATLAB.
 3. Hardware is configured: Pololu Maestro servo, rotary encoder, HiFi or system-speaker audio, and PsychToolbox video display.
-4. The servo returns home and `SoftCodeHandler_Protocol(3)` applies the normal inter-trial idle screen. Press Enter at the ready prompt to start trials.
+4. The servo returns home and the Psychtoolbox window becomes gray with the sync patch dark. When the ready prompt is issued, use Alt+Tab to switch back to the first MATLAB window if Psychtoolbox has focus, then press Enter to start trials.
 5. Each trial syncs GUI parameters, builds the next state machine, runs Bpod, saves trial data, and updates the plot canvas.
 
 ## Trial Logic

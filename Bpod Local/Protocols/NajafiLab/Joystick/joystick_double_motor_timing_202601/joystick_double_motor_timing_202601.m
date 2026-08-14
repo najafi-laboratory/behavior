@@ -105,8 +105,13 @@ currentTrial = 1;
 % Put hardware home before the session-start prompt.
 SoftCodeHandler_Protocol(9);
 pause(1);
-SoftCodeHandler_Protocol(3);
-disp('Idle screen is ready. Press Enter to start the session.')
+try
+    % Explicitly flip the player's gray calibration frame with patch off.
+    BpodSystem.PluginObjects.V.setSyncPatch(0);
+catch exception
+    error('Could not present the gray session-ready screen: %s', exception.message)
+end
+disp('Gray screen is ready. Press Enter to start the session.')
 KbName('UnifyKeyNames');
 enterKey = KbName('Return');
 while KbCheck

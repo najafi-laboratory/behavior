@@ -124,8 +124,6 @@ The actual duration replaces `SensoryCueDuration_s`.
 
 The protocol moves the servo home.
 
-It calls `SoftCodeHandler_Protocol(3)` to apply the same idle-screen setup used immediately before a real trial. This keeps the configured Psychtoolbox display visible if the operator clicks another window.
-
 It displays the ready prompt and waits for the user to press Enter again.
 
 This second Enter starts the session.
