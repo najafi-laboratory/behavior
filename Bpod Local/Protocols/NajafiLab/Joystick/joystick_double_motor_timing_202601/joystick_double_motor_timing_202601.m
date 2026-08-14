@@ -485,7 +485,8 @@ global BpodSystem
 if S.GUI.SensoryCueMode == 2
     frameCount = max(1, round(fps * S.GUI.SensoryCueDuration_s));
     actualDuration = frameCount / fps;
-    video = zeros(height, width, 3, 'uint8');
+    % Audio-only cues retain the gray background; only the sync patch changes.
+    video = uint8(128 * ones(height, width, 3));
 else
     [cueVideo, ~, actualDuration] = GenerateSensoryCueVideo(fullfile(protocolPath, 'image.png'), width, height, fps, S.GUI.SensoryCueDuration_s, S.GUI.UseGeneratedGrating);
     video = cueVideo;
@@ -494,7 +495,7 @@ BpodSystem.PluginObjects.V.loadVideo(1, video);
 BpodSystem.PluginObjects.V.loadVideo(2, video);
 BpodSystem.PluginObjects.V.Videos{1}.nFrames = 1;
 BpodSystem.PluginObjects.V.Videos{2}.nFrames = 1;
-loadIdleFrame(BpodSystem.PluginObjects.V, zeros(height, width, 3, 'uint8'));
+loadIdleFrame(BpodSystem.PluginObjects.V, uint8(128 * ones(height, width, 3)));
 
 if hifiAvailable()
     BpodSystem.PluginObjects.H.SamplingRate = S.GUI.AudioSamplingRate_Hz;
@@ -511,10 +512,10 @@ else
 end
 end
 
-function loadIdleFrame(videoPlayer, blackFrame)
-% Build a black frame whose sync patch is dark between cues.
+function loadIdleFrame(videoPlayer, grayFrame)
+% Build a gray frame whose sync patch is dark between cues.
 idleVideoSlot = 3;
-videoPlayer.loadVideo(idleVideoSlot, cat(4, blackFrame, blackFrame));
+videoPlayer.loadVideo(idleVideoSlot, cat(4, grayFrame, grayFrame));
 videoPlayer.Videos{idleVideoSlot}.Data([1 2]) = ...
     videoPlayer.Videos{idleVideoSlot}.Data([2 1]);
 videoPlayer.Videos{idleVideoSlot}.nFrames = 1;

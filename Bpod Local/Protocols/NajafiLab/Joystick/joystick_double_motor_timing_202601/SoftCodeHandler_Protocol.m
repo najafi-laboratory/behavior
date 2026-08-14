@@ -63,12 +63,12 @@ end
 
 
     function showIdleScreen
-        % Use the preloaded black/dark-patch frame for every cue mode.
+        % Use the preloaded gray/dark-patch frame between cues.
         stopAudio;
         if idleVideoAvailable()
             presentVideo(idleVideoSlot());
         else
-            presentBlackScreen;
+            presentGrayScreen;
         end
     end
 
@@ -109,13 +109,13 @@ end
         slot = 3;
     end
 
-    function presentBlackScreen
+    function presentGrayScreen
         synchronizeVideoState;
         if isequal(displayedVideoState, 0)
             return
         end
         player = BpodSystem.PluginObjects.V;
-        Screen('FillRect', player.Window, 0);
+        Screen('FillRect', player.Window, 128);
         Screen('Flip', player.Window, 0, 0, 2);
         displayedVideoState = 0;
     end

@@ -22,7 +22,7 @@ This is a compact Bpod MATLAB protocol for a joystick timing task with configura
 ### 2026.07.27
 - Turn off the Bpod console status LED when the protocol starts.
 - Prefer HiFi audio and fall back to the current system speaker.
-- Preload synchronized audio and a dedicated black idle display frame.
+- Preload synchronized audio and a dedicated gray idle display frame.
 - Modularize audio and idle-display handling.
 
 ### 2026.08.06
@@ -108,7 +108,7 @@ configured duration must be longer than the calibrated valve time.
 
 The protocol tries HiFi first, then the current system speaker through a pre-opened PsychPortAudio stream. Audio is buffered before each trial and triggered immediately after the display flip that turns the sync patch light. If neither output is available, the protocol prints a reminder and continues without auditory cue output.
 
-During trials, idle periods are completely black with the patch dark, while cue playback uses the preloaded cue frame with the patch light. Static cue and idle textures use a non-waiting Psychtoolbox flip so a stalled vertical-blank synchronization cannot block Bpod in `SensoryCue1`. Changing `SensoryCueMode` during a session updates the trial display states before the incoming trial. Duplicate soft-code requests for a visual state that is already displayed are ignored.
+During trials, the display stays gray with the patch dark except while a cue frame is shown. Static cue and idle textures use a non-waiting Psychtoolbox flip so a stalled vertical-blank synchronization cannot block Bpod in `SensoryCue1`. Changing `SensoryCueMode` during a session updates the trial display states before the incoming trial. Duplicate soft-code requests for a visual state that is already displayed are ignored.
 
 ### Timing
 
