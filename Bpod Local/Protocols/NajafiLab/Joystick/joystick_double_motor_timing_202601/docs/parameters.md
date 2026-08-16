@@ -170,6 +170,10 @@ Servo offset used to place the lever out.
 
 Delay after a detected press before moving the servo back.
 
+### `LeverRetract1Duration_s`
+
+Fixed time spent in `LeverRetract1` after the servo retraction starts. Defaults to 0.1 seconds.
+
 ### `ServoReturnTimeout_s`
 
 Maximum time to wait for the lever to return near zero.

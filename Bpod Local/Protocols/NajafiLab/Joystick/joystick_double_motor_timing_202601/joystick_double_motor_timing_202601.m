@@ -813,8 +813,8 @@ end
 if S.GUI.PressThreshold <= 0 || S.GUI.PressThreshold <= S.GUI.RetractThreshold
     error('PressThreshold must be positive and greater than RetractThreshold.')
 end
-if S.GUI.BlockLength < 1 || S.GUI.BlockLengthEdge < 0 || S.GUI.ServoReturnTimeout_s <= 0
-    error('BlockLength and servo timeout must be positive; BlockLengthEdge cannot be negative.')
+if S.GUI.BlockLength < 1 || S.GUI.BlockLengthEdge < 0 || S.GUI.ServoReturnTimeout_s <= 0 || S.GUI.LeverRetract1Duration_s < 0
+    error('BlockLength and servo timeout must be positive; BlockLengthEdge and lever retract duration cannot be negative.')
 end
 if S.GUI.OptoZeroEdgeTrials < 0 || S.GUI.OptoZeroEdgeTrials ~= round(S.GUI.OptoZeroEdgeTrials)
     error('OptoZeroEdgeTrials must be a nonnegative integer.')

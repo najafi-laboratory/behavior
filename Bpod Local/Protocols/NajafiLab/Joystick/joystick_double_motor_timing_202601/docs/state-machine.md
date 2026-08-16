@@ -30,7 +30,7 @@ If time runs out, the trial goes to `DidNotPress1`.
 
 `Press1` waits for `ServoMoveDelay_s`, then goes to `LeverRetract1`.
 
-`LeverRetract1` retracts the servo. When the soft-code handler confirms the servo is home, the trial moves to `PrePress2Delay`. Delay-period opto starts LED1 here.
+`LeverRetract1` starts retracting the servo and waits for `LeverRetract1Duration_s` (0.1 seconds by default), then moves to `PrePress2Delay`. Delay-period opto starts LED1 here.
 
 ## Press 2 Preparation
 

@@ -125,6 +125,7 @@ During trials, the display stays gray with the patch dark except while a cue fra
 - `ServoInPos`: servo home position.
 - `ServoOutPos`: servo released position.
 - `ServoMoveDelay_s`: wait after detected press before retract routing.
+- `LeverRetract1Duration_s`: fixed wait after starting the first lever retraction (default 0.1 s).
 - `ServoReturnTimeout_s`: maximum wait for servo return soft-code confirmation.
 - `AssistMode`: enables assist trials after early press 2.
 - `AssistFraction`: probability of assist after an eligible early trial.
