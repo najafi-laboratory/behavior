@@ -21,7 +21,7 @@ stimulus = {'TimingMode', 2; 'SensoryCueMode', 3; 'SensoryCueDuration_s', 0.2; '
 audio = {'AudioStimFreq_Hz', 11025; 'AudioStimVolume', 0.01; 'AudioSamplingRate_Hz', 48000; 'AudioAttenuation_dB', -35; 'AudioRamp_ms', 1};
 timing = {'ShortDelay_s', 0.5; 'LongDelay_s', 1; 'Press1Window_s', 2; 'ShortPress2Window_s', 5; 'LongPress2Window_s', 5};
 joystick = {'PressThreshold', 1; 'RetractThreshold', 0.3; 'ServoInPos', 1638; 'ServoOutPos', 50; 'ServoMoveDelay_s', 0.01; 'LeverRetract1Duration_s', 0.4; 'ServoReturnTimeout_s', 1; 'AssistMode', 1; 'AssistFraction', 0.3};
-reward = {'RewardWindowLeft_s', 0.1; 'RewardMaximumWindow_s', 0.5; 'RewardWindowRight_s', 1.5; 'PreRewardDelay_s', 0.5; 'PostRewardDelay_s', 1; 'TotalRewardDuration_s', 2; 'RewardMode', 1; 'RewardAmount_uL', 20; 'ShortRewardAmount_uL', 3; 'LongRewardAmount_uL', 3};
+reward = {'RewardWindowLeft_s', 0.1; 'RewardMaximumWindow_s', 0.5; 'RewardWindowRight_s', 1.5; 'PreRewardDelay_s', 0.5; 'PostRewardDelay_s', 1; 'TotalRewardDuration_s', 3; 'RewardMode', 1; 'RewardAmount_uL', 20; 'ShortRewardAmount_uL', 3; 'LongRewardAmount_uL', 3};
 iti = {'ITIMode', 2; 'ManualITI_s', 1; 'ITIMin_s', 5; 'ITIMax_s', 7; 'ITIMean_s', 6; 'PunishITIMode', 2; 'ManualPunishITI_s', 0; 'PunishITIMin_s', 5; 'PunishITIMax_s', 7; 'PunishITIMean_s', 6};
 manipulation = {'OptoMode', 0; 'OptoFraction', 0.35; 'OptoZeroEdgeTrials', 5; 'EnableOptoSensoryCue1', 1; 'EnableOptoDelay', 1; 'EnableOptoPreRewardDelay', 1; 'EnableOptoPostReward', 1; 'OptoFrequency_Hz', 50; 'OptoPulseOn_ms', 10; 'ChemoMode', 0};
 

@@ -189,22 +189,21 @@ end
     end
 
     function deliverDynamicReward
-        % Spread calibrated valve-on time evenly across the reward window.
+        % Deliver one tenth of the requested water in each reward cycle.
         amount = ProtocolTrialContext.RewardAmount_uL;
         if amount <= 0
             return
         end
-        valveTime = GetValveTimes(amount, 2);
         totalDuration = ProtocolTrialContext.TotalRewardDuration_s;
-        if valveTime >= totalDuration
-            error('TotalRewardDuration_s must be longer than the calibrated valve time (%.6f s).', valveTime)
-        end
-
-        % Divide the window into exactly 10 identical on/off cycles while
-        % preserving the calibrated total valve-on time.
         cycleCount = 10;
         cycleDuration = totalDuration / cycleCount;
-        pulseDuration = valveTime / cycleCount;
+
+        % Calibrate the water assigned to one cycle, convert its valve time
+        % to a per-cycle duty cycle, and cap delivery at 100% duty cycle.
+        amountPerCycle = amount / cycleCount;
+        valveTimePerCycle = GetValveTimes(amountPerCycle, 2);
+        dutyCycle = min(1, max(0, valveTimePerCycle / cycleDuration));
+        pulseDuration = dutyCycle * cycleDuration;
         offDuration = cycleDuration - pulseDuration;
 
         for cycle = 1:cycleCount
